@@ -1,3 +1,5 @@
+"use strict";
+
 require("dotenv").config();
 
 const keyPublishable = process.env.PUBLISHABLE_KEY;
@@ -9,6 +11,11 @@ const bodyParser = require("body-parser");
 
 const app = express();
 // app.use(express.static("public"));
+
+// Create AJAX database environment
+const environment = process.env.NODE_ENV || "development";
+const configuration = require("./knexfile")[environment];
+const database = require("knex")(configuration);
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
