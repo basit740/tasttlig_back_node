@@ -32,35 +32,135 @@ app.get("/", (req, res) => {
 
 // GET create an event page
 app.get("/create-event", (req, res) => {
-  res.send("Hello Create an Event Page!");
+  res.send("GET Create an Event Page!");
 });
 
 // GET resources page
 app.get("/resources", (req, res) => {
-  res.send("Hello Resources Page!");
+  res.send("GET Resources Page!");
+  // database("resources").select()
+  //   .then((resources) => {
+  //     res.status(200).json(resources);
+  //   })
+  //   .catch((err) => {
+  //     res.status(500).json({ err });
+  //   });
 });
 
 // GET events page
 app.get("/events", (req, res) => {
-  res.send("Hello Events Page!");
+  res.send("GET Events Page!");
+  // database("events").select()
+  //   .then((events) => {
+  //     res.status(200).json(events);
+  //   })
+  //   .catch((err) => {
+  //     res.status(500).json({ err });
+  //   });
 });
 
+// POST resource
+app.post("/resources", (req, res) => {
+  res.send("POST Resource!");
+  // database
+  //   .insert([
+  //     {
+  //       user_id: database
+  //         .from("users")
+  //         .select("id")
+  //         .limit(1),
+  //       name: req.body.name,
+  //       price: req.body.price,
+  //       food_ethnicity: req.body.food_ethnicity,
+  //       description: req.body.description,
+  //       city: req.body.city,
+  //       image_url_1: req.body.image_url_1,
+  //       image_url_2: req.body.image_url_2,
+  //       image_url_3: req.body.image_url_3
+  //     }
+  //   ])
+  //   .into("resources")
+  //   .then(res => {
+  //     console.log("Response", res);
+  //   })
+  //   .catch(err => {
+  //     console.log("Error", err);
+  //   });
+});
+
+// POST event
+app.post("/events", (req, res) => {
+  res.send("POST Event!");
+  // database
+  //   .insert([
+  //     {
+  //       user_id: database
+  //         .from("users")
+  //         .select("id")
+  //         .limit(1),
+  //       title: req.body.title,
+  //       date: req.body.date,
+  //       start_time: req.body.start_time,
+  //       end_time: req.body.end_time,
+  //       event_information: req.body.event_information,
+  //       capacity: req.body.capacity,
+  //       price: req.body.price,
+  //       venue: req.body.venue,
+  //       entertainment: req.body.entertainment,
+  //       event_type: req.body.event_type,
+  //       dress_code: req.body.dress_code,
+  //       image_url_1: req.body.image_url_1,
+  //       image_url_2: req.body.image_url_2,
+  //       image_url_3: req.body.image_url_3
+  //     }
+  //   ])
+  //   .into("events")
+  //   .then(res => {
+  //     console.log("Response", res);
+  //   })
+  //   .catch(err => {
+  //     console.log("Error", err);
+  //   });
+});
+
+// POST charge
 app.post("/charge", (req, res) => {
-  console.log("req body", req.body.email);
-  stripe.charges
-    .create({
-      amount: parseInt(req.body.amount) * 100,
-      currency: "cad",
-      description: "Example charge",
-      source: req.body.token,
-      receipt_email: req.body.email
-    })
-    .then(res => {
-      console.log("charge response backend", res);
-    })
-    .catch(err => {
-      console.log("charge err backend", err);
-    });
+  res.send("POST Charge!");
+  // database
+  //   .insert([
+  //     {
+  //       user_id: database
+  //         .from("users")
+  //         .select("id")
+  //         .limit(1),
+  //       amount: req.body.amount,
+  //       receipt_email: req.body.receipt_email,
+  //       receipt_url: req.body.token.receipt_url,
+  //       fingerprint: req.body.token.fingerprint
+  //     }
+  //   ])
+  //   .into("purchases")
+  //   .then(res => {
+  //     console.log("Response", res);
+  //   })
+  //   .catch(err => {
+  //     console.log("Error", err);
+  //   });
+
+  // stripe.charges
+  //   .create({
+  //     amount: parseInt(req.body.amount) * 100,
+  //     currency: "cad",
+  //     description: "Example charge",
+  //     source: req.body.token,
+  //     receipt_email: req.body.email
+  //   })
+  //   .then(res => {
+  //     console.log("Response", res);
+  //   })
+  //   .catch(err => {
+  //     console.log("Error", err);
+  //   });
 });
 
 // Boot server
