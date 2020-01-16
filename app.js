@@ -25,6 +25,26 @@ app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// GET landing page
+app.get("/", (req, res) => {
+  res.render("index");
+});
+
+// GET create an event page
+app.get("/create-event", (req, res) => {
+  res.send("Hello Create an Event Page!");
+});
+
+// GET resources page
+app.get("/resources", (req, res) => {
+  res.send("Hello Resources Page!");
+});
+
+// GET events page
+app.get("/events", (req, res) => {
+  res.send("Hello Events Page!");
+});
+
 app.post("/charge", (req, res) => {
   console.log("req body", req.body.email);
   stripe.charges
@@ -43,4 +63,5 @@ app.post("/charge", (req, res) => {
     });
 });
 
-app.listen(8000);
+// Boot server
+app.listen(3001);
