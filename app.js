@@ -6,6 +6,7 @@ const keyPublishable = process.env.PUBLISHABLE_KEY;
 const keySecret = process.env.SECRET_KEY;
 
 const express = require("express");
+const cors = require("cors");
 const stripe = require("stripe")(keySecret);
 const bodyParser = require("body-parser");
 
@@ -16,6 +17,10 @@ const app = express();
 const environment = process.env.NODE_ENV || "development";
 const configuration = require("./knexfile")[environment];
 const database = require("knex")(configuration);
+
+// Set up CORS
+app.use(cors());
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
