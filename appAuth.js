@@ -1,17 +1,16 @@
 "use strict";
 
 require("dotenv").config();
-const userRouter = require("./routes/user/userRoutes");
-const stripeRouter = require("./routes/stripe/stripeRoutes");
-
+const authRouter = require("./routes/auth/authRoutes");
+const keySecret = process.env.SECRET_KEY;
 const express = require("express");
+const stripe = require("stripe")(keySecret);
 const bodyParser = require("body-parser");
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(userRouter);
-app.use(stripeRouter);
+app.use(authRouter);
 
 // app.use(express.static("public"));
 
@@ -20,7 +19,7 @@ const environment = process.env.NODE_ENV || "development";
 const configuration = require("./knexfile")[environment];
 const database = require("knex")(configuration);
 
-const port = 8000 || process.env.PORT;
+const port = 4000 || process.env.PORT;
 app.listen(port, () => {
   console.log(`Listening on port: ${port}`);
 });
