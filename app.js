@@ -13,10 +13,10 @@ const bodyParser = require("body-parser");
 const app = express();
 // app.use(express.static("public"));
 
-// Create AJAX database environment
+// Create AJAX table environment
 const environment = process.env.NODE_ENV || "development";
 const configuration = require("./knexfile")[environment];
-const database = require("knex")(configuration);
+const table = require("knex")(configuration);
 
 // Set up CORS
 app.use(cors());
@@ -38,7 +38,7 @@ app.get("/create-event", (req, res) => {
 // GET resources page
 app.get("/resources", (req, res) => {
   res.send("GET Resources Page!");
-  // database("resources").select()
+  // table("resources").select()
   //   .then((resources) => {
   //     res.status(200).json(resources);
   //   })
@@ -50,7 +50,7 @@ app.get("/resources", (req, res) => {
 // GET events page
 app.get("/events", (req, res) => {
   res.send("GET Events Page!");
-  // database("events").select()
+  // table("events").select()
   //   .then((events) => {
   //     res.status(200).json(events);
   //   })
@@ -62,10 +62,10 @@ app.get("/events", (req, res) => {
 // POST resource
 app.post("/resources", (req, res) => {
   res.send("POST Resource!");
-  // database
+  // table
   //   .insert([
   //     {
-  //       user_id: database
+  //       user_id: table
   //         .from("users")
   //         .select("id")
   //         .limit(1),
@@ -91,10 +91,10 @@ app.post("/resources", (req, res) => {
 // POST event
 app.post("/events", (req, res) => {
   res.send("POST Event!");
-  // database
+  // table
   //   .insert([
   //     {
-  //       user_id: database
+  //       user_id: table
   //         .from("users")
   //         .select("id")
   //         .limit(1),
@@ -126,10 +126,10 @@ app.post("/events", (req, res) => {
 // POST charge
 app.post("/charge", (req, res) => {
   res.send("POST Charge!");
-  // database
+  // table
   //   .insert([
   //     {
-  //       user_id: database
+  //       user_id: table
   //         .from("users")
   //         .select("id")
   //         .limit(1),
@@ -162,6 +162,57 @@ app.post("/charge", (req, res) => {
   //     console.log("Error", err);
   //   });
 });
+
+// PUT profile update
+app.put("/profile/:id", (req, res) => {
+  // const first_name = req.body.first_name;
+  // const last_name = req.body.last_name;
+  // const email = req.body.email;
+  // const password = req.body.password;
+  // const hashedPassword = bcrypt.hashSync(password, 10);
+  // // Check for profile update errors
+  // if (!first_name || !last_name || !email || !password) {
+  //   res.status(400).send("Invalid entry. Please try again.");
+  //   return;
+  // } else {
+  // /* Check if email already exists in users table.
+  // If so, send error message.
+  // If not, update information in users table. */
+  //   table
+  //     .select("email")
+  //     .from("users")
+  //     .where("email", email)
+  //     .then(emailList => {
+  //       if (emailList.length !== 0) {
+  //         res.status(400).send("Email already exists. Please try again.");
+  //         return;
+  //       } else {
+  //         table("users")
+  //           .where({
+  //             email
+  //           })
+  //           .update({
+  //             first_name,
+  //             last_name,
+  //             email,
+  //             password: hashedPassword
+  //           })
+  //           .finally(() => {
+  //             table.destroy;
+  //           })
+  //           .then(res => {
+  //             console.log("Response", res);
+  //           })
+  //           .catch(err => {
+  //             console.log("Error", err);
+  //           });
+  //       }
+  //     });
+  // }
+});
+
+// DELETE logout
+app.delete("/logout", (req, res) => {});
 
 // Boot server
 app.listen(3001);
