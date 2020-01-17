@@ -28,34 +28,38 @@ authRouter.post("/login", async (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
   try {
-    const user = await queries.user.getUser(email);
-    const isPassCorrect = await bcrypt.compareSync(password, user.password);
-    const access_token = auth.generateAccessToken(user);
-    const refresh_token = auth.generateRefreshToken(user);
-    if (!isPassCorrect) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid password"
-      });
+    const response = await queries.user.getUser(email);
+    if (response.email) {
+      const isPassCorrect = await bcrypt.compareSync(password, user.password);
+      const access_token = auth.generateAccessToken(user);
+      const refresh_token = auth.generateRefreshToken(user);
+      if (!isPassCorrect) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid password"
+        });
+      } else {
+        return res.status(200).json({
+          success: true,
+          message: "logged",
+          user: {
+            user_id: user.user_id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            img_url: user.img_url,
+            phone_number: user.phone_number,
+            food_handler_certificate: user.food_handler_certificate,
+            isHost: user.isHost
+          },
+          tokens: {
+            access_token: access_token,
+            refresh_token: refresh_token
+          }
+        });
+      }
     } else {
-      return res.status(200).json({
-        success: true,
-        message: "logged",
-        user: {
-          user_id: user.user_id,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          email: user.email,
-          img_url: user.img_url,
-          phone_number: user.phone_number,
-          food_handler_certificate: user.food_handler_certificate,
-          isHost: user.isHost
-        },
-        tokens: {
-          access_token: access_token,
-          refresh_token: refresh_token
-        }
-      });
+      res.status(401).send({ success: false, message: response });
     }
   } catch (err) {
     return next(err);
