@@ -4,7 +4,7 @@ module.exports = {
   development: {
     client: "pg",
     connection: {
-      database: "kodede_back_node_development"
+      database: "postgres://localhost/kodede_back_node_development"
     },
     migrations: {
       directory: "./db/migrations"
