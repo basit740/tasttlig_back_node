@@ -10,17 +10,6 @@ const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../knexfile")[environment];
 const db = require("knex")(configuration);
 
-const users = [
-  { id: 1, name: "Bora", lastName: "Sumer" },
-  { id: 2, name: "James", lastName: "Bond" }
-];
-authRouter.get("/user", authenticateToken, (req, res) => {
-  const userById = users.filter(user => {
-    return user.id === req.user.id;
-  });
-  res.json(userById);
-});
-
 const refreshTokens = [];
 
 authRouter.post("/login", async (req, res, next) => {
@@ -30,7 +19,7 @@ authRouter.post("/login", async (req, res, next) => {
   try {
     const response = await queries.user.getUser(email);
     if (response.email) {
-      const isPassCorrect = await bcrypt.compareSync(password, user.password);
+      const isPassCorrect = bcrypt.compareSync(password, user.password);
       const access_token = auth.generateAccessToken(user);
       const refresh_token = auth.generateRefreshToken(user);
       if (!isPassCorrect) {
@@ -43,7 +32,7 @@ authRouter.post("/login", async (req, res, next) => {
           success: true,
           message: "logged",
           user: {
-            user_id: user.user_id,
+            user_id: user.id,
             first_name: user.first_name,
             last_name: user.last_name,
             email: user.email,
