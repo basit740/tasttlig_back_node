@@ -17,8 +17,8 @@ authRouter.post("/login", async (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
   try {
-    const response = await queries.user.getUser(email);
-    if (response.email) {
+    const user = await queries.user.getUser(email);
+    if (user.email) {
       const isPassCorrect = bcrypt.compareSync(password, user.password);
       const access_token = auth.generateAccessToken(user);
       const refresh_token = auth.generateRefreshToken(user);
@@ -48,7 +48,7 @@ authRouter.post("/login", async (req, res, next) => {
         });
       }
     } else {
-      res.status(401).send({ success: false, message: response });
+      res.status(401).send({ success: false, message: user });
     }
   } catch (err) {
     return next(err);

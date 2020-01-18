@@ -8,14 +8,9 @@ module.exports = {
       return db("users");
     },
     getUser: email => {
-      const user = db("users")
+      return db("users")
         .where("email", email)
         .first();
-      if (user.email) {
-        return user;
-      } else {
-        return "This email does not exist";
-      }
     }
   }
 };
