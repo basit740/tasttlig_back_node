@@ -7,9 +7,14 @@ module.exports = {
     getAll: () => {
       return db("users");
     },
-    getUser: email => {
+    getUserLogin: email => {
       return db("users")
         .where("email", email)
+        .first();
+    },
+    getUserById: id => {
+      return db("users")
+        .where("id", id)
         .first();
     }
   }

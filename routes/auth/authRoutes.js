@@ -17,7 +17,7 @@ authRouter.post("/login", async (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
   try {
-    const user = await queries.user.getUser(email);
+    const user = await queries.user.getUserLogin(email);
     if (user.email) {
       const isPassCorrect = bcrypt.compareSync(password, user.password);
       const access_token = auth.generateAccessToken(user);
