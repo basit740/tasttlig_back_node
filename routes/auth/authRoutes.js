@@ -1,33 +1,43 @@
 const authRouter = require("express").Router();
-const queries = require("../../db/queries");
+const User = require("../../db/queries/user");
 const auth = require("./authFunctions");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { authenticateToken } = auth;
-
-// Create AJAX database environment
-const environment = process.env.NODE_ENV || "development";
-const configuration = require("../../knexfile")[environment];
-const db = require("knex")(configuration);
+const Refreshtoken = require("../../db/queries/refreshtoken");
 
 const refreshTokens = [];
 
-authRouter.post("/login", async (req, res, next) => {
+//User login function with email and password, and hash the password
+authRouter.post("/login", async (req, res) => {
   //Authenticate the user
   const email = req.body.email;
   const password = req.body.password;
   try {
-    const user = await queries.user.getUserLogin(email);
-    if (user.email) {
+    const response = await User.getUserLogin(email);
+    if (response.success && email && password) {
+      const { user } = response;
+      const jwtUser = {
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        phone_number: user.phone_number,
+        food_handler_certificate: user.food_handler_certificate,
+        isHost: user.isHost
+      };
       const isPassCorrect = bcrypt.compareSync(password, user.password);
-      const access_token = auth.generateAccessToken(user);
-      const refresh_token = auth.generateRefreshToken(user);
+      const access_token = auth.generateAccessToken(jwtUser);
+      const refresh_token = auth.generateRefreshToken(jwtUser);
       if (!isPassCorrect) {
         return res.status(401).json({
           success: false,
           message: "Invalid password"
         });
       } else {
+        try {
+          await Refreshtoken.storeToken(refresh_token, user.id);
+        } catch (err) {
+          res.status(401).send(err);
+        }
         return res.status(200).json({
           success: true,
           message: "logged",
@@ -48,35 +58,38 @@ authRouter.post("/login", async (req, res, next) => {
         });
       }
     } else {
-      res.status(401).send({ success: false, message: user });
+      res.status(401).send({ success: false, message: response.message });
     }
   } catch (err) {
-    return next(err);
+    return send(err);
   }
 });
 
+//User Sign-up Function
 authRouter.post("/register", (req, res) => {
-  const email = req.body.email;
-  const first_name = req.body.first_name;
-  const last_name = req.body.last_name;
-  const phone_number = req.body.phone_number;
   const pw = req.body.password;
   const saltRounds = 10;
   const salt = bcrypt.genSaltSync(saltRounds);
   const password = bcrypt.hashSync(pw, salt);
-  db("users")
-    .insert({ email, password, first_name, last_name, phone_number })
-    .then(result => {
-      res.json({ success: true, message: "ok", result: result });
-    });
+  const user = {
+    email: req.body.email,
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    phone_number: req.body.phone_number,
+    password: password
+  };
+  User.userRegister(user).then(response => {
+    res.send(response);
+  });
 });
 
+//Get new access token by using refresh token
 authRouter.get("/token", (req, res) => {
   const refreshToken = req.body.token;
   if (refreshToken == null) return res.sendStatus(401);
   if (!refreshTokens.includes(refreshToken)) return res.sendStatus(403);
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
+    if (err) return res.status(403).send(err);
     const access_token = generateAccessToken({
       id: user.id,
       name: user.name,

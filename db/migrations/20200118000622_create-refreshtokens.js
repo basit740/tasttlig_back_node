@@ -11,7 +11,7 @@ exports.up = function(knex) {
       .references("id")
       .inTable("users")
       .onDelete("CASCADE");
-    table.string("refreshtoken");
+    table.string("refreshtoken", 512);
     table.timestamps(true, true);
   });
 };

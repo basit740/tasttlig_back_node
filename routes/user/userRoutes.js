@@ -1,10 +1,10 @@
 const userRouter = require("express").Router();
 const auth = require("../auth/authFunctions");
-const queries = require("../../db/queries");
+const User = require("../../db/queries/user");
 const { authenticateToken } = auth;
 
 userRouter.get("/user", authenticateToken, async (req, res) => {
-  const user = await queries.user.getUserById(req.user.id);
+  const user = await User.getUserById(req.user.id);
   res.json(user);
 });
 
