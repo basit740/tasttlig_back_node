@@ -5,8 +5,6 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Refreshtoken = require("../../db/queries/refreshtoken");
 
-const refreshTokens = [];
-
 //User login function with email and password, and hash the password
 authRouter.post("/login", async (req, res) => {
   //Authenticate the user
@@ -17,6 +15,7 @@ authRouter.post("/login", async (req, res) => {
     if (response.success && email && password) {
       const { user } = response;
       const jwtUser = {
+        id: user.id,
         email: user.email,
         first_name: user.first_name,
         last_name: user.last_name,
@@ -42,7 +41,7 @@ authRouter.post("/login", async (req, res) => {
           success: true,
           message: "logged",
           user: {
-            user_id: user.id,
+            id: user.id,
             first_name: user.first_name,
             last_name: user.last_name,
             email: user.email,
@@ -84,19 +83,30 @@ authRouter.post("/register", (req, res) => {
 });
 
 //Get new access token by using refresh token
-authRouter.get("/token", (req, res) => {
+authRouter.get("/token", async (req, res) => {
   const refreshToken = req.body.token;
   if (refreshToken == null) return res.sendStatus(401);
-  if (!refreshTokens.includes(refreshToken)) return res.sendStatus(403);
-  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-    if (err) return res.status(403).send(err);
-    const access_token = generateAccessToken({
-      id: user.id,
-      name: user.name,
-      lastName: user.lastName
-    });
-    res.json({ access_token });
-  });
+  // if (!refreshTokens.includes(refreshToken)) return res.sendStatus(403);
+  jwt.verify(
+    refreshToken,
+    process.env.REFRESH_TOKEN_SECRET,
+    async (err, user) => {
+      if (err) return res.status(403).send(err);
+      const response = await Refreshtoken.checkToken(refreshToken, user.id);
+      if (response.success) {
+        const access_token = generateAccessToken({
+          id: user.id,
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          phone_number: user.phone_number,
+          food_handler_certificate: user.food_handler_certificate,
+          isHost: user.isHost
+        });
+        res.json({ access_token });
+      }
+    }
+  );
 });
 
 module.exports = authRouter;
