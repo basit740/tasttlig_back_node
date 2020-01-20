@@ -7,7 +7,7 @@ module.exports = {
       database: "kodede_back_node_development"
     },
     migrations: {
-      directory: "./migrations"
+      directory: "./db/migrations"
     },
     useNullAsDefault: true
   },
