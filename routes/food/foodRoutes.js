@@ -1,26 +1,26 @@
 // Libraries
 const cors = require("cors");
-const resourcesRouter = require("express").Router();
+const foodRouter = require("express").Router();
 
 // Set up CORS
-resourcesRouter.use(cors());
-resourcesRouter.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+foodRouter.use(cors());
+foodRouter.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 
-// GET resources page
-resourcesRouter.get("/resources", (req, res) => {
-  res.send("GET Resources Page!");
-  // table("resources").select()
-  //   .then((resources) => {
-  //     res.status(200).json(resources);
+// GET food page
+foodRouter.get("/food", (req, res) => {
+  res.send("GET Food Page!");
+  // table("foods").select()
+  //   .then((foods) => {
+  //     res.status(200).json(foods);
   //   })
   //   .catch((err) => {
   //     res.status(500).json({ err });
   //   });
 });
 
-// POST resource
-resourcesRouter.post("/resources", (req, res) => {
-  res.send("POST Resource!");
+// POST food
+foodRouter.post("/food", (req, res) => {
+  res.send("POST Food!");
   // table
   //   .insert([
   //     {
@@ -38,7 +38,7 @@ resourcesRouter.post("/resources", (req, res) => {
   //       image_url_3: req.body.image_url_3
   //     }
   //   ])
-  //   .into("resources")
+  //   .into("foods")
   //   .then(res => {
   //     console.log("Response", res);
   //   })
@@ -47,4 +47,4 @@ resourcesRouter.post("/resources", (req, res) => {
   //   });
 });
 
-module.exports = resourcesRouter;
+module.exports = foodRouter;

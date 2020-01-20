@@ -4,7 +4,7 @@ require("dotenv").config();
 
 const indexRouter = require("./routes/index/indexRoutes");
 const userRouter = require("./routes/user/userRoutes");
-const resourcesRouter = require("./routes/resources/resourcesRoutes");
+const foodRouter = require("./routes/food/foodRoutes");
 const eventsRouter = require("./routes/events/eventsRoutes");
 const stripeRouter = require("./routes/stripe/stripeRoutes");
 const accountRouter = require("./routes/account/accountRoutes");
@@ -18,14 +18,14 @@ app.use(bodyParser.json());
 
 app.use(indexRouter);
 app.use(userRouter);
-app.use(resourcesRouter);
+app.use(foodRouter);
 app.use(eventsRouter);
 app.use(stripeRouter);
 app.use(accountRouter);
 
 // app.use(express.static("public"));
 
-const port = 8000 || process.env.PORT;
+const port = 3001 || process.env.PORT;
 app.listen(port, () => {
   console.log(`Listening on port: ${port}`);
 });
