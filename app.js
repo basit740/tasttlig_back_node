@@ -25,12 +25,6 @@ app.use(accountRouter);
 
 // app.use(express.static("public"));
 
-// Create AJAX table environment
-// const environment = process.env.NODE_ENV || "development";
-// const configuration = require("./db/knexfile")[environment];
-// const table = require("knex")(configuration);
-
-// Boot server
 const port = 8000 || process.env.PORT;
 app.listen(port, () => {
   console.log(`Listening on port: ${port}`);

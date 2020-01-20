@@ -8,7 +8,7 @@ authenticateToken = (req, res, next) => {
   if (token == null) return res.sendStatus(401);
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
+    if (err) return res.status(403).send(err);
     req.user = user;
     next();
   });
@@ -22,7 +22,7 @@ generateRefreshToken = user => {
 // Generate access token function
 generateAccessToken = user => {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "15s"
+    expiresIn: "15m"
   });
 };
 

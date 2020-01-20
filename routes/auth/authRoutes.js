@@ -1,47 +1,113 @@
 // Libraries
 const authRouter = require("express").Router();
-const queries = require("../../db/queries");
+const User = require("../../db/queries/user");
 const auth = require("./authFunctions");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const Refreshtoken = require("../../db/queries/refreshtoken");
 
-const { authenticateToken } = auth;
-
-const users = [
-  { id: 1, name: "Bora", lastName: "Sumer" },
-  { id: 2, name: "James", lastName: "Bond" }
-];
-
-authRouter.get("/user", authenticateToken, (req, res) => {
-  const userById = users.filter(user => {
-    return user.id === req.user.id;
-  });
-  res.json(userById);
+// User login function with email and password, and hash the password
+authRouter.post("/login", async (req, res) => {
+  // Authenticate the user
+  const email = req.body.email;
+  const password = req.body.password;
+  try {
+    const response = await User.getUserLogin(email);
+    if (response.success && email && password) {
+      const { user } = response;
+      const jwtUser = {
+        id: user.id,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        phone_number: user.phone_number,
+        food_handler_certificate: user.food_handler_certificate,
+        isHost: user.isHost
+      };
+      const isPassCorrect = bcrypt.compareSync(password, user.password);
+      const access_token = auth.generateAccessToken(jwtUser);
+      const refresh_token = auth.generateRefreshToken(jwtUser);
+      if (!isPassCorrect) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid password"
+        });
+      } else {
+        try {
+          await Refreshtoken.storeToken(refresh_token, user.id);
+        } catch (err) {
+          res.status(401).send(err);
+        }
+        return res.status(200).json({
+          success: true,
+          message: "logged",
+          user: {
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            img_url: user.img_url,
+            phone_number: user.phone_number,
+            food_handler_certificate: user.food_handler_certificate,
+            isHost: user.isHost
+          },
+          tokens: {
+            access_token: access_token,
+            refresh_token: refresh_token
+          }
+        });
+      }
+    } else {
+      res.status(401).send({ success: false, message: response.message });
+    }
+  } catch (err) {
+    return send(err);
+  }
 });
 
-// router.post('/register',register,(req,res)=>{
-// const user ={
-//   id:
-// }
-// })
-
-authRouter.post("/login", authenticateToken, (req, res) => {
-  //Authenticate the user
-  const name = req.body.name;
-  const id = req.body.id;
-  const lastName = req.body.lastName;
+// User sign-up function
+authRouter.post("/register", (req, res) => {
+  const pw = req.body.password;
+  const saltRounds = 10;
+  const salt = bcrypt.genSaltSync(saltRounds);
+  const password = bcrypt.hashSync(pw, salt);
   const user = {
-    id: id,
-    name: name,
-    lastName: lastName
+    email: req.body.email,
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    phone_number: req.body.phone_number,
+    password: password
   };
-  const access_token = auth.generateAccessToken(user);
-  const refresh_token = auth.generateRefreshToken(user);
-  res.json({ access_token, refresh_token });
+  User.userRegister(user).then(response => {
+    res.send(response);
+  });
 });
 
-authRouter.get("/user/:id", (req, res) => {
-  queries.user.getOne(req.params.id).then(user => {
-    res.json(user);
-  });
+// Get new access token by using refresh token
+authRouter.get("/token", async (req, res) => {
+  const refreshToken = req.body.token;
+  if (refreshToken == null) return res.sendStatus(401);
+  // if (!refreshTokens.includes(refreshToken)) return res.sendStatus(403);
+  jwt.verify(
+    refreshToken,
+    process.env.REFRESH_TOKEN_SECRET,
+    async (err, user) => {
+      if (err) return res.status(403).send(err);
+      const response = await Refreshtoken.checkToken(refreshToken, user.id);
+      if (response.success) {
+        const access_token = generateAccessToken({
+          id: user.id,
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          phone_number: user.phone_number,
+          food_handler_certificate: user.food_handler_certificate,
+          isHost: user.isHost
+        });
+        res.json({ access_token });
+      }
+    }
+  );
 });
 
 module.exports = authRouter;
