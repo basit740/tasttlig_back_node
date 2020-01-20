@@ -9,7 +9,7 @@ The purpose of this README.md file is to show how to set up the development envi
 3. Follow the Node.js installation instructions (skip this step if you already have one).
 4. Install dependencies: `npm install`.
 5. Create the database: `createdb kodede_back_node_development`.
-6. Load the database: `node_modules\.bin\knex migrate:latest`.
+6. Load the database: `node_modules/.bin/knex migrate:latest`.
 7. Open Node.js console: `node`.
 8. Install Crypto to get the access token (repeat this step to get the refresh token): `require('crypto').randomBytes(64).toString('hex')`.
 9. Copy and paste access and refresh token to `.env` file.
