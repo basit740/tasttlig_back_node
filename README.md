@@ -16,6 +16,6 @@ The purpose of this README.md file is to show how to set up the development envi
 10. Create a new Stripe account at <https://dashboard.stripe.com/register> (skip this step if you already have one).
 11. Sign in to your Stripe account at <https://dashboard.stripe.com/login>.
 12. Go to API keys at <https://dashboard.stripe.com/test/apikeys>.
-13. Copy and paste the Secret key to `.env` file.
+13. Click on `Reveal test key token` and copy and paste the Secret key to `.env` file.
 14. Start the development server: `npm run devStart`.
 15. Go to <http://localhost:8000> in your browser. :tada:
