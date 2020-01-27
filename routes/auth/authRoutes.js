@@ -1,12 +1,24 @@
+"use strict";
+
 // Libraries
 const authRouter = require("express").Router();
-const User = require("../../db/queries/user");
+const User = require("../../db/queries/auth/user");
 const auth = require("./authFunctions");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const Refreshtoken = require("../../db/queries/refreshtoken");
+const Refreshtoken = require("../../db/queries/auth/refreshtoken");
+// const authFunctions = require("./authFunctions");
+// const { authenticateToken } = authFunctions;
 
 // User login function with email and password, and hash the password
+authRouter.get("/confirmation/:token", async (req, res) => {
+  try {
+    const user_id = jwt.verify(req.params.token, process.env.EMAIL_SECRET).user;
+  } catch (err) {
+    console.log("confirmation error: ", err);
+  }
+});
+
 authRouter.post("/login", async (req, res) => {
   // Authenticate the user
   const email = req.body.email;
@@ -22,7 +34,8 @@ authRouter.post("/login", async (req, res) => {
         last_name: user.last_name,
         phone_number: user.phone_number,
         food_handler_certificate: user.food_handler_certificate,
-        isHost: user.isHost
+        isHost: user.isHost,
+        role: user.role
       };
       const isPassCorrect = bcrypt.compareSync(password, user.password);
       const access_token = auth.generateAccessToken(jwtUser);
@@ -49,7 +62,8 @@ authRouter.post("/login", async (req, res) => {
             img_url: user.img_url,
             phone_number: user.phone_number,
             food_handler_certificate: user.food_handler_certificate,
-            isHost: user.isHost
+            isHost: user.isHost,
+            role: user.role
           },
           tokens: {
             access_token: access_token,
@@ -76,7 +90,9 @@ authRouter.post("/register", (req, res) => {
     first_name: req.body.first_name,
     last_name: req.body.last_name,
     phone_number: req.body.phone_number,
-    password: password
+    password: password,
+    role: req.body.role,
+    isHost: req.body.isHost
   };
   User.userRegister(user).then(response => {
     res.send(response);
@@ -85,9 +101,8 @@ authRouter.post("/register", (req, res) => {
 
 // Get new access token by using refresh token
 authRouter.get("/token", async (req, res) => {
-  const refreshToken = req.body.token;
+  const refreshToken = req.headers["refresh-token"];
   if (refreshToken == null) return res.sendStatus(401);
-  // if (!refreshTokens.includes(refreshToken)) return res.sendStatus(403);
   jwt.verify(
     refreshToken,
     process.env.REFRESH_TOKEN_SECRET,
@@ -102,9 +117,14 @@ authRouter.get("/token", async (req, res) => {
           last_name: user.last_name,
           phone_number: user.phone_number,
           food_handler_certificate: user.food_handler_certificate,
-          isHost: user.isHost
+          isHost: user.isHost,
+          role: user.role
         });
         res.json({ access_token });
+      } else {
+        return res
+          .status(403)
+          .send({ success: false, message: "Invalid refresh token" }); //TODO: Update this
       }
     }
   );

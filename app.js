@@ -7,6 +7,7 @@ const userRouter = require("./routes/user/userRoutes");
 const foodRouter = require("./routes/food/foodRoutes");
 const stripeRouter = require("./routes/stripe/stripeRoutes");
 const accountRouter = require("./routes/account/accountRoutes");
+const restaurantRouter = require("./routes/restaurant/restaurantRoutes");
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -20,6 +21,7 @@ app.use(userRouter);
 app.use(foodRouter);
 app.use(stripeRouter);
 app.use(accountRouter);
+app.use(restaurantRouter);
 
 // app.use(express.static("public"));
 

@@ -1,8 +1,11 @@
-// Create AJAX database environment
+"use strict";
+
+// Refresh tokens table configuration
 const environment = process.env.NODE_ENV || "development";
-const configuration = require("../../knexfile")[environment];
+const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
 
+// Export refresh tokens table
 module.exports = {
   storeToken: async (refreshtoken, user_id) => {
     try {
@@ -24,7 +27,7 @@ module.exports = {
             .where("user_id", user_id)
             .update("refreshtoken", refreshtoken) //TODO: UPDATE THE UPDATE TIME
             .returning("*");
-          console.log(response);
+          // console.log(response);
         } catch (err) {
           console.log(err);
         }

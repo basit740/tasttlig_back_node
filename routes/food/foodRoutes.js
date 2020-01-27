@@ -1,50 +1,56 @@
+"use strict";
+
 // Libraries
-const cors = require("cors");
 const foodRouter = require("express").Router();
+const cors = require("cors");
+const auth = require("../auth/authFunctions");
+const Food = require("../../db/queries/marketplace/food");
+const { authenticateToken } = auth;
 
 // Set up CORS
 foodRouter.use(cors());
 foodRouter.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 
-// GET food page
-foodRouter.get("/food", (req, res) => {
-  res.send("GET Food Page!");
-  // table("foods").select()
-  //   .then((foods) => {
-  //     res.status(200).json(foods);
-  //   })
-  //   .catch((err) => {
-  //     res.status(500).json({ err });
-  //   });
+// GET marketplace food based on user ID
+foodRouter.get("/getuserfoods", authenticateToken, async (req, res) => {
+  const foods = await Food.getUserFood(req.user.id);
+  res.json(foods);
 });
 
-// POST food
-foodRouter.post("/food", (req, res) => {
-  res.send("POST Food!");
-  // table
-  //   .insert([
-  //     {
-  //       user_id: table
-  //         .from("users")
-  //         .select("id")
-  //         .limit(1),
-  //       name: req.body.name,
-  //       price: req.body.price,
-  //       food_ethnicity: req.body.food_ethnicity,
-  //       description: req.body.description,
-  //       city: req.body.city,
-  //       image_url_1: req.body.image_url_1,
-  //       image_url_2: req.body.image_url_2,
-  //       image_url_3: req.body.image_url_3
-  //     }
-  //   ])
-  //   .into("foods")
-  //   .then(res => {
-  //     console.log("Response", res);
-  //   })
-  //   .catch(err => {
-  //     console.log("Error", err);
-  //   });
+// GET all marketplace food for admin
+foodRouter.get("/getallfoods", authenticateToken, async (req, res) => {
+  if (req.user.role !== "admin") {
+    res
+      .status(403)
+      .send({ success: false, message: "Unauthorized for this path" });
+  } else {
+    const foods = await Food.getAllFood();
+    res.send(foods);
+  }
+});
+
+// POST marketplace food
+foodRouter.post("/addfood", authenticateToken, async (req, res) => {
+  const food = {
+    name: req.body.name,
+    food_ethnicity: req.body.food_ethnicity,
+    img_url_1: req.body.img_url_1,
+    img_url_2: req.body.img_url_2,
+    img_url_3: req.body.img_url_3,
+    price: req.body.price,
+    postal_code: req.body.postal_code,
+    address_line_1: req.body.address_line_1,
+    address_line_2: req.body.address_line_2,
+    city: req.body.city,
+    province: req.body.province,
+    description: req.body.description
+  };
+  try {
+    const foods = await Food.createFood(food, req.user.id);
+    res.json(foods);
+  } catch (err) {
+    res.json(err);
+  }
 });
 
 module.exports = foodRouter;

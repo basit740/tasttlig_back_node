@@ -1,3 +1,5 @@
+"use strict";
+
 exports.up = function(knex) {
   return knex.schema.createTable("users", table => {
     table
@@ -14,6 +16,7 @@ exports.up = function(knex) {
     table.string("img_url");
     table.string("food_handler_certificate").defaultTo(false);
     table.string("password").notNullable();
+    table.string("role").defaultTo("user");
     table
       .boolean("isHost")
       .notNullable()
