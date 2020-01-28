@@ -25,8 +25,8 @@ module.exports = {
           isHost
         })
         .returning("*");
-      // if (returning) return (response = { success: true, user: returning[0] });
-      // console.log("returning", returning);
+      if (returning) return (response = { success: true, user: returning[0] });
+      console.log("returning", returning);
       jwt.sign(
         { user: returning[0].id },
         process.env.EMAIL_SECRET,
@@ -49,6 +49,16 @@ module.exports = {
       );
     } catch (err) {
       return (response = { success: false, data: err });
+    }
+  },
+  verifyAccount: async user_id => {
+    try {
+      const returning = await db("users")
+        .where("id", user_id)
+        .update("verified", true);
+      return (response = { success: true, message: "ok", response: returning });
+    } catch (err) {
+      return (response = { success: false, message: err });
     }
   },
   getUserLogin: async email => {

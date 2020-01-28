@@ -15,6 +15,7 @@ exports.up = function(knex) {
     table.string("food_handler_certificate").defaultTo(false);
     table.string("password").notNullable();
     table.string("role").defaultTo("user");
+    table.string("verified").defaultTo(false);
     table
       .boolean("isHost")
       .notNullable()

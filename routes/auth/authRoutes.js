@@ -4,7 +4,6 @@ const auth = require("./authFunctions");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Refreshtoken = require("../../db/queries/auth/refreshtoken");
-const authFunctions = require("./authFunctions");
 // const { authenticateToken } = authFunctions;
 
 //User login function with email and password, and hash the password
@@ -12,6 +11,8 @@ const authFunctions = require("./authFunctions");
 authRouter.get("/confirmation/:token", async (req, res) => {
   try {
     const user_id = jwt.verify(req.params.token, process.env.EMAIL_SECRET).user;
+    const response = await User.verifyAccount(user_id);
+    console.log("response verification", response);
   } catch (err) {
     console.log("confirmation error: ", err);
   }
@@ -56,6 +57,7 @@ authRouter.post("/login", async (req, res) => {
             first_name: user.first_name,
             last_name: user.last_name,
             email: user.email,
+            verified: user.verified,
             img_url: user.img_url,
             phone_number: user.phone_number,
             food_handler_certificate: user.food_handler_certificate,
