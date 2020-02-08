@@ -1,9 +1,13 @@
+"use strict";
+
+// Users table configuration and libraries
 const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
 const jwt = require("jsonwebtoken");
 const Mailer = require("../../../routes/auth/nodemailer");
 
+// Exports users table
 module.exports = {
   userRegister: async user => {
     const email = user.email;

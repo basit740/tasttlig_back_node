@@ -1,7 +1,11 @@
+"use strict";
+
+// Restaurants table configuration
 const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
 
+// Export restaurants table
 module.exports = {
   createPurchase: async (restaurant, user_id) => {
     const email = restaurant.email;

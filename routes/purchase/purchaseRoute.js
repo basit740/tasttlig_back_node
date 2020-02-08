@@ -1,8 +1,17 @@
+"use strict";
+
+// Libraries
 const purchaseRouter = require("express").Router();
+const cors = require("cors");
 const auth = require("../auth/authFunctions");
 const Purchase = require("../../db/queries/purchase");
 const { authenticateToken } = auth;
 
+// Set up CORS
+purchaseRouter.use(cors());
+purchaseRouter.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+
+// POST experience and marketplace purchase via Stripe
 purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
   const purchase = {
     charge_id: req.body.charge_id,

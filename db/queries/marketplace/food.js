@@ -1,7 +1,11 @@
+"use strict";
+
+// Marketplace food table configuration
 const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
 
+// Export foods table
 module.exports = {
   createFood: async (food, user_id) => {
     const name = food.name;

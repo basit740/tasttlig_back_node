@@ -1,7 +1,11 @@
+"use strict";
+
+// Purchases table configuration
 const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
 
+// Export purchases table
 module.exports = {
   createPurchase: async (purchase, user_id) => {
     const charge_id = purchase.charge_id;
@@ -15,11 +19,11 @@ module.exports = {
         .insert({
           user_id,
           charge_id,
-          source_id,
           amount,
-          receipt_url,
           receipt_email,
-          fingerprint
+          receipt_url,
+          fingerprint,
+          source_id
         })
         .returning("*");
       if (returning) return (response = { success: true, user: returning[0] });

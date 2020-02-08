@@ -1,3 +1,6 @@
+"use strict";
+
+// Libraries
 const nodemailer = require("nodemailer");
 
 module.exports = {
