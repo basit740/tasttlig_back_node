@@ -78,9 +78,14 @@ authRouter.put("/user/updatepassword", authForPassUpdate, async (req, res) => {
     if (email) {
       const response = await User.updatePassword(email, password);
       console.log("updatepassword route:", response);
+      res.send({
+        success: true,
+        message: "ok",
+        response: response
+      });
     }
   } catch (err) {
-    console.log("router error for update password: ", err.message);
+    console.log("router error for update password: ", err);
     err.message === "jwt expired" &&
       res.send({
         success: false,
@@ -98,18 +103,17 @@ authRouter.post("/user/forgotpassword", async (req, res) => {
       { email: email },
       process.env.EMAIL_SECRET,
       {
-        expiresIn: "20m" //TODO: Update the time
+        expiresIn: "1m" //TODO: Update the time
       },
       async (err, emailToken) => {
         console.log(emailToken);
         try {
-          const url = `http://localhost:3000/forgotpassword/${emailToken}`;
+          const url = `http://localhost:3000/forgotpassword/${emailToken}`; //TODO: Update with production
           const info = await Mailer.transporter.sendMail({
             to: email,
             subject: "Confirm Email",
             html: `<a href="${url}">Please click here and verify your email address</a>`
           });
-          console.log(info);
           if (info.accepted[0] === email) {
             res.send({
               success: true,
@@ -198,23 +202,28 @@ authRouter.post("/user/login", async (req, res) => {
 });
 
 //User Sign-up Function
-authRouter.post("/user/register", createAccountLimiter, (req, res) => {
-  const pw = req.body.password;
-  const saltRounds = 10;
-  const salt = bcrypt.genSaltSync(saltRounds);
-  const password = bcrypt.hashSync(pw, salt);
-  const user = {
-    email: req.body.email,
-    first_name: req.body.first_name,
-    last_name: req.body.last_name,
-    phone_number: req.body.phone_number,
-    password: password,
-    role: req.body.role,
-    isHost: req.body.isHost
-  };
-  User.userRegister(user).then(response => {
-    res.send(response);
-  });
+authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
+  try {
+    console.log(req.body);
+    const pw = req.body.password;
+    const saltRounds = 10;
+    const salt = bcrypt.genSaltSync(saltRounds);
+    const password = bcrypt.hashSync(pw, salt);
+    const user = {
+      email: req.body.email,
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      phone_number: req.body.phone_number,
+      password: password,
+      role: req.body.role,
+      isHost: req.body.isHost
+    };
+    await User.userRegister(user).then(response => {
+      res.send(response);
+    });
+  } catch (err) {
+    console.log("registeration error");
+  }
 });
 
 // authRouter.post("/forgotpassword", createAccountLimiter, (req, res) => {
