@@ -197,23 +197,29 @@ authRouter.post("/user/login", async (req, res) => {
 });
 
 //User Sign-up Function
-authRouter.post("/user/register", createAccountLimiter, (req, res) => {
-  const pw = req.body.password;
-  const saltRounds = 10;
-  const salt = bcrypt.genSaltSync(saltRounds);
-  const password = bcrypt.hashSync(pw, salt);
-  const user = {
-    email: req.body.email,
-    first_name: req.body.first_name,
-    last_name: req.body.last_name,
-    phone_number: req.body.phone_number,
-    password: password,
-    role: req.body.role,
-    isHost: req.body.isHost
-  };
-  User.userRegister(user).then(response => {
-    res.send(response);
-  });
+authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
+  try {
+    console.log(req.body);
+    const pw = req.body.password;
+    const saltRounds = 10;
+    const salt = bcrypt.genSaltSync(saltRounds);
+    const password = bcrypt.hashSync(pw, salt);
+    const user = {
+      email: req.body.email,
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      phone_number: req.body.phone_number,
+      password: password,
+      role: req.body.role,
+      isHost: req.body.isHost
+    };
+    const response = await User.userRegister(user);
+    if (response.data.constraint == "users_email_unique") {
+      res.send({ success: false, message: "This email already exists" });
+    }
+  } catch (err) {
+    console.log("registeration error", err);
+  }
 });
 
 // authRouter.post("/forgotpassword", createAccountLimiter, (req, res) => {
