@@ -214,11 +214,13 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
       isHost: req.body.isHost
     };
     const response = await User.userRegister(user);
-    if (response.data.constraint == "users_email_unique") {
-      res.send({ success: false, message: "This email already exists" });
+    if (response.success) {
+      res.status(200).send(response);
+    } else {
+      res.status(403).send(response);
     }
   } catch (err) {
-    console.log("registeration error", err);
+    res.status(403).send(err);
   }
 });
 
