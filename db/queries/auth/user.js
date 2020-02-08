@@ -25,8 +25,6 @@ module.exports = {
           isHost
         })
         .returning("*");
-      if (returning) return (response = { success: true, user: returning[0] });
-      console.log("returning", returning);
       jwt.sign(
         { user: returning[0].id },
         process.env.EMAIL_SECRET,
@@ -35,18 +33,19 @@ module.exports = {
         },
         async (err, emailToken) => {
           try {
-            const url = `http://localhost:4000/confirmation/${emailToken}`;
+            const url = `http://localhost:4000/user/verify/${emailToken}`; //TODO:TRY THIS
             const info = await Mailer.transporter.sendMail({
               to: email,
               subject: "Confirm Email",
-              html: `${url}`
+              html: `<a href="${url}">Please click here and verify your email address</a>`
             });
-            console.log(info);
+            console.log("mailer info", info);
           } catch (err) {
             console.log("mail err", err);
           }
         }
       );
+      if (returning) return (response = { success: true, user: returning[0] });
     } catch (err) {
       return (response = { success: false, data: err });
     }
@@ -56,12 +55,54 @@ module.exports = {
       const returning = await db("users")
         .where("id", user_id)
         .update("verified", true);
-      return (response = { success: true, message: "ok", response: returning });
+      return (response = { success: true, message: "ok", user_id: returning });
+    } catch (err) {
+      return (response = { success: false, message: err });
+    }
+  },
+  updatePassword: async (email, password) => {
+    try {
+      const returning = await db("users")
+        .where("email", email)
+        .update("password", password)
+        .returning("*");
+      console.log("updatePassword", returning);
+      return (response = { success: true, message: "ok", data: returning });
     } catch (err) {
       return (response = { success: false, message: err });
     }
   },
   getUserLogin: async email => {
+    try {
+      const returning = await db("users")
+        .where("email", email)
+        .first();
+      if (returning) {
+        return (response = { success: true, user: returning });
+      } else {
+        return (response = { success: false, message: "User not found" });
+      }
+    } catch (err) {
+      console.log(err);
+      return (response = { success: false, data: err });
+    }
+  },
+  getUserLogOut: async user_id => {
+    try {
+      const returning = await db("refreshtokens")
+        .del()
+        .where("user_id", user_id);
+      if (returning === user_id) {
+        return {
+          success: true,
+          message: "User logged out, refresh token deleted"
+        };
+      }
+    } catch (err) {
+      return { success: false, data: err };
+    }
+  },
+  checkEmail: async email => {
     try {
       const returning = await db("users")
         .where("email", email)

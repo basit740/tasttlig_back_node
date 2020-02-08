@@ -4,11 +4,23 @@ const auth = require("./authFunctions");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Refreshtoken = require("../../db/queries/auth/refreshtoken");
+const rateLimit = require("express-rate-limit");
+const path = require("path");
+const Mailer = require("./nodemailer");
+const { authenticateToken, authForPassUpdate } = auth;
+
+const createAccountLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour window
+  max: 10, // start blocking after 10 requests
+  message:
+    "Too many accounts created from this IP, please try again after an hour"
+});
 // const { authenticateToken } = authFunctions;
 
 //User login function with email and password, and hash the password
 
-authRouter.get("/confirmation/:token", async (req, res) => {
+// Verifying the email address for registration
+authRouter.get("/user/confirmation/:token", async (req, res) => {
   try {
     const user_id = jwt.verify(req.params.token, process.env.EMAIL_SECRET).user;
     const response = await User.verifyAccount(user_id);
@@ -17,7 +29,111 @@ authRouter.get("/confirmation/:token", async (req, res) => {
     console.log("confirmation error: ", err);
   }
 });
-authRouter.post("/login", async (req, res) => {
+
+authRouter.delete("/user/logout", authenticateToken, async (req, res) => {
+  try {
+    const returning = await User.getUserLogOut(req.user.id);
+    res.send({
+      success: true,
+      message: "error",
+      response: returning
+    });
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err
+    });
+  }
+});
+
+authRouter.get("/user/verify/:token", async (req, res) => {
+  try {
+    const email = jwt.verify(req.params.token, process.env.EMAIL_SECRET).email;
+    if (email) {
+      res.sendFile("http://localhost:3000/forgotpassword/:token", {
+        token: req.params.token
+      });
+    }
+  } catch (err) {
+    console.log(err.message);
+    err.message === "jwt expired" &&
+      res.send({
+        success: false,
+        message: "error",
+        response: "token is expired"
+      });
+  }
+});
+authRouter.put("/user/updatepassword", authForPassUpdate, async (req, res) => {
+  try {
+    const email = req.user.email;
+    const pw = req.body.password;
+    const saltRounds = 10;
+    const salt = bcrypt.genSaltSync(saltRounds);
+    const password = bcrypt.hashSync(pw, salt);
+    if (email) {
+      const response = await User.updatePassword(email, password);
+      console.log("updatepassword route:", response);
+    }
+  } catch (err) {
+    console.log("router error for update password: ", err.message);
+    err.message === "jwt expired" &&
+      res.send({
+        success: false,
+        message: "error",
+        response: "token is expired"
+      });
+  }
+});
+
+authRouter.post("/user/forgotpassword", async (req, res) => {
+  const email = req.body.email;
+  const returning = await User.checkEmail(email);
+  if (returning.success) {
+    jwt.sign(
+      { email: email },
+      process.env.EMAIL_SECRET,
+      {
+        expiresIn: "20m" //TODO: Update the time
+      },
+      async (err, emailToken) => {
+        console.log(emailToken);
+        try {
+          const url = `http://localhost:3000/forgotpassword/${emailToken}`;
+          const info = await Mailer.transporter.sendMail({
+            to: email,
+            subject: "Confirm Email",
+            html: `<a href="${url}">Please click here and verify your email address</a>`
+          });
+          console.log(info);
+          if (info.accepted[0] === email) {
+            res.send({
+              success: true,
+              message: "ok",
+              response: `Your verification email has been sent to ${email}`
+            });
+          }
+        } catch (err) {
+          console.log("mail err", err);
+        }
+      }
+    );
+  } else {
+    res.send({
+      success: false,
+      message: "ok",
+      response: `There is no account for ${email}`
+    });
+  }
+});
+
+authRouter.post("/user/changepassword/:token", (req, res) => {
+  console.log(req.params.token);
+  console.log(req.body);
+});
+
+authRouter.post("/user/login", async (req, res) => {
   //Authenticate the user
   const email = req.body.email;
   const password = req.body.password;
@@ -79,7 +195,7 @@ authRouter.post("/login", async (req, res) => {
 });
 
 //User Sign-up Function
-authRouter.post("/register", (req, res) => {
+authRouter.post("/user/register", createAccountLimiter, (req, res) => {
   const pw = req.body.password;
   const saltRounds = 10;
   const salt = bcrypt.genSaltSync(saltRounds);
@@ -98,8 +214,17 @@ authRouter.post("/register", (req, res) => {
   });
 });
 
+// authRouter.post("/forgotpassword", createAccountLimiter, (req, res) => {
+//   const email = req.body.email;
+//   const pw = req.body.password;
+//   const saltRounds = 10;
+//   const salt = bcrypt.genSaltSync(saltRounds);
+//   const password = bcrypt.hashSync(pw, salt);
+//   User.forgotPassword(email, password);
+// });
+authRouter.post("/user/forgotpassword", createAccountLimiter, (req, res) => {});
 //Get new access token by using refresh token
-authRouter.get("/token", async (req, res) => {
+authRouter.get("/user/token", async (req, res) => {
   const refreshToken = req.headers["refresh-token"];
   if (refreshToken == null) return res.sendStatus(401);
   jwt.verify(
