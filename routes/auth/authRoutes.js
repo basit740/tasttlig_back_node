@@ -219,7 +219,9 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
       isHost: req.body.isHost
     };
     const response = await User.userRegister(user);
-    console.log("registration response", response);
+    if (response.data.constraint == "users_email_unique") {
+      res.send({ success: false, message: "This email already exists" });
+    }
   } catch (err) {
     console.log("registeration error", err);
   }
