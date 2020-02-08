@@ -218,11 +218,10 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
       role: req.body.role,
       isHost: req.body.isHost
     };
-    await User.userRegister(user).then(response => {
-      res.send(response);
-    });
+    const response = await User.userRegister(user);
+    console.log("registration response", response);
   } catch (err) {
-    console.log("registeration error");
+    console.log("registeration error", err);
   }
 });
 

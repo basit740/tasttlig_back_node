@@ -49,9 +49,9 @@ module.exports = {
           }
         }
       );
-      if (returning) return (response = { success: true, user: returning[0] });
+      if (returning) return { success: true, user: returning[0] };
     } catch (err) {
-      return (response = { success: false, data: err });
+      return { success: false, data: err };
     }
   },
   verifyAccount: async user_id => {
@@ -59,9 +59,9 @@ module.exports = {
       const returning = await db("users")
         .where("id", user_id)
         .update("verified", true);
-      return (response = { success: true, message: "ok", user_id: returning });
+      return { success: true, message: "ok", user_id: returning };
     } catch (err) {
-      return (response = { success: false, message: err });
+      return { success: false, message: err };
     }
   },
   updatePassword: async (email, password) => {
@@ -71,9 +71,9 @@ module.exports = {
         .update("password", password)
         .returning("*");
       console.log("updatePassword", returning);
-      return (response = { success: true, message: "ok", data: returning });
+      return { success: true, message: "ok", data: returning };
     } catch (err) {
-      return (response = { success: false, message: err });
+      return { success: false, message: err };
     }
   },
   getUserLogin: async email => {
@@ -82,13 +82,13 @@ module.exports = {
         .where("email", email)
         .first();
       if (returning) {
-        return (response = { success: true, user: returning });
+        return { success: true, user: returning };
       } else {
-        return (response = { success: false, message: "User not found" });
+        return { success: false, message: "User not found" };
       }
     } catch (err) {
       console.log(err);
-      return (response = { success: false, data: err });
+      return { success: false, data: err };
     }
   },
   getUserLogOut: async user_id => {
@@ -112,9 +112,9 @@ module.exports = {
         .where("email", email)
         .first();
       if (returning) {
-        return (response = { success: true, user: returning });
+        return { success: true, user: returning };
       } else {
-        return (response = { success: false, message: "User not found" });
+        return { success: false, message: "User not found" };
       }
     } catch (err) {
       console.log(err);
@@ -126,9 +126,9 @@ module.exports = {
       const returning = await db("users")
         .where("id", id)
         .first();
-      return (response = { success: true, user: returning });
+      return { success: true, user: returning };
     } catch (err) {
-      return (response = { success: false, message: "No user found" });
+      return { success: false, message: "No user found" };
     }
   }
 };
