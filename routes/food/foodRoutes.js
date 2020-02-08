@@ -1,3 +1,5 @@
+"use strict";
+
 const foodRouter = require("express").Router();
 const auth = require("../auth/authFunctions");
 const Food = require("../../db/queries/marketplace/food");

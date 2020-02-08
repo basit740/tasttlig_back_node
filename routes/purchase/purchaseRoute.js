@@ -1,3 +1,5 @@
+"use strict";
+
 const purchaseRouter = require("express").Router();
 const auth = require("../auth/authFunctions");
 const Purchase = require("../../db/queries/purchase");

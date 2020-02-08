@@ -1,3 +1,5 @@
+"use strict";
+
 const restaurantRouter = require("express").Router();
 const auth = require("../auth/authFunctions");
 const Restaurant = require("../../db/queries/profile/restaurant");

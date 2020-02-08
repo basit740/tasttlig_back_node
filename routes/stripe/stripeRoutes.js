@@ -1,3 +1,5 @@
+"use strict";
+
 const stripeRouter = require("express").Router();
 const keySecret = process.env.SECRET_KEY;
 

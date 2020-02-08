@@ -1,3 +1,4 @@
+"use strict";
 const userRouter = require("express").Router();
 const auth = require("../auth/authFunctions");
 const User = require("../../db/queries/auth/user");
