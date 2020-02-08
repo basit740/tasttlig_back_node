@@ -1,10 +1,8 @@
-"use strict";
-
 // Libraries
 const jwt = require("jsonwebtoken");
 
 // Authenticate token function
-authenticateToken = (req, res, next) => {
+const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   if (token == null) return res.sendStatus(401);
@@ -14,7 +12,7 @@ authenticateToken = (req, res, next) => {
     next();
   });
 };
-authForPassUpdate = (req, res, next) => {
+const authForPassUpdate = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   jwt.verify(token, process.env.EMAIL_SECRET, (err, user) => {
@@ -25,14 +23,14 @@ authForPassUpdate = (req, res, next) => {
 };
 
 // Generate refresh token function
-generateRefreshToken = user => {
+const generateRefreshToken = user => {
   return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: "7d"
   });
 };
 
 // Generate access token function
-generateAccessToken = user => {
+const generateAccessToken = user => {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "1d"
   });
