@@ -49,7 +49,9 @@ module.exports = {
           }
         }
       );
-      if (returning) return { success: true, user: returning[0] };
+      if (returning) {
+        return { success: true, data: returning[0] };
+      }
     } catch (err) {
       return { success: false, data: err };
     }

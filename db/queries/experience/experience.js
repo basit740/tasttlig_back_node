@@ -1,3 +1,5 @@
+"use strict";
+
 const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
@@ -49,25 +51,25 @@ module.exports = {
         })
         .returning("*");
 
-      if (returning) return (response = { success: true, user: returning[0] });
+      if (returning) return { success: true, user: returning[0] };
     } catch (err) {
-      return (response = { success: false, data: err });
+      return { success: false, data: err };
     }
   },
   getUserExperiences: async user_id => {
     try {
       const returning = await db("experiences").where("user_id", user_id);
-      return (response = { success: true, experiences: returning });
+      return { success: true, experiences: returning };
     } catch (err) {
-      return (response = { success: false, message: "No experience found" });
+      return { success: false, message: "No experience found" };
     }
   },
   getAllExperiences: async () => {
     try {
       const returning = await db("experiences");
-      return (response = { success: true, experiences: returning });
+      return { success: true, experiences: returning };
     } catch (err) {
-      return (response = { success: false, message: "No experience found" });
+      return { success: false, message: "No experience found" };
     }
   }
 };

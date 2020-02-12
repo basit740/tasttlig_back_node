@@ -1,3 +1,5 @@
+"use strict";
+
 const experienceRouter = require("express").Router();
 const auth = require("../auth/authFunctions");
 const Experience = require("../../db/queries/experience/experience");
