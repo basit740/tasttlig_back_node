@@ -8,9 +8,11 @@ module.exports = {
   createExperience: async (experience, user_id) => {
     const title = experience.title;
     const img_url_1 = experience.img_url_1;
-    const img_url_2 = experience.img_url_2;
-    const img_url_3 = experience.img_url_3;
+    // const img_url_2 = experience.img_url_2;
+    // const img_url_3 = experience.img_url_3;
     const food_ethnicity = experience.food_ethnicity;
+    const category = experience.category;
+    const style = experience.style;
     const capacity = experience.capacity;
     const experience_type = experience.experience_type;
     const dress_code = experience.dress_code;
@@ -31,9 +33,11 @@ module.exports = {
           user_id,
           title,
           food_ethnicity,
+          category,
+          style,
           img_url_1,
-          img_url_2,
-          img_url_3,
+          // img_url_2,
+          // img_url_3,
           price,
           experience_type,
           dress_code,

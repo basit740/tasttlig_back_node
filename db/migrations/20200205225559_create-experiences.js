@@ -13,9 +13,11 @@ exports.up = function(knex) {
       .onDelete("CASCADE");
     table.string("title").notNullable();
     table.string("food_ethnicity").notNullable();
+    table.string("category").notNullable();
+    table.string("style").notNullable();
     table.string("img_url_1").notNullable();
-    table.string("img_url_2").notNullable();
-    table.string("img_url_3").notNullable();
+    // table.string("img_url_2").notNullable();
+    // table.string("img_url_3").notNullable();
     table.integer("capacity").notNullable();
     table.string("experience_type").notNullable();
     table.string("dress_code").notNullable();

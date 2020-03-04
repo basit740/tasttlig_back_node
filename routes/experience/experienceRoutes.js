@@ -41,9 +41,11 @@ experienceRouter.post(
     const experience = {
       title: req.body.title,
       food_ethnicity: req.body.food_ethnicity,
+      category: req.body.category,
+      style: req.body.style,
       img_url_1: req.body.img_url_1,
-      img_url_2: req.body.img_url_2,
-      img_url_3: req.body.img_url_3,
+      // img_url_2: req.body.img_url_2,
+      // img_url_3: req.body.img_url_3,
       price: req.body.price,
       capacity: req.body.capacity,
       experience_type: req.body.experience_type,
@@ -60,11 +62,11 @@ experienceRouter.post(
       experience_information: req.body.experience_information
     };
     try {
-      const experiences = await Experience.createExperience(
+      const response = await Experience.createExperience(
         experience,
         req.user.id
       );
-      res.json(experiences);
+      response.success ? res.json(response) : res.status(403).send(response);
     } catch (err) {
       console.log(err);
       res.json(err);
