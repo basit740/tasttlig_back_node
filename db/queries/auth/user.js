@@ -10,23 +10,19 @@ const Mailer = require("../../../routes/auth/nodemailer");
 // Exports users table
 module.exports = {
   userRegister: async user => {
-    const email = user.email;
-    const password = user.password;
     const first_name = user.first_name;
     const last_name = user.last_name;
-    const phone_number = user.phone_number;
-    const role = user.role;
-    const isHost = user.isHost;
+    const phone = user.phone;
+    const email = user.email;
+    const password_digest = user.password;
     try {
       const returning = await db("users")
         .insert({
-          email,
-          password,
           first_name,
           last_name,
-          phone_number,
-          role,
-          isHost
+          phone,
+          email,
+          password_digest,
         })
         .returning("*");
       jwt.sign(
@@ -86,7 +82,7 @@ module.exports = {
       if (returning) {
         return { success: true, user: returning };
       } else {
-        return { success: false, message: "User not found" };
+        return { success: false, message: "User not found." };
       }
     } catch (err) {
       console.log(err);
@@ -95,13 +91,13 @@ module.exports = {
   },
   getUserLogOut: async user_id => {
     try {
-      const returning = await db("refreshtokens")
+      const returning = await db("refresh_tokens")
         .del()
         .where("user_id", user_id);
       if (returning === user_id) {
         return {
           success: true,
-          message: "User logged out, refresh token deleted"
+          message: "User logged out, refresh token deleted."
         };
       }
     } catch (err) {
@@ -116,7 +112,7 @@ module.exports = {
       if (returning) {
         return { success: true, user: returning };
       } else {
-        return { success: false, message: "User not found" };
+        return { success: false, message: "User not found." };
       }
     } catch (err) {
       console.log(err);
@@ -130,7 +126,7 @@ module.exports = {
         .first();
       return { success: true, user: returning };
     } catch (err) {
-      return { success: false, message: "No user found" };
+      return { success: false, message: "No user found." };
     }
   }
 };

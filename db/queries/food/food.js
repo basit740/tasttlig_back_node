@@ -1,6 +1,6 @@
 "use strict";
 
-// Marketplace food table configuration
+// Food table configuration
 const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
@@ -8,33 +8,45 @@ const db = require("knex")(configuration);
 // Export foods table
 module.exports = {
   createFood: async (food, user_id) => {
+    const img_url_1 = food.img_url_1;
     const name = food.name;
     const food_ethnicity = food.food_ethnicity;
-    const img_url_1 = food.img_url_1;
-    const img_url_2 = food.img_url_2;
-    const img_url_3 = food.img_url_3;
     const price = food.price;
-    const postal_code = food.postal_code;
-    const address_line_1 = food.address_line_1;
-    const address_line_2 = food.address_line_2;
+    const quantity = food.quantity;
+    const street_address = food.street_address;
     const city = food.city;
-    const province = food.province;
+    const province_territory = food.province_territory;
+    const postal_code = food.postal_code;
+    const spice_level = food.spice_level;
+    const vegetarian = food.vegetarian;
+    const vegan = food.vegan;
+    const gluten_free = food.gluten_free;
+    const halal = food.halal;
+    const ready_time = food.ready_time;
+    const time_type = food.time_type;
+    const delivery_fee = food.delivery_fee;
     const description = food.description;
     try {
       const returning = await db("foods")
         .insert({
-          name,
           user_id,
-          food_ethnicity,
           img_url_1,
-          img_url_2,
-          img_url_3,
+          name,
+          food_ethnicity,
           price,
-          postal_code,
-          address_line_1,
-          address_line_2,
+          quantity,
+          street_address,
           city,
-          province,
+          province_territory,
+          postal_code,
+          spice_level,
+          vegetarian,
+          vegan,
+          gluten_free,
+          halal,
+          ready_time,
+          time_type,
+          delivery_fee,
           description
         })
         .returning("*");
@@ -49,7 +61,7 @@ module.exports = {
       const returning = await db("foods").where("user_id", user_id);
       return (response = { success: true, foods: returning });
     } catch (err) {
-      return (response = { success: false, message: "No food found" });
+      return (response = { success: false, message: "No food found." });
     }
   },
   getAllFood: async () => {
@@ -57,7 +69,7 @@ module.exports = {
       const returning = await db("foods");
       return (response = { success: true, foods: returning });
     } catch (err) {
-      return (response = { success: false, message: "No food found" });
+      return (response = { success: false, message: "No food found." });
     }
   }
 };

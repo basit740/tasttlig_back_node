@@ -7,15 +7,15 @@ const db = require("knex")(configuration);
 
 // Export refresh tokens table
 module.exports = {
-  storeToken: async (refreshtoken, user_id) => {
+  storeToken: async (refresh_token, user_id) => {
     try {
-      const response = await db("refreshtokens")
+      const response = await db("refresh_tokens")
         .select()
         .where("user_id", user_id);
       if (response.length === 0) {
         try {
-          await db("refreshtokens").insert({
-            refreshtoken,
+          await db("refresh_tokens").insert({
+            refresh_token,
             user_id
           });
         } catch (err) {
@@ -23,27 +23,23 @@ module.exports = {
         }
       } else {
         try {
-          const response = await db("refreshtokens")
+          await db("refresh_tokens")
             .where("user_id", user_id)
-            .update("refreshtoken", refreshtoken) //TODO: UPDATE THE UPDATE TIME
+            .update("refresh_token", refresh_token)
             .returning("*");
-          // console.log(response);
         } catch (err) {
           console.log(err);
         }
       }
     } catch (err) {
-      return (response = {
-        success: false,
-        message: err
-      });
+      return (response = { success: false, message: err });
     }
   },
-  checkToken: async (refreshtoken, user_id) => {
+  checkToken: async (refresh_token, user_id) => {
     try {
-      const returning = await db("refreshtokens")
+      const returning = await db("refresh_tokens")
         .where("user_id", user_id)
-        .where("refreshtoken", refreshtoken);
+        .where("refresh_token", refresh_token);
       return (response = { success: true, message: "ok", response: returning });
     } catch (err) {
       return (response = { success: false, message: err });
