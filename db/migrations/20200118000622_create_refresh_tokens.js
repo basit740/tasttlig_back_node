@@ -1,7 +1,7 @@
 "use strict";
 
 exports.up = function(knex) {
-  return knex.schema.createTable("refreshtokens", table => {
+  return knex.schema.createTable("refresh_tokens", table => {
     table
       .increments()
       .unsigned()
@@ -13,11 +13,11 @@ exports.up = function(knex) {
       .references("id")
       .inTable("users")
       .onDelete("CASCADE");
-    table.string("refreshtoken", 512);
+    table.string("refresh_token", 512);
     table.timestamps(true, true);
   });
 };
 
 exports.down = function(knex) {
-  return knex.schema.dropTable("refreshtokens");
+  return knex.schema.dropTable("refresh_tokens");
 };

@@ -13,12 +13,18 @@ exports.up = function(knex) {
       .references("id")
       .inTable("users")
       .onDelete("CASCADE");
-    table.string("charge_id").notNullable();
+    table.integer("charge_id");
     table.decimal("amount").notNullable();
     table.string("receipt_email").notNullable();
     table.string("receipt_url").notNullable();
-    table.string("fingerprint").notNullable();
     table.integer("source_id").notNullable();
+    table.string("fingerprint").notNullable();
+    table.string("description").notNullable();
+    table.string("shipping_address").notNullable();
+    table.bigInteger("food_number").notNullable();
+    table.integer("quantity").notNullable();
+    table.boolean("accept");
+    table.text("reject_note");
     table.timestamps(true, true);
   });
 };
