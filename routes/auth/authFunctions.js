@@ -3,7 +3,7 @@
 // Libraries
 const jwt = require("jsonwebtoken");
 
-// Authenticate token function
+// Authenticate JWT function
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -14,6 +14,8 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+// Authenticate JWT coming from the client to update the password function
 const authForPassUpdate = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
