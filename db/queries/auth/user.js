@@ -15,6 +15,10 @@ module.exports = {
     const phone = user.phone;
     const email = user.email;
     const password_digest = user.password;
+    const img_url = user.img_url;
+    const chef = user.chef;
+    const caterer = user.caterer;
+
     try {
       const returning = await db("users")
         .insert({
@@ -23,8 +27,12 @@ module.exports = {
           phone,
           email,
           password_digest,
+          img_url,
+          chef,
+          caterer
         })
         .returning("*");
+
       jwt.sign(
         { user: returning[0].id },
         process.env.EMAIL_SECRET,
@@ -33,18 +41,18 @@ module.exports = {
         },
         async (err, emailToken) => {
           try {
-            const url = `http://localhost:4000/user/verify/${emailToken}`; //TODO:TRY THIS
+            const url = `http://localhost:3000/user/verify/${emailToken}`;
             const info = await Mailer.transporter.sendMail({
               to: email,
               subject: "Confirm Email",
               html: `<a href="${url}">Please click here and verify your email address</a>`
             });
-            console.log("mailer info", info);
           } catch (err) {
             console.log("mail err", err);
           }
         }
       );
+      
       if (returning) {
         return { success: true, data: returning[0] };
       }
@@ -58,6 +66,35 @@ module.exports = {
         .where("id", user_id)
         .update("verified", true);
       return { success: true, message: "ok", user_id: returning };
+    } catch (err) {
+      return { success: false, message: err };
+    }
+  },
+  updateProfile: async user => {
+    const id = user.id;
+    const first_name = user.first_name;
+    const last_name = user.last_name;
+    const phone = user.phone;
+    const email = user.email;
+    const password_digest = user.password;
+    const img_url = user.img_url;
+    const chef = user.chef;
+    const caterer = user.caterer;
+    try {
+      const returning = await db("users")
+        .where("id", id)
+        .update({
+          first_name,
+          last_name,
+          phone,
+          email,
+          password_digest,
+          img_url,
+          chef,
+          caterer
+        })
+        .returning("*");
+      return { success: true, message: "ok", data: returning };
     } catch (err) {
       return { success: false, message: err };
     }
