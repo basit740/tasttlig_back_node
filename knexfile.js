@@ -5,7 +5,6 @@ module.exports = {
     client: "pg",
     connection: {
       database: "kodede_back_node_development"
-      // database: "chinook"
     },
     migrations: {
       directory: "./db/migrations"

@@ -14,8 +14,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(authRouter);
 
-// app.use(express.static("public"));
-
+// Boot authorization server
 const port = 4000 || process.env.PORT;
 app.listen(port, () => {
   console.log(`Listening on port: ${port}`);

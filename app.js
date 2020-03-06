@@ -6,9 +6,6 @@ const indexRouter = require("./routes/index/indexRoutes");
 const userRouter = require("./routes/user/userRoutes");
 const foodRouter = require("./routes/food/foodRoutes");
 const stripeRouter = require("./routes/stripe/stripeRoutes");
-const accountRouter = require("./routes/account/accountRoutes");
-const restaurantRouter = require("./routes/restaurant/restaurantRoutes");
-const experienceRouter = require("./routes/experience/experienceRoutes");
 const searchRouter = require("./routes/search/searchRoutes");
 
 const express = require("express");
@@ -24,9 +21,6 @@ app.use(indexRouter);
 app.use(userRouter);
 app.use(foodRouter);
 app.use(stripeRouter);
-app.use(accountRouter);
-app.use(restaurantRouter);
-app.use(experienceRouter);
 app.use(searchRouter);
 
 function print(path, layer) {
