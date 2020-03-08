@@ -193,7 +193,19 @@ authRouter.put("/user/:id", async (req, res) => {
       password: password,
       img_url: req.body.img_url,
       chef: req.body.chef,
-      caterer: req.body.caterer
+      caterer: req.body.caterer,
+      food_handler_certificate: req.body.food_handler_certificate,
+      date_of_issue: req.body.date_of_issue,
+      expiry_date: req.body.expiry_date,
+      commercial_kitchen: req.body.commercial_kitchen,
+      bio: req.body.bio,
+      business_address: req.body.business_address,
+      facebook: req.body.facebook,
+      twitter: req.body.twitter,
+      instagram: req.body.instagram,
+      youtube: req.body.youtube,
+      linkedin: req.body.linkedin,
+      website: req.body.website
     };
     const response = await User.updateProfile(user);
     

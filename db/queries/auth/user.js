@@ -80,6 +80,18 @@ module.exports = {
     const img_url = user.img_url;
     const chef = user.chef;
     const caterer = user.caterer;
+    const food_handler_certificate = user.food_handler_certificate;
+    const date_of_issue = user.date_of_issue;
+    const expiry_date = user.expiry_date;
+    const commercial_kitchen = user.commercial_kitchen;
+    const bio = user.bio;
+    const business_address = user.business_address;
+    const facebook = user.facebook;
+    const twitter = user.twitter;
+    const instagram = user.instagram;
+    const youtube = user.youtube;
+    const linkedin = user.linkedin;
+    const website = user.website;
     try {
       const returning = await db("users")
         .where("id", id)
@@ -91,7 +103,19 @@ module.exports = {
           password_digest,
           img_url,
           chef,
-          caterer
+          caterer,
+          food_handler_certificate,
+          date_of_issue,
+          expiry_date,
+          commercial_kitchen,
+          bio,
+          business_address,
+          facebook,
+          twitter,
+          instagram,
+          youtube,
+          linkedin,
+          website
         })
         .returning("*");
       return { success: true, message: "ok", data: returning };
