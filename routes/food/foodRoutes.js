@@ -21,7 +21,7 @@ foodRouter.get("/food", async (req, res) => {
 // POST marketplace food
 foodRouter.post("/food", authenticateToken, async (req, res) => {
   const food = {
-    img_url_1: req.body.images,
+    img_url_1: req.body.img_url_1,
     name: req.body.name,
     food_ethnicity: req.body.food_ethnicity,
     price: req.body.price,

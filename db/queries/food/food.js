@@ -59,17 +59,18 @@ module.exports = {
   getUserFood: async user_id => {
     try {
       const returning = await db("foods").where("user_id", user_id);
-      return (response = { success: true, foods: returning });
+
+      return { success: true, foods: returning };
     } catch (err) {
-      return (response = { success: false, message: "No food found." });
+      return { success: false, message: "No food found." };
     }
   },
   getAllFood: async () => {
     try {
       const returning = await db("foods");
-      return (response = { success: true, foods: returning });
+      return { success: true, foods: returning };
     } catch (err) {
-      return (response = { success: false, message: "No food found." });
+      return { success: false, message: "No food found." };
     }
   }
 };
