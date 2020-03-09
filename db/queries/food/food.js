@@ -67,7 +67,7 @@ module.exports = {
   },
   getAllFood: async () => {
     try {
-      const returning = await db("foods");
+      const returning = await db("foods").innerJoin("users", "foods.user_id", "users.id");
       return { success: true, foods: returning };
     } catch (err) {
       return { success: false, message: "No food found." };
