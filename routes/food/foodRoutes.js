@@ -14,7 +14,7 @@ foodRouter.get("/user/food", authenticateToken, async (req, res) => {
 
 // GET all marketplace food
 foodRouter.get("/food", async (req, res) => {
-  const foods = await food.getAllFood();
+  const foods = await Food.getAllFood();
   res.send(foods);
 });
 
