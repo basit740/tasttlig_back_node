@@ -5,16 +5,39 @@ const purchaseRouter = require("express").Router();
 const auth = require("../auth/authFunctions");
 const Purchase = require("../../db/queries/purchase/purchase");
 const { authenticateToken } = auth;
+const fetch = require("node-fetch");
 
 // Use Stripe secret key
 require("dotenv").config();
 const keySecret = process.env.STRIPE_SECRET_KEY;
 const stripe = require("stripe")(keySecret);
 
+// GET all marketplace food purchase
+purchaseRouter.get("/purchase", async (req, res) => {
+  const purchases = await Purchase.getAllPurchase();
+  res.json(purchases);
+});
+
 // GET all marketplace food purchase based on user ID
-purchaseRouter.get("/user/purchase", authenticateToken, async (req, res) => {
+purchaseRouter.get("/purchase/user", authenticateToken, async (req, res) => {
   const purchases = await Purchase.getUserPurchase(req.user.id);
   res.json(purchases);
+});
+
+// GET incoming marketplace food orders based on food ID
+purchaseRouter.get("/incoming-orders", authenticateToken, async (req, res) => {
+  const purchases = await Purchase.getIncomingPurchase(req.user.food_id);
+  res.json(purchases);
+});
+
+// Get the delivery fee between origin and shipping address
+purchaseRouter.get("/delivery-fee", authenticateToken, async (req, res) => {
+  let url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=Toronto,ON&destinations=Ottawa,ON&key=${process.env.GOOGLE_DISTANCE_MATRIX_KEY}`;
+  console.log("User", req.food);
+  fetch(url)
+    .then(res => res.json())
+    .then(data => res.send({ data: data.rows[0].elements[0].distance.text.split(" ")[0] }))
+    .catch(err => console.log(err));
 });
 
 // POST marketplace food purchase
@@ -29,13 +52,13 @@ purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
 
   if (charge) {
     const purchase = {
+      food_id: req.body.food_id,
       amount: req.body.amount,
       receipt_email: req.body.receipt_email,
       receipt_url: charge.receipt_url,
       fingerprint: charge.payment_method_details.card.fingerprint,
       description: req.body.description,
       shipping_address: req.body.shipping_address,
-      food_number: req.body.food_number,
       quantity: req.body.quantity
     };
 
@@ -45,6 +68,21 @@ purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
     } catch (err) {
       res.json(err);
     }
+  }
+});
+
+// PUT incoming marketplace food orders response from publisher
+purchaseRouter.put("/incoming-orders", async (req, res) => {
+  const purchase = {
+    accept: req.body.accept
+    // reject_note: req.body.reject_note
+  };
+  try {
+    const purchases = await Purchase.updateIncomingPurchase(purchase);
+    res.json(purchases);
+    console.log("What is here...", purchases);
+  } catch (err) {
+    console.log("Incoming Order Response", err);
   }
 });
 

@@ -6,16 +6,16 @@ const auth = require("../auth/authFunctions");
 const Food = require("../../db/queries/food/food");
 const { authenticateToken } = auth;
 
-// GET all marketplace food based on user ID
-foodRouter.get("/user/food", authenticateToken, async (req, res) => {
-  const foods = await Food.getUserFood(req.user.id);
-  res.json(foods);
-});
-
 // GET all marketplace food
 foodRouter.get("/food", async (req, res) => {
   const foods = await Food.getAllFood();
-  res.send(foods);
+  res.json(foods);
+});
+
+// GET all marketplace food based on user ID
+foodRouter.get("/food/user", authenticateToken, async (req, res) => {
+  const foods = await Food.getUserFood(req.user.id);
+  res.json(foods);
 });
 
 // POST marketplace food
