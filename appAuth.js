@@ -2,9 +2,7 @@
 
 require("dotenv").config();
 const authRouter = require("./routes/auth/authRoutes");
-const keySecret = process.env.SECRET_KEY;
 const express = require("express");
-const stripe = require("stripe")(keySecret);
 const bodyParser = require("body-parser");
 const cors = require("cors");
 

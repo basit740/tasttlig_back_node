@@ -13,11 +13,9 @@ exports.up = function(knex) {
       .references("id")
       .inTable("users")
       .onDelete("CASCADE");
-    table.integer("charge_id");
-    table.decimal("amount").notNullable();
+    table.integer("amount").notNullable();
     table.string("receipt_email").notNullable();
     table.string("receipt_url").notNullable();
-    table.integer("source_id").notNullable();
     table.string("fingerprint").notNullable();
     table.string("description").notNullable();
     table.string("shipping_address").notNullable();

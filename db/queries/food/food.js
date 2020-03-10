@@ -50,7 +50,6 @@ module.exports = {
           description
         })
         .returning("*");
-
       if (returning) return (response = { success: true, user: returning[0] });
     } catch (err) {
       return (response = { success: false, data: err });
@@ -59,7 +58,6 @@ module.exports = {
   getUserFood: async user_id => {
     try {
       const returning = await db("foods").where("user_id", user_id);
-
       return { success: true, foods: returning };
     } catch (err) {
       return { success: false, message: "No food found." };
