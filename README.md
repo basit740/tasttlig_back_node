@@ -18,4 +18,5 @@ The purpose of this README.md file is to show how to set up the development envi
 12. Go to API keys at <https://dashboard.stripe.com/test/apikeys>.
 13. Click on `Reveal test key token` and copy and paste the Secret key to `.env` file.
 14. Start the development server: `npm run devStart`.
-15. Go to <http://localhost:8000> in your browser. :tada:
+15. Start the authorization server: `npm run devStartAuth`.
+16. Go to <http://localhost:8000> in your browser. :tada:
