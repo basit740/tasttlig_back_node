@@ -2,15 +2,15 @@
 
 // Libraries
 const purchaseRouter = require("express").Router();
+const fetch = require("node-fetch");
 const auth = require("../auth/authFunctions");
 const Purchase = require("../../db/queries/purchase/purchase");
 const { authenticateToken } = auth;
-const fetch = require("node-fetch");
 
 // Use Stripe secret key
-require("dotenv").config();
 const keySecret = process.env.STRIPE_SECRET_KEY;
 const stripe = require("stripe")(keySecret);
+require("dotenv").config();
 
 // GET all marketplace food purchase
 purchaseRouter.get("/purchase", async (req, res) => {
@@ -33,11 +33,13 @@ purchaseRouter.get("/incoming-orders", authenticateToken, async (req, res) => {
 // Get the delivery fee between origin and shipping address
 purchaseRouter.get("/delivery-fee", authenticateToken, async (req, res) => {
   let url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=Toronto,ON&destinations=Ottawa,ON&key=${process.env.GOOGLE_DISTANCE_MATRIX_KEY}`;
-  console.log("User", req.food);
+
   fetch(url)
     .then(res => res.json())
-    .then(data => res.send({ data: data.rows[0].elements[0].distance.text.split(" ")[0] }))
-    .catch(err => console.log(err));
+    .then(data =>
+      res.send({ data: data.rows[0].elements[0].distance.text.split(" ")[0] })
+    )
+    .catch(err => console.log("Delivery Fee", err));
 });
 
 // POST marketplace food purchase
@@ -74,13 +76,12 @@ purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
 // PUT incoming marketplace food orders response from publisher
 purchaseRouter.put("/incoming-orders", async (req, res) => {
   const purchase = {
-    accept: req.body.accept
-    // reject_note: req.body.reject_note
+    accept: req.body.accept,
+    reject_note: req.body.reject_note
   };
   try {
     const purchases = await Purchase.updateIncomingPurchase(purchase);
     res.json(purchases);
-    console.log("What is here...", purchases);
   } catch (err) {
     console.log("Incoming Order Response", err);
   }
