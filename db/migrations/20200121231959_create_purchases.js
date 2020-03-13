@@ -19,6 +19,7 @@ exports.up = function(knex) {
     table.string("fingerprint").notNullable();
     table.string("description").notNullable();
     table.integer("quantity").notNullable();
+    table.string("order_code").notNullable();
     table.boolean("accept");
     table.text("reject_note");
     table.timestamps(true, true);

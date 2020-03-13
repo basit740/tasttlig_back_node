@@ -14,6 +14,7 @@ module.exports = {
     const fingerprint = purchase.fingerprint;
     const description = purchase.description;
     const quantity = purchase.quantity;
+    const order_code = purchase.order_code;
     try {
       const returning = await db("purchases")
         .insert({
@@ -23,7 +24,8 @@ module.exports = {
           receipt_url,
           fingerprint,
           description,
-          quantity
+          quantity,
+          order_code
         })
         .returning("*");
       if (returning) return (response = { success: true, user: returning[0] });

@@ -40,7 +40,8 @@ purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
       receipt_url: charge.receipt_url,
       fingerprint: charge.payment_method_details.card.fingerprint,
       description: req.body.description,
-      quantity: req.body.quantity
+      quantity: req.body.quantity,
+      order_code: req.body.order_code
     };
 
     try {
