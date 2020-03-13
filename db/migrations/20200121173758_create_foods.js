@@ -13,15 +13,15 @@ exports.up = function(knex) {
       .references("id")
       .inTable("users")
       .onDelete("CASCADE");
-    table.string("img_url_1").notNullable();
+    table.string("food_img_url").notNullable();
     table.string("name").notNullable();
     table.string("food_ethnicity").notNullable();
     table.integer("price").notNullable();
     table.integer("quantity").notNullable();
-    table.string("street_address").notNullable();
-    table.string("city").notNullable();
-    table.string("province_territory").notNullable();
-    table.string("postal_code").notNullable();
+    table.string("food_street_address").notNullable();
+    table.string("food_city").notNullable();
+    table.string("food_province_territory").notNullable();
+    table.string("food_postal_code").notNullable();
     table.string("spice_level");
     table.boolean("vegetarian").defaultTo(false);
     table.boolean("vegan").defaultTo(false);
@@ -29,7 +29,6 @@ exports.up = function(knex) {
     table.boolean("halal").defaultTo(false);
     table.integer("ready_time").notNullable();
     table.string("time_type").notNullable();
-    table.integer("delivery_fee").notNullable();
     table.text("description").notNullable();
     table.timestamps(true, true);
   });

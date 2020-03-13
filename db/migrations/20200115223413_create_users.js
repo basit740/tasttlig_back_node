@@ -8,16 +8,27 @@ exports.up = function(knex) {
       .primary();
     table.string("first_name").notNullable();
     table.string("last_name").notNullable();
-    table.string("phone").notNullable();
     table
       .string("email")
       .unique()
       .notNullable();
     table.string("password_digest").notNullable();
-    table.string("img_url");
+    table.string("phone_number").notNullable();
+    table.string("user_postal_code").notNullable();
+    table.boolean("home").defaultTo(false);
+    table.boolean("office").defaultTo(false);
+    table.boolean("other").defaultTo(false);
+    table.string("food_handler_certificate");
+    table.date("date_of_issue");
+    table.date("expiry_date");
+    table.boolean("commercial_kitchen").defaultTo(false);
+    table.string("profile_img_url");
     table.boolean("chef").defaultTo(false);
     table.boolean("caterer").defaultTo(false);
-    table.string("business_address");
+    table.string("business_street_address");
+    table.string("business_city");
+    table.string("business_province_territory");
+    table.string("business_postal_code");
     table.string("facebook");
     table.string("twitter");
     table.string("instagram");
@@ -25,10 +36,6 @@ exports.up = function(knex) {
     table.string("linkedin");
     table.string("website");
     table.text("bio");
-    table.string("food_handler_certificate");
-    table.date("date_of_issue");
-    table.date("expiry_date");
-    table.boolean("commercial_kitchen").defaultTo(false);
     table.timestamps(true, true);
   });
 };
