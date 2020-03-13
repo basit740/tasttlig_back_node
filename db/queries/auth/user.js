@@ -12,24 +12,34 @@ module.exports = {
   userRegister: async user => {
     const first_name = user.first_name;
     const last_name = user.last_name;
-    const phone = user.phone;
     const email = user.email;
     const password_digest = user.password;
-    const img_url = user.img_url;
-    const chef = user.chef;
-    const caterer = user.caterer;
+    const phone_number = user.phone_number;
+    const user_postal_code = user.user_postal_code;
+    const home = user.home;
+    const office = user.office;
+    const other = user.other;
+    const food_handler_certificate = user.food_handler_certificate;
+    const date_of_issue = user.date_of_issue;
+    const expiry_date = user.expiry_date;
+    const commercial_kitchen = user.commercial_kitchen;
 
     try {
       const returning = await db("users")
         .insert({
           first_name,
           last_name,
-          phone,
           email,
           password_digest,
-          img_url,
-          chef,
-          caterer
+          phone_number,
+          user_postal_code,
+          home,
+          office,
+          other,
+          food_handler_certificate,
+          date_of_issue,
+          expiry_date,
+          commercial_kitchen
         })
         .returning("*");
 
@@ -74,48 +84,62 @@ module.exports = {
     const id = user.id;
     const first_name = user.first_name;
     const last_name = user.last_name;
-    const phone = user.phone;
     const email = user.email;
     const password_digest = user.password;
-    const img_url = user.img_url;
-    const chef = user.chef;
-    const caterer = user.caterer;
+    const phone_number = user.phone_number;
+    const user_postal_code = user.user_postal_code;
+    const home = user.home;
+    const office = user.office;
+    const other = user.other;
     const food_handler_certificate = user.food_handler_certificate;
     const date_of_issue = user.date_of_issue;
     const expiry_date = user.expiry_date;
     const commercial_kitchen = user.commercial_kitchen;
-    const bio = user.bio;
-    const business_address = user.business_address;
+    const profile_img_url = user.profile_img_url;
+    const chef = user.chef;
+    const caterer = user.caterer;
+    const business_street_address = user.business_street_address;
+    const business_city = user.business_city;
+    const business_province_territory = user.business_province_territory;
+    const business_postal_code = user.business_postal_code;
     const facebook = user.facebook;
     const twitter = user.twitter;
     const instagram = user.instagram;
     const youtube = user.youtube;
     const linkedin = user.linkedin;
     const website = user.website;
+    const bio = user.bio;
     try {
       const returning = await db("users")
         .where("id", id)
         .update({
           first_name,
           last_name,
-          phone,
           email,
           password_digest,
-          img_url,
-          chef,
-          caterer,
+          phone_number,
+          user_postal_code,
+          home,
+          office,
+          other,
           food_handler_certificate,
           date_of_issue,
           expiry_date,
           commercial_kitchen,
-          bio,
-          business_address,
+          profile_img_url,
+          chef,
+          caterer,
+          business_street_address,
+          business_city,
+          business_province_territory,
+          business_postal_code,
           facebook,
           twitter,
           instagram,
           youtube,
           linkedin,
-          website
+          website,
+          bio
         })
         .returning("*");
       return { success: true, message: "ok", data: returning };

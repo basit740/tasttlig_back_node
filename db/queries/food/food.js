@@ -8,15 +8,15 @@ const db = require("knex")(configuration);
 // Export foods table
 module.exports = {
   createFood: async (food, user_id) => {
-    const img_url_1 = food.img_url_1;
+    const food_img_url = food.food_img_url;
     const name = food.name;
     const food_ethnicity = food.food_ethnicity;
     const price = food.price;
     const quantity = food.quantity;
-    const street_address = food.street_address;
-    const city = food.city;
-    const province_territory = food.province_territory;
-    const postal_code = food.postal_code;
+    const food_street_address = food.food_street_address;
+    const food_city = food.food_city;
+    const food_province_territory = food.food_province_territory;
+    const food_postal_code = food.food_postal_code;
     const spice_level = food.spice_level;
     const vegetarian = food.vegetarian;
     const vegan = food.vegan;
@@ -24,21 +24,20 @@ module.exports = {
     const halal = food.halal;
     const ready_time = food.ready_time;
     const time_type = food.time_type;
-    const delivery_fee = food.delivery_fee;
     const description = food.description;
     try {
       const returning = await db("foods")
         .insert({
           user_id,
-          img_url_1,
+          food_img_url,
           name,
           food_ethnicity,
           price,
           quantity,
-          street_address,
-          city,
-          province_territory,
-          postal_code,
+          food_street_address,
+          food_city,
+          food_province_territory,
+          food_postal_code,
           spice_level,
           vegetarian,
           vegan,
@@ -46,7 +45,6 @@ module.exports = {
           halal,
           ready_time,
           time_type,
-          delivery_fee,
           description
         })
         .returning("*");
