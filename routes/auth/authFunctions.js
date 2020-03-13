@@ -3,6 +3,21 @@
 // Libraries
 const jwt = require("jsonwebtoken");
 
+// Generate access token function
+const generateAccessToken = user => {
+  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: "7d"
+  });
+};
+
+// Generate refresh token function
+const generateRefreshToken = user => {
+  return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: "7d"
+  });
+};
+
+
 // Authenticate JWT function
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -23,20 +38,6 @@ const authForPassUpdate = (req, res, next) => {
     if (err) return res.status(403).send(err);
     req.user = user;
     next();
-  });
-};
-
-// Generate refresh token function
-const generateRefreshToken = user => {
-  return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
-    expiresIn: "7d"
-  });
-};
-
-// Generate access token function
-const generateAccessToken = user => {
-  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "1d"
   });
 };
 

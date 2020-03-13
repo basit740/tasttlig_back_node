@@ -23,19 +23,27 @@ const { authenticateToken, authForPassUpdate } = auth;
 // POST user register
 authRouter.post("/user/register", async (req, res) => {
   try {
-    const pw = req.body.password;
+    const password = req.body.password;
     const saltRounds = 10;
     const salt = bcrypt.genSaltSync(saltRounds);
-    const password = bcrypt.hashSync(pw, salt);
+    const password = bcrypt.hashSync(password, salt);
     const user = {
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       email: req.body.email,
-      phone: req.body.phone,
-      password: password
+      password,
+      phone_number: req.body.phone,
+      user_postal_code: req.body.user_postal_code,
+      home: req.body.home,
+      office: req.body.office,
+      other: req.body.other,
+      food_handler_certificate: req.body.food_handler_certificate,
+      date_of_issue: req.body.date_of_issue,
+      expiry_date: req.body.expiry_date,
+      commercial_kitchen: req.body.commercial_kitchen
     };
     const response = await User.userRegister(user);
-    
+
     if (response.data.constraint == "users_email_unique") {
       res.send({ success: false, message: "This email already exists" });
     }
@@ -70,8 +78,9 @@ authRouter.post("/user/login", async (req, res) => {
         id: user.id,
         first_name: user.first_name,
         last_name: user.last_name,
-        phone: user.phone,
         email: user.email,
+        phone_number: user.phone_number,
+        user_postal_code: user.user_postal_code
       };
       const isPassCorrect = bcrypt.compareSync(password, user.password_digest);
       const access_token = auth.generateAccessToken(jwtUser);
@@ -96,12 +105,13 @@ authRouter.post("/user/login", async (req, res) => {
             id: user.id,
             first_name: user.first_name,
             last_name: user.last_name,
-            phone: user.phone,
             email: user.email,
+            phone_number: user.phone_number,
+            user_postal_code: user.user_postal_code
           },
           tokens: {
-            access_token: access_token,
-            refresh_token: refresh_token
+            access_token,
+            refresh_token
           }
         });
       }
@@ -119,7 +129,7 @@ authRouter.delete("/user/logout", authenticateToken, async (req, res) => {
     const returning = await User.getUserLogOut(req.user.id);
     res.send({
       success: true,
-      message: "error",
+      message: "ok",
       response: returning
     });
   } catch (err) {
@@ -180,35 +190,42 @@ authRouter.put("/user/updatepassword", authForPassUpdate, async (req, res) => {
 // PUT user profile update
 authRouter.put("/user/:id", async (req, res) => {
   try {
-    const pw = req.body.password;
+    const password = req.body.password;
     const saltRounds = 10;
     const salt = bcrypt.genSaltSync(saltRounds);
-    const password = bcrypt.hashSync(pw, salt);
+    const password = bcrypt.hashSync(password, salt);
     const user = {
       id: req.params.id,
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       email: req.body.email,
-      phone: req.body.phone,
-      password: password,
-      img_url: req.body.img_url,
-      chef: req.body.chef,
-      caterer: req.body.caterer,
+      password,
+      phone_number: req.body.phone_number,
+      user_postal_code: req.body.user_postal_code,
+      home: req.body.home,
+      office: req.body.office,
+      other: req.body.other,
       food_handler_certificate: req.body.food_handler_certificate,
       date_of_issue: req.body.date_of_issue,
       expiry_date: req.body.expiry_date,
       commercial_kitchen: req.body.commercial_kitchen,
-      bio: req.body.bio,
-      business_address: req.body.business_address,
+      profile_img_url: req.body.profile_img_url,
+      chef: req.body.chef,
+      caterer: req.body.caterer,
+      business_street_address: req.body.business_street_address,
+      business_city: req.body.business_city,
+      business_province_territory: req.body.business_province_territory,
+      business_postal_code: req.body.business_postal_code,
       facebook: req.body.facebook,
       twitter: req.body.twitter,
       instagram: req.body.instagram,
       youtube: req.body.youtube,
       linkedin: req.body.linkedin,
-      website: req.body.website
+      website: req.body.website,
+      bio: req.body.bio
     };
     const response = await User.updateProfile(user);
-    
+
     if (response.data.constraint == "users_email_unique") {
       res.send({ success: false, message: "This email already exists" });
     }

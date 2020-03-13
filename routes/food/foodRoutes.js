@@ -21,15 +21,15 @@ foodRouter.get("/food/user", authenticateToken, async (req, res) => {
 // POST marketplace food
 foodRouter.post("/food", authenticateToken, async (req, res) => {
   const food = {
-    img_url_1: req.body.img_url_1,
+    food_img_url: req.body.food_img_url,
     name: req.body.name,
     food_ethnicity: req.body.food_ethnicity,
     price: req.body.price,
     quantity: req.body.quantity,
-    street_address: req.body.street_address,
-    city: req.body.city,
-    province_territory: req.body.province_territory,
-    postal_code: req.body.postal_code,
+    food_street_address: req.body.food_street_address,
+    food_city: req.body.food_city,
+    food_province_territory: req.body.food_province_territory,
+    food_postal_code: req.body.food_postal_code,
     spice_level: req.body.spice_level,
     vegetarian: req.body.vegetarian,
     vegan: req.body.vegan,
@@ -37,7 +37,6 @@ foodRouter.post("/food", authenticateToken, async (req, res) => {
     halal: req.body.halal,
     ready_time: req.body.ready_time,
     time_type: req.body.time_type,
-    delivery_fee: req.body.delivery_fee,
     description: req.body.description
   };
 
