@@ -23,10 +23,10 @@ const { authenticateToken, authForPassUpdate } = auth;
 // POST user register
 authRouter.post("/user/register", async (req, res) => {
   try {
-    const password = req.body.password;
+    const pw = req.body.password;
     const saltRounds = 10;
     const salt = bcrypt.genSaltSync(saltRounds);
-    const password = bcrypt.hashSync(password, salt);
+    const password = bcrypt.hashSync(pw, salt);
     const user = {
       first_name: req.body.first_name,
       last_name: req.body.last_name,
@@ -34,9 +34,7 @@ authRouter.post("/user/register", async (req, res) => {
       password,
       phone_number: req.body.phone,
       user_postal_code: req.body.user_postal_code,
-      home: req.body.home,
-      office: req.body.office,
-      other: req.body.other,
+      postal_code_type: req.body.postal_code_type,
       food_handler_certificate: req.body.food_handler_certificate,
       date_of_issue: req.body.date_of_issue,
       expiry_date: req.body.expiry_date,
@@ -80,7 +78,8 @@ authRouter.post("/user/login", async (req, res) => {
         last_name: user.last_name,
         email: user.email,
         phone_number: user.phone_number,
-        user_postal_code: user.user_postal_code
+        user_postal_code: user.user_postal_code,
+        postal_code_type: user.postal_code_type
       };
       const isPassCorrect = bcrypt.compareSync(password, user.password_digest);
       const access_token = auth.generateAccessToken(jwtUser);
@@ -107,7 +106,8 @@ authRouter.post("/user/login", async (req, res) => {
             last_name: user.last_name,
             email: user.email,
             phone_number: user.phone_number,
-            user_postal_code: user.user_postal_code
+            user_postal_code: user.user_postal_code,
+            postal_code_type: user.postal_code_type
           },
           tokens: {
             access_token,
@@ -190,10 +190,10 @@ authRouter.put("/user/updatepassword", authForPassUpdate, async (req, res) => {
 // PUT user profile update
 authRouter.put("/user/:id", async (req, res) => {
   try {
-    const password = req.body.password;
+    const pw = req.body.password;
     const saltRounds = 10;
     const salt = bcrypt.genSaltSync(saltRounds);
-    const password = bcrypt.hashSync(password, salt);
+    const password = bcrypt.hashSync(pw, salt);
     const user = {
       id: req.params.id,
       first_name: req.body.first_name,
@@ -202,9 +202,7 @@ authRouter.put("/user/:id", async (req, res) => {
       password,
       phone_number: req.body.phone_number,
       user_postal_code: req.body.user_postal_code,
-      home: req.body.home,
-      office: req.body.office,
-      other: req.body.other,
+      postal_code_type: req.body.postal_code_type,
       food_handler_certificate: req.body.food_handler_certificate,
       date_of_issue: req.body.date_of_issue,
       expiry_date: req.body.expiry_date,

@@ -15,9 +15,7 @@ exports.up = function(knex) {
     table.string("password_digest").notNullable();
     table.string("phone_number").notNullable();
     table.string("user_postal_code").notNullable();
-    table.boolean("home").defaultTo(false);
-    table.boolean("office").defaultTo(false);
-    table.boolean("other").defaultTo(false);
+    table.string("postal_code_type").notNullable();
     table.string("food_handler_certificate");
     table.date("date_of_issue");
     table.date("expiry_date");

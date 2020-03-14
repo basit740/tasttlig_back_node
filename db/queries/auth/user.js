@@ -16,9 +16,7 @@ module.exports = {
     const password_digest = user.password;
     const phone_number = user.phone_number;
     const user_postal_code = user.user_postal_code;
-    const home = user.home;
-    const office = user.office;
-    const other = user.other;
+    const postal_code_type = user.postal_code_type;
     const food_handler_certificate = user.food_handler_certificate;
     const date_of_issue = user.date_of_issue;
     const expiry_date = user.expiry_date;
@@ -33,9 +31,7 @@ module.exports = {
           password_digest,
           phone_number,
           user_postal_code,
-          home,
-          office,
-          other,
+          postal_code_type,
           food_handler_certificate,
           date_of_issue,
           expiry_date,
@@ -88,9 +84,7 @@ module.exports = {
     const password_digest = user.password;
     const phone_number = user.phone_number;
     const user_postal_code = user.user_postal_code;
-    const home = user.home;
-    const office = user.office;
-    const other = user.other;
+    const postal_code_type = user.postal_code_type;
     const food_handler_certificate = user.food_handler_certificate;
     const date_of_issue = user.date_of_issue;
     const expiry_date = user.expiry_date;
@@ -119,9 +113,7 @@ module.exports = {
           password_digest,
           phone_number,
           user_postal_code,
-          home,
-          office,
-          other,
+          postal_code_type,
           food_handler_certificate,
           date_of_issue,
           expiry_date,
