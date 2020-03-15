@@ -32,7 +32,7 @@ authRouter.post("/user/register", async (req, res) => {
       last_name: req.body.last_name,
       email: req.body.email,
       password,
-      phone_number: req.body.phone,
+      phone_number: req.body.phone_number,
       user_postal_code: req.body.user_postal_code,
       postal_code_type: req.body.postal_code_type,
       food_handler_certificate: req.body.food_handler_certificate,
@@ -41,6 +41,7 @@ authRouter.post("/user/register", async (req, res) => {
       commercial_kitchen: req.body.commercial_kitchen
     };
     const response = await User.userRegister(user);
+    console.log("User", response);
 
     if (response.data.constraint == "users_email_unique") {
       res.send({ success: false, message: "This email already exists" });
