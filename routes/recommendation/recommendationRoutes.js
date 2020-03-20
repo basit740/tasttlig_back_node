@@ -34,7 +34,7 @@ recommendationRouter.post(
     };
 
     try {
-      const recommendations = await recommendation.createRecommendation(
+      const recommendations = await Recommendation.createRecommendation(
         recommendation,
         req.user.id
       );

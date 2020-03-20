@@ -31,7 +31,11 @@ module.exports = {
   },
   getAllRecommendation: async () => {
     try {
-      const returning = await db("recommendations").innerJoin("users", "recommendations.user_id", "users.id");
+      const returning = await db("recommendations").innerJoin(
+        "users",
+        "recommendations.user_id",
+        "users.id"
+      );
       return { success: true, recommendations: returning };
     } catch (err) {
       return { success: false, message: "No recommendation found." };
