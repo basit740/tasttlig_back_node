@@ -23,7 +23,7 @@ module.exports = {
   },
   getUserRecommendation: async user_id => {
     try {
-      const returning = await db("recommendation").where("user_id", user_id);
+      const returning = await db("recommendations").where("user_id", user_id);
       return { success: true, recommendations: returning };
     } catch (err) {
       return { success: false, message: "No recommendation found." };
