@@ -6,6 +6,7 @@ const indexRouter = require("./routes/index/indexRoutes");
 const userRouter = require("./routes/user/userRoutes");
 const foodRouter = require("./routes/food/foodRoutes");
 const purchaseRouter = require("./routes/purchase/purchaseRoutes");
+const recommendationRouter = require("./routes/recommendation/recommendationRoutes");
 const searchRouter = require("./routes/search/searchRoutes");
 
 const express = require("express");
@@ -21,6 +22,7 @@ app.use(indexRouter);
 app.use(userRouter);
 app.use(foodRouter);
 app.use(purchaseRouter);
+app.use(recommendationRouter);
 app.use(searchRouter);
 
 function print(path, layer) {
@@ -44,7 +46,7 @@ function print(path, layer) {
   }
 }
 
-//to get the all api routes
+// To get all of the API routes
 function split(thing) {
   if (typeof thing === "string") {
     return thing.split("/");
@@ -62,10 +64,7 @@ function split(thing) {
   }
 }
 
-// app._router.stack.forEach(print.bind(null, [])); //TODO: uncomment to see the api routes
-
-// app.use(express.static("public"));
-
+// Boot development server
 const port = 8000 || process.env.PORT;
 app.listen(port, () => {
   console.log(`Listening on port: ${port}`);

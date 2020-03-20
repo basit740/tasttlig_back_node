@@ -17,7 +17,6 @@ const generateRefreshToken = user => {
   });
 };
 
-
 // Authenticate JWT function
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
