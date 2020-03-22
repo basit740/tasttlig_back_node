@@ -8,11 +8,15 @@ const db = require("knex")(configuration);
 // Export recommendations table
 module.exports = {
   createRecommendation: async (recommendation, user_id) => {
+    const first_name = recommendation.first_name;
+    const last_name = recommendation.last_name;
     const description = recommendation.description;
     try {
       const returning = await db("recommendations")
         .insert({
           user_id,
+          first_name,
+          last_name,
           description
         })
         .returning("*");
@@ -31,28 +35,37 @@ module.exports = {
   },
   getAllRecommendation: async () => {
     try {
-      const returning = await db("recommendations").innerJoin(
-        "users",
-        "recommendations.user_id",
-        "users.id"
-      );
+      const returning = await db("recommendations");
       return { success: true, recommendations: returning };
     } catch (err) {
       return { success: false, message: "No recommendation found." };
     }
   },
-  updateIncomingRecommendation: async (recommendation, id) => {
+  updateRecommendation: async (recommendation, id) => {
     const reply = recommendation.reply;
     try {
       const returning = await db("recommendations")
-        .update({
-          id,
-          reply
-        })
+        .where("id", id)
+        .update({ reply })
         .returning("*");
       return { success: true, message: "ok", data: returning };
     } catch (err) {
       return { success: false, message: err };
+    }
+  },
+  deleteRecommendation: async id => {
+    try {
+      const returning = await db("recommendations")
+        .where("id", id)
+        .del();
+      if (returning) {
+        return {
+          success: true,
+          message: "Recommendation has been deleted."
+        };
+      }
+    } catch (err) {
+      return { success: false, data: err };
     }
   }
 };

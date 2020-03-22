@@ -30,6 +30,8 @@ recommendationRouter.post(
   authenticateToken,
   async (req, res) => {
     const recommendation = {
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
       description: req.body.description
     };
 
@@ -45,20 +47,38 @@ recommendationRouter.post(
   }
 );
 
-// PUT incoming recommendation response from admin
-recommendationRouter.put("/incoming-recommendations", async (req, res) => {
+// PUT recommendation response from admin
+recommendationRouter.put("/recommendation/:id", async (req, res) => {
   const recommendation = {
     reply: req.body.reply
   };
 
   try {
-    const recommendations = await recommendation.updateIncomingRecommendation(
+    const recommendations = await Recommendation.updateRecommendation(
       recommendation,
       req.params.id
     );
     res.json(recommendations);
   } catch (err) {
     console.log("Incoming Recommendation Response", err);
+  }
+});
+
+// DELETE recommendation response from admin
+recommendationRouter.delete("/recommendation/:id", async (req, res) => {
+  try {
+    const returning = await Recommendation.deleteRecommendation(req.params.id);
+    res.send({
+      success: true,
+      message: "ok",
+      response: returning
+    });
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err
+    });
   }
 });
 
