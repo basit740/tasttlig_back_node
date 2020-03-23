@@ -8,24 +8,38 @@ const db = require("knex")(configuration);
 // Export purchases table
 module.exports = {
   createPurchase: async (purchase, user_id) => {
+    const food_img_url = purchase.food_img_url;
+    const profile_img_url = purchase.profile_img_url;
+    const first_name = purchase.first_name;
+    const last_name = purchase.last_name;
+    const quantity = purchase.quantity;
+    const description = purchase.description;
     const cost = purchase.cost;
+    const ready_time = purchase.ready_time;
+    const time_type = purchase.time_type;
+    const order_code = purchase.order_code;
+    const phone_number = purchase.phone_number;
     const receipt_email = purchase.receipt_email;
     const receipt_url = purchase.receipt_url;
     const fingerprint = purchase.fingerprint;
-    const description = purchase.description;
-    const quantity = purchase.quantity;
-    const order_code = purchase.order_code;
     try {
       const returning = await db("purchases")
         .insert({
           user_id,
+          food_img_url,
+          profile_img_url,
+          first_name,
+          last_name,
+          quantity,
+          description,
           cost,
+          ready_time,
+          time_type,
+          order_code,
+          phone_number,
           receipt_email,
           receipt_url,
-          fingerprint,
-          description,
-          quantity,
-          order_code
+          fingerprint
         })
         .returning("*");
       if (returning) return (response = { success: true, user: returning[0] });
@@ -43,13 +57,13 @@ module.exports = {
   },
   getAllPurchase: async () => {
     try {
-      const returning = await db("purchases").innerJoin("users", "purchases.user_id", "users.id")
+      const returning = await db("purchases");
       return { success: true, purchases: returning };
     } catch (err) {
       return { success: false, message: "No purchase(s) found." };
     }
   },
-  updateIncomingPurchase: async purchase => {
+  updatePurchase: async purchase => {
     const accept = purchase.accept;
     const reject_note = purchase.reject_note;
     try {

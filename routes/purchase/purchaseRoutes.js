@@ -11,19 +11,19 @@ const keySecret = process.env.STRIPE_SECRET_KEY;
 const stripe = require("stripe")(keySecret);
 require("dotenv").config();
 
-// GET all marketplace food purchase
+// GET all food purchases
 purchaseRouter.get("/purchase", async (req, res) => {
   const purchases = await Purchase.getAllPurchase();
   res.json(purchases);
 });
 
-// GET all marketplace food purchase based on user ID
+// GET all food purchases based on user ID
 purchaseRouter.get("/purchase/user", authenticateToken, async (req, res) => {
   const purchases = await Purchase.getUserPurchase(req.user.id);
   res.json(purchases);
 });
 
-// POST marketplace food purchase
+// POST food purchase
 purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
   const charge = await stripe.charges.create({
     amount: req.body.cost,
@@ -35,13 +35,20 @@ purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
 
   if (charge) {
     const purchase = {
+      food_img_url: req.body.food_img_url,
+      profile_img_url: req.body.profile_img_url,
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      quantity: req.body.quantity,
+      description: req.body.description,
       cost: req.body.cost,
+      ready_time: req.body.ready_time,
+      time_type: req.body.time_type,
+      order_code: req.body.order_code,
+      phone_number: req.body.phone_number,
       receipt_email: req.body.receipt_email,
       receipt_url: charge.receipt_url,
-      fingerprint: charge.payment_method_details.card.fingerprint,
-      description: req.body.description,
-      quantity: req.body.quantity,
-      order_code: req.body.order_code
+      fingerprint: charge.payment_method_details.card.fingerprint
     };
 
     try {
@@ -53,17 +60,18 @@ purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
   }
 });
 
-// PUT incoming marketplace food orders response from admin
-purchaseRouter.put("/incoming-orders", async (req, res) => {
+// PUT food order response from admin
+purchaseRouter.put("/purchase/:id", async (req, res) => {
   const purchase = {
     accept: req.body.accept,
     reject_note: req.body.reject_note
   };
+
   try {
-    const purchases = await Purchase.updateIncomingPurchase(purchase);
+    const purchases = await Purchase.updatePurchase(purchase);
     res.json(purchases);
   } catch (err) {
-    console.log("Incoming Order Response", err);
+    console.log("Update Purchase", err);
   }
 });
 
