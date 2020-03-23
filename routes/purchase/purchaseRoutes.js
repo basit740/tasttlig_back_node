@@ -35,10 +35,10 @@ purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
 
   if (charge) {
     const purchase = {
-      food_img_url: req.body.food_img_url,
       profile_img_url: req.body.profile_img_url,
       first_name: req.body.first_name,
       last_name: req.body.last_name,
+      food_img_url: req.body.food_img_url,
       quantity: req.body.quantity,
       description: req.body.description,
       cost: req.body.cost,

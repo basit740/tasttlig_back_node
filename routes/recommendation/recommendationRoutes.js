@@ -30,6 +30,7 @@ recommendationRouter.post(
   authenticateToken,
   async (req, res) => {
     const recommendation = {
+      profile_img_url: req.body.profile_img_url,
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       description: req.body.description

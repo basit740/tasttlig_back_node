@@ -8,10 +8,10 @@ const db = require("knex")(configuration);
 // Export purchases table
 module.exports = {
   createPurchase: async (purchase, user_id) => {
-    const food_img_url = purchase.food_img_url;
     const profile_img_url = purchase.profile_img_url;
     const first_name = purchase.first_name;
     const last_name = purchase.last_name;
+    const food_img_url = purchase.food_img_url;
     const quantity = purchase.quantity;
     const description = purchase.description;
     const cost = purchase.cost;
@@ -26,10 +26,10 @@ module.exports = {
       const returning = await db("purchases")
         .insert({
           user_id,
-          food_img_url,
           profile_img_url,
           first_name,
           last_name,
+          food_img_url,
           quantity,
           description,
           cost,

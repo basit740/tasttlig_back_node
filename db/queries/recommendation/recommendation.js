@@ -8,6 +8,7 @@ const db = require("knex")(configuration);
 // Export recommendations table
 module.exports = {
   createRecommendation: async (recommendation, user_id) => {
+    const profile_img_url = recommendation.profile_img_url;
     const first_name = recommendation.first_name;
     const last_name = recommendation.last_name;
     const description = recommendation.description;
@@ -15,6 +16,7 @@ module.exports = {
       const returning = await db("recommendations")
         .insert({
           user_id,
+          profile_img_url,
           first_name,
           last_name,
           description

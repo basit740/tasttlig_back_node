@@ -13,10 +13,10 @@ exports.up = function(knex) {
       .references("id")
       .inTable("users")
       .onDelete("CASCADE");
-    table.string("food_img_url").notNullable();
     table.string("profile_img_url");
     table.string("first_name").notNullable();
     table.string("last_name").notNullable();
+    table.string("food_img_url").notNullable();
     table.integer("quantity").notNullable();
     table.string("description").notNullable();
     table.integer("cost").notNullable();
