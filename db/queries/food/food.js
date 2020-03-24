@@ -11,6 +11,7 @@ module.exports = {
     const food_img_url = food.food_img_url;
     const name = food.name;
     const food_ethnicity = food.food_ethnicity;
+    const category = food.category;
     const price = food.price;
     const quantity = food.quantity;
     const food_street_address = food.food_street_address;
@@ -32,6 +33,7 @@ module.exports = {
           food_img_url,
           name,
           food_ethnicity,
+          category,
           price,
           quantity,
           food_street_address,

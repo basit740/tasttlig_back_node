@@ -24,6 +24,7 @@ foodRouter.post("/food", authenticateToken, async (req, res) => {
     food_img_url: req.body.food_img_url,
     name: req.body.name,
     food_ethnicity: req.body.food_ethnicity,
+    category: req.body.category,
     price: req.body.price,
     quantity: req.body.quantity,
     food_street_address: req.body.food_street_address,

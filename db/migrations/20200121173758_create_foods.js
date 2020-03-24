@@ -16,6 +16,7 @@ exports.up = function(knex) {
     table.string("food_img_url").notNullable();
     table.string("name").notNullable();
     table.string("food_ethnicity").notNullable();
+    table.string("category").notNullable();
     table.integer("price").notNullable();
     table.integer("quantity").notNullable();
     table.string("food_street_address").notNullable();
