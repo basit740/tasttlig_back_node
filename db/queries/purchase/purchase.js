@@ -63,11 +63,12 @@ module.exports = {
       return { success: false, message: "No purchase(s) found." };
     }
   },
-  updatePurchase: async purchase => {
+  updatePurchase: async (purchase, id) => {
     const accept = purchase.accept;
     const reject_note = purchase.reject_note;
     try {
       const returning = await db("purchases")
+        .where("id", id)
         .update({
           accept,
           reject_note

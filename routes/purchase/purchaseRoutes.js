@@ -68,7 +68,7 @@ purchaseRouter.put("/purchase/:id", async (req, res) => {
   };
 
   try {
-    const purchases = await Purchase.updatePurchase(purchase);
+    const purchases = await Purchase.updatePurchase(purchase, req.params.id);
     res.json(purchases);
   } catch (err) {
     console.log("Update Purchase", err);
