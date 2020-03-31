@@ -64,6 +64,10 @@ purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
 // PUT food order response from admin
 purchaseRouter.put("/purchase/:id", async (req, res) => {
   const purchase = {
+    user_id: req.body.user_id,
+    quantity: req.body.quantity,
+    description: req.body.description,
+    receipt_email: req.body.receipt_email,
     accept: req.body.accept,
     reject_note: req.body.reject_note
   };

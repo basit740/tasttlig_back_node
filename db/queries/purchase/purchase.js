@@ -4,6 +4,8 @@
 const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
+const jwt = require("jsonwebtoken");
+const Mailer = require("../../../routes/auth/nodemailer");
 
 // Export purchases table
 module.exports = {
@@ -66,16 +68,44 @@ module.exports = {
     }
   },
   updatePurchase: async (purchase, id) => {
+    const user_id = purchase.user_id;
+    const quantity = purchase.quantity;
+    const description = purchase.description;
+    const receipt_email = purchase.receipt_email;
     const accept = purchase.accept;
     const reject_note = purchase.reject_note;
     try {
       const returning = await db("purchases")
         .where("id", id)
         .update({
+          user_id,
           accept,
           reject_note
         })
         .returning("*");
+
+      // Async emails
+      if (accept) {
+        jwt.sign(
+          { purchase: returning[0].user_id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "1d"
+          },
+          async () => {
+            try {
+              await Mailer.transporter.sendMail({
+                to: receipt_email,
+                subject: `[Kodede] Your coupon for ${quantity} ${description}`,
+                html: `<div>Accepted</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        );
+      }
+
       return { success: true, message: "ok", data: returning };
     } catch (err) {
       return { success: false, message: err };
