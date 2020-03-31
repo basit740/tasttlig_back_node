@@ -22,6 +22,7 @@ exports.up = function(knex) {
     table.integer("cost").notNullable();
     table.integer("ready_time").notNullable();
     table.string("time_type").notNullable();
+    table.string("food_code").notNullable();
     table.string("order_code").notNullable();
     table.string("phone_number").notNullable();
     table.string("receipt_email").notNullable();

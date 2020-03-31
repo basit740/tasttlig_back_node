@@ -26,6 +26,7 @@ module.exports = {
     const ready_time = food.ready_time;
     const time_type = food.time_type;
     const description = food.description;
+    const food_code = food.food_code;
     try {
       const returning = await db("foods")
         .insert({
@@ -47,7 +48,8 @@ module.exports = {
           halal,
           ready_time,
           time_type,
-          description
+          description,
+          food_code
         })
         .returning("*");
       if (returning) return (response = { success: true, user: returning[0] });

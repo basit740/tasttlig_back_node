@@ -17,6 +17,7 @@ module.exports = {
     const cost = purchase.cost;
     const ready_time = purchase.ready_time;
     const time_type = purchase.time_type;
+    const food_code = purchase.food_code;
     const order_code = purchase.order_code;
     const phone_number = purchase.phone_number;
     const receipt_email = purchase.receipt_email;
@@ -35,6 +36,7 @@ module.exports = {
           cost,
           ready_time,
           time_type,
+          food_code,
           order_code,
           phone_number,
           receipt_email,

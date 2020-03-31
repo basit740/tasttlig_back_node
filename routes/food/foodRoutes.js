@@ -38,7 +38,8 @@ foodRouter.post("/food", authenticateToken, async (req, res) => {
     halal: req.body.halal,
     ready_time: req.body.ready_time,
     time_type: req.body.time_type,
-    description: req.body.description
+    description: req.body.description,
+    food_code: req.body.food_code
   };
 
   try {

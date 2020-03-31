@@ -31,6 +31,7 @@ exports.up = function(knex) {
     table.integer("ready_time").notNullable();
     table.string("time_type").notNullable();
     table.text("description").notNullable();
+    table.string("food_code").notNullable();
     table.timestamps(true, true);
   });
 };

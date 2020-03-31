@@ -44,6 +44,7 @@ purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
       cost: req.body.cost,
       ready_time: req.body.ready_time,
       time_type: req.body.time_type,
+      food_code: req.body.food_code,
       order_code: req.body.order_code,
       phone_number: req.body.phone_number,
       receipt_email: req.body.receipt_email,
