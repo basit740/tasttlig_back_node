@@ -5,6 +5,7 @@ const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
 const jwt = require("jsonwebtoken");
+const qrCode = require("qrcode");
 const Mailer = require("../../../routes/auth/nodemailer");
 
 // Export purchases table
@@ -71,9 +72,11 @@ module.exports = {
     const user_id = purchase.user_id;
     const quantity = purchase.quantity;
     const description = purchase.description;
+    const food_code = purchase.food_code;
     const receipt_email = purchase.receipt_email;
     const accept = purchase.accept;
     const reject_note = purchase.reject_note;
+
     try {
       const returning = await db("purchases")
         .where("id", id)
@@ -84,7 +87,6 @@ module.exports = {
         })
         .returning("*");
 
-      // Async emails
       if (accept) {
         jwt.sign(
           { purchase: returning[0].user_id },
@@ -94,10 +96,28 @@ module.exports = {
           },
           async () => {
             try {
+              // Convert food code to QR code
+              let foodQrCode = await qrCode.toString(food_code);
+
+              // Async food coupon email
               await Mailer.transporter.sendMail({
+                from: "noreply@kodede.com",
                 to: receipt_email,
                 subject: `[Kodede] Your coupon for ${quantity} ${description}`,
-                html: `<div>Accepted</div>`
+                html:  `<div>
+                          Please present this QR Code at the time of payment to redeem your ${description}.<br><br>
+                        </div>
+                        <div>
+                          Offer expires within 24 hours from receiving this coupon.<br><br>
+                        </div>
+                        <div style="width: 200px; height: 200px;">${foodQrCode}</div>
+                        <div>${food_code}<br><br></div>
+                        <div>
+                          Sent with <3 from Kodede (Powered by Tasttlig).<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas Street East, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
               });
             } catch (err) {
               console.log(err);

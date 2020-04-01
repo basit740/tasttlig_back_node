@@ -67,6 +67,7 @@ purchaseRouter.put("/purchase/:id", async (req, res) => {
     user_id: req.body.user_id,
     quantity: req.body.quantity,
     description: req.body.description,
+    food_code: req.body.food_code,
     receipt_email: req.body.receipt_email,
     accept: req.body.accept,
     reject_note: req.body.reject_note
