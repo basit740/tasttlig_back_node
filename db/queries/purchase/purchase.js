@@ -113,10 +113,10 @@ module.exports = {
                         <div style="width: 200px; height: 200px;">${foodQrCode}</div>
                         <div>${food_code}<br><br></div>
                         <div>
-                          Sent with <3 from Kodede (Powered by Tasttlig).<br><br>
+                          Sent with <3 from Kodede (By Tasttlig).<br><br>
                         </div>
                         <div>Tasttlig Corporation</div>
-                        <div>585 Dundas Street East, 3rd Floor</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
                         <div>Toronto, ON M5A 2B7, Canada</div>`
               });
             } catch (err) {
