@@ -1,7 +1,7 @@
 "use strict";
 
 exports.up = function(knex) {
-  return knex.schema.createTable("foods", table => {
+  return knex.schema.createTable("food_ads", table => {
     table
       .increments("id")
       .unsigned()
@@ -13,29 +13,31 @@ exports.up = function(knex) {
       .references("id")
       .inTable("users")
       .onDelete("CASCADE");
-    table.string("food_img_url").notNullable();
+    table.string("food_ad_img_url").notNullable();
     table.string("name").notNullable();
-    table.string("food_ethnicity").notNullable();
-    table.string("category").notNullable();
-    table.integer("price").notNullable();
+    table.string("incentive").notNullable();
+    table.integer("price");
     table.integer("quantity").notNullable();
-    table.string("food_street_address").notNullable();
-    table.string("food_city").notNullable();
-    table.string("food_province_territory").notNullable();
-    table.string("food_postal_code").notNullable();
+    table.string("food_ad_street_address").notNullable();
+    table.string("food_ad_city").notNullable();
+    table.string("food_ad_province_territory").notNullable();
+    table.string("food_ad_postal_code").notNullable();
     table.string("spice_level");
     table.boolean("vegetarian").defaultTo(false);
     table.boolean("vegan").defaultTo(false);
     table.boolean("gluten_free").defaultTo(false);
     table.boolean("halal").defaultTo(false);
-    table.integer("ready_time").notNullable();
-    table.string("time_type").notNullable();
+    table.integer("ready_time");
+    table.string("ready_time_type");
+    table.integer("expiry_time");
+    table.string("expiry_time_type");
     table.text("description").notNullable();
-    table.string("food_code").notNullable();
+    table.string("food_ad_code").notNullable();
+    table.boolean("food_ad_active");
     table.timestamps(true, true);
   });
 };
 
 exports.down = function(knex) {
-  return knex.schema.dropTable("foods");
+  return knex.schema.dropTable("food_ads");
 };
