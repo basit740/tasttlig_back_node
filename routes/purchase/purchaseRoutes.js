@@ -11,20 +11,20 @@ const { authenticateToken } = auth;
 // const stripe = require("stripe")(keySecret);
 // require("dotenv").config();
 
-// GET all food purchases
-purchaseRouter.get("/purchase", async (req, res) => {
+// GET all food ad purchases
+purchaseRouter.get("/purchases", async (req, res) => {
   const purchases = await Purchase.getAllPurchase();
   res.json(purchases);
 });
 
-// GET all food purchases based on user ID
-purchaseRouter.get("/purchase/user", authenticateToken, async (req, res) => {
+// GET all food ad purchases based on user ID
+purchaseRouter.get("/purchases/user", authenticateToken, async (req, res) => {
   const purchases = await Purchase.getUserPurchase(req.user.id);
   res.json(purchases);
 });
 
-// POST food purchase
-purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
+// POST food ad purchases
+purchaseRouter.post("/purchases", authenticateToken, async (req, res) => {
   // const charge = await stripe.charges.create({
   //   amount: req.body.cost,
   //   currency: "cad",
@@ -35,6 +35,7 @@ purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
 
   // if (charge) {
   const purchase = {
+    food_ad_number: req.body.food_ad_number,
     profile_img_url: req.body.profile_img_url,
     first_name: req.body.first_name,
     last_name: req.body.last_name,
@@ -69,7 +70,7 @@ purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
 });
 
 // PUT food order response from admin
-purchaseRouter.put("/purchase/:id", async (req, res) => {
+purchaseRouter.put("/purchases/:id", async (req, res) => {
   const purchase = {
     user_id: req.body.user_id,
     quantity: req.body.quantity,

@@ -7,19 +7,19 @@ const FoodAd = require("../../db/queries/food_ad/food_ad");
 const { authenticateToken } = auth;
 
 // GET all food ads
-foodAdRouter.get("/food-ad", async (req, res) => {
+foodAdRouter.get("/food-ads", async (req, res) => {
   const foodAds = await FoodAd.getAllFoodAd();
   res.json(foodAds);
 });
 
 // GET all food ads based on user ID
-foodAdRouter.get("/food-ad/user", authenticateToken, async (req, res) => {
+foodAdRouter.get("/food-ads/user", authenticateToken, async (req, res) => {
   const foodAds = await FoodAd.getUserFoodAd(req.user.id);
   res.json(foodAds);
 });
 
-// POST food ad
-foodAdRouter.post("/food-ad", authenticateToken, async (req, res) => {
+// POST food ads
+foodAdRouter.post("/food-ads", authenticateToken, async (req, res) => {
   const foodAd = {
     food_ad_img_url: req.body.food_ad_img_url,
     name: req.body.name,
@@ -41,7 +41,28 @@ foodAdRouter.post("/food-ad", authenticateToken, async (req, res) => {
     expiry_time_type: req.body.expiry_time_type,
     description: req.body.description,
     food_ad_code: req.body.food_ad_code,
-    food_ad_active: req.body.food_ad_active
+    food_ad_active: req.body.food_ad_active,
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    phone_number: req.body.phone_number,
+    food_handler_certificate: req.body.food_handler_certificate,
+    date_of_issue: req.body.date_of_issue,
+    expiry_date: req.body.expiry_date,
+    commercial_kitchen: req.body.commercial_kitchen,
+    profile_img_url: req.body.profile_img_url,
+    chef: req.body.chef,
+    caterer: req.body.caterer,
+    business_street_address: req.body.business_street_address,
+    business_city: req.body.business_city,
+    business_province_territory: req.body.business_province_territory,
+    business_postal_code: req.body.business_postal_code,
+    facebook: req.body.facebook,
+    twitter: req.body.twitter,
+    instagram: req.body.instagram,
+    youtube: req.body.youtube,
+    linkedin: req.body.linkedin,
+    website: req.body.website,
+    bio: req.body.bio
   };
 
   try {

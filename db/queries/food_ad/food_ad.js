@@ -29,6 +29,27 @@ module.exports = {
     const description = foodAd.description;
     const food_ad_code = foodAd.food_ad_code;
     const food_ad_active = foodAd.food_ad_active;
+    const profile_img_url = foodAd.profile_img_url;
+    const first_name = foodAd.first_name;
+    const last_name = foodAd.last_name;
+    const phone_number = foodAd.phone_number;
+    const food_handler_certificate = foodAd.food_handler_certificate;
+    const date_of_issue = foodAd.date_of_issue;
+    const expiry_date = foodAd.expiry_date;
+    const commercial_kitchen = foodAd.commercial_kitchen;
+    const chef = foodAd.chef;
+    const caterer = foodAd.caterer;
+    const business_street_address = foodAd.business_street_address;
+    const business_city = foodAd.business_city;
+    const business_province_territory = foodAd.business_province_territory;
+    const business_postal_code = foodAd.business_postal_code;
+    const facebook = foodAd.facebook;
+    const twitter = foodAd.twitter;
+    const instagram = foodAd.instagram;
+    const youtube = foodAd.youtube;
+    const linkedin = foodAd.linkedin;
+    const website = foodAd.website;
+    const bio = foodAd.bio;
     try {
       const returning = await db("food_ads")
         .insert({
@@ -53,7 +74,28 @@ module.exports = {
           expiry_time_type,
           description,
           food_ad_code,
-          food_ad_active
+          food_ad_active,
+          profile_img_url,
+          first_name,
+          last_name,
+          phone_number,
+          food_handler_certificate,
+          date_of_issue,
+          expiry_date,
+          commercial_kitchen,
+          chef,
+          caterer,
+          business_street_address,
+          business_city,
+          business_province_territory,
+          business_postal_code,
+          facebook,
+          twitter,
+          instagram,
+          youtube,
+          linkedin,
+          website,
+          bio
         })
         .returning("*");
       if (returning) return (response = { success: true, user: returning[0] });
@@ -71,7 +113,7 @@ module.exports = {
   },
   getAllFoodAd: async () => {
     try {
-      const returning = await db("food_ads").innerJoin("users", "food_ads.user_id", "users.id");
+      const returning = await db("food_ads");
       return { success: true, foodAds: returning };
     } catch (err) {
       return { success: false, message: "No food ad found." };

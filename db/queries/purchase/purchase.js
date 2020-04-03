@@ -11,6 +11,7 @@ const Mailer = require("../../../routes/auth/nodemailer");
 // Export purchases table
 module.exports = {
   createPurchase: async (purchase, user_id) => {
+    const food_ad_number = purchase.food_ad_number;
     const profile_img_url = purchase.profile_img_url;
     const first_name = purchase.first_name;
     const last_name = purchase.last_name;
@@ -37,6 +38,7 @@ module.exports = {
       const returning = await db("purchases")
         .insert({
           user_id,
+          food_ad_number,
           profile_img_url,
           first_name,
           last_name,
