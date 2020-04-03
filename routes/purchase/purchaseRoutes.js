@@ -7,9 +7,9 @@ const Purchase = require("../../db/queries/purchase/purchase");
 const { authenticateToken } = auth;
 
 // Use Stripe secret key
-const keySecret = process.env.STRIPE_SECRET_KEY;
-const stripe = require("stripe")(keySecret);
-require("dotenv").config();
+// const keySecret = process.env.STRIPE_SECRET_KEY;
+// const stripe = require("stripe")(keySecret);
+// require("dotenv").config();
 
 // GET all food purchases
 purchaseRouter.get("/purchase", async (req, res) => {
@@ -25,40 +25,47 @@ purchaseRouter.get("/purchase/user", authenticateToken, async (req, res) => {
 
 // POST food purchase
 purchaseRouter.post("/purchase", authenticateToken, async (req, res) => {
-  const charge = await stripe.charges.create({
-    amount: req.body.cost,
-    currency: "cad",
+  // const charge = await stripe.charges.create({
+  //   amount: req.body.cost,
+  //   currency: "cad",
+  //   description: req.body.description,
+  //   receipt_email: req.body.email,
+  //   source: req.body.token
+  // });
+
+  // if (charge) {
+  const purchase = {
+    profile_img_url: req.body.profile_img_url,
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    food_ad_img_url: req.body.food_ad_img_url,
+    // quantity: req.body.quantity,
     description: req.body.description,
-    receipt_email: req.body.email,
-    source: req.body.token
-  });
+    cost: req.body.cost,
+    food_ad_street_address: req.body.food_ad_street_address,
+    food_ad_city: req.body.food_ad_city,
+    food_ad_province_territory: req.body.food_ad_province_territory,
+    food_ad_postal_code: req.body.food_ad_postal_code,
+    // ready_time: req.body.ready_time,
+    // ready_time_type: req.body.ready_time_type,
+    // expiry_time: req.body.expiry_time,
+    // expiry_time_type: req.body.expiry_time_type,
+    food_ad_code: req.body.food_ad_code,
+    order_ad_code: req.body.order_ad_code,
+    phone_number: req.body.phone_number,
+    receipt_email: req.body.receipt_email,
+    // receipt_url: charge.receipt_url,
+    // fingerprint: charge.payment_method_details.card.fingerprint
+    claimed: req.body.claimed
+  };
 
-  if (charge) {
-    const purchase = {
-      profile_img_url: req.body.profile_img_url,
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
-      food_img_url: req.body.food_img_url,
-      quantity: req.body.quantity,
-      description: req.body.description,
-      cost: req.body.cost,
-      ready_time: req.body.ready_time,
-      time_type: req.body.time_type,
-      food_code: req.body.food_code,
-      order_code: req.body.order_code,
-      phone_number: req.body.phone_number,
-      receipt_email: req.body.receipt_email,
-      receipt_url: charge.receipt_url,
-      fingerprint: charge.payment_method_details.card.fingerprint
-    };
-
-    try {
-      const purchases = await Purchase.createPurchase(purchase, req.user.id);
-      res.json(purchases);
-    } catch (err) {
-      res.json(err);
-    }
+  try {
+    const purchases = await Purchase.createPurchase(purchase, req.user.id);
+    res.json(purchases);
+  } catch (err) {
+    res.json(err);
   }
+  // }
 });
 
 // PUT food order response from admin

@@ -5,7 +5,7 @@ const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
 const jwt = require("jsonwebtoken");
-const qrCode = require("qrcode");
+// const qrCode = require("qrcode");
 const Mailer = require("../../../routes/auth/nodemailer");
 
 // Export purchases table
@@ -14,18 +14,25 @@ module.exports = {
     const profile_img_url = purchase.profile_img_url;
     const first_name = purchase.first_name;
     const last_name = purchase.last_name;
-    const food_img_url = purchase.food_img_url;
-    const quantity = purchase.quantity;
+    const food_ad_img_url = purchase.food_ad_img_url;
+    // const quantity = purchase.quantity;
     const description = purchase.description;
     const cost = purchase.cost;
-    const ready_time = purchase.ready_time;
-    const time_type = purchase.time_type;
-    const food_code = purchase.food_code;
-    const order_code = purchase.order_code;
+    const food_ad_street_address = purchase.food_ad_street_address;
+    const food_ad_city = purchase.food_ad_city;
+    const food_ad_province_territory = purchase.food_ad_province_territory;
+    const food_ad_postal_code = purchase.food_ad_postal_code;
+    // const ready_time = purchase.ready_time;
+    // const ready_time_type = purchase.ready_time_type;
+    // const expiry_time = purchase.expiry_time;
+    // const expiry_time_type = purchase.expiry_time_type;
+    const food_ad_code = purchase.food_ad_code;
+    const order_ad_code = purchase.order_ad_code;
     const phone_number = purchase.phone_number;
     const receipt_email = purchase.receipt_email;
-    const receipt_url = purchase.receipt_url;
-    const fingerprint = purchase.fingerprint;
+    // const receipt_url = purchase.receipt_url;
+    // const fingerprint = purchase.fingerprint;
+    const claimed = purchase.claimed;
     try {
       const returning = await db("purchases")
         .insert({
@@ -33,21 +40,63 @@ module.exports = {
           profile_img_url,
           first_name,
           last_name,
-          food_img_url,
-          quantity,
+          food_ad_img_url,
+          // quantity,
           description,
           cost,
-          ready_time,
-          time_type,
-          food_code,
-          order_code,
+          food_ad_street_address,
+          food_ad_city,
+          food_ad_province_territory,
+          food_ad_postal_code,
+          // ready_time,
+          // ready_time_type,
+          // expiry_time,
+          // expiry_time_type,
+          food_ad_code,
+          order_ad_code,
           phone_number,
           receipt_email,
-          receipt_url,
-          fingerprint
+          // receipt_url,
+          // fingerprint,
+          claimed
         })
         .returning("*");
-      if (returning) return (response = { success: true, user: returning[0] });
+      if (returning) {
+        jwt.sign(
+          { purchase: returning[0].user_id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "1d"
+          },
+          async () => {
+            try {
+              // Convert food ad code to QR code
+              // let foodQrCode = await qrCode.toString(food_code);
+              // Async food ad coupon email
+              await Mailer.transporter.sendMail({
+                from: "noreply@kodede.com",
+                to: receipt_email,
+                subject: `[Kodede] Your coupon for ${description}`,
+                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
+                        <div>
+                          Please present this coupon to redeem your ${description} (${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}). 
+                          Code is ${food_ad_code}. 
+                          Offer expires within 24 hours.<br><br>
+                        </div>
+                        <div>
+                          Sent with <3 from Kodede (Created By Tasttlig).<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        );
+      }
+      return (response = { success: true, user: returning[0] });
     } catch (err) {
       return (response = { success: false, data: err });
     }
@@ -57,7 +106,7 @@ module.exports = {
       const returning = await db("purchases").where("user_id", user_id);
       return { success: true, purchases: returning };
     } catch (err) {
-      return { success: false, message: "No purchase(s) found." };
+      return { success: false, message: "No purchase found." };
     }
   },
   getAllPurchase: async () => {
@@ -65,7 +114,7 @@ module.exports = {
       const returning = await db("purchases");
       return { success: true, purchases: returning };
     } catch (err) {
-      return { success: false, message: "No purchase(s) found." };
+      return { success: false, message: "No purchase found." };
     }
   },
   updatePurchase: async (purchase, id) => {
@@ -104,7 +153,7 @@ module.exports = {
                 from: "noreply@kodede.com",
                 to: receipt_email,
                 subject: `[Kodede] Your coupon for ${quantity} ${description}`,
-                html:  `<div>
+                html: `<div>
                           Please present this QR Code at the time of payment to redeem your ${description}.<br><br>
                         </div>
                         <div>
