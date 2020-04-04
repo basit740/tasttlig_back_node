@@ -73,4 +73,22 @@ foodAdRouter.post("/food-ads", authenticateToken, async (req, res) => {
   }
 });
 
+// DELETE food ads from admin
+foodAdRouter.delete("/food-ads/:id", async (req, res) => {
+  try {
+    const returning = await FoodAd.deleteFoodAd(req.params.id);
+    res.send({
+      success: true,
+      message: "ok",
+      response: returning
+    });
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err
+    });
+  }
+});
+
 module.exports = foodAdRouter;

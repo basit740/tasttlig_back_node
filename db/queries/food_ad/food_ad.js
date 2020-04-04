@@ -118,5 +118,20 @@ module.exports = {
     } catch (err) {
       return { success: false, message: "No food ad found." };
     }
+  },
+  deleteFoodAd: async id => {
+    try {
+      const returning = await db("food_ads")
+        .where("id", id)
+        .del();
+      if (returning) {
+        return {
+          success: true,
+          message: "Food ad has been deleted."
+        };
+      }
+    } catch (err) {
+      return { success: false, data: err };
+    }
   }
 };
