@@ -6,15 +6,15 @@ const auth = require("../auth/authFunctions");
 const Recommendation = require("../../db/queries/recommendation/recommendation");
 const { authenticateToken } = auth;
 
-// GET all recommendation
-recommendationRouter.get("/recommendation", async (req, res) => {
+// GET all recommendations
+recommendationRouter.get("/recommendations", async (req, res) => {
   const recommendations = await Recommendation.getAllRecommendation();
   res.json(recommendations);
 });
 
-// GET all recommendation based on user ID
+// GET all recommendations based on user ID
 recommendationRouter.get(
-  "/recommendation/user",
+  "/recommendations/user",
   authenticateToken,
   async (req, res) => {
     const recommendations = await Recommendation.getUserRecommendation(
@@ -26,7 +26,7 @@ recommendationRouter.get(
 
 // POST recommendation
 recommendationRouter.post(
-  "/recommendation",
+  "/recommendations",
   authenticateToken,
   async (req, res) => {
     const recommendation = {
@@ -49,7 +49,7 @@ recommendationRouter.post(
 );
 
 // PUT recommendation response from admin
-recommendationRouter.put("/recommendation/:id", async (req, res) => {
+recommendationRouter.put("/recommendations/:id", async (req, res) => {
   const recommendation = {
     reply: req.body.reply
   };
@@ -66,7 +66,7 @@ recommendationRouter.put("/recommendation/:id", async (req, res) => {
 });
 
 // DELETE recommendation response from admin
-recommendationRouter.delete("/recommendation/:id", async (req, res) => {
+recommendationRouter.delete("/recommendations/:id", async (req, res) => {
   try {
     const returning = await Recommendation.deleteRecommendation(req.params.id);
     res.send({
