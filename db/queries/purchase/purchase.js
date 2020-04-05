@@ -74,11 +74,11 @@ module.exports = {
             try {
               // Convert food ad code to QR code
               // let foodQrCode = await qrCode.toString(food_code);
-              // Async food ad coupon email
+              // Async food ad coupon claimed email
               await Mailer.transporter.sendMail({
-                from: "noreply@kodede.com",
+                from: process.env.KODEDE_EMAIL,
                 to: receipt_email,
-                subject: `[Kodede] Your coupon for ${description}`,
+                subject: `[Kodede] Your coupon is claimed for ${description}`,
                 html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>
                           Please present this coupon to redeem your ${description} (${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}). 
@@ -120,25 +120,26 @@ module.exports = {
     }
   },
   updatePurchase: async (purchase, id) => {
-    const user_id = purchase.user_id;
-    const quantity = purchase.quantity;
+    const first_name = purchase.first_name;
+    const last_name = purchase.last_name;
     const description = purchase.description;
-    const food_code = purchase.food_code;
+    const food_ad_street_address = purchase.food_ad_street_address;
+    const food_ad_city = purchase.food_ad_city;
+    const food_ad_province_territory = purchase.food_ad_province_territory;
+    const food_ad_postal_code = purchase.food_ad_postal_code;
+    const food_ad_code = purchase.food_ad_code;
     const receipt_email = purchase.receipt_email;
-    const accept = purchase.accept;
-    const reject_note = purchase.reject_note;
-
+    const claimed = purchase.claimed;
+    const redeemed = purchase.redeemed;
     try {
       const returning = await db("purchases")
         .where("id", id)
         .update({
-          user_id,
-          accept,
-          reject_note
+          claimed,
+          redeemed
         })
         .returning("*");
-
-      if (accept) {
+      if (redeemed) {
         jwt.sign(
           { purchase: returning[0].user_id },
           process.env.EMAIL_SECRET,
@@ -147,24 +148,19 @@ module.exports = {
           },
           async () => {
             try {
-              // Convert food code to QR code
-              let foodQrCode = await qrCode.toString(food_code);
-
-              // Async food coupon email
+              // Async food ad coupon redeemed email
               await Mailer.transporter.sendMail({
-                from: "noreply@kodede.com",
+                from: process.env.KODEDE_EMAIL,
                 to: receipt_email,
-                subject: `[Kodede] Your coupon for ${quantity} ${description}`,
-                html: `<div>
-                          Please present this QR Code at the time of payment to redeem your ${description}.<br><br>
+                subject: `[Kodede] Your coupon is redeemed for ${description}`,
+                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
+                        <div>
+                          Your coupon has been redeemed for ${description} (${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}). 
+                          Code is ${food_ad_code}. 
+                          Please visit Kodede again to experience the world locally.<br><br>
                         </div>
                         <div>
-                          Offer expires within 24 hours from receiving this coupon.<br><br>
-                        </div>
-                        <div style="width: 200px; height: 200px;">${foodQrCode}</div>
-                        <div>${food_code}<br><br></div>
-                        <div>
-                          Sent with <3 from Kodede (By Tasttlig).<br><br>
+                          Sent with <3 from Kodede (Created By Tasttlig).<br><br>
                         </div>
                         <div>Tasttlig Corporation</div>
                         <div>585 Dundas St E, 3rd Floor</div>
@@ -176,7 +172,6 @@ module.exports = {
           }
         );
       }
-
       return { success: true, message: "ok", data: returning };
     } catch (err) {
       return { success: false, message: err };

@@ -69,16 +69,20 @@ purchaseRouter.post("/purchases", authenticateToken, async (req, res) => {
   // }
 });
 
-// PUT food order response from admin
+// PUT food ad purchase response from advertiser
 purchaseRouter.put("/purchases/:id", async (req, res) => {
   const purchase = {
-    user_id: req.body.user_id,
-    quantity: req.body.quantity,
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
     description: req.body.description,
-    food_code: req.body.food_code,
+    food_ad_street_address: req.body.food_ad_street_address,
+    food_ad_city: req.body.food_ad_city,
+    food_ad_province_territory: req.body.food_ad_province_territory,
+    food_ad_postal_code: req.body.food_ad_postal_code,
+    food_ad_code: req.body.food_ad_code,
     receipt_email: req.body.receipt_email,
-    accept: req.body.accept,
-    reject_note: req.body.reject_note
+    claimed: req.body.claimed,
+    redeemed: req.body.redeemed
   };
 
   try {
