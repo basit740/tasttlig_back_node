@@ -119,6 +119,18 @@ module.exports = {
       return { success: false, message: "No food ad found." };
     }
   },
+  updateFoodAd: async (foodAd, id) => {
+    const quantity = foodAd.quantity;
+    try {
+      const returning = await db("food_ads")
+        .where("id", id)
+        .update({ quantity })
+        .returning("*");
+      return { success: true, message: "ok", data: returning };
+    } catch (err) {
+      return { success: false, message: err };
+    }
+  },
   deleteFoodAd: async id => {
     try {
       const returning = await db("food_ads")

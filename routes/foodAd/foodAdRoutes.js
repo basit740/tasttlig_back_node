@@ -12,13 +12,13 @@ foodAdRouter.get("/food-ads", async (req, res) => {
   res.json(foodAds);
 });
 
-// GET all food ads based on user ID
+// GET all food ads based on advertiser ID
 foodAdRouter.get("/food-ads/user", authenticateToken, async (req, res) => {
   const foodAds = await FoodAd.getUserFoodAd(req.user.id);
   res.json(foodAds);
 });
 
-// POST food ads
+// POST food ads from advertiser
 foodAdRouter.post("/food-ads", authenticateToken, async (req, res) => {
   const foodAd = {
     food_ad_img_url: req.body.food_ad_img_url,
@@ -70,6 +70,20 @@ foodAdRouter.post("/food-ads", authenticateToken, async (req, res) => {
     res.json(foodAds);
   } catch (err) {
     res.json(err);
+  }
+});
+
+// PUT food ads from advertiser for units available
+foodAdRouter.put("/food-ads/:id", async (req, res) => {
+  const foodAd = {
+    quantity: req.body.quantity
+  };
+
+  try {
+    const foodAds = await FoodAd.updateFoodAd(foodAd, req.params.id);
+    res.json(foodAds);
+  } catch (err) {
+    console.log("Update Food Ad", err);
   }
 });
 
