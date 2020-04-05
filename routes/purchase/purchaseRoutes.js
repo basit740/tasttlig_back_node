@@ -81,7 +81,6 @@ purchaseRouter.put("/purchases/:id", async (req, res) => {
     food_ad_postal_code: req.body.food_ad_postal_code,
     food_ad_code: req.body.food_ad_code,
     receipt_email: req.body.receipt_email,
-    claimed: req.body.claimed,
     redeemed: req.body.redeemed
   };
 

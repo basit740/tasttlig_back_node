@@ -129,13 +129,11 @@ module.exports = {
     const food_ad_postal_code = purchase.food_ad_postal_code;
     const food_ad_code = purchase.food_ad_code;
     const receipt_email = purchase.receipt_email;
-    const claimed = purchase.claimed;
     const redeemed = purchase.redeemed;
     try {
       const returning = await db("purchases")
         .where("id", id)
         .update({
-          claimed,
           redeemed
         })
         .returning("*");
