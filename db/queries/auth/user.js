@@ -205,5 +205,13 @@ module.exports = {
     } catch (err) {
       return { success: false, message: "No user found." };
     }
+  },
+  getAllUser: async () => {
+    try {
+      const returning = await db("users");
+      return { success: true, users: returning };
+    } catch (err) {
+      return { success: false, message: "No user found." };
+    }
   }
 };

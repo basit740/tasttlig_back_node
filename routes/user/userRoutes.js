@@ -11,6 +11,12 @@ const { authenticateToken } = auth;
 userRouter.use(cors());
 userRouter.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 
+// GET all users
+userRouter.get("/users", async (req, res) => {
+  const users = await User.getAllUser();
+  res.json(users);
+})
+
 // GET user by ID
 userRouter.get("/user", authenticateToken, async (req, res) => {
   const user = await User.getUserById(req.user.id);
