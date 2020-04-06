@@ -166,7 +166,7 @@ module.exports = {
                         <div>
                           Your coupon has been redeemed for ${description} (${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}). 
                           Code is ${food_ad_code}. 
-                          Please visit Kodede again to experience the world locally.<br><br>
+                          Please visit Kodede again to taste the world locally.<br><br>
                         </div>
                         <div>
                           Sent with <3 from Kodede (Created By Tasttlig).<br><br>
