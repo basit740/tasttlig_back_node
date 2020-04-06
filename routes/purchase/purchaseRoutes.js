@@ -52,8 +52,8 @@ purchaseRouter.post("/purchases", authenticateToken, async (req, res) => {
     // expiry_time: req.body.expiry_time,
     // expiry_time_type: req.body.expiry_time_type,
     food_ad_code: req.body.food_ad_code,
-    order_ad_code: req.body.order_ad_code,
     phone_number: req.body.phone_number,
+    food_ad_email: req.body.food_ad_email,
     receipt_email: req.body.receipt_email,
     // receipt_url: charge.receipt_url,
     // fingerprint: charge.payment_method_details.card.fingerprint
@@ -80,6 +80,7 @@ purchaseRouter.put("/purchases/:id", async (req, res) => {
     food_ad_province_territory: req.body.food_ad_province_territory,
     food_ad_postal_code: req.body.food_ad_postal_code,
     food_ad_code: req.body.food_ad_code,
+    food_ad_email: req.body.food_ad_email,
     receipt_email: req.body.receipt_email,
     redeemed: req.body.redeemed
   };

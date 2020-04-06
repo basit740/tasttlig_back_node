@@ -28,8 +28,8 @@ module.exports = {
     // const expiry_time = purchase.expiry_time;
     // const expiry_time_type = purchase.expiry_time_type;
     const food_ad_code = purchase.food_ad_code;
-    const order_ad_code = purchase.order_ad_code;
     const phone_number = purchase.phone_number;
+    const food_ad_email = purchase.food_ad_email;
     const receipt_email = purchase.receipt_email;
     // const receipt_url = purchase.receipt_url;
     // const fingerprint = purchase.fingerprint;
@@ -55,8 +55,8 @@ module.exports = {
           // expiry_time,
           // expiry_time_type,
           food_ad_code,
-          order_ad_code,
           phone_number,
+          food_ad_email,
           receipt_email,
           // receipt_url,
           // fingerprint,
@@ -75,9 +75,14 @@ module.exports = {
               // Convert food ad code to QR code
               // let foodQrCode = await qrCode.toString(food_code);
               // Async food ad coupon claimed email
+              const mail_list_claimed = [
+                process.env.KODEDE_ADMIN_EMAIL,
+                food_ad_email
+              ];
               await Mailer.transporter.sendMail({
-                from: process.env.KODEDE_EMAIL,
+                from: process.env.KODEDE_AUTOMATED_EMAIL,
                 to: receipt_email,
+                bcc: mail_list_claimed,
                 subject: `[Kodede] Your coupon is claimed for ${description}`,
                 html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>
@@ -128,6 +133,7 @@ module.exports = {
     const food_ad_province_territory = purchase.food_ad_province_territory;
     const food_ad_postal_code = purchase.food_ad_postal_code;
     const food_ad_code = purchase.food_ad_code;
+    const food_ad_email = purchase.food_ad_email;
     const receipt_email = purchase.receipt_email;
     const redeemed = purchase.redeemed;
     try {
@@ -147,9 +153,14 @@ module.exports = {
           async () => {
             try {
               // Async food ad coupon redeemed email
+              const mail_list_redeemed = [
+                process.env.KODEDE_ADMIN_EMAIL,
+                food_ad_email
+              ];
               await Mailer.transporter.sendMail({
-                from: process.env.KODEDE_EMAIL,
+                from: process.env.KODEDE_AUTOMATED_EMAIL,
                 to: receipt_email,
+                bcc: mail_list_redeemed,
                 subject: `[Kodede] Your coupon is redeemed for ${description}`,
                 html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>

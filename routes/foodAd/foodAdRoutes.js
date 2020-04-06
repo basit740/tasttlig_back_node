@@ -44,6 +44,7 @@ foodAdRouter.post("/food-ads", authenticateToken, async (req, res) => {
     food_ad_active: req.body.food_ad_active,
     first_name: req.body.first_name,
     last_name: req.body.last_name,
+    email: req.body.email,
     phone_number: req.body.phone_number,
     food_handler_certificate: req.body.food_handler_certificate,
     date_of_issue: req.body.date_of_issue,

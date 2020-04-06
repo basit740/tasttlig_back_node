@@ -37,6 +37,7 @@ exports.up = function(knex) {
     table.string("profile_img_url");
     table.string("first_name").notNullable();
     table.string("last_name").notNullable();
+    table.string("email").notNullable();
     table.string("phone_number").notNullable();
     table.string("food_handler_certificate").notNullable();
     table.date("date_of_issue").notNullable();

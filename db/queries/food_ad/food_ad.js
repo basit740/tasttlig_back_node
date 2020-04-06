@@ -32,6 +32,7 @@ module.exports = {
     const profile_img_url = foodAd.profile_img_url;
     const first_name = foodAd.first_name;
     const last_name = foodAd.last_name;
+    const email = foodAd.email;
     const phone_number = foodAd.phone_number;
     const food_handler_certificate = foodAd.food_handler_certificate;
     const date_of_issue = foodAd.date_of_issue;
@@ -78,6 +79,7 @@ module.exports = {
           profile_img_url,
           first_name,
           last_name,
+          email,
           phone_number,
           food_handler_certificate,
           date_of_issue,

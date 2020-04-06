@@ -30,8 +30,8 @@ exports.up = function(knex) {
     // table.integer("expiry_time").notNullable();
     // table.string("expiry_time_type").notNullable();
     table.string("food_ad_code").notNullable();
-    table.string("order_ad_code").notNullable();
     table.string("phone_number").notNullable();
+    table.string("food_ad_email").notNullable();
     table.string("receipt_email").notNullable();
     // table.string("receipt_url").notNullable();
     // table.string("fingerprint").notNullable();
