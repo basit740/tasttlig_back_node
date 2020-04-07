@@ -7,8 +7,8 @@ const auth = require("./authFunctions");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Refreshtoken = require("../../db/queries/auth/refreshtoken");
-const rateLimit = require("express-rate-limit");
-const path = require("path");
+// const rateLimit = require("express-rate-limit");
+// const path = require("path");
 const Mailer = require("./nodemailer");
 const { authenticateToken, authForPassUpdate } = auth;
 

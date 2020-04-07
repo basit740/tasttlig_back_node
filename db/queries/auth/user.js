@@ -37,28 +37,45 @@ module.exports = {
           commercial_kitchen
         })
         .returning("*");
-      jwt.sign(
-        { user: returning[0].id },
-        process.env.EMAIL_SECRET,
-        {
-          expiresIn: "1d"
-        },
-        async (err, emailToken) => {
-          try {
-            const url = `http://localhost:3000/user/verify/${emailToken}`;
-            const info = await Mailer.transporter.sendMail({
-              to: email,
-              subject: "Confirm Email",
-              html: `<a href="${url}">Please click here and verify your email address</a>`
-            });
-          } catch (err) {
-            console.log("mail err", err);
-          }
-        }
-      );
       if (returning) {
-        return { success: true, data: returning[0] };
+        jwt.sign(
+          { user: returning[0].id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "7d"
+          },
+          async (err, emailToken) => {
+            try {
+              const url = `http://localhost:3000/user/verify/${emailToken}`;
+              await Mailer.transporter.sendMail({
+                from: process.env.KODEDE_AUTOMATED_EMAIL,
+                to: email,
+                bcc: process.env.KODEDE_ADMIN_EMAIL,
+                subject: "[Kodede] Please verify your email",
+                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
+                        <div>
+                          To complete your Kodede sign up, please verify your email.<br><br>
+                        </div>
+                        <div>
+                          <a href="${url}">Verify Email</a><br><br>
+                        </div>
+                        <div>
+                          Once verified, you can begin to taste the world locally. If you applied as a food advertiser, Kodede will review your application and respond accordingly.<br><br>
+                        </div>
+                        <div>
+                          Sent with <3 from Kodede (Created By Tasttlig).<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log("mail err", err);
+            }
+          }
+        );
       }
+      return { success: true, data: returning[0] };
     } catch (err) {
       return { success: false, data: err };
     }
