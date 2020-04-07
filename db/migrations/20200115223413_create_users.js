@@ -20,6 +20,9 @@ exports.up = function(knex) {
     table.date("date_of_issue");
     table.date("expiry_date");
     table.boolean("commercial_kitchen").defaultTo(false);
+    table.boolean("verified").defaultTo(false);
+    table.boolean("certified");
+    table.string("reject_note");
     table.string("profile_img_url");
     table.boolean("chef").defaultTo(false);
     table.boolean("caterer").defaultTo(false);

@@ -21,7 +21,6 @@ module.exports = {
     const date_of_issue = user.date_of_issue;
     const expiry_date = user.expiry_date;
     const commercial_kitchen = user.commercial_kitchen;
-
     try {
       const returning = await db("users")
         .insert({
@@ -38,7 +37,6 @@ module.exports = {
           commercial_kitchen
         })
         .returning("*");
-
       jwt.sign(
         { user: returning[0].id },
         process.env.EMAIL_SECRET,
@@ -58,7 +56,6 @@ module.exports = {
           }
         }
       );
-      
       if (returning) {
         return { success: true, data: returning[0] };
       }
@@ -212,6 +209,88 @@ module.exports = {
       return { success: true, users: returning };
     } catch (err) {
       return { success: false, message: "No user found." };
+    }
+  },
+  updateUser: async (user, id) => {
+    const first_name = user.first_name;
+    const last_name = user.last_name;
+    const email = user.email;
+    const certified = user.certified;
+    const reject_note = user.reject_note;
+    try {
+      const returning = await db("users")
+        .where("id", id)
+        .update({ first_name, last_name, email, certified, reject_note })
+        .returning("*");
+      if (returning && certified) {
+        jwt.sign(
+          { user: returning[0].id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "7d"
+          },
+          async () => {
+            try {
+              // Async food advertiser application accepted email
+              await Mailer.transporter.sendMail({
+                from: process.env.KODEDE_AUTOMATED_EMAIL,
+                to: receipt_email,
+                bcc: process.env.KODEDE_ADMIN_EMAIL,
+                subject: `[Kodede] Your application as food advertiser is accepted`,
+                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
+                        <div>
+                          Congratulations! Your application as food advertiser is accepted from Kodede. You can now publish ads for people to taste the world locally.<br><br>
+                        </div>
+                        <div>
+                          Sent with <3 from Kodede (Created By Tasttlig).<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        );
+      } else if (returning && reject_note) {
+        jwt.sign(
+          { user: returning[0].id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "7d"
+          },
+          async () => {
+            try {
+              // Async food advertiser application rejected email
+              await Mailer.transporter.sendMail({
+                from: process.env.KODEDE_AUTOMATED_EMAIL,
+                to: receipt_email,
+                bcc: process.env.KODEDE_ADMIN_EMAIL,
+                subject: `[Kodede] Your application as food advertiser is rejected`,
+                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
+                        <div>
+                          We regret to inform you that your application as food advertiser is rejected from Kodede. Please see the reason below. If you wish to apply again, consider the feedback shared for the next time.<br><br>
+                        </div>
+                        <div>
+                          Reject Reason: ${reject_note}<br><br>
+                        </div>
+                        <div>
+                          Sent with <3 from Kodede (Created By Tasttlig).<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        );
+      }
+      return { success: true, message: "ok", data: returning };
+    } catch (err) {
+      return { success: false, message: err };
     }
   }
 };
