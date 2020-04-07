@@ -234,7 +234,7 @@ module.exports = {
               // Async food advertiser application accepted email
               await Mailer.transporter.sendMail({
                 from: process.env.KODEDE_AUTOMATED_EMAIL,
-                to: receipt_email,
+                to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,
                 subject: `[Kodede] Your application as food advertiser is accepted`,
                 html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
@@ -265,7 +265,7 @@ module.exports = {
               // Async food advertiser application rejected email
               await Mailer.transporter.sendMail({
                 from: process.env.KODEDE_AUTOMATED_EMAIL,
-                to: receipt_email,
+                to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,
                 subject: `[Kodede] Your application as food advertiser is rejected`,
                 html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
