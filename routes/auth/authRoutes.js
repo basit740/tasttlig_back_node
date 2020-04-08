@@ -161,7 +161,108 @@ authRouter.get("/user/verify/:token", async (req, res) => {
   }
 });
 
-authRouter.put("/user/updatepassword", authForPassUpdate, async (req, res) => {
+// PUT user profile update
+// authRouter.put("/user/:id", async (req, res) => {
+//   try {
+//     const pw = req.body.password;
+//     const saltRounds = 10;
+//     const salt = bcrypt.genSaltSync(saltRounds);
+//     const password = bcrypt.hashSync(pw, salt);
+//     const user = {
+//       id: req.params.id,
+//       first_name: req.body.first_name,
+//       last_name: req.body.last_name,
+//       email: req.body.email,
+//       password,
+//       phone_number: req.body.phone_number,
+//       user_postal_code: req.body.user_postal_code,
+//       postal_code_type: req.body.postal_code_type,
+//       food_handler_certificate: req.body.food_handler_certificate,
+//       date_of_issue: req.body.date_of_issue,
+//       expiry_date: req.body.expiry_date,
+//       commercial_kitchen: req.body.commercial_kitchen,
+//       profile_img_url: req.body.profile_img_url,
+//       chef: req.body.chef,
+//       caterer: req.body.caterer,
+//       business_street_address: req.body.business_street_address,
+//       business_city: req.body.business_city,
+//       business_province_territory: req.body.business_province_territory,
+//       business_postal_code: req.body.business_postal_code,
+//       facebook: req.body.facebook,
+//       twitter: req.body.twitter,
+//       instagram: req.body.instagram,
+//       youtube: req.body.youtube,
+//       linkedin: req.body.linkedin,
+//       website: req.body.website,
+//       bio: req.body.bio
+//     };
+//     const response = await User.updateProfile(user);
+
+//     if (response.data.constraint == "users_email_unique") {
+//       res.send({ success: false, message: "This email already exists" });
+//     }
+//   } catch (err) {
+//     console.log("Update", err);
+//   }
+// });
+
+// POST user forgot password
+authRouter.post("/user/forgot-password", async (req, res) => {
+  const email = req.body.email;
+  const returning = await User.checkEmail(email);
+  if (returning.success) {
+    jwt.sign(
+      { email },
+      process.env.EMAIL_SECRET,
+      {
+        expiresIn: "15m"
+      },
+      // Async reset password email
+      async (err, emailToken) => {
+        try {
+          const url = `http://localhost:3000/forgot-password/${emailToken}`;
+          const info = await Mailer.transporter.sendMail({
+            from: process.env.KODEDE_AUTOMATED_EMAIL,
+            to: email,
+            bcc: process.env.KODEDE_ADMIN_EMAIL,
+            subject: "[Kodede] Reset your password",
+            html:  `<div>Hello,<br><br></div>
+                    <div>
+                      There was a request to reset your password. If so, please click on the link below. If not, disregard this email.<br><br>
+                    </div>
+                    <div>
+                      <a href="${url}">Reset Your Password</a><br><br>
+                    </div>
+                    <div>
+                      Sent with <3 from Kodede (Created By Tasttlig).<br><br>
+                    </div>
+                    <div>Tasttlig Corporation</div>
+                    <div>585 Dundas St E, 3rd Floor</div>
+                    <div>Toronto, ON M5A 2B7, Canada</div>`
+          });
+          if (info.accepted[0] === email) {
+            res.send({
+              success: true,
+              message: "ok",
+              response: `Your update password email has been sent to ${email}.`
+            });
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    );
+  } else {
+    res.send({
+      success: false,
+      message: "ok",
+      response: `There is no account for ${email}.`
+    });
+  }
+});
+
+// PUT user enter new password
+authRouter.put("/user/update-password", authForPassUpdate, async (req, res) => {
   try {
     const email = req.user.email;
     const pw = req.body.password;
@@ -170,7 +271,6 @@ authRouter.put("/user/updatepassword", authForPassUpdate, async (req, res) => {
     const password = bcrypt.hashSync(pw, salt);
     if (email) {
       const response = await User.updatePassword(email, password);
-      console.log("updatepassword route:", response);
       res.send({
         success: true,
         message: "ok",
@@ -178,7 +278,7 @@ authRouter.put("/user/updatepassword", authForPassUpdate, async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("router error for update password: ", err);
+    console.log(err);
     err.message === "jwt expired" &&
       res.send({
         success: false,
@@ -188,106 +288,7 @@ authRouter.put("/user/updatepassword", authForPassUpdate, async (req, res) => {
   }
 });
 
-// PUT user profile update
-authRouter.put("/user/:id", async (req, res) => {
-  try {
-    const pw = req.body.password;
-    const saltRounds = 10;
-    const salt = bcrypt.genSaltSync(saltRounds);
-    const password = bcrypt.hashSync(pw, salt);
-    const user = {
-      id: req.params.id,
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
-      email: req.body.email,
-      password,
-      phone_number: req.body.phone_number,
-      user_postal_code: req.body.user_postal_code,
-      postal_code_type: req.body.postal_code_type,
-      food_handler_certificate: req.body.food_handler_certificate,
-      date_of_issue: req.body.date_of_issue,
-      expiry_date: req.body.expiry_date,
-      commercial_kitchen: req.body.commercial_kitchen,
-      profile_img_url: req.body.profile_img_url,
-      chef: req.body.chef,
-      caterer: req.body.caterer,
-      business_street_address: req.body.business_street_address,
-      business_city: req.body.business_city,
-      business_province_territory: req.body.business_province_territory,
-      business_postal_code: req.body.business_postal_code,
-      facebook: req.body.facebook,
-      twitter: req.body.twitter,
-      instagram: req.body.instagram,
-      youtube: req.body.youtube,
-      linkedin: req.body.linkedin,
-      website: req.body.website,
-      bio: req.body.bio
-    };
-    const response = await User.updateProfile(user);
-
-    if (response.data.constraint == "users_email_unique") {
-      res.send({ success: false, message: "This email already exists" });
-    }
-  } catch (err) {
-    console.log("Update", err);
-  }
-});
-
-authRouter.post("/user/forgotpassword", async (req, res) => {
-  const email = req.body.email;
-  const returning = await User.checkEmail(email);
-  if (returning.success) {
-    jwt.sign(
-      { email: email },
-      process.env.EMAIL_SECRET,
-      {
-        expiresIn: "1m" //TODO: Update the time
-      },
-      async (err, emailToken) => {
-        console.log(emailToken);
-        try {
-          const url = `http://localhost:3000/forgotpassword/${emailToken}`; //TODO: Update with production
-          const info = await Mailer.transporter.sendMail({
-            to: email,
-            subject: "Confirm Email",
-            html: `<a href="${url}">Please click here and verify your email address</a>`
-          });
-          if (info.accepted[0] === email) {
-            res.send({
-              success: true,
-              message: "ok",
-              response: `Your verification email has been sent to ${email}`
-            });
-          }
-        } catch (err) {
-          console.log("mail err", err);
-        }
-      }
-    );
-  } else {
-    res.send({
-      success: false,
-      message: "ok",
-      response: `There is no account for ${email}`
-    });
-  }
-});
-
-authRouter.post("/user/changepassword/:token", (req, res) => {
-  console.log(req.params.token);
-  console.log(req.body);
-});
-
-// authRouter.post("/forgotpassword", createAccountLimiter, (req, res) => {
-//   const email = req.body.email;
-//   const pw = req.body.password;
-//   const saltRounds = 10;
-//   const salt = bcrypt.genSaltSync(saltRounds);
-//   const password = bcrypt.hashSync(pw, salt);
-//   User.forgotPassword(email, password);
-// });
-authRouter.post("/user/forgotpassword", (req, res) => {});
-//Get new access token by using refresh token
+// Get new access token by using refresh token
 authRouter.get("/user/token", async (req, res) => {
   const refreshToken = req.headers["refresh-token"];
   if (refreshToken == null) return res.sendStatus(401);
@@ -300,19 +301,16 @@ authRouter.get("/user/token", async (req, res) => {
       if (response.success) {
         const access_token = generateAccessToken({
           id: user.id,
-          email: user.email,
           first_name: user.first_name,
           last_name: user.last_name,
-          phone_number: user.phone_number,
-          food_handler_certificate: user.food_handler_certificate,
-          isHost: user.isHost,
-          role: user.role
+          email: user.email,
+          phone_number: user.phone_number
         });
         res.json({ access_token });
       } else {
         return res
           .status(403)
-          .send({ success: false, message: "Invalid refresh token" }); //TODO: Update this
+          .send({ success: false, message: "Invalid refresh token." });
       }
     }
   );

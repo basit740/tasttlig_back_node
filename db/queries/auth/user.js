@@ -42,8 +42,9 @@ module.exports = {
           { user: returning[0].id },
           process.env.EMAIL_SECRET,
           {
-            expiresIn: "7d"
+            expiresIn: "1d"
           },
+          // Async email verification email
           async (err, emailToken) => {
             try {
               const url = `http://localhost:3000/user/verify/${emailToken}`;
@@ -70,7 +71,7 @@ module.exports = {
                         <div>Toronto, ON M5A 2B7, Canada</div>`
               });
             } catch (err) {
-              console.log("mail err", err);
+              console.log(err);
             }
           }
         );
@@ -157,10 +158,41 @@ module.exports = {
     try {
       const returning = await db("users")
         .where("email", email)
-        .update("password", password)
+        .update("password_digest", password)
         .returning("*");
-      console.log("updatePassword", returning);
-      return { success: true, message: "ok", data: returning };
+      if (returning) {
+        jwt.sign(
+          { user: returning[0].id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "15m"
+          },
+          // Async password change confirmation email
+          async () => {
+            try {
+              await Mailer.transporter.sendMail({
+                from: process.env.KODEDE_AUTOMATED_EMAIL,
+                to: email,
+                bcc: process.env.KODEDE_ADMIN_EMAIL,
+                subject: "[Kodede] Password changed",
+                html:  `<div>Hello,<br><br></div>
+                        <div>
+                          The password for your Kodede account was recently changed. If so, please disregard this email. If not, review your account now.<br><br>
+                        </div>
+                        <div>
+                          Sent with <3 from Kodede (Created By Tasttlig).<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        );
+      }
+      return { success: true, message: "ok", data: returning[0] };
     } catch (err) {
       return { success: false, message: err };
     }
@@ -244,7 +276,7 @@ module.exports = {
           { user: returning[0].id },
           process.env.EMAIL_SECRET,
           {
-            expiresIn: "7d"
+            expiresIn: "15m"
           },
           async () => {
             try {
@@ -275,7 +307,7 @@ module.exports = {
           { user: returning[0].id },
           process.env.EMAIL_SECRET,
           {
-            expiresIn: "7d"
+            expiresIn: "15m"
           },
           async () => {
             try {
