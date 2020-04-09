@@ -162,49 +162,49 @@ authRouter.get("/user/verify/:token", async (req, res) => {
 });
 
 // PUT user profile update
-// authRouter.put("/user/:id", async (req, res) => {
-//   try {
-//     const pw = req.body.password;
-//     const saltRounds = 10;
-//     const salt = bcrypt.genSaltSync(saltRounds);
-//     const password = bcrypt.hashSync(pw, salt);
-//     const user = {
-//       id: req.params.id,
-//       first_name: req.body.first_name,
-//       last_name: req.body.last_name,
-//       email: req.body.email,
-//       password,
-//       phone_number: req.body.phone_number,
-//       user_postal_code: req.body.user_postal_code,
-//       postal_code_type: req.body.postal_code_type,
-//       food_handler_certificate: req.body.food_handler_certificate,
-//       date_of_issue: req.body.date_of_issue,
-//       expiry_date: req.body.expiry_date,
-//       commercial_kitchen: req.body.commercial_kitchen,
-//       profile_img_url: req.body.profile_img_url,
-//       chef: req.body.chef,
-//       caterer: req.body.caterer,
-//       business_street_address: req.body.business_street_address,
-//       business_city: req.body.business_city,
-//       business_province_territory: req.body.business_province_territory,
-//       business_postal_code: req.body.business_postal_code,
-//       facebook: req.body.facebook,
-//       twitter: req.body.twitter,
-//       instagram: req.body.instagram,
-//       youtube: req.body.youtube,
-//       linkedin: req.body.linkedin,
-//       website: req.body.website,
-//       bio: req.body.bio
-//     };
-//     const response = await User.updateProfile(user);
+authRouter.put("/user/:id", async (req, res) => {
+  try {
+    const pw = req.body.password;
+    const saltRounds = 10;
+    const salt = bcrypt.genSaltSync(saltRounds);
+    const password = bcrypt.hashSync(pw, salt);
+    const user = {
+      id: req.params.id,
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      email: req.body.email,
+      password,
+      phone_number: req.body.phone_number,
+      user_postal_code: req.body.user_postal_code,
+      postal_code_type: req.body.postal_code_type,
+      food_handler_certificate: req.body.food_handler_certificate,
+      date_of_issue: req.body.date_of_issue,
+      expiry_date: req.body.expiry_date,
+      commercial_kitchen: req.body.commercial_kitchen,
+      profile_img_url: req.body.profile_img_url,
+      chef: req.body.chef,
+      caterer: req.body.caterer,
+      business_street_address: req.body.business_street_address,
+      business_city: req.body.business_city,
+      business_province_territory: req.body.business_province_territory,
+      business_postal_code: req.body.business_postal_code,
+      facebook: req.body.facebook,
+      twitter: req.body.twitter,
+      instagram: req.body.instagram,
+      youtube: req.body.youtube,
+      linkedin: req.body.linkedin,
+      website: req.body.website,
+      bio: req.body.bio
+    };
+    const response = await User.updateProfile(user);
 
-//     if (response.data.constraint == "users_email_unique") {
-//       res.send({ success: false, message: "This email already exists" });
-//     }
-//   } catch (err) {
-//     console.log("Update", err);
-//   }
-// });
+    if (response.data.constraint == "users_email_unique") {
+      res.send({ success: false, message: "This email already exists" });
+    }
+  } catch (err) {
+    console.log("Update", err);
+  }
+});
 
 // POST user forgot password
 authRouter.post("/user/forgot-password", async (req, res) => {
