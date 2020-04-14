@@ -61,7 +61,7 @@ module.exports = {
                           <a href="${url}">Verify Email</a><br><br>
                         </div>
                         <div>
-                          Once verified, you can begin to taste the world locally. If you applied as a food advertiser, Kodede will review your application and respond accordingly.<br><br>
+                          Once verified, you can begin to taste food from around the world. If you applied as a food advertiser, Kodede will review your application and respond accordingly.<br><br>
                         </div>
                         <div>
                           Sent with <3 from Kodede (Created By Tasttlig).<br><br>
@@ -288,7 +288,7 @@ module.exports = {
                 subject: `[Kodede] Your application as food advertiser is accepted`,
                 html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>
-                          Congratulations! Your application as food advertiser is accepted from Kodede. You can now publish ads for people to taste the world locally.<br><br>
+                          Congratulations! Your application as food advertiser is accepted from Kodede. You can now publish ads for people to taste food from around the world.<br><br>
                         </div>
                         <div>
                           Sent with <3 from Kodede (Created By Tasttlig).<br><br>
