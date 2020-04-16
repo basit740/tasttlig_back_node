@@ -14,6 +14,8 @@ exports.up = function(knex) {
       .inTable("users")
       .onDelete("CASCADE");
     table.bigInteger("food_ad_number").notNullable();
+    table.string("profile_img_url");
+    table.string("first_name").notNullable();
     table.text("body").notNullable();
     table.timestamps(true, true);
   });

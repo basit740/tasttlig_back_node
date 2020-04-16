@@ -16,6 +16,8 @@ feedbackRouter.get("/feedbacks", async (req, res) => {
 feedbackRouter.post("/feedbacks", authenticateToken, async (req, res) => {
   const feedback = {
     food_ad_number: req.body.food_ad_number,
+    profile_img_url: req.body.profile_img_url,
+    first_name: req.body.first_name,
     body: req.body.body
   };
 

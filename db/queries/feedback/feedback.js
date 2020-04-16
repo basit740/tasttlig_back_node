@@ -9,12 +9,16 @@ const db = require("knex")(configuration);
 module.exports = {
   createFeedback: async (feedback, user_id) => {
     const food_ad_number = feedback.food_ad_number;
+    const profile_img_url = feedback.profile_img_url;
+    const first_name = feedback.first_name;
     const body = feedback.body;
     try {
       const returning = await db("feedbacks")
         .insert({
           user_id,
           food_ad_number,
+          profile_img_url,
+          first_name,
           body
         })
         .returning("*");
