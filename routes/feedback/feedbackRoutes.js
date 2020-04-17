@@ -29,7 +29,42 @@ feedbackRouter.post("/feedbacks", authenticateToken, async (req, res) => {
   }
 });
 
-// DELETE feedback response from admin
+// PUT flag on feedback from user
+feedbackRouter.put("/feedbacks/flag/:id", async (req, res) => {
+  const feedback = {
+    flag: req.body.flag
+  };
+
+  try {
+    const feedbacks = await Feedback.updateFlagFeedback(
+      feedback,
+      req.params.id
+    );
+    res.json(feedbacks);
+  } catch (err) {
+    console.log("Incoming Feedback Flag", err);
+  }
+});
+
+// PUT flagged reply on feedback from admin
+feedbackRouter.put("/feedbacks/reply-flagged/:id", async (req, res) => {
+  const feedback = {
+    flag: req.body.flag,
+    reply: req.body.reply
+  };
+
+  try {
+    const feedbacks = await Feedback.updateReplyFlaggedFeedback(
+      feedback,
+      req.params.id
+    );
+    res.json(feedbacks);
+  } catch (err) {
+    console.log("Incoming Flagged Reply On Feedback", err);
+  }
+});
+
+// DELETE flagged feedback from admin
 feedbackRouter.delete("/feedbacks/:id", async (req, res) => {
   try {
     const returning = await Feedback.deleteFeedback(req.params.id);

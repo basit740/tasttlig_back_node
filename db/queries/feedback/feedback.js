@@ -35,6 +35,31 @@ module.exports = {
       return { success: false, message: "No feedback found." };
     }
   },
+  updateFlagFeedback: async (feedback, id) => {
+    const flag = feedback.flag;
+    try {
+      const returning = await db("feedbacks")
+        .where("id", id)
+        .update({ flag })
+        .returning("*");
+      return { success: true, message: "ok", data: returning };
+    } catch (err) {
+      return { success: false, message: err };
+    }
+  },
+  updateReplyFlaggedFeedback: async (feedback, id) => {
+    const flag = feedback.flag;
+    const reply = feedback.reply;
+    try {
+      const returning = await db("feedbacks")
+        .where("id", id)
+        .update({ flag, reply })
+        .returning("*");
+      return { success: true, message: "ok", data: returning };
+    } catch (err) {
+      return { success: false, message: err };
+    }
+  },
   deleteFeedback: async id => {
     try {
       const returning = await db("feedbacks")
