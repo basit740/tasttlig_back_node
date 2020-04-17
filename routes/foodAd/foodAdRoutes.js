@@ -23,6 +23,7 @@ foodAdRouter.post("/food-ads", authenticateToken, async (req, res) => {
   const foodAd = {
     food_ad_img_url: req.body.food_ad_img_url,
     name: req.body.name,
+    ethnicity: req.body.ethnicity,
     incentive: req.body.incentive,
     price: req.body.price,
     quantity: req.body.quantity,
@@ -42,6 +43,7 @@ foodAdRouter.post("/food-ads", authenticateToken, async (req, res) => {
     description: req.body.description,
     food_ad_code: req.body.food_ad_code,
     food_ad_active: req.body.food_ad_active,
+    feedback_count: req.body.feedback_count,
     first_name: req.body.first_name,
     last_name: req.body.last_name,
     email: req.body.email,
@@ -74,17 +76,31 @@ foodAdRouter.post("/food-ads", authenticateToken, async (req, res) => {
   }
 });
 
-// PUT food ads from advertiser for units available
-foodAdRouter.put("/food-ads/:id", async (req, res) => {
+// PUT food ads from advertiser for quantity
+foodAdRouter.put("/food-ads/quantity/:id", async (req, res) => {
   const foodAd = {
     quantity: req.body.quantity
   };
 
   try {
-    const foodAds = await FoodAd.updateFoodAd(foodAd, req.params.id);
+    const foodAds = await FoodAd.updateFoodAdQuantity(foodAd, req.params.id);
     res.json(foodAds);
   } catch (err) {
-    console.log("Update Food Ad", err);
+    console.log("Update Food Ad Quantity", err);
+  }
+});
+
+// PUT food ads from advertiser for feedback count
+foodAdRouter.put("/food-ads/feedback-count/:id", async (req, res) => {
+  const foodAd = {
+    feedback_count: req.body.feedback_count
+  };
+
+  try {
+    const foodAds = await FoodAd.updateFoodAdFeedbackCount(foodAd, req.params.id);
+    res.json(foodAds);
+  } catch (err) {
+    console.log("Update Food Ad Feedback Count", err);
   }
 });
 

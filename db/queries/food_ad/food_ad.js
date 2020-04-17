@@ -10,6 +10,7 @@ module.exports = {
   createFoodAd: async (foodAd, user_id) => {
     const food_ad_img_url = foodAd.food_ad_img_url;
     const name = foodAd.name;
+    const ethnicity = foodAd.ethnicity;
     const incentive = foodAd.incentive;
     const price = foodAd.price;
     const quantity = foodAd.quantity;
@@ -29,6 +30,7 @@ module.exports = {
     const description = foodAd.description;
     const food_ad_code = foodAd.food_ad_code;
     const food_ad_active = foodAd.food_ad_active;
+    const feedback_count = foodAd.feedback_count;
     const profile_img_url = foodAd.profile_img_url;
     const first_name = foodAd.first_name;
     const last_name = foodAd.last_name;
@@ -57,6 +59,7 @@ module.exports = {
           user_id,
           food_ad_img_url,
           name,
+          ethnicity,
           incentive,
           price,
           quantity,
@@ -76,6 +79,7 @@ module.exports = {
           description,
           food_ad_code,
           food_ad_active,
+          feedback_count,
           profile_img_url,
           first_name,
           last_name,
@@ -121,12 +125,24 @@ module.exports = {
       return { success: false, message: "No food ad found." };
     }
   },
-  updateFoodAd: async (foodAd, id) => {
+  updateFoodAdQuantity: async (foodAd, id) => {
     const quantity = foodAd.quantity;
     try {
       const returning = await db("food_ads")
         .where("id", id)
         .update({ quantity })
+        .returning("*");
+      return { success: true, message: "ok", data: returning };
+    } catch (err) {
+      return { success: false, message: err };
+    }
+  },
+  updateFoodAdFeedbackCount: async (foodAd, id) => {
+    const feedback_count = foodAd.feedback_count;
+    try {
+      const returning = await db("food_ads")
+        .where("id", id)
+        .update({ feedback_count })
         .returning("*");
       return { success: true, message: "ok", data: returning };
     } catch (err) {

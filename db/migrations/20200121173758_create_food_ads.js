@@ -15,6 +15,7 @@ exports.up = function(knex) {
       .onDelete("CASCADE");
     table.string("food_ad_img_url").notNullable();
     table.string("name").notNullable();
+    table.string("ethnicity").notNullable();
     table.string("incentive").notNullable();
     table.integer("price");
     table.integer("quantity").notNullable();
@@ -34,6 +35,7 @@ exports.up = function(knex) {
     table.text("description").notNullable();
     table.string("food_ad_code").notNullable();
     table.boolean("food_ad_active");
+    table.integer("feedback_count").notNullable();
     table.string("profile_img_url");
     table.string("first_name").notNullable();
     table.string("last_name").notNullable();
