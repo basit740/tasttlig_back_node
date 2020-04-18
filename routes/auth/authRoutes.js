@@ -33,15 +33,11 @@ authRouter.post("/user/register", async (req, res) => {
       email: req.body.email,
       password,
       phone_number: req.body.phone_number,
-      user_postal_code: req.body.user_postal_code,
-      postal_code_type: req.body.postal_code_type,
       food_handler_certificate: req.body.food_handler_certificate,
       date_of_issue: req.body.date_of_issue,
-      expiry_date: req.body.expiry_date,
-      commercial_kitchen: req.body.commercial_kitchen
+      expiry_date: req.body.expiry_date
     };
     const response = await User.userRegister(user);
-    console.log("User", response);
 
     if (response.data.constraint == "users_email_unique") {
       res.send({ success: false, message: "This email already exists" });
@@ -78,9 +74,7 @@ authRouter.post("/user/login", async (req, res) => {
         first_name: user.first_name,
         last_name: user.last_name,
         email: user.email,
-        phone_number: user.phone_number,
-        user_postal_code: user.user_postal_code,
-        postal_code_type: user.postal_code_type
+        phone_number: user.phone_number
       };
       const isPassCorrect = bcrypt.compareSync(password, user.password_digest);
       const access_token = auth.generateAccessToken(jwtUser);
@@ -106,9 +100,7 @@ authRouter.post("/user/login", async (req, res) => {
             first_name: user.first_name,
             last_name: user.last_name,
             email: user.email,
-            phone_number: user.phone_number,
-            user_postal_code: user.user_postal_code,
-            postal_code_type: user.postal_code_type
+            phone_number: user.phone_number
           },
           tokens: {
             access_token,
@@ -142,25 +134,6 @@ authRouter.delete("/user/logout", authenticateToken, async (req, res) => {
   }
 });
 
-authRouter.get("/user/verify/:token", async (req, res) => {
-  try {
-    const email = jwt.verify(req.params.token, process.env.EMAIL_SECRET).email;
-    if (email) {
-      res.sendFile("http://localhost:3000/forgotpassword/:token", {
-        token: req.params.token
-      });
-    }
-  } catch (err) {
-    console.log(err.message);
-    err.message === "jwt expired" &&
-      res.send({
-        success: false,
-        message: "error",
-        response: "token is expired"
-      });
-  }
-});
-
 // PUT user profile update
 authRouter.put("/user/:id", async (req, res) => {
   try {
@@ -175,15 +148,10 @@ authRouter.put("/user/:id", async (req, res) => {
       email: req.body.email,
       password,
       phone_number: req.body.phone_number,
-      user_postal_code: req.body.user_postal_code,
-      postal_code_type: req.body.postal_code_type,
       food_handler_certificate: req.body.food_handler_certificate,
       date_of_issue: req.body.date_of_issue,
       expiry_date: req.body.expiry_date,
-      commercial_kitchen: req.body.commercial_kitchen,
       profile_img_url: req.body.profile_img_url,
-      chef: req.body.chef,
-      caterer: req.body.caterer,
       business_street_address: req.body.business_street_address,
       business_city: req.body.business_city,
       business_province_territory: req.body.business_province_territory,

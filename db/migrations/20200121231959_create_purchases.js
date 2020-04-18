@@ -25,18 +25,12 @@ exports.up = function(knex) {
     table.string("food_ad_city").notNullable();
     table.string("food_ad_province_territory").notNullable();
     table.string("food_ad_postal_code").notNullable();
-    // table.integer("ready_time").notNullable();
-    // table.string("ready_time_type").notNullable();
-    // table.integer("expiry_time").notNullable();
-    // table.string("expiry_time_type").notNullable();
     table.string("food_ad_code").notNullable();
     table.string("phone_number").notNullable();
     table.string("food_ad_email").notNullable();
     table.string("receipt_email").notNullable();
     // table.string("receipt_url").notNullable();
     // table.string("fingerprint").notNullable();
-    // table.boolean("accept");
-    // table.text("reject_note");
     table.boolean("claimed");
     table.boolean("redeemed").defaultTo(false);
     table.timestamps(true, true);

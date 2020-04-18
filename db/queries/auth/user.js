@@ -15,12 +15,9 @@ module.exports = {
     const email = user.email;
     const password_digest = user.password;
     const phone_number = user.phone_number;
-    const user_postal_code = user.user_postal_code;
-    const postal_code_type = user.postal_code_type;
     const food_handler_certificate = user.food_handler_certificate;
     const date_of_issue = user.date_of_issue;
     const expiry_date = user.expiry_date;
-    const commercial_kitchen = user.commercial_kitchen;
     try {
       const returning = await db("users")
         .insert({
@@ -29,12 +26,9 @@ module.exports = {
           email,
           password_digest,
           phone_number,
-          user_postal_code,
-          postal_code_type,
           food_handler_certificate,
           date_of_issue,
-          expiry_date,
-          commercial_kitchen
+          expiry_date
         })
         .returning("*");
       if (returning) {
@@ -98,15 +92,10 @@ module.exports = {
     const email = user.email;
     const password_digest = user.password;
     const phone_number = user.phone_number;
-    const user_postal_code = user.user_postal_code;
-    const postal_code_type = user.postal_code_type;
     const food_handler_certificate = user.food_handler_certificate;
     const date_of_issue = user.date_of_issue;
     const expiry_date = user.expiry_date;
-    const commercial_kitchen = user.commercial_kitchen;
     const profile_img_url = user.profile_img_url;
-    const chef = user.chef;
-    const caterer = user.caterer;
     const business_street_address = user.business_street_address;
     const business_city = user.business_city;
     const business_province_territory = user.business_province_territory;
@@ -127,15 +116,10 @@ module.exports = {
           email,
           password_digest,
           phone_number,
-          user_postal_code,
-          postal_code_type,
           food_handler_certificate,
           date_of_issue,
           expiry_date,
-          commercial_kitchen,
           profile_img_url,
-          chef,
-          caterer,
           business_street_address,
           business_city,
           business_province_territory,

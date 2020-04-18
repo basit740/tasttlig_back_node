@@ -5,7 +5,6 @@ const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
 const jwt = require("jsonwebtoken");
-// const qrCode = require("qrcode");
 const Mailer = require("../../../routes/auth/nodemailer");
 
 // Export purchases table
@@ -23,10 +22,6 @@ module.exports = {
     const food_ad_city = purchase.food_ad_city;
     const food_ad_province_territory = purchase.food_ad_province_territory;
     const food_ad_postal_code = purchase.food_ad_postal_code;
-    // const ready_time = purchase.ready_time;
-    // const ready_time_type = purchase.ready_time_type;
-    // const expiry_time = purchase.expiry_time;
-    // const expiry_time_type = purchase.expiry_time_type;
     const food_ad_code = purchase.food_ad_code;
     const phone_number = purchase.phone_number;
     const food_ad_email = purchase.food_ad_email;
@@ -50,10 +45,6 @@ module.exports = {
           food_ad_city,
           food_ad_province_territory,
           food_ad_postal_code,
-          // ready_time,
-          // ready_time_type,
-          // expiry_time,
-          // expiry_time_type,
           food_ad_code,
           phone_number,
           food_ad_email,
@@ -72,8 +63,6 @@ module.exports = {
           },
           async () => {
             try {
-              // Convert food ad code to QR code
-              // let foodQrCode = await qrCode.toString(food_code);
               // Async food ad coupon claimed email
               const mail_list_claimed = [
                 process.env.KODEDE_ADMIN_EMAIL,
@@ -87,8 +76,7 @@ module.exports = {
                 html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>
                           Please present this coupon to redeem your ${description} (${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}). 
-                          Code is ${food_ad_code}. 
-                          Offer expires within 24 hours.<br><br>
+                          Code is ${food_ad_code}.<br><br>
                         </div>
                         <div>
                           Sent with <3 from Kodede (Created By Tasttlig).<br><br>

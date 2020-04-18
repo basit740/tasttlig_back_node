@@ -11,25 +11,21 @@ module.exports = {
     const food_ad_img_url = foodAd.food_ad_img_url;
     const name = foodAd.name;
     const ethnicity = foodAd.ethnicity;
-    const incentive = foodAd.incentive;
     const price = foodAd.price;
     const quantity = foodAd.quantity;
     const food_ad_street_address = foodAd.food_ad_street_address;
     const food_ad_city = foodAd.food_ad_city;
     const food_ad_province_territory = foodAd.food_ad_province_territory;
     const food_ad_postal_code = foodAd.food_ad_postal_code;
-    const spice_level = foodAd.spice_level;
+    const date = foodAd.date;
+    const start_time = foodAd.start_time;
+    const end_time = foodAd.end_time;
     const vegetarian = foodAd.vegetarian;
     const vegan = foodAd.vegan;
     const gluten_free = foodAd.gluten_free;
     const halal = foodAd.halal;
-    const ready_time = foodAd.ready_time;
-    const ready_time_type = foodAd.ready_time_type;
-    const expiry_time = foodAd.expiry_time;
-    const expiry_time_type = foodAd.expiry_time_type;
     const description = foodAd.description;
     const food_ad_code = foodAd.food_ad_code;
-    const food_ad_active = foodAd.food_ad_active;
     const feedback_count = foodAd.feedback_count;
     const profile_img_url = foodAd.profile_img_url;
     const first_name = foodAd.first_name;
@@ -39,9 +35,6 @@ module.exports = {
     const food_handler_certificate = foodAd.food_handler_certificate;
     const date_of_issue = foodAd.date_of_issue;
     const expiry_date = foodAd.expiry_date;
-    const commercial_kitchen = foodAd.commercial_kitchen;
-    const chef = foodAd.chef;
-    const caterer = foodAd.caterer;
     const business_street_address = foodAd.business_street_address;
     const business_city = foodAd.business_city;
     const business_province_territory = foodAd.business_province_territory;
@@ -60,25 +53,21 @@ module.exports = {
           food_ad_img_url,
           name,
           ethnicity,
-          incentive,
           price,
           quantity,
           food_ad_street_address,
           food_ad_city,
           food_ad_province_territory,
           food_ad_postal_code,
-          spice_level,
+          date,
+          start_time,
+          end_time,
           vegetarian,
           vegan,
           gluten_free,
           halal,
-          ready_time,
-          ready_time_type,
-          expiry_time,
-          expiry_time_type,
           description,
           food_ad_code,
-          food_ad_active,
           feedback_count,
           profile_img_url,
           first_name,
@@ -88,9 +77,6 @@ module.exports = {
           food_handler_certificate,
           date_of_issue,
           expiry_date,
-          commercial_kitchen,
-          chef,
-          caterer,
           business_street_address,
           business_city,
           business_province_territory,
