@@ -15,8 +15,8 @@ exports.up = function(knex) {
     table.string("password_digest").notNullable();
     table.string("phone_number").notNullable();
     table.string("food_handler_certificate");
-    table.date("date_of_issue");
-    table.date("expiry_date");
+    table.string("date_of_issue");
+    table.string("expiry_date");
     table.boolean("verified").defaultTo(false);
     table.boolean("certified");
     table.string("reject_note");
