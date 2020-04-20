@@ -135,6 +135,18 @@ module.exports = {
       return { success: false, message: err };
     }
   },
+  updateFoodAdFeedbackPublic: async (foodAd, user_id) => {
+    const feedback_public = foodAd.feedback_public;
+    try {
+      const returning = await db("food_ads")
+        .where("user_id", user_id)
+        .update({ feedback_public })
+        .returning("*");
+      return { success: true, message: "ok", data: returning };
+    } catch (err) {
+      return { success: false, message: err };
+    }
+  },
   deleteFoodAd: async id => {
     try {
       const returning = await db("food_ads")

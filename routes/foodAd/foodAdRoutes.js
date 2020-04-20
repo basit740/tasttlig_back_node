@@ -90,10 +90,30 @@ foodAdRouter.put("/food-ads/feedback-count/:id", async (req, res) => {
   };
 
   try {
-    const foodAds = await FoodAd.updateFoodAdFeedbackCount(foodAd, req.params.id);
+    const foodAds = await FoodAd.updateFoodAdFeedbackCount(
+      foodAd,
+      req.params.id
+    );
     res.json(foodAds);
   } catch (err) {
     console.log("Update Food Ad Feedback Count", err);
+  }
+});
+
+// PUT food ads feedback from advertiser public or private
+foodAdRouter.put("/food-ads/feedback-public/:id", async (req, res) => {
+  const foodAd = {
+    feedback_public: req.body.feedback_public
+  };
+
+  try {
+    const foodAds = await FoodAd.updateFoodAdFeedbackPublic(
+      foodAd,
+      req.params.id
+    );
+    res.json(foodAds);
+  } catch (err) {
+    console.log("Update Food Ad Feedback Public", err);
   }
 });
 

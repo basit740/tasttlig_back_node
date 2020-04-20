@@ -32,6 +32,7 @@ exports.up = function(knex) {
     table.text("description").notNullable();
     table.string("food_ad_code").notNullable();
     table.integer("feedback_count").notNullable();
+    table.boolean("feedback_public").defaultTo(true);
     table.string("profile_img_url");
     table.string("first_name").notNullable();
     table.string("last_name").notNullable();
