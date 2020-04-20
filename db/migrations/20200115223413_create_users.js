@@ -32,6 +32,7 @@ exports.up = function(knex) {
     table.string("linkedin");
     table.string("website");
     table.text("bio");
+    table.boolean("connected_status");
     table.timestamps(true, true);
   });
 };
