@@ -9,6 +9,7 @@ const purchaseRouter = require("./routes/purchase/purchaseRoutes");
 const recommendationRouter = require("./routes/recommendation/recommendationRoutes");
 const feedbackRouter = require("./routes/feedback/feedbackRoutes");
 const postRouter = require("./routes/post/postRoutes");
+const commentRouter = require("./routes/comment/commentRoutes");
 const searchRouter = require("./routes/search/searchRoutes");
 
 const express = require("express");
@@ -27,6 +28,7 @@ app.use(purchaseRouter);
 app.use(recommendationRouter);
 app.use(feedbackRouter);
 app.use(postRouter);
+app.use(commentRouter);
 app.use(searchRouter);
 
 function print(path, layer) {
