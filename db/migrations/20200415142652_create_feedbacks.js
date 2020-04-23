@@ -13,12 +13,17 @@ exports.up = function(knex) {
       .references("id")
       .inTable("users")
       .onDelete("CASCADE");
-    table.bigInteger("food_ad_number").notNullable();
+    table
+      .bigInteger("food_ad_id")
+      .unsigned()
+      .index()
+      .references("id")
+      .inTable("food_ads")
+      .onDelete("CASCADE");
     table.text("body").notNullable();
     table.string("profile_img_url");
     table.string("first_name").notNullable();
-    table.boolean("flag").defaultTo(false);
-    table.text("reply");
+    table.boolean("remove").defaultTo(false);
     table.timestamps(true, true);
   });
 };

@@ -7,26 +7,6 @@ const db = require("knex")(configuration);
 
 // Export feedback table
 module.exports = {
-  createFeedback: async (feedback, user_id) => {
-    const food_ad_number = feedback.food_ad_number;
-    const profile_img_url = feedback.profile_img_url;
-    const first_name = feedback.first_name;
-    const body = feedback.body;
-    try {
-      const returning = await db("feedbacks")
-        .insert({
-          user_id,
-          food_ad_number,
-          profile_img_url,
-          first_name,
-          body
-        })
-        .returning("*");
-      if (returning) return (response = { success: true, user: returning[0] });
-    } catch (err) {
-      return (response = { success: false, data: err });
-    }
-  },
   getAllFeedback: async () => {
     try {
       const returning = await db("feedbacks");
@@ -35,44 +15,36 @@ module.exports = {
       return { success: false, message: "No feedback found." };
     }
   },
-  updateFlagFeedback: async (feedback, id) => {
-    const flag = feedback.flag;
+  createFeedback: async (feedback, user_id) => {
+    const food_ad_id = feedback.food_ad_id;
+    const body = feedback.body;
+    const profile_img_url = feedback.profile_img_url;
+    const first_name = feedback.first_name;
+    try {
+      const returning = await db("feedbacks")
+        .insert({
+          user_id,
+          food_ad_id,
+          body,
+          profile_img_url,
+          first_name
+        })
+        .returning("*");
+      if (returning) return (response = { success: true, user: returning[0] });
+    } catch (err) {
+      return (response = { success: false, data: err });
+    }
+  },
+  updateFeedback: async (feedback, id) => {
+    const remove = feedback.remove;
     try {
       const returning = await db("feedbacks")
         .where("id", id)
-        .update({ flag })
+        .update({ remove })
         .returning("*");
       return { success: true, message: "ok", data: returning };
     } catch (err) {
       return { success: false, message: err };
-    }
-  },
-  updateReplyFlaggedFeedback: async (feedback, id) => {
-    const flag = feedback.flag;
-    const reply = feedback.reply;
-    try {
-      const returning = await db("feedbacks")
-        .where("id", id)
-        .update({ flag, reply })
-        .returning("*");
-      return { success: true, message: "ok", data: returning };
-    } catch (err) {
-      return { success: false, message: err };
-    }
-  },
-  deleteFeedback: async id => {
-    try {
-      const returning = await db("feedbacks")
-        .where("id", id)
-        .del();
-      if (returning) {
-        return {
-          success: true,
-          message: "Feedback has been deleted."
-        };
-      }
-    } catch (err) {
-      return { success: false, data: err };
     }
   }
 };

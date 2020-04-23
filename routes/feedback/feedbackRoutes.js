@@ -15,10 +15,10 @@ feedbackRouter.get("/feedbacks", async (req, res) => {
 // POST feedback
 feedbackRouter.post("/feedbacks", authenticateToken, async (req, res) => {
   const feedback = {
-    food_ad_number: req.body.food_ad_number,
+    food_ad_id: req.body.food_ad_id,
+    body: req.body.body,
     profile_img_url: req.body.profile_img_url,
-    first_name: req.body.first_name,
-    body: req.body.body
+    first_name: req.body.first_name
   };
 
   try {
@@ -29,56 +29,20 @@ feedbackRouter.post("/feedbacks", authenticateToken, async (req, res) => {
   }
 });
 
-// PUT flag on feedback from user
-feedbackRouter.put("/feedbacks/flag/:id", async (req, res) => {
+// PUT feedback response from admin
+feedbackRouter.put("/feedbacks/:id", async (req, res) => {
   const feedback = {
-    flag: req.body.flag
+    remove: req.body.remove
   };
 
   try {
-    const feedbacks = await Feedback.updateFlagFeedback(
+    const feedbacks = await Feedback.updateFeedback(
       feedback,
       req.params.id
     );
     res.json(feedbacks);
   } catch (err) {
-    console.log("Incoming Feedback Flag", err);
-  }
-});
-
-// PUT flagged reply on feedback from admin
-feedbackRouter.put("/feedbacks/reply-flagged/:id", async (req, res) => {
-  const feedback = {
-    flag: req.body.flag,
-    reply: req.body.reply
-  };
-
-  try {
-    const feedbacks = await Feedback.updateReplyFlaggedFeedback(
-      feedback,
-      req.params.id
-    );
-    res.json(feedbacks);
-  } catch (err) {
-    console.log("Incoming Flagged Reply On Feedback", err);
-  }
-});
-
-// DELETE flagged feedback from admin
-feedbackRouter.delete("/feedbacks/:id", async (req, res) => {
-  try {
-    const returning = await Feedback.deleteFeedback(req.params.id);
-    res.send({
-      success: true,
-      message: "ok",
-      response: returning
-    });
-  } catch (err) {
-    res.send({
-      success: false,
-      message: "error",
-      response: err
-    });
+    console.log("Incoming Feedback Response", err);
   }
 });
 
