@@ -105,7 +105,7 @@ module.exports = {
   },
   getAllFoodAd: async () => {
     try {
-      const returning = await db("food_ads");
+      const returning = await db("food_ads").where("quantity", ">", 0);
       return { success: true, foodAds: returning };
     } catch (err) {
       return { success: false, message: "No food ad found." };
