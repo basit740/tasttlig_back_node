@@ -10,7 +10,7 @@ module.exports = {
   getAllFlaggedFeedback: async () => {
     try {
       const returning = await db("flagged_feedbacks").where("archive", false);
-      return { success: true, feedbacks: returning };
+      return { success: true, flaggedFeedbacks: returning };
     } catch (err) {
       return { success: false, message: "No flagged feedback found." };
     }
@@ -18,7 +18,7 @@ module.exports = {
   getAllArchivedFlaggedFeedback: async () => {
     try {
       const returning = await db("flagged_feedbacks").where("archive", true);
-      return { success: true, feedbacks: returning };
+      return { success: true, flaggedFeedbacks: returning };
     } catch (err) {
       return { success: false, message: "No archived flagged feedback found." };
     }
