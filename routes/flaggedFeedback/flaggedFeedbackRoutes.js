@@ -6,14 +6,14 @@ const auth = require("../auth/authFunctions");
 const FlaggedFeedback = require("../../db/queries/flagged_feedback/flagged_feedback");
 const { authenticateToken } = auth;
 
-// GET all flagged feedbacks
-flaggedFeedbackRouter.get("/flagged-feedbacks", async (req, res) => {
+// GET all flagged feedbacks current
+flaggedFeedbackRouter.get("/flagged-feedbacks/current", async (req, res) => {
   const flaggedFeedbacks = await FlaggedFeedback.getAllFlaggedFeedback();
   res.json(flaggedFeedbacks);
 });
 
-// GET all archived flagged feedbacks
-flaggedFeedbackRouter.get("/archived-flagged-feedbacks", async (req, res) => {
+// GET all flagged feedbacks archives
+flaggedFeedbackRouter.get("/flagged-feedbacks/archives", async (req, res) => {
   const flaggedFeedbacks = await FlaggedFeedback.getAllArchivedFlaggedFeedback();
   res.json(flaggedFeedbacks);
 });
