@@ -9,7 +9,7 @@ const db = require("knex")(configuration);
 module.exports = {
   getAllPost: async () => {
     try {
-      const returning = await db("posts");
+      const returning = await db("posts").where("remove", false);
       return { success: true, posts: returning };
     } catch (err) {
       return { success: false, message: "No forum post found." };

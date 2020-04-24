@@ -37,7 +37,7 @@ postRouter.put("/posts/:id", async (req, res) => {
   };
 
   try {
-    const posts = await Post.updateFlagPost(
+    const posts = await Post.updatePost(
       post,
       req.params.id
     );

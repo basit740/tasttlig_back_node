@@ -9,7 +9,7 @@ const db = require("knex")(configuration);
 module.exports = {
   getAllFeedback: async () => {
     try {
-      const returning = await db("feedbacks");
+      const returning = await db("feedbacks").where("remove", false);
       return { success: true, feedbacks: returning };
     } catch (err) {
       return { success: false, message: "No feedback found." };
