@@ -18,7 +18,6 @@ commentRouter.post("/comments", authenticateToken, async (req, res) => {
     post_id: req.body.post_id,
     profile_img_url: req.body.profile_img_url,
     first_name: req.body.first_name,
-    last_name: req.body.last_name,
     body: req.body.body
   };
 

@@ -7,28 +7,6 @@ const db = require("knex")(configuration);
 
 // Export forum post table
 module.exports = {
-  createPost: async (post, user_id) => {
-    const profile_img_url = post.profile_img_url;
-    const first_name = post.first_name;
-    const last_name = post.last_name;
-    const title = post.title;
-    const body = post.body;
-    try {
-      const returning = await db("posts")
-        .insert({
-          user_id,
-          profile_img_url,
-          first_name,
-          last_name,
-          title,
-          body
-        })
-        .returning("*");
-      if (returning) return (response = { success: true, user: returning[0] });
-    } catch (err) {
-      return (response = { success: false, data: err });
-    }
-  },
   getAllPost: async () => {
     try {
       const returning = await db("posts");
@@ -37,44 +15,38 @@ module.exports = {
       return { success: false, message: "No forum post found." };
     }
   },
-  updateFlagPost: async (post, id) => {
-    const flag = post.flag;
+  createPost: async (post, user_id) => {
+    const profile_img_url = post.profile_img_url;
+    const first_name = post.first_name;
+    const title = post.title;
+    const body = post.body;
+    const post_img_url = post.post_img_url;
+    try {
+      const returning = await db("posts")
+        .insert({
+          user_id,
+          profile_img_url,
+          first_name,
+          title,
+          body,
+          post_img_url
+        })
+        .returning("*");
+      if (returning) return (response = { success: true, user: returning[0] });
+    } catch (err) {
+      return (response = { success: false, data: err });
+    }
+  },
+  updatePost: async (post, id) => {
+    const remove = post.remove;
     try {
       const returning = await db("posts")
         .where("id", id)
-        .update({ flag })
+        .update({ remove })
         .returning("*");
       return { success: true, message: "ok", data: returning };
     } catch (err) {
       return { success: false, message: err };
-    }
-  },
-  updateReplyFlaggedPost: async (post, id) => {
-    const flag = post.flag;
-    const reply = post.reply;
-    try {
-      const returning = await db("posts")
-        .where("id", id)
-        .update({ flag, reply })
-        .returning("*");
-      return { success: true, message: "ok", data: returning };
-    } catch (err) {
-      return { success: false, message: err };
-    }
-  },
-  deletePost: async id => {
-    try {
-      const returning = await db("posts")
-        .where("id", id)
-        .del();
-      if (returning) {
-        return {
-          success: true,
-          message: "Forum post has been deleted."
-        };
-      }
-    } catch (err) {
-      return { success: false, data: err };
     }
   }
 };

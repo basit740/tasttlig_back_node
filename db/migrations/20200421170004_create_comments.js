@@ -23,7 +23,6 @@ exports.up = function(knex) {
     table.text("body").notNullable();
     table.string("profile_img_url");
     table.string("first_name").notNullable();
-    table.string("last_name").notNullable();
     table.timestamps(true, true);
   });
 };

@@ -17,9 +17,9 @@ postRouter.post("/posts", authenticateToken, async (req, res) => {
   const post = {
     profile_img_url: req.body.profile_img_url,
     first_name: req.body.first_name,
-    last_name: req.body.last_name,
     title: req.body.title,
-    body: req.body.body
+    body: req.body.body,
+    post_img_url: req.body.post_img_url
   };
 
   try {
@@ -30,10 +30,10 @@ postRouter.post("/posts", authenticateToken, async (req, res) => {
   }
 });
 
-// PUT flag on forum post from user
-postRouter.put("/posts/flag/:id", async (req, res) => {
+// PUT forum post response from admin
+postRouter.put("/posts/:id", async (req, res) => {
   const post = {
-    flag: req.body.flag
+    remove: req.body.remove
   };
 
   try {
@@ -43,43 +43,7 @@ postRouter.put("/posts/flag/:id", async (req, res) => {
     );
     res.json(posts);
   } catch (err) {
-    console.log("Incoming Forum Post Flag", err);
-  }
-});
-
-// PUT flagged reply on forum post from admin
-postRouter.put("/posts/reply-flagged/:id", async (req, res) => {
-  const post = {
-    flag: req.body.flag,
-    reply: req.body.reply
-  };
-
-  try {
-    const posts = await Post.updateReplyFlaggedPost(
-      post,
-      req.params.id
-    );
-    res.json(posts);
-  } catch (err) {
-    console.log("Incoming Flagged Reply On Forum Post", err);
-  }
-});
-
-// DELETE flagged forum post from admin
-postRouter.delete("/posts/:id", async (req, res) => {
-  try {
-    const returning = await Post.deletePost(req.params.id);
-    res.send({
-      success: true,
-      message: "ok",
-      response: returning
-    });
-  } catch (err) {
-    res.send({
-      success: false,
-      message: "error",
-      response: err
-    });
+    console.log("Incoming Forum Post Response", err);
   }
 });
 

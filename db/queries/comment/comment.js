@@ -11,7 +11,6 @@ module.exports = {
     const post_id = comment.post_id;
     const profile_img_url = comment.profile_img_url;
     const first_name = comment.first_name;
-    const last_name = comment.last_name;
     const body = comment.body;
     try {
       const returning = await db("comments")
@@ -20,7 +19,6 @@ module.exports = {
           post_id,
           profile_img_url,
           first_name,
-          last_name,
           body
         })
         .returning("*");

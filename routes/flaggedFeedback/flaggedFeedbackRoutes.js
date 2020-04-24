@@ -50,7 +50,6 @@ flaggedFeedbackRouter.post(
 flaggedFeedbackRouter.put("/flagged-feedbacks/:id", async (req, res) => {
   const flaggedFeedback = {
     reply: req.body.reply,
-    remove: req.body.remove,
     archive: req.body.archive
   };
 

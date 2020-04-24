@@ -8,9 +8,10 @@ const foodAdRouter = require("./routes/foodAd/foodAdRoutes");
 const purchaseRouter = require("./routes/purchase/purchaseRoutes");
 const recommendationRouter = require("./routes/recommendation/recommendationRoutes");
 const feedbackRouter = require("./routes/feedback/feedbackRoutes");
-const flaggedFeedbackRouter = require("./routes/flaggedFeedback/flaggedFeedbackRoutes");
 const postRouter = require("./routes/post/postRoutes");
 const commentRouter = require("./routes/comment/commentRoutes");
+const flaggedFeedbackRouter = require("./routes/flaggedFeedback/flaggedFeedbackRoutes");
+const flaggedForumRouter = require("./routes/flaggedForum/flaggedForumRoutes");
 const searchRouter = require("./routes/search/searchRoutes");
 
 const express = require("express");
@@ -28,9 +29,10 @@ app.use(foodAdRouter);
 app.use(purchaseRouter);
 app.use(recommendationRouter);
 app.use(feedbackRouter);
-app.use(flaggedFeedbackRouter);
 app.use(postRouter);
 app.use(commentRouter);
+app.use(flaggedFeedbackRouter);
+app.use(flaggedForumRouter);
 app.use(searchRouter);
 
 function print(path, layer) {
