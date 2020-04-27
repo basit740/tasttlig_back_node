@@ -12,6 +12,7 @@ const postRouter = require("./routes/post/postRoutes");
 const commentRouter = require("./routes/comment/commentRoutes");
 const flaggedFeedbackRouter = require("./routes/flaggedFeedback/flaggedFeedbackRoutes");
 const flaggedForumRouter = require("./routes/flaggedForum/flaggedForumRoutes");
+const guestRouter = require("./routes/guest/guestRoutes");
 const searchRouter = require("./routes/search/searchRoutes");
 
 const express = require("express");
@@ -33,6 +34,7 @@ app.use(postRouter);
 app.use(commentRouter);
 app.use(flaggedFeedbackRouter);
 app.use(flaggedForumRouter);
+app.use(guestRouter);
 app.use(searchRouter);
 
 function print(path, layer) {
