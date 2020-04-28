@@ -27,6 +27,7 @@ guestRouter.post("/guests", async (req, res) => {
 
   // if (charge) {
   const guest = {
+    food_ad_id: req.body.food_ad_id,
     food_ad_img_url: req.body.food_ad_img_url,
     guest_email: req.body.guest_email,
     // quantity: req.body.quantity,

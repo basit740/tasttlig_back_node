@@ -6,6 +6,13 @@ exports.up = function(knex) {
       .increments("id")
       .unsigned()
       .primary();
+    table
+      .bigInteger("food_ad_id")
+      .unsigned()
+      .index()
+      .references("id")
+      .inTable("food_ads")
+      .onDelete("CASCADE");
     table.string("food_ad_img_url").notNullable();
     table.string("guest_email").notNullable();
     // table.integer("quantity").notNullable();

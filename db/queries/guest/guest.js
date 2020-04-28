@@ -18,6 +18,7 @@ module.exports = {
     }
   },
   createGuest: async guest => {
+    const food_ad_id = guest.food_ad_id;
     const food_ad_img_url = guest.food_ad_img_url;
     const guest_email = guest.guest_email;
     // const quantity = guest.quantity;
@@ -35,6 +36,7 @@ module.exports = {
     try {
       const returning = await db("guests")
         .insert({
+          food_ad_id,
           food_ad_img_url,
           guest_email,
           // quantity,
@@ -111,19 +113,25 @@ module.exports = {
         })
         .returning("*");
       if (redeemed) {
-        async () => {
-          try {
-            // Async food ad coupon redeemed email
-            const mail_list_redeemed = [
-              process.env.KODEDE_ADMIN_EMAIL,
-              food_ad_email
-            ];
-            await Mailer.transporter.sendMail({
-              from: process.env.KODEDE_AUTOMATED_EMAIL,
-              to: guest_email,
-              bcc: mail_list_redeemed,
-              subject: `[Kodede] Your coupon is redeemed for ${description}`,
-              html: `<div>Hello ${first_name} ${last_name},<br><br></div>
+        jwt.sign(
+          { guest: returning[0].id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "1d"
+          },
+          async () => {
+            try {
+              // Async food ad coupon redeemed email
+              const mail_list_redeemed = [
+                process.env.KODEDE_ADMIN_EMAIL,
+                food_ad_email
+              ];
+              await Mailer.transporter.sendMail({
+                from: process.env.KODEDE_AUTOMATED_EMAIL,
+                to: guest_email,
+                bcc: mail_list_redeemed,
+                subject: `[Kodede] Your coupon is redeemed for ${description}`,
+                html: `<div>Hello,<br><br></div>
                       <div>
                         Your coupon has been redeemed for ${description} (${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}). 
                         Code is ${food_ad_code}. 
@@ -135,11 +143,12 @@ module.exports = {
                       <div>Tasttlig Corporation</div>
                       <div>585 Dundas St E, 3rd Floor</div>
                       <div>Toronto, ON M5A 2B7, Canada</div>`
-            });
-          } catch (err) {
-            console.log(err);
+              });
+            } catch (err) {
+              console.log(err);
+            }
           }
-        };
+        );
       }
       return { success: true, message: "ok", data: returning };
     } catch (err) {
