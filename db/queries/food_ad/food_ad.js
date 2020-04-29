@@ -135,12 +135,25 @@ module.exports = {
       return { success: false, message: err };
     }
   },
-  updateFoodAdFeedbackPublic: async (foodAd, user_id) => {
-    const feedback_public = foodAd.feedback_public;
+  updateFoodAdFeedbackPublicGlobal: async (foodAd, user_id) => {
+    const feedback_public_global = foodAd.feedback_public_global;
+    const feedback_public_local = foodAd.feedback_public_local;
     try {
       const returning = await db("food_ads")
         .where("user_id", user_id)
-        .update({ feedback_public })
+        .update({ feedback_public_global, feedback_public_local })
+        .returning("*");
+      return { success: true, message: "ok", data: returning };
+    } catch (err) {
+      return { success: false, message: err };
+    }
+  },
+  updateFoodAdFeedbackPublicLocal: async (foodAd, id) => {
+    const feedback_public_local = foodAd.feedback_public_local;
+    try {
+      const returning = await db("food_ads")
+        .where("id", id)
+        .update({ feedback_public_local })
         .returning("*");
       return { success: true, message: "ok", data: returning };
     } catch (err) {

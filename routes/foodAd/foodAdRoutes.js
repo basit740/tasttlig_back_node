@@ -100,20 +100,38 @@ foodAdRouter.put("/food-ads/feedback-count/:id", async (req, res) => {
   }
 });
 
-// PUT food ads feedback from advertiser public or private
-foodAdRouter.put("/food-ads/feedback-public/:id", async (req, res) => {
+// PUT food ads feedback from advertiser public or private (global)
+foodAdRouter.put("/food-ads/feedback-public-global/:id", async (req, res) => {
   const foodAd = {
-    feedback_public: req.body.feedback_public
+    feedback_public_global: req.body.feedback_public_global,
+    feedback_public_local: req.body.feedback_public_local
   };
 
   try {
-    const foodAds = await FoodAd.updateFoodAdFeedbackPublic(
+    const foodAds = await FoodAd.updateFoodAdFeedbackPublicGlobal(
       foodAd,
       req.params.id
     );
     res.json(foodAds);
   } catch (err) {
-    console.log("Update Food Ad Feedback Public", err);
+    console.log("Update Food Ad Feedback Public (Global)", err);
+  }
+});
+
+// PUT food ads feedback from advertiser public or private (local)
+foodAdRouter.put("/food-ads/feedback-public-local/:id", async (req, res) => {
+  const foodAd = {
+    feedback_public_local: req.body.feedback_public_local
+  };
+
+  try {
+    const foodAds = await FoodAd.updateFoodAdFeedbackPublicLocal(
+      foodAd,
+      req.params.id
+    );
+    res.json(foodAds);
+  } catch (err) {
+    console.log("Update Food Ad Feedback Public (Local)", err);
   }
 });
 
