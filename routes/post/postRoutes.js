@@ -12,6 +12,12 @@ postRouter.get("/posts", async (req, res) => {
   res.json(posts);
 });
 
+// GET all forum posts based on user ID
+postRouter.get("/posts/user", authenticateToken, async (req, res) => {
+  const posts = await Post.getUserPost(req.user.id);
+  res.json(posts);
+});
+
 // POST forum post
 postRouter.post("/posts", authenticateToken, async (req, res) => {
   const post = {

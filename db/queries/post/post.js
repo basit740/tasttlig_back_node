@@ -15,6 +15,14 @@ module.exports = {
       return { success: false, message: "No forum post found." };
     }
   },
+  getUserPost: async user_id => {
+    try {
+      const returning = await db("posts").where("user_id", user_id);
+      return { success: true, posts: returning };
+    } catch (err) {
+      return { success: false, message: "No forum post found." };
+    }
+  },
   createPost: async (post, user_id) => {
     const profile_img_url = post.profile_img_url;
     const first_name = post.first_name;
