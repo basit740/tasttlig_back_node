@@ -7,30 +7,24 @@ const db = require("knex")(configuration);
 const jwt = require("jsonwebtoken");
 const Mailer = require("../../../routes/auth/nodemailer");
 
-// Date formatting helper function
-const formatDate = event => {
-  const utcDate = new Date(event);
-  const options = { month: "short", day: "2-digit", year: "numeric" };
-  const standardDate = new Date(
-    utcDate.getTime() + Math.abs(utcDate.getTimezoneOffset() * 60000)
-  ).toLocaleDateString([], options);
-
-  return standardDate;
-};
-
-// Time formatting helper function
-const formatTime = event => {
-  const militaryHours = parseInt(event.substring(0, 2));
-  const standardHours = ((militaryHours + 11) % 12) + 1;
-  const amPm = militaryHours > 11 ? "PM" : "AM";
-  const minutes = event.substring(2);
-  const standardTime = `${standardHours}${minutes} ${amPm}`;
-
-  return standardTime;
-};
-
 // Export purchases table
 module.exports = {
+  getUserPurchase: async user_id => {
+    try {
+      const returning = await db("purchases").where("user_id", user_id);
+      return { success: true, purchases: returning };
+    } catch (err) {
+      return { success: false, message: "No purchase found." };
+    }
+  },
+  getAllPurchase: async () => {
+    try {
+      const returning = await db("purchases");
+      return { success: true, purchases: returning };
+    } catch (err) {
+      return { success: false, message: "No purchase found." };
+    }
+  },
   createPurchase: async (purchase, user_id) => {
     const food_ad_number = purchase.food_ad_number;
     const profile_img_url = purchase.profile_img_url;
@@ -96,9 +90,6 @@ module.exports = {
                 process.env.KODEDE_ADMIN_EMAIL,
                 food_ad_email
               ];
-              const standardDate = formatDate(date);
-              const standardStartTime = formatTime(start_time);
-              const standardEndTime = formatTime(end_time);
               await Mailer.transporter.sendMail({
                 from: process.env.KODEDE_AUTOMATED_EMAIL,
                 to: receipt_email,
@@ -110,9 +101,9 @@ module.exports = {
                         </div>
                         <div>
                           Address: ${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}<br>
-                          Date: ${standardDate}<br>
-                          Start Time: ${standardStartTime}<br>
-                          End Time: ${standardEndTime}<br><br>
+                          Date: ${date}<br>
+                          Start Time: ${start_time}<br>
+                          End Time: ${end_time}<br><br>
                         </div>
                         <div>
                           Code is ${food_ad_code}.<br><br>
@@ -135,23 +126,8 @@ module.exports = {
       return (response = { success: false, data: err });
     }
   },
-  getUserPurchase: async user_id => {
-    try {
-      const returning = await db("purchases").where("user_id", user_id);
-      return { success: true, purchases: returning };
-    } catch (err) {
-      return { success: false, message: "No purchase found." };
-    }
-  },
-  getAllPurchase: async () => {
-    try {
-      const returning = await db("purchases");
-      return { success: true, purchases: returning };
-    } catch (err) {
-      return { success: false, message: "No purchase found." };
-    }
-  },
   updatePurchase: async (purchase, id) => {
+    const food_ad_number = purchase.food_ad_number;
     const first_name = purchase.first_name;
     const last_name = purchase.last_name;
     const description = purchase.description;
@@ -178,11 +154,12 @@ module.exports = {
           { purchase: returning[0].user_id },
           process.env.EMAIL_SECRET,
           {
-            expiresIn: "1d"
+            expiresIn: "14d"
           },
+          // Async food ad coupon redeemed email
           async () => {
             try {
-              // Async food ad coupon redeemed email
+              const url = `http://localhost:3000/feedback/${food_ad_number}`;
               const mail_list_redeemed = [
                 process.env.KODEDE_ADMIN_EMAIL,
                 food_ad_email
@@ -198,12 +175,15 @@ module.exports = {
                         </div>
                         <div>
                           Address: ${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}<br>
-                          Date: ${formatDate(date)}<br>
-                          Start Time: ${formatTime(start_time)}<br>
-                          End Time: ${formatTime(end_time)}<br><br>
+                          Date: ${date}<br>
+                          Start Time: ${start_time}<br>
+                          End Time: ${end_time}<br><br>
                         </div>
                         <div>
                           Code is ${food_ad_code}.<br><br>
+                        </div>
+                        <div>
+                          <a href="${url}">Write a Feedback</a><br><br>
                         </div>
                         <div>
                           Please visit Kodede again to taste food from around the world.<br><br>

@@ -7,28 +7,6 @@ const db = require("knex")(configuration);
 const jwt = require("jsonwebtoken");
 const Mailer = require("../../../routes/auth/nodemailer");
 
-// Date formatting helper function
-const formatDate = event => {
-  const utcDate = new Date(event);
-  const options = { month: "short", day: "2-digit", year: "numeric" };
-  const standardDate = new Date(
-    utcDate.getTime() + Math.abs(utcDate.getTimezoneOffset() * 60000)
-  ).toLocaleDateString([], options);
-
-  return standardDate;
-};
-
-// Time formatting helper function
-const formatTime = event => {
-  const militaryHours = parseInt(event.substring(0, 2));
-  const standardHours = ((militaryHours + 11) % 12) + 1;
-  const amPm = militaryHours > 11 ? "PM" : "AM";
-  const minutes = event.substring(2);
-  const standardTime = `${standardHours}${minutes} ${amPm}`;
-
-  return standardTime;
-};
-
 // Export guests table
 module.exports = {
   getAllGuest: async () => {
@@ -95,9 +73,6 @@ module.exports = {
                 process.env.KODEDE_ADMIN_EMAIL,
                 food_ad_email
               ];
-              const standardDate = formatDate(date);
-              const standardStartTime = formatTime(start_time);
-              const standardEndTime = formatTime(end_time);
               await Mailer.transporter.sendMail({
                 from: process.env.KODEDE_AUTOMATED_EMAIL,
                 to: guest_email,
@@ -109,9 +84,9 @@ module.exports = {
                         </div>
                         <div>
                           Address: ${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}<br>
-                          Date: ${standardDate}<br>
-                          Start Time: ${standardStartTime}<br>
-                          End Time: ${standardEndTime}<br><br>
+                          Date: ${date}<br>
+                          Start Time: ${start_time}<br>
+                          End Time: ${end_time}<br><br>
                         </div>
                         <div>
                           Code is ${food_ad_code}.<br><br>
@@ -141,9 +116,9 @@ module.exports = {
     const food_ad_city = guest.food_ad_city;
     const food_ad_province_territory = guest.food_ad_province_territory;
     const food_ad_postal_code = guest.food_ad_postal_code;
-    const date = purchase.date;
-    const start_time = purchase.start_time;
-    const end_time = purchase.end_time;
+    const date = guest.date;
+    const start_time = guest.start_time;
+    const end_time = guest.end_time;
     const food_ad_code = guest.food_ad_code;
     const food_ad_email = guest.food_ad_email;
     const redeemed = guest.redeemed;
@@ -161,9 +136,9 @@ module.exports = {
           {
             expiresIn: "1d"
           },
+          // Async food ad coupon redeemed email
           async () => {
             try {
-              // Async food ad coupon redeemed email
               const mail_list_redeemed = [
                 process.env.KODEDE_ADMIN_EMAIL,
                 food_ad_email
@@ -179,9 +154,9 @@ module.exports = {
                         </div>
                         <div>
                           Address: ${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}<br>
-                          Date: ${this.formatDate(date)}<br>
-                          Start Time: ${this.formatTime(start_time)}<br>
-                          End Time: ${this.formatTime(end_time)}<br><br>
+                          Date: ${date}<br>
+                          Start Time: ${start_time}<br>
+                          End Time: ${end_time}<br><br>
                         </div>
                         <div>
                           Code is ${food_ad_code}.<br><br>

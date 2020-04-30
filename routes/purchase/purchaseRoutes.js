@@ -71,6 +71,7 @@ purchaseRouter.post("/purchases", authenticateToken, async (req, res) => {
 // PUT food ad purchase response from advertiser
 purchaseRouter.put("/purchases/:id", async (req, res) => {
   const purchase = {
+    food_ad_number: req.body.food_ad_number,
     first_name: req.body.first_name,
     last_name: req.body.last_name,
     description: req.body.description,
