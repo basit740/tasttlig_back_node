@@ -20,6 +20,7 @@ exports.up = function(knex) {
       .references("id")
       .inTable("posts")
       .onDelete("CASCADE");
+    table.string("flagged_email").notNullable();
     table.string("flagged_profile_img_url");
     table.string("flagged_first_name").notNullable();
     table.text("flagged_body").notNullable();

@@ -25,6 +25,7 @@ flaggedForumRouter.post(
   async (req, res) => {
     const flaggedForum = {
       post_id: req.body.post_id,
+      flagged_email: req.body.flagged_email,
       flagged_profile_img_url: req.body.flagged_profile_img_url,
       flagged_first_name: req.body.flagged_first_name,
       flagged_body: req.body.flagged_body,
@@ -50,6 +51,10 @@ flaggedForumRouter.post(
 // PUT flagged forum response from admin
 flaggedForumRouter.put("/flagged-forums/:id", async (req, res) => {
   const flaggedForum = {
+    flagged_email: req.body.flagged_email,
+    flagged_first_name: req.body.flagged_first_name,
+    flagged_body: req.body.flagged_body,
+    post_title: req.body.post_title,
     reply: req.body.reply,
     archive: req.body.archive
   };

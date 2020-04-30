@@ -26,6 +26,7 @@ flaggedFeedbackRouter.post(
     const flaggedFeedback = {
       food_ad_id: req.body.food_ad_id,
       feedback_id: req.body.feedback_id,
+      flagged_email: req.body.flagged_email,
       flagged_profile_img_url: req.body.flagged_profile_img_url,
       flagged_first_name: req.body.flagged_first_name,
       flagged_body: req.body.flagged_body,
@@ -49,6 +50,10 @@ flaggedFeedbackRouter.post(
 // PUT flagged feedback response from admin
 flaggedFeedbackRouter.put("/flagged-feedbacks/:id", async (req, res) => {
   const flaggedFeedback = {
+    flagged_email: req.body.flagged_email,
+    flagged_first_name: req.body.flagged_first_name,
+    flagged_body: req.body.flagged_body,
+    feedback_body: req.body.feedback_body,
     reply: req.body.reply,
     archive: req.body.archive
   };
