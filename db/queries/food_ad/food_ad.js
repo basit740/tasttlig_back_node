@@ -35,6 +35,7 @@ module.exports = {
     const food_handler_certificate = foodAd.food_handler_certificate;
     const date_of_issue = foodAd.date_of_issue;
     const expiry_date = foodAd.expiry_date;
+    const verified = foodAd.verified;
     const business_street_address = foodAd.business_street_address;
     const business_city = foodAd.business_city;
     const business_province_territory = foodAd.business_province_territory;
@@ -77,6 +78,7 @@ module.exports = {
           food_handler_certificate,
           date_of_issue,
           expiry_date,
+          verified,
           business_street_address,
           business_city,
           business_province_territory,

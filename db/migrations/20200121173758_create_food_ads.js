@@ -42,6 +42,7 @@ exports.up = function(knex) {
     table.string("food_handler_certificate").notNullable();
     table.date("date_of_issue").notNullable();
     table.date("expiry_date").notNullable();
+    table.boolean("verified").notNullable();
     table.string("business_street_address");
     table.string("business_city");
     table.string("business_province_territory");
