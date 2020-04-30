@@ -7,6 +7,28 @@ const db = require("knex")(configuration);
 const jwt = require("jsonwebtoken");
 const Mailer = require("../../../routes/auth/nodemailer");
 
+// Date formatting helper function
+const formatDate = event => {
+  const utcDate = new Date(event);
+  const options = { month: "short", day: "2-digit", year: "numeric" };
+  const standardDate = new Date(
+    utcDate.getTime() + Math.abs(utcDate.getTimezoneOffset() * 60000)
+  ).toLocaleDateString([], options);
+
+  return standardDate;
+};
+
+// Time formatting helper function
+const formatTime = event => {
+  const militaryHours = parseInt(event.substring(0, 2));
+  const standardHours = ((militaryHours + 11) % 12) + 1;
+  const amPm = militaryHours > 11 ? "PM" : "AM";
+  const minutes = event.substring(2);
+  const standardTime = `${standardHours}${minutes} ${amPm}`;
+
+  return standardTime;
+};
+
 // Export guests table
 module.exports = {
   getAllGuest: async () => {
@@ -28,6 +50,9 @@ module.exports = {
     const food_ad_city = guest.food_ad_city;
     const food_ad_province_territory = guest.food_ad_province_territory;
     const food_ad_postal_code = guest.food_ad_postal_code;
+    const date = guest.date;
+    const start_time = guest.start_time;
+    const end_time = guest.end_time;
     const food_ad_code = guest.food_ad_code;
     const food_ad_email = guest.food_ad_email;
     // const receipt_url = guest.receipt_url;
@@ -46,6 +71,9 @@ module.exports = {
           food_ad_city,
           food_ad_province_territory,
           food_ad_postal_code,
+          date,
+          start_time,
+          end_time,
           food_ad_code,
           food_ad_email,
           // receipt_url,
@@ -67,22 +95,33 @@ module.exports = {
                 process.env.KODEDE_ADMIN_EMAIL,
                 food_ad_email
               ];
+              const standardDate = formatDate(date);
+              const standardStartTime = formatTime(start_time);
+              const standardEndTime = formatTime(end_time);
               await Mailer.transporter.sendMail({
                 from: process.env.KODEDE_AUTOMATED_EMAIL,
                 to: guest_email,
                 bcc: mail_list_claimed,
                 subject: `[Kodede] Your coupon is claimed for ${description}`,
-                html: `<div>Hello,<br><br></div>
-                      <div>
-                        Please present this coupon to redeem your ${description} (${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}). 
-                        Code is ${food_ad_code}.<br><br>
-                      </div>
-                      <div>
-                        Sent with <3 from Kodede (Created By Tasttlig).<br><br>
-                      </div>
-                      <div>Tasttlig Corporation</div>
-                      <div>585 Dundas St E, 3rd Floor</div>
-                      <div>Toronto, ON M5A 2B7, Canada</div>`
+                html:  `<div>Hello,<br><br></div>
+                        <div>
+                          Please present this coupon to redeem your ${description}.<br><br>
+                        </div>
+                        <div>
+                          Address: ${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}<br>
+                          Date: ${standardDate}<br>
+                          Start Time: ${standardStartTime}<br>
+                          End Time: ${standardEndTime}<br><br>
+                        </div>
+                        <div>
+                          Code is ${food_ad_code}.<br><br>
+                        </div>
+                        <div>
+                          Sent with <3 from Kodede (Created By Tasttlig).<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
               });
             } catch (err) {
               console.log(err);
@@ -102,6 +141,9 @@ module.exports = {
     const food_ad_city = guest.food_ad_city;
     const food_ad_province_territory = guest.food_ad_province_territory;
     const food_ad_postal_code = guest.food_ad_postal_code;
+    const date = purchase.date;
+    const start_time = purchase.start_time;
+    const end_time = purchase.end_time;
     const food_ad_code = guest.food_ad_code;
     const food_ad_email = guest.food_ad_email;
     const redeemed = guest.redeemed;
@@ -131,18 +173,28 @@ module.exports = {
                 to: guest_email,
                 bcc: mail_list_redeemed,
                 subject: `[Kodede] Your coupon is redeemed for ${description}`,
-                html: `<div>Hello,<br><br></div>
-                      <div>
-                        Your coupon has been redeemed for ${description} (${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}). 
-                        Code is ${food_ad_code}. 
-                        Please visit Kodede again to taste food from around the world.<br><br>
-                      </div>
-                      <div>
-                        Sent with <3 from Kodede (Created By Tasttlig).<br><br>
-                      </div>
-                      <div>Tasttlig Corporation</div>
-                      <div>585 Dundas St E, 3rd Floor</div>
-                      <div>Toronto, ON M5A 2B7, Canada</div>`
+                html:  `<div>Hello,<br><br></div>
+                        <div>
+                          Your coupon has been redeemed for ${description}.<br><br>
+                        </div>
+                        <div>
+                          Address: ${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}<br>
+                          Date: ${this.formatDate(date)}<br>
+                          Start Time: ${this.formatTime(start_time)}<br>
+                          End Time: ${this.formatTime(end_time)}<br><br>
+                        </div>
+                        <div>
+                          Code is ${food_ad_code}.<br><br>
+                        </div>
+                        <div>
+                          Please visit Kodede again to taste food from around the world.<br><br>
+                        </div>
+                        <div>
+                          Sent with <3 from Kodede (Created By Tasttlig).<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
               });
             } catch (err) {
               console.log(err);

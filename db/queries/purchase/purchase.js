@@ -7,6 +7,28 @@ const db = require("knex")(configuration);
 const jwt = require("jsonwebtoken");
 const Mailer = require("../../../routes/auth/nodemailer");
 
+// Date formatting helper function
+const formatDate = event => {
+  const utcDate = new Date(event);
+  const options = { month: "short", day: "2-digit", year: "numeric" };
+  const standardDate = new Date(
+    utcDate.getTime() + Math.abs(utcDate.getTimezoneOffset() * 60000)
+  ).toLocaleDateString([], options);
+
+  return standardDate;
+};
+
+// Time formatting helper function
+const formatTime = event => {
+  const militaryHours = parseInt(event.substring(0, 2));
+  const standardHours = ((militaryHours + 11) % 12) + 1;
+  const amPm = militaryHours > 11 ? "PM" : "AM";
+  const minutes = event.substring(2);
+  const standardTime = `${standardHours}${minutes} ${amPm}`;
+
+  return standardTime;
+};
+
 // Export purchases table
 module.exports = {
   createPurchase: async (purchase, user_id) => {
@@ -22,6 +44,9 @@ module.exports = {
     const food_ad_city = purchase.food_ad_city;
     const food_ad_province_territory = purchase.food_ad_province_territory;
     const food_ad_postal_code = purchase.food_ad_postal_code;
+    const date = purchase.date;
+    const start_time = purchase.start_time;
+    const end_time = purchase.end_time;
     const food_ad_code = purchase.food_ad_code;
     const phone_number = purchase.phone_number;
     const food_ad_email = purchase.food_ad_email;
@@ -45,6 +70,9 @@ module.exports = {
           food_ad_city,
           food_ad_province_territory,
           food_ad_postal_code,
+          date,
+          start_time,
+          end_time,
           food_ad_code,
           phone_number,
           food_ad_email,
@@ -68,6 +96,9 @@ module.exports = {
                 process.env.KODEDE_ADMIN_EMAIL,
                 food_ad_email
               ];
+              const standardDate = formatDate(date);
+              const standardStartTime = formatTime(start_time);
+              const standardEndTime = formatTime(end_time);
               await Mailer.transporter.sendMail({
                 from: process.env.KODEDE_AUTOMATED_EMAIL,
                 to: receipt_email,
@@ -75,7 +106,15 @@ module.exports = {
                 subject: `[Kodede] Your coupon is claimed for ${description}`,
                 html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>
-                          Please present this coupon to redeem your ${description} (${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}). 
+                          Please present this coupon to redeem your ${description}.<br><br>
+                        </div>
+                        <div>
+                          Address: ${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}<br>
+                          Date: ${standardDate}<br>
+                          Start Time: ${standardStartTime}<br>
+                          End Time: ${standardEndTime}<br><br>
+                        </div>
+                        <div>
                           Code is ${food_ad_code}.<br><br>
                         </div>
                         <div>
@@ -120,6 +159,9 @@ module.exports = {
     const food_ad_city = purchase.food_ad_city;
     const food_ad_province_territory = purchase.food_ad_province_territory;
     const food_ad_postal_code = purchase.food_ad_postal_code;
+    const date = purchase.date;
+    const start_time = purchase.start_time;
+    const end_time = purchase.end_time;
     const food_ad_code = purchase.food_ad_code;
     const food_ad_email = purchase.food_ad_email;
     const receipt_email = purchase.receipt_email;
@@ -152,8 +194,18 @@ module.exports = {
                 subject: `[Kodede] Your coupon is redeemed for ${description}`,
                 html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>
-                          Your coupon has been redeemed for ${description} (${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}). 
-                          Code is ${food_ad_code}. 
+                          Your coupon has been redeemed for ${description}.<br><br>
+                        </div>
+                        <div>
+                          Address: ${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}<br>
+                          Date: ${formatDate(date)}<br>
+                          Start Time: ${formatTime(start_time)}<br>
+                          End Time: ${formatTime(end_time)}<br><br>
+                        </div>
+                        <div>
+                          Code is ${food_ad_code}.<br><br>
+                        </div>
+                        <div>
                           Please visit Kodede again to taste food from around the world.<br><br>
                         </div>
                         <div>

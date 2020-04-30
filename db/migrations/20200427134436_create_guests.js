@@ -22,6 +22,9 @@ exports.up = function(knex) {
     table.string("food_ad_city").notNullable();
     table.string("food_ad_province_territory").notNullable();
     table.string("food_ad_postal_code").notNullable();
+    table.string("date").notNullable();
+    table.string("start_time").notNullable();
+    table.string("end_time").notNullable();
     table.string("food_ad_code").notNullable();
     table.string("food_ad_email").notNullable();
     // table.string("receipt_url").notNullable();
