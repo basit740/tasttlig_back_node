@@ -43,7 +43,6 @@ module.exports = {
             try {
               const url = `http://localhost:3000/user/verify/${emailToken}`;
               await Mailer.transporter.sendMail({
-                from: process.env.KODEDE_AUTOMATED_EMAIL,
                 to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,
                 subject: "[Kodede] Please verify your email",
@@ -155,7 +154,6 @@ module.exports = {
           async () => {
             try {
               await Mailer.transporter.sendMail({
-                from: process.env.KODEDE_AUTOMATED_EMAIL,
                 to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,
                 subject: "[Kodede] Password changed",
@@ -266,7 +264,6 @@ module.exports = {
             try {
               // Async food advertiser application accepted email
               await Mailer.transporter.sendMail({
-                from: process.env.KODEDE_AUTOMATED_EMAIL,
                 to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,
                 subject: `[Kodede] Your application as food advertiser is accepted`,
@@ -297,7 +294,6 @@ module.exports = {
             try {
               // Async food advertiser application rejected email
               await Mailer.transporter.sendMail({
-                from: process.env.KODEDE_AUTOMATED_EMAIL,
                 to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,
                 subject: `[Kodede] Your application as food advertiser is rejected`,

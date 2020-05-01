@@ -80,8 +80,8 @@ module.exports = {
             try {
               // Async flagged forum post response from admin email
               await Mailer.transporter.sendMail({
-                from: process.env.KODEDE_AUTOMATED_EMAIL,
                 to: flagged_email,
+                bcc: process.env.KODEDE_ADMIN_EMAIL,
                 subject: `[Kodede] Your flagged forum post for ${post_title}`,
                 html:  `<div>Hello ${flagged_first_name},<br><br></div>
                         <div>

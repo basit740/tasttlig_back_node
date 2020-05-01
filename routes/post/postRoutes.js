@@ -43,10 +43,7 @@ postRouter.put("/posts/:id", async (req, res) => {
   };
 
   try {
-    const posts = await Post.updatePost(
-      post,
-      req.params.id
-    );
+    const posts = await Post.updatePost(post, req.params.id);
     res.json(posts);
   } catch (err) {
     console.log("Incoming Forum Post Response", err);

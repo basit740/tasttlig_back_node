@@ -74,7 +74,6 @@ module.exports = {
                 food_ad_email
               ];
               await Mailer.transporter.sendMail({
-                from: process.env.KODEDE_AUTOMATED_EMAIL,
                 to: guest_email,
                 bcc: mail_list_claimed,
                 subject: `[Kodede] Your coupon is claimed for ${description}`,
@@ -144,7 +143,6 @@ module.exports = {
                 food_ad_email
               ];
               await Mailer.transporter.sendMail({
-                from: process.env.KODEDE_AUTOMATED_EMAIL,
                 to: guest_email,
                 bcc: mail_list_redeemed,
                 subject: `[Kodede] Your coupon is redeemed for ${description}`,

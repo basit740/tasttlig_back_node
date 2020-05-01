@@ -190,7 +190,6 @@ authRouter.post("/user/forgot-password", async (req, res) => {
         try {
           const url = `http://localhost:3000/forgot-password/${emailToken}`;
           const info = await Mailer.transporter.sendMail({
-            from: process.env.KODEDE_AUTOMATED_EMAIL,
             to: email,
             bcc: process.env.KODEDE_ADMIN_EMAIL,
             subject: "[Kodede] Reset your password",

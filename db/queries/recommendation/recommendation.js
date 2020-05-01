@@ -7,6 +7,22 @@ const db = require("knex")(configuration);
 
 // Export recommendations table
 module.exports = {
+  getUserRecommendation: async user_id => {
+    try {
+      const returning = await db("recommendations").where("user_id", user_id);
+      return { success: true, recommendations: returning };
+    } catch (err) {
+      return { success: false, message: "No recommendation found." };
+    }
+  },
+  getAllRecommendation: async () => {
+    try {
+      const returning = await db("recommendations");
+      return { success: true, recommendations: returning };
+    } catch (err) {
+      return { success: false, message: "No recommendation found." };
+    }
+  },
   createRecommendation: async (recommendation, user_id) => {
     const profile_img_url = recommendation.profile_img_url;
     const first_name = recommendation.first_name;
@@ -25,22 +41,6 @@ module.exports = {
       if (returning) return (response = { success: true, user: returning[0] });
     } catch (err) {
       return (response = { success: false, data: err });
-    }
-  },
-  getUserRecommendation: async user_id => {
-    try {
-      const returning = await db("recommendations").where("user_id", user_id);
-      return { success: true, recommendations: returning };
-    } catch (err) {
-      return { success: false, message: "No recommendation found." };
-    }
-  },
-  getAllRecommendation: async () => {
-    try {
-      const returning = await db("recommendations");
-      return { success: true, recommendations: returning };
-    } catch (err) {
-      return { success: false, message: "No recommendation found." };
     }
   },
   updateRecommendation: async (recommendation, id) => {

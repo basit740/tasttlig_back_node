@@ -7,6 +7,22 @@ const db = require("knex")(configuration);
 
 // Export food ads table
 module.exports = {
+  getUserFoodAd: async user_id => {
+    try {
+      const returning = await db("food_ads").where("user_id", user_id);
+      return { success: true, foodAds: returning };
+    } catch (err) {
+      return { success: false, message: "No food ad found." };
+    }
+  },
+  getAllFoodAd: async () => {
+    try {
+      const returning = await db("food_ads").where("quantity", ">", 0);
+      return { success: true, foodAds: returning };
+    } catch (err) {
+      return { success: false, message: "No food ad found." };
+    }
+  },
   createFoodAd: async (foodAd, user_id) => {
     const food_ad_img_url = foodAd.food_ad_img_url;
     const name = foodAd.name;
@@ -95,22 +111,6 @@ module.exports = {
       if (returning) return (response = { success: true, user: returning[0] });
     } catch (err) {
       return (response = { success: false, data: err });
-    }
-  },
-  getUserFoodAd: async user_id => {
-    try {
-      const returning = await db("food_ads").where("user_id", user_id);
-      return { success: true, foodAds: returning };
-    } catch (err) {
-      return { success: false, message: "No food ad found." };
-    }
-  },
-  getAllFoodAd: async () => {
-    try {
-      const returning = await db("food_ads").where("quantity", ">", 0);
-      return { success: true, foodAds: returning };
-    } catch (err) {
-      return { success: false, message: "No food ad found." };
     }
   },
   updateFoodAdQuantity: async (foodAd, id) => {

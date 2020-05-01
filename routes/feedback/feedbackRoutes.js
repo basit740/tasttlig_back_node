@@ -36,10 +36,7 @@ feedbackRouter.put("/feedbacks/:id", async (req, res) => {
   };
 
   try {
-    const feedbacks = await Feedback.updateFeedback(
-      feedback,
-      req.params.id
-    );
+    const feedbacks = await Feedback.updateFeedback(feedback, req.params.id);
     res.json(feedbacks);
   } catch (err) {
     console.log("Incoming Feedback Response", err);

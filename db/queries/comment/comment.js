@@ -7,6 +7,14 @@ const db = require("knex")(configuration);
 
 // Export forum comment table
 module.exports = {
+  getAllComment: async () => {
+    try {
+      const returning = await db("comments");
+      return { success: true, comments: returning };
+    } catch (err) {
+      return { success: false, message: "No forum comment found." };
+    }
+  },
   createComment: async (comment, user_id) => {
     const post_id = comment.post_id;
     const profile_img_url = comment.profile_img_url;
@@ -25,14 +33,6 @@ module.exports = {
       if (returning) return (response = { success: true, user: returning[0] });
     } catch (err) {
       return (response = { success: false, data: err });
-    }
-  },
-  getAllComment: async () => {
-    try {
-      const returning = await db("comments");
-      return { success: true, comments: returning };
-    } catch (err) {
-      return { success: false, message: "No forum comment found." };
     }
   }
 };
