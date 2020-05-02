@@ -18,7 +18,13 @@ feedbackRouter.post("/feedbacks", authenticateToken, async (req, res) => {
     food_ad_id: req.body.food_ad_id,
     body: req.body.body,
     profile_img_url: req.body.profile_img_url,
-    first_name: req.body.first_name
+    feedback_email: req.body.feedback_email,
+    feedback_first_name: req.body.feedback_first_name,
+    feedback_last_name: req.body.feedback_last_name,
+    food_ad_email: req.body.food_ad_email,
+    food_ad_first_name: req.body.food_ad_first_name,
+    food_ad_last_name: req.body.food_ad_last_name,
+    food_ad_name: req.body.food_ad_name
   };
 
   try {

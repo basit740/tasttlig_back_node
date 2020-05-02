@@ -22,7 +22,13 @@ exports.up = function(knex) {
       .onDelete("CASCADE");
     table.text("body").notNullable();
     table.string("profile_img_url");
-    table.string("first_name").notNullable();
+    table.string("feedback_email").notNullable();
+    table.string("feedback_first_name").notNullable();
+    table.string("feedback_last_name").notNullable();
+    table.string("food_ad_email").notNullable();
+    table.string("food_ad_first_name").notNullable();
+    table.string("food_ad_last_name").notNullable();
+    table.string("food_ad_name").notNullable();
     table.boolean("remove").defaultTo(false);
     table.timestamps(true, true);
   });
