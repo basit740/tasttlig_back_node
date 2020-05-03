@@ -321,5 +321,48 @@ module.exports = {
     } catch (err) {
       return { success: false, message: err };
     }
+  },
+  messageFoodAdvertisers: async (user) => {
+    const emails = user.emails;
+    const subject = user.subject;
+    const message = user.message;
+    try {
+      const returning = await db("users")
+        .where("certified", true)
+        .update({ subject, message })
+        .returning("*");
+      if (returning) {
+        jwt.sign(
+          { user: returning[0].id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "1d"
+          },
+          async () => {
+            try {
+              // Async message to food advertisers from admin email
+              await Mailer.transporter.sendMail({
+                to: emails,
+                bcc: process.env.KODEDE_ADMIN_EMAIL,
+                subject: `[Kodede] ${subject}`,
+                html:  `<div>Hello,<br><br></div>
+                        <div>${message}<br><br></div>
+                        <div>
+                          Sent with <3 from Kodede (Created By Tasttlig).<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        );
+      }
+      return { success: true, message: "ok", data: returning };
+    } catch (err) {
+      return { success: false, message: err };
+    }
   }
 };
