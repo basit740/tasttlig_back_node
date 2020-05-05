@@ -41,4 +41,20 @@ userRouter.put("/users/:id", async (req, res) => {
   }
 });
 
+// PUT message to food advertisers from admin
+userRouter.put("/users/message/:id", async (req, res) => {
+  const user = {
+    emails: req.body.emails,
+    subject: req.body.subject,
+    message: req.body.message
+  };
+
+  try {
+    const users = await User.messageFoodAdvertisers(user);
+    res.json(users);
+  } catch (err) {
+    console.log("Message to Food Advertiser", err);
+  }
+});
+
 module.exports = userRouter;

@@ -6,7 +6,6 @@ const User = require("../../db/queries/auth/user");
 const auth = require("./authFunctions");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-    require("dotenv").config();
 const Refreshtoken = require("../../db/queries/auth/refreshtoken");
 // const rateLimit = require("express-rate-limit");
 // const path = require("path");
@@ -113,8 +112,7 @@ authRouter.post("/user/login", async (req, res) => {
       res.status(401).send({ success: false, message: response.message });
     }
   } catch (err) {
-   return send(err);
-  // console.log('error:' +err);
+    return send(err);
   }
 });
 
@@ -190,11 +188,8 @@ authRouter.post("/user/forgot-password", async (req, res) => {
       // Async reset password email
       async (err, emailToken) => {
         try {
-       //   const url = `http://localhost:3000/forgot-password/${emailToken}`;
-		  //  const url = `http://localhost:3000/Test/${emailToken}/${email}/`;
-		  const url = `http://localhost:3000/Password-recovery/${emailToken}/${email}`;
+          const url = `http://localhost:3000/forgot-password/${emailToken}`;
           const info = await Mailer.transporter.sendMail({
-            from: process.env.KODEDE_AUTOMATED_EMAIL,
             to: email,
             bcc: process.env.KODEDE_ADMIN_EMAIL,
             subject: "[Kodede] Reset your password",
@@ -204,7 +199,6 @@ authRouter.post("/user/forgot-password", async (req, res) => {
                     </div>
                     <div>
                       <a href="${url}">Reset Your Password</a><br><br>
-					
                     </div>
                     <div>
                       Sent with <3 from Kodede (Created By Tasttlig).<br><br>
@@ -237,11 +231,8 @@ authRouter.post("/user/forgot-password", async (req, res) => {
 // PUT user enter new password
 authRouter.put("/user/update-password", authForPassUpdate, async (req, res) => {
   try {
-	 
-    const email = req.user.email; 
- //   const email = req.user.email;
-//	 const pw = req.body.password; 
-  const pw = req.body.password;
+    const email = req.user.email;
+    const pw = req.body.password;
     const saltRounds = 10;
     const salt = bcrypt.genSaltSync(saltRounds);
     const password = bcrypt.hashSync(pw, salt);
@@ -262,9 +253,6 @@ authRouter.put("/user/update-password", authForPassUpdate, async (req, res) => {
         response: "token is expired"
       });
   }
-  
-  
-    console.log(req.body.email);
 });
 
 // Get new access token by using refresh token
