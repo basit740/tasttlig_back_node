@@ -14,6 +14,8 @@ const flaggedFeedbackRouter = require("./routes/flaggedFeedback/flaggedFeedbackR
 const flaggedForumRouter = require("./routes/flaggedForum/flaggedForumRoutes");
 const guestRouter = require("./routes/guest/guestRoutes");
 const searchRouter = require("./routes/search/searchRoutes");
+  
+const user = require("./routes/user/user");
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -28,7 +30,7 @@ app.use(indexRouter);
 app.use(userRouter);
 app.use(foodAdRouter);
 app.use(purchaseRouter);
-app.use(recommendationRouter);
+app.use(recommendationRouter);    
 app.use(feedbackRouter);
 app.use(postRouter);
 app.use(commentRouter);
@@ -75,6 +77,11 @@ function split(thing) {
       : "<complex:" + thing.toString() + ">";
   }
 }
+
+
+//user kodede
+
+ app.put('/userUpdate', user.updateUser)
 
 // Boot development server
 const port = 8000 || process.env.PORT;

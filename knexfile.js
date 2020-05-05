@@ -4,7 +4,11 @@ module.exports = {
   development: {
     client: "pg",
     connection: {
-      database: "kodede_back_node_development"
+		 host : '127.0.0.1',
+		 port : '5432',
+      database: "kodede_back_node_development",
+	  user: "postgres",
+	  password: "kevin1990"
     },
     migrations: {
       directory: "./db/migrations"
