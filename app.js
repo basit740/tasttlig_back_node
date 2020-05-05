@@ -28,7 +28,7 @@ app.use(indexRouter);
 app.use(userRouter);
 app.use(foodAdRouter);
 app.use(purchaseRouter);
-app.use(recommendationRouter);
+app.use(recommendationRouter);    
 app.use(feedbackRouter);
 app.use(postRouter);
 app.use(commentRouter);
