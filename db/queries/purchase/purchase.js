@@ -159,13 +159,9 @@ module.exports = {
           async () => {
             try {
               const url = `http://localhost:3000/feedback/${food_ad_number}`;
-              const mail_list_redeemed = [
-                process.env.KODEDE_ADMIN_EMAIL,
-                food_ad_email
-              ];
               await Mailer.transporter.sendMail({
                 to: receipt_email,
-                bcc: mail_list_redeemed,
+                bcc: process.env.KODEDE_ADMIN_EMAIL,
                 subject: `[Kodede] Your coupon is redeemed for ${description}`,
                 html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>
@@ -182,6 +178,32 @@ module.exports = {
                         </div>
                         <div>
                           <a href="${url}">Write a Feedback</a><br><br>
+                        </div>
+                        <div>
+                          Please visit Kodede again to taste food from around the world.<br><br>
+                        </div>
+                        <div>
+                          Sent with <3 from Kodede (Created By Tasttlig).<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+              await Mailer.transporter.sendMail({
+                to: food_ad_email,
+                subject: `[Kodede] Your coupon is redeemed for ${description}`,
+                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
+                        <div>
+                          Your coupon has been redeemed for ${description}.<br><br>
+                        </div>
+                        <div>
+                          Address: ${food_ad_street_address}, ${food_ad_city}, ${food_ad_province_territory} ${food_ad_postal_code}<br>
+                          Date: ${date}<br>
+                          Start Time: ${start_time}<br>
+                          End Time: ${end_time}<br><br>
+                        </div>
+                        <div>
+                          Code is ${food_ad_code}.<br><br>
                         </div>
                         <div>
                           Please visit Kodede again to taste food from around the world.<br><br>
