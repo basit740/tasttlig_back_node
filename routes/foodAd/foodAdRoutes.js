@@ -39,7 +39,6 @@ foodAdRouter.post("/food-ads", authenticateToken, async (req, res) => {
     halal: req.body.halal,
     description: req.body.description,
     food_ad_code: req.body.food_ad_code,
-    feedback_count: req.body.feedback_count,
     first_name: req.body.first_name,
     last_name: req.body.last_name,
     email: req.body.email,
@@ -81,23 +80,6 @@ foodAdRouter.put("/food-ads/quantity/:id", async (req, res) => {
     res.json(foodAds);
   } catch (err) {
     console.log("Update Food Ad Quantity", err);
-  }
-});
-
-// PUT food ads from advertiser for feedback count
-foodAdRouter.put("/food-ads/feedback-count/:id", async (req, res) => {
-  const foodAd = {
-    feedback_count: req.body.feedback_count
-  };
-
-  try {
-    const foodAds = await FoodAd.updateFoodAdFeedbackCount(
-      foodAd,
-      req.params.id
-    );
-    res.json(foodAds);
-  } catch (err) {
-    console.log("Update Food Ad Feedback Count", err);
   }
 });
 

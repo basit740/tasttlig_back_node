@@ -42,7 +42,6 @@ module.exports = {
     const halal = foodAd.halal;
     const description = foodAd.description;
     const food_ad_code = foodAd.food_ad_code;
-    const feedback_count = foodAd.feedback_count;
     const profile_img_url = foodAd.profile_img_url;
     const first_name = foodAd.first_name;
     const last_name = foodAd.last_name;
@@ -85,7 +84,6 @@ module.exports = {
           halal,
           description,
           food_ad_code,
-          feedback_count,
           profile_img_url,
           first_name,
           last_name,
@@ -119,18 +117,6 @@ module.exports = {
       const returning = await db("food_ads")
         .where("id", id)
         .update({ quantity })
-        .returning("*");
-      return { success: true, message: "ok", data: returning };
-    } catch (err) {
-      return { success: false, message: err };
-    }
-  },
-  updateFoodAdFeedbackCount: async (foodAd, id) => {
-    const feedback_count = foodAd.feedback_count;
-    try {
-      const returning = await db("food_ads")
-        .where("id", id)
-        .update({ feedback_count })
         .returning("*");
       return { success: true, message: "ok", data: returning };
     } catch (err) {

@@ -31,7 +31,6 @@ exports.up = function(knex) {
     table.boolean("halal").defaultTo(false);
     table.text("description").notNullable();
     table.string("food_ad_code").notNullable();
-    table.integer("feedback_count").notNullable();
     table.boolean("feedback_public_global").defaultTo(true);
     table.boolean("feedback_public_local").defaultTo(true);
     table.string("profile_img_url");
