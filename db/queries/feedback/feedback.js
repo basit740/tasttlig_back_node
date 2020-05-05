@@ -28,6 +28,7 @@ module.exports = {
     const food_ad_first_name = feedback.food_ad_first_name;
     const food_ad_last_name = feedback.food_ad_last_name;
     const food_ad_name = feedback.food_ad_name;
+    const rating = feedback.rating;
     try {
       const returning = await db("feedbacks")
         .insert({
@@ -41,7 +42,8 @@ module.exports = {
           food_ad_email,
           food_ad_first_name,
           food_ad_last_name,
-          food_ad_name
+          food_ad_name,
+          rating
         })
         .returning("*");
         if (returning) {

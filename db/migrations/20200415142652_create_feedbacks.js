@@ -29,6 +29,7 @@ exports.up = function(knex) {
     table.string("food_ad_first_name").notNullable();
     table.string("food_ad_last_name").notNullable();
     table.string("food_ad_name").notNullable();
+    table.integer("rating").notNullable();
     table.boolean("remove").defaultTo(false);
     table.timestamps(true, true);
   });
