@@ -94,6 +94,7 @@ module.exports = {
     const food_handler_certificate = user.food_handler_certificate;
     const date_of_issue = user.date_of_issue;
     const expiry_date = user.expiry_date;
+    const certified = user.certified;
     const profile_img_url = user.profile_img_url;
     const business_street_address = user.business_street_address;
     const business_city = user.business_city;
@@ -118,6 +119,7 @@ module.exports = {
           food_handler_certificate,
           date_of_issue,
           expiry_date,
+          certified,
           profile_img_url,
           business_street_address,
           business_city,
