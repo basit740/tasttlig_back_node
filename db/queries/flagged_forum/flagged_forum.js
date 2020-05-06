@@ -89,6 +89,9 @@ module.exports = {
                         </div>
                         <div>${reply}<br><br></div>
                         <div>
+                          Thank you for bringing this forum post to our attention.<br><br>
+                        </div>
+                        <div>
                           Sent with <3 from Kodede (Created By Tasttlig).<br><br>
                         </div>
                         <div>Tasttlig Corporation</div>
