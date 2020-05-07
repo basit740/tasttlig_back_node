@@ -189,7 +189,7 @@ authRouter.post("/user/forgot-password", async (req, res) => {
       // Async reset password email
       async (err, emailToken) => {
         try {
-          const url = `http://localhost:3000/forgot-password/${emailToken}`;
+          const url = `http://localhost:3000/forgot-password/${emailToken}/${email}`;
           const info = await Mailer.transporter.sendMail({
             to: email,
             bcc: process.env.KODEDE_ADMIN_EMAIL,
@@ -230,31 +230,35 @@ authRouter.post("/user/forgot-password", async (req, res) => {
 });
 
 // PUT user enter new password
-authRouter.put("/user/update-password", authForPassUpdate, async (req, res) => {
-  try {
-    const email = req.user.email;
-    const pw = req.body.password;
-    const saltRounds = 10;
-    const salt = bcrypt.genSaltSync(saltRounds);
-    const password = bcrypt.hashSync(pw, salt);
-    if (email) {
-      const response = await User.updatePassword(email, password);
-      res.send({
-        success: true,
-        message: "ok",
-        response: response
-      });
+authRouter.put(
+  "/user/update-password/:id",
+  authForPassUpdate,
+  async (req, res) => {
+    try {
+      const email = req.body.email;
+      const pw = req.body.password;
+      const saltRounds = 10;
+      const salt = bcrypt.genSaltSync(saltRounds);
+      const password = bcrypt.hashSync(pw, salt);
+      if (email) {
+        const response = await User.updatePassword(email, password);
+        res.send({
+          success: true,
+          message: "ok",
+          response: response
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      err.message === "jwt expired" &&
+        res.send({
+          success: false,
+          message: "error",
+          response: "token is expired"
+        });
     }
-  } catch (err) {
-    console.log(err);
-    err.message === "jwt expired" &&
-      res.send({
-        success: false,
-        message: "error",
-        response: "token is expired"
-      });
   }
-});
+);
 
 // Get new access token by using refresh token
 authRouter.get("/user/token", async (req, res) => {
