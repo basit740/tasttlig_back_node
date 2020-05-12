@@ -39,8 +39,10 @@ authRouter.post("/user/register", async (req, res) => {
     };
     const response = await User.userRegister(user);
 
-    if (response.data.constraint == "users_email_unique") {
-      res.send({ success: false, message: "This email already exists" });
+    if (response.success) {
+      res.status(200).send(response);
+    } else {
+      res.status(403).send(response);
     }
   } catch (err) {
     console.log("Register", err);
