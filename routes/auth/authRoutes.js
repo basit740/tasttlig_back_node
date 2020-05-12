@@ -134,8 +134,29 @@ authRouter.delete("/user/logout", authenticateToken, async (req, res) => {
   }
 });
 
-// PUT user profile update
-authRouter.put("/user/:id", async (req, res) => {
+// PUT user profile update to become a publisher
+authRouter.put("/user/become-publisher/:id", async (req, res) => {
+  try {
+    const user = {
+      id: req.params.id,
+      food_handler_certificate: req.body.food_handler_certificate,
+      date_of_issue: req.body.date_of_issue,
+      expiry_date: req.body.expiry_date,
+      certified: req.body.certified
+    };
+
+    const response = await User.updateProfile(user);
+
+    if (response.data.constraint == "users_email_unique") {
+      res.send({ success: false, message: "This email already exists" });
+    }
+  } catch (err) {
+    console.log("Update", err);
+  }
+});
+
+// PUT user profile update on you
+authRouter.put("/user/you/:id", async (req, res) => {
   try {
     const pw = req.body.password;
     const saltRounds = 10;
@@ -143,16 +164,30 @@ authRouter.put("/user/:id", async (req, res) => {
     const password = bcrypt.hashSync(pw, salt);
     const user = {
       id: req.params.id,
+      profile_img_url: req.body.profile_img_url,
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       email: req.body.email,
       password,
       phone_number: req.body.phone_number,
-      food_handler_certificate: req.body.food_handler_certificate,
-      date_of_issue: req.body.date_of_issue,
-      expiry_date: req.body.expiry_date,
-      certified: req.body.certified,
-      profile_img_url: req.body.profile_img_url,
+      bio: req.body.bio
+    };
+
+    const response = await User.updateProfile(user);
+
+    if (response.data.constraint == "users_email_unique") {
+      res.send({ success: false, message: "This email already exists" });
+    }
+  } catch (err) {
+    console.log("Update", err);
+  }
+});
+
+// PUT user profile update on location
+authRouter.put("/user/location/:id", async (req, res) => {
+  try {
+    const user = {
+      id: req.params.id,
       business_street_address: req.body.business_street_address,
       business_city: req.body.business_city,
       business_province_territory: req.body.business_province_territory,
@@ -162,14 +197,11 @@ authRouter.put("/user/:id", async (req, res) => {
       instagram: req.body.instagram,
       youtube: req.body.youtube,
       linkedin: req.body.linkedin,
-      website: req.body.website,
-      bio: req.body.bio
+      website: req.body.website
     };
-    const response = await User.updateProfile(user);
 
-    if (response.data.constraint == "users_email_unique") {
-      res.send({ success: false, message: "This email already exists" });
-    }
+    await User.updateProfile(user);
+
   } catch (err) {
     console.log("Update", err);
   }
