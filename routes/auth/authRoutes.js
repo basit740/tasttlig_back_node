@@ -42,7 +42,10 @@ authRouter.post("/user/register", async (req, res) => {
     if (response.success) {
       res.status(200).send(response);
     } else {
-      res.status(403).send(response);
+      return res.status(401).json({
+        success: false,
+        message: "Email already exists."
+      });
     }
   } catch (err) {
     console.log("Register", err);
@@ -203,7 +206,6 @@ authRouter.put("/user/location/:id", async (req, res) => {
     };
 
     await User.updateProfile(user);
-
   } catch (err) {
     console.log("Update", err);
   }
