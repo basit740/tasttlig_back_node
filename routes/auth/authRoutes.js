@@ -180,8 +180,13 @@ authRouter.put("/user/you/:id", async (req, res) => {
 
     const response = await User.updateProfile(user);
 
-    if (response.data.constraint == "users_email_unique") {
-      res.send({ success: false, message: "This email already exists" });
+    if (response.success) {
+      res.status(200).send(response);
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: "Email already exists."
+      });
     }
   } catch (err) {
     console.log("Update", err);
