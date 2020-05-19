@@ -4,6 +4,7 @@ require("dotenv").config();
 
 const indexRouter = require("./routes/index/indexRoutes");
 const userRouter = require("./routes/user/userRoutes");
+const applicationRouter= require("./routes/application/applicationRoutes")
 const foodAdRouter = require("./routes/foodAd/foodAdRoutes");
 const purchaseRouter = require("./routes/purchase/purchaseRoutes");
 const recommendationRouter = require("./routes/recommendation/recommendationRoutes");
@@ -26,6 +27,7 @@ app.use(bodyParser.json());
 
 app.use(indexRouter);
 app.use(userRouter);
+app.use(applicationRouter);
 app.use(foodAdRouter);
 app.use(purchaseRouter);
 app.use(recommendationRouter);
