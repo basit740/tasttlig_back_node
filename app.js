@@ -1,10 +1,17 @@
 "use strict";
 
+// Set up dotenv
 require("dotenv").config();
 
+// Set up Express
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+
+// Set up routes
 const indexRouter = require("./routes/index/indexRoutes");
 const userRouter = require("./routes/user/userRoutes");
-const applicationRouter= require("./routes/application/applicationRoutes")
+const applicationRouter = require("./routes/application/applicationRoutes");
 const foodAdRouter = require("./routes/foodAd/foodAdRoutes");
 const purchaseRouter = require("./routes/purchase/purchaseRoutes");
 const recommendationRouter = require("./routes/recommendation/recommendationRoutes");
@@ -14,17 +21,20 @@ const commentRouter = require("./routes/comment/commentRoutes");
 const flaggedFeedbackRouter = require("./routes/flaggedFeedback/flaggedFeedbackRoutes");
 const flaggedForumRouter = require("./routes/flaggedForum/flaggedForumRoutes");
 const guestRouter = require("./routes/guest/guestRoutes");
+const restaurantRouter = require("./routes/restaurant/restaurantRoutes");
+const cookRouter = require("./routes/cook/cookRoutes");
+const chefRouter = require("./routes/chef/chefRoutes");
+const foodTruckRouter = require("./routes/foodTruck/foodTruckRoutes");
+const catererRouter = require("./routes/caterer/catererRoutes");
 const searchRouter = require("./routes/search/searchRoutes");
 
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-
+// Configure Express
 const app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// Configure routes
 app.use(indexRouter);
 app.use(userRouter);
 app.use(applicationRouter);
@@ -37,6 +47,11 @@ app.use(commentRouter);
 app.use(flaggedFeedbackRouter);
 app.use(flaggedForumRouter);
 app.use(guestRouter);
+app.use(restaurantRouter);
+app.use(cookRouter);
+app.use(chefRouter);
+app.use(foodTruckRouter);
+app.use(catererRouter);
 app.use(searchRouter);
 
 function print(path, layer) {
