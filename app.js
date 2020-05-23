@@ -26,6 +26,7 @@ const cookRouter = require("./routes/cook/cookRoutes");
 const chefRouter = require("./routes/chef/chefRoutes");
 const foodTruckRouter = require("./routes/foodTruck/foodTruckRoutes");
 const catererRouter = require("./routes/caterer/catererRoutes");
+const menuItemRouter = require("./routes/menuItem/menuItemRoutes");
 const searchRouter = require("./routes/search/searchRoutes");
 
 // Configure Express
@@ -52,6 +53,7 @@ app.use(cookRouter);
 app.use(chefRouter);
 app.use(foodTruckRouter);
 app.use(catererRouter);
+app.use(menuItemRouter);
 app.use(searchRouter);
 
 function print(path, layer) {

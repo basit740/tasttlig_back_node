@@ -13,7 +13,7 @@ exports.up = function(knex) {
       .references("id")
       .inTable("users")
       .onDelete("CASCADE");
-    table.string("menu_img_url").notNullable();
+    table.string("menu_item_img_url").notNullable();
     table.string("name").notNullable();
     table.integer("price").notNullable();
     table.integer("quantity").notNullable();
@@ -34,7 +34,7 @@ exports.up = function(knex) {
     table.boolean("event_design").defaultTo(false);
     table.boolean("event_production").defaultTo(false);
     table.integer("discount");
-    table.string("menu_code").notNullable();
+    table.string("menu_item_code").notNullable();
     table.boolean("feedback_public_global").defaultTo(true);
     table.boolean("feedback_public_local").defaultTo(true);
     table.string("profile_img_url");
