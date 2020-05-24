@@ -7,17 +7,17 @@ const db = require("knex")(configuration);
 
 // Export forum post table
 module.exports = {
-  getUserPost: async user_id => {
+  getAllPost: async () => {
     try {
-      const returning = await db("posts").where("user_id", user_id);
+      const returning = await db("posts").where("remove", false);
       return { success: true, posts: returning };
     } catch (err) {
       return { success: false, message: "No forum post found." };
     }
   },
-  getAllPost: async () => {
+  getUserPost: async user_id => {
     try {
-      const returning = await db("posts").where("remove", false);
+      const returning = await db("posts").where("user_id", user_id);
       return { success: true, posts: returning };
     } catch (err) {
       return { success: false, message: "No forum post found." };

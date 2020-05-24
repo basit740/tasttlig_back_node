@@ -1,18 +1,23 @@
 "use strict";
 
+// Set up dotenv
 require("dotenv").config();
 
-const authRouter = require("./routes/auth/authRoutes");
-
+// Set up Express
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
+// Set up routes
+const authRouter = require("./routes/auth/authRoutes");
+
+// Configure Express
 const app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// Configure routes
 app.use(authRouter);
 
 // Boot authorization server

@@ -9,17 +9,17 @@ const Mailer = require("../../../routes/auth/nodemailer");
 
 // Export purchases table
 module.exports = {
-  getUserPurchase: async user_id => {
+  getAllPurchase: async () => {
     try {
-      const returning = await db("purchases").where("user_id", user_id);
+      const returning = await db("purchases");
       return { success: true, purchases: returning };
     } catch (err) {
       return { success: false, message: "No purchase found." };
     }
   },
-  getAllPurchase: async () => {
+  getUserPurchase: async user_id => {
     try {
-      const returning = await db("purchases");
+      const returning = await db("purchases").where("user_id", user_id);
       return { success: true, purchases: returning };
     } catch (err) {
       return { success: false, message: "No purchase found." };

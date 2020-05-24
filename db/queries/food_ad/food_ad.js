@@ -7,17 +7,17 @@ const db = require("knex")(configuration);
 
 // Export food ads table
 module.exports = {
-  getUserFoodAd: async user_id => {
+  getAllFoodAd: async () => {
     try {
-      const returning = await db("food_ads").where("user_id", user_id);
+      const returning = await db("food_ads").where("quantity", ">", 0);
       return { success: true, foodAds: returning };
     } catch (err) {
       return { success: false, message: "No food ad found." };
     }
   },
-  getAllFoodAd: async () => {
+  getUserFoodAd: async user_id => {
     try {
-      const returning = await db("food_ads").where("quantity", ">", 0);
+      const returning = await db("food_ads").where("user_id", user_id);
       return { success: true, foodAds: returning };
     } catch (err) {
       return { success: false, message: "No food ad found." };
