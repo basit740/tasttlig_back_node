@@ -15,6 +15,7 @@ foodTruckRouter.get("/food-trucks", async (req, res) => {
 // POST food truck
 foodTruckRouter.post("/food-trucks", authenticateToken, async (req, res) => {
   const foodTruck = {
+    profile_img_url: req.body.profile_img_url,
     first_name: req.body.first_name,
     last_name: req.body.last_name,
     email: req.body.email,
@@ -34,7 +35,8 @@ foodTruckRouter.post("/food-trucks", authenticateToken, async (req, res) => {
     food_business_insurance_date_of_issue:
       req.body.food_business_insurance_date_of_issue,
     food_business_insurance_expiry_date:
-      req.body.food_business_insurance_expiry_date
+      req.body.food_business_insurance_expiry_date,
+    certified: req.body.certified
   };
 
   try {
@@ -42,6 +44,27 @@ foodTruckRouter.post("/food-trucks", authenticateToken, async (req, res) => {
     res.json(foodTrucks);
   } catch (err) {
     res.json(err);
+  }
+});
+
+// PUT accept or reject commercial member applicant from admin
+foodTruckRouter.put("/food-trucks/:id", async (req, res) => {
+  const foodTruck = {
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    email: req.body.email,
+    certified: req.body.certified,
+    reject_note: req.body.reject_note
+  };
+
+  try {
+    const foodTrucks = await FoodTruck.updateFoodTruck(
+      foodTruck,
+      req.params.id
+    );
+    res.json(foodTrucks);
+  } catch (err) {
+    console.log("Update Food Truck", err);
   }
 });
 

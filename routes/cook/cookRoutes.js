@@ -15,6 +15,7 @@ cookRouter.get("/cooks", async (req, res) => {
 // POST cook
 cookRouter.post("/cooks", authenticateToken, async (req, res) => {
   const cook = {
+    profile_img_url: req.body.profile_img_url,
     first_name: req.body.first_name,
     last_name: req.body.last_name,
     email: req.body.email,
@@ -34,7 +35,8 @@ cookRouter.post("/cooks", authenticateToken, async (req, res) => {
     food_business_insurance_date_of_issue:
       req.body.food_business_insurance_date_of_issue,
     food_business_insurance_expiry_date:
-      req.body.food_business_insurance_expiry_date
+      req.body.food_business_insurance_expiry_date,
+    certified: req.body.certified
   };
 
   try {
@@ -42,6 +44,24 @@ cookRouter.post("/cooks", authenticateToken, async (req, res) => {
     res.json(cooks);
   } catch (err) {
     res.json(err);
+  }
+});
+
+// PUT accept or reject commercial member applicant from admin
+cookRouter.put("/cooks/:id", async (req, res) => {
+  const cook = {
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    email: req.body.email,
+    certified: req.body.certified,
+    reject_note: req.body.reject_note
+  };
+
+  try {
+    const cooks = await Cook.updateCook(cook, req.params.id);
+    res.json(cooks);
+  } catch (err) {
+    console.log("Update Cook", err);
   }
 });
 

@@ -15,6 +15,7 @@ chefRouter.get("/chefs", async (req, res) => {
 // POST chef
 chefRouter.post("/chefs", authenticateToken, async (req, res) => {
   const chef = {
+    profile_img_url: req.body.profile_img_url,
     first_name: req.body.first_name,
     last_name: req.body.last_name,
     email: req.body.email,
@@ -34,7 +35,8 @@ chefRouter.post("/chefs", authenticateToken, async (req, res) => {
     food_business_insurance_date_of_issue:
       req.body.food_business_insurance_date_of_issue,
     food_business_insurance_expiry_date:
-      req.body.food_business_insurance_expiry_date
+      req.body.food_business_insurance_expiry_date,
+    certified: req.body.certified
   };
 
   try {
@@ -42,6 +44,24 @@ chefRouter.post("/chefs", authenticateToken, async (req, res) => {
     res.json(chefs);
   } catch (err) {
     res.json(err);
+  }
+});
+
+// PUT accept or reject commercial member applicant from admin
+chefRouter.put("/chefs/:id", async (req, res) => {
+  const chef = {
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    email: req.body.email,
+    certified: req.body.certified,
+    reject_note: req.body.reject_note
+  };
+
+  try {
+    const chefs = await Chef.updateChef(chef, req.params.id);
+    res.json(chefs);
+  } catch (err) {
+    console.log("Update Chef", err);
   }
 });
 

@@ -15,6 +15,7 @@ restaurantRouter.get("/restaurants", async (req, res) => {
 // POST restaurant
 restaurantRouter.post("/restaurants", authenticateToken, async (req, res) => {
   const restaurant = {
+    profile_img_url: req.body.profile_img_url,
     first_name: req.body.first_name,
     last_name: req.body.last_name,
     email: req.body.email,
@@ -34,7 +35,8 @@ restaurantRouter.post("/restaurants", authenticateToken, async (req, res) => {
     food_business_insurance_date_of_issue:
       req.body.food_business_insurance_date_of_issue,
     food_business_insurance_expiry_date:
-      req.body.food_business_insurance_expiry_date
+      req.body.food_business_insurance_expiry_date,
+    certified: req.body.certified
   };
 
   try {
@@ -45,6 +47,27 @@ restaurantRouter.post("/restaurants", authenticateToken, async (req, res) => {
     res.json(restaurants);
   } catch (err) {
     res.json(err);
+  }
+});
+
+// PUT accept or reject commercial member applicant from admin
+restaurantRouter.put("/restaurants/:id", async (req, res) => {
+  const restaurant = {
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    email: req.body.email,
+    certified: req.body.certified,
+    reject_note: req.body.reject_note
+  };
+
+  try {
+    const restaurants = await Restaurant.updateRestaurant(
+      restaurant,
+      req.params.id
+    );
+    res.json(restaurants);
+  } catch (err) {
+    console.log("Update Restaurant", err);
   }
 });
 
