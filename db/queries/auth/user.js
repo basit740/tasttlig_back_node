@@ -41,20 +41,27 @@ module.exports = {
           // Async email verification email
           async (err, emailToken) => {
             try {
-              const url = `http://localhost:3000/user/verify/${emailToken}`;
+              const urlVerifyEmail = `http://localhost:3000/user/verify/${emailToken}`;
+              const urlCommercial = `http://localhost:3000/become-commercial-member`;
               await Mailer.transporter.sendMail({
                 to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,
                 subject: "[Kodede] Please verify your email",
                 html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>
-                          To complete your Kodede sign up, please verify your email.<br><br>
+                          Welcome to Kodede!<br><br>
                         </div>
                         <div>
-                          <a href="${url}">Verify Email</a><br><br>
+                          Kodede connects you to food from all around the world. Kindly verify your email so you can begin trying food from anywhere.<br><br>
                         </div>
                         <div>
-                          Once verified, you can begin to taste food from around the world. If you applied as a food advertiser, Kodede will review your application and respond accordingly.<br><br>
+                          <a href="${urlVerifyEmail}">Verify Email</a><br><br>
+                        </div>
+                        <div>
+                          If you are able to sell food, Kodede provides you a commercial profile to make it easier to sell your food from all over the world. Click on this link to bring your food to market.<br><br>
+                        </div>
+                        <div>
+                          <a href="${urlCommercial}">Get Started</a><br><br>
                         </div>
                         <div>
                           Sent with <3 from Kodede (Created By Tasttlig).<br><br>
