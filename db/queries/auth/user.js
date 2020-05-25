@@ -331,7 +331,7 @@ module.exports = {
       return { success: false, message: err };
     }
   },
-  messageFoodAdvertisers: async (user) => {
+  messageFoodAdvertisers: async user => {
     const emails = user.emails;
     const subject = user.subject;
     const message = user.message;
