@@ -26,6 +26,7 @@ module.exports = {
   createFoodAd: async (foodAd, user_id) => {
     const food_ad_img_url = foodAd.food_ad_img_url;
     const name = foodAd.name;
+    const continent = foodAd.continent;
     const ethnicity = foodAd.ethnicity;
     const price = foodAd.price;
     const quantity = foodAd.quantity;
@@ -68,6 +69,7 @@ module.exports = {
           user_id,
           food_ad_img_url,
           name,
+          continent,
           ethnicity,
           price,
           quantity,

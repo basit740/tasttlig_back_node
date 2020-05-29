@@ -15,6 +15,7 @@ exports.up = function(knex) {
       .onDelete("CASCADE");
     table.string("food_ad_img_url").notNullable();
     table.string("name").notNullable();
+    table.string("continent").notNullable();
     table.string("ethnicity").notNullable();
     table.integer("price");
     table.integer("quantity").notNullable();

@@ -23,6 +23,7 @@ foodAdRouter.post("/food-ads", authenticateToken, async (req, res) => {
   const foodAd = {
     food_ad_img_url: req.body.food_ad_img_url,
     name: req.body.name,
+    continent: req.body.continent,
     ethnicity: req.body.ethnicity,
     price: req.body.price,
     quantity: req.body.quantity,
