@@ -42,7 +42,6 @@ module.exports = {
           async (err, emailToken) => {
             try {
               const urlVerifyEmail = `http://localhost:3000/user/verify/${emailToken}`;
-              const urlCommercial = `http://localhost:3000/become-commercial-member`;
               await Mailer.transporter.sendMail({
                 to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,
@@ -56,12 +55,6 @@ module.exports = {
                         </div>
                         <div>
                           <a href="${urlVerifyEmail}">Verify Email</a><br><br>
-                        </div>
-                        <div>
-                          If you are able to sell food, Kodede provides you a commercial profile to make it easier to sell your food from all over the world. Click on this link to bring your food to market.<br><br>
-                        </div>
-                        <div>
-                          <a href="${urlCommercial}">Get Started</a><br><br>
                         </div>
                         <div>
                           Sent with <3 from Kodede (Created By Tasttlig).<br><br>
