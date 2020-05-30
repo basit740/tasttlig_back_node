@@ -46,10 +46,10 @@ module.exports = {
               await Mailer.transporter.sendMail({
                 to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,
-                subject: "[Kodede] Please verify your email",
+                subject: "[Kodede] Welcome to Kodede!",
                 html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>
-                          Welcome to Kodede!<br><br>
+                          We are so glad you joined us!<br><br>
                         </div>
                         <div>
                           Kodede connects you to food from all around the world. Kindly verify your email so you can begin trying food from anywhere.<br><br>
