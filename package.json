@@ -1,7 +1,7 @@
 {
   "name": "kodede-back-node",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.0",
+  "description": "kodede-beta",
   "main": "index.js",
   "scripts": {
     "devStart": "nodemon app.js",
