@@ -3,13 +3,13 @@
 // Set up dotenv
 require("dotenv").config();
 
-// Set up Express
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
 // Set up routes
 const authRouter = require("./routes/auth/authRoutes");
+const tasttligauthRouter= require("./routes/tasttligAuth/authRoutes");
 
 // Configure Express
 const app = express();
@@ -19,6 +19,7 @@ app.use(bodyParser.json());
 
 // Configure routes
 app.use(authRouter);
+app.use(tasttligauthRouter);
 
 // Boot authorization server
 const port = 4000 || process.env.PORT;

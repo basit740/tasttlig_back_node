@@ -13,6 +13,7 @@ const indexRouter = require("./routes/index/indexRoutes");
 const userRouter = require("./routes/user/userRoutes");
 const applicationRouter = require("./routes/application/applicationRoutes");
 const foodAdRouter = require("./routes/foodAd/foodAdRoutes");
+const experienceRouter= require("./routes/experience/experienceRoutes");
 const purchaseRouter = require("./routes/purchase/purchaseRoutes");
 const recommendationRouter = require("./routes/recommendation/recommendationRoutes");
 const feedbackRouter = require("./routes/feedback/feedbackRoutes");
@@ -38,6 +39,7 @@ app.use(bodyParser.json());
 // Configure routes
 app.use(indexRouter);
 app.use(userRouter);
+app.use(experienceRouter);
 app.use(applicationRouter);
 app.use(foodAdRouter);
 app.use(purchaseRouter);
