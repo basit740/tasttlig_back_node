@@ -17,6 +17,6 @@ exports.up = function(knex) {
   };
   
   exports.down = function(knex) {
-    return knex.schema.dropTable("refreshtokens");
+    return knex.schema.dropTable("tasttlig_refresh_tokens");
   };
   
