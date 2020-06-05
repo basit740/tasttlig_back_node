@@ -13,7 +13,7 @@ const indexRouter = require("./routes/index/indexRoutes");
 const userRouter = require("./routes/user/userRoutes");
 const applicationRouter = require("./routes/application/applicationRoutes");
 const foodAdRouter = require("./routes/foodAd/foodAdRoutes");
-const experienceRouter= require("./routes/experience/experienceRoutes");
+const experienceRouter = require("./routes/experience/experienceRoutes");
 const purchaseRouter = require("./routes/purchase/purchaseRoutes");
 const recommendationRouter = require("./routes/recommendation/recommendationRoutes");
 const feedbackRouter = require("./routes/feedback/feedbackRoutes");
@@ -29,6 +29,7 @@ const foodTruckRouter = require("./routes/foodTruck/foodTruckRoutes");
 const catererRouter = require("./routes/caterer/catererRoutes");
 const menuItemRouter = require("./routes/menuItem/menuItemRoutes");
 const searchRouter = require("./routes/search/searchRoutes");
+const tasttligMessageRouter = require("./routes/tasttligMessage/tasttligMessageRoutes");
 
 // Configure Express
 const app = express();
@@ -57,6 +58,7 @@ app.use(foodTruckRouter);
 app.use(catererRouter);
 app.use(menuItemRouter);
 app.use(searchRouter);
+app.use(tasttligMessageRouter);
 
 function print(path, layer) {
   if (layer.route) {
