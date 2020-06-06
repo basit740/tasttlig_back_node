@@ -6,7 +6,7 @@
   "scripts": {
     "devStart": "nodemon app.js",
     "devStartAuth": "nodemon appAuth.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +26,14 @@
     "stripe": "^7.14.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.2"
+    "jest": "^26.0.1",
+    "nodemon": "^2.0.2",
+    "supertest": "^4.0.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
   }
 }
