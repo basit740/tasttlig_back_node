@@ -33,9 +33,22 @@ const tasttligMessageRouter = require("./routes/tasttligMessage/tasttligMessageR
 
 // Configure Express
 const app = express();
-app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+// CORS
+var whitelist = ['http://localhost:3000', 'http://kodede-test.us-east-2.elasticbeanstalk.com/']
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
+
+app.use(cors(corsOptions));
 
 // Configure routes
 app.use(indexRouter);
