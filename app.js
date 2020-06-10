@@ -36,19 +36,8 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-// CORS
-var whitelist = ['http://localhost:3000', 'http://kodede-test.us-east-2.elasticbeanstalk.com/']
-var corsOptions = {
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  }
-}
-
-app.use(cors(corsOptions));
+app.use(cors());
+app.options('*', cors())
 
 // Configure routes
 app.use(indexRouter);
