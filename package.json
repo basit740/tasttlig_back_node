@@ -6,7 +6,8 @@
   "scripts": {
     "devStart": "nodemon app.js",
     "devStartAuth": "nodemon appAuth.js",
-    "test": "jest"
+    "test": "jest",
+    "start": "node app.js"
   },
   "keywords": [],
   "author": "",
