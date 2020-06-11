@@ -20,7 +20,7 @@ const { authenticateToken, authForPassUpdate } = auth;
 // });
 // const { authenticateToken } = authFunctions;
 
-// Post Tasttlig Festival user register
+// Post Tasttlig user register
 authRouter.post("/tasttlig/user/register", async (req, res) => {
   try {
     const pw = req.body.password;
@@ -49,7 +49,7 @@ authRouter.post("/tasttlig/user/register", async (req, res) => {
   }
 });
 
-// GET Tasttlig Festival user email address verification for registration
+// GET Tasttlig user email address verification for registration
 authRouter.get("/tasttlig/user/confirmation/:token", async (req, res) => {
   try {
     const user_id = jwt.verify(req.params.token, process.env.EMAIL_SECRET).user;
@@ -61,7 +61,7 @@ authRouter.get("/tasttlig/user/confirmation/:token", async (req, res) => {
   }
 });
 
-// POST Tasttlig Festival user log in
+// POST Tasttlig user log in
 authRouter.post("/tasttlig/user/login", async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -118,7 +118,7 @@ authRouter.post("/tasttlig/user/login", async (req, res) => {
   }
 });
 
-// DELETE Tasttlig Festival user log out
+// DELETE Tasttlig user log out
 authRouter.delete("/tasttlig/user/logout", authenticateToken, async (req, res) => {
   try {
     const returning = await User.getUserLogOut(req.user.id);
@@ -133,6 +133,38 @@ authRouter.delete("/tasttlig/user/logout", authenticateToken, async (req, res) =
       message: "error",
       response: err
     });
+  }
+});
+
+// PUT user profile update on you
+authRouter.put("/tasttlig/user/you/:id", async (req, res) => {
+  try {
+    const pw = req.body.password;
+    const saltRounds = 10;
+    const salt = bcrypt.genSaltSync(saltRounds);
+    const password = bcrypt.hashSync(pw, salt);
+    const user = {
+      id: req.params.id,
+      profile_img_url: req.body.profile_img_url,
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      email: req.body.email,
+      password,
+      phone_number: req.body.phone_number
+    };
+
+    const response = await User.updateProfile(user);
+
+    if (response.success) {
+      res.status(200).send(response);
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: "Email already exists."
+      });
+    }
+  } catch (err) {
+    console.log("Update", err);
   }
 });
 
