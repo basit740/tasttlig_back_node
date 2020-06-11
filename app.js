@@ -2,6 +2,7 @@
 
 // Set up dotenv
 require("dotenv").config();
+require("./db/db-config");
 
 // Set up Express
 const express = require("express");

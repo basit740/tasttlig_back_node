@@ -25,7 +25,10 @@ module.exports = {
   production: {
     client: "pg",
     connection: {
-      database: "kodede_back_node_production"
+      database : process.env.RDS_HOSTNAME,
+      user     : process.env.RDS_USERNAME,
+      password : process.env.RDS_PASSWORD,
+      port     : process.env.RDS_PORT
     },
     useNullAsDefault: true
   },
