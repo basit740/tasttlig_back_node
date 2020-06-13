@@ -77,6 +77,32 @@ module.exports = {
       return { success: false, message: err };
     }
   },
+  updateProfile: async user => {
+    const id = user.id;
+    const first_name = user.first_name;
+    const last_name = user.last_name;
+    const email = user.email;
+    const password_digest = user.password;
+    const phone_number = user.phone_number;
+    const profile_img_url = user.profile_img_url;
+
+    try {
+      const returning = await db("tasttlig_users")
+        .where("id", id)
+        .update({
+          first_name,
+          last_name,
+          email,
+          password_digest,
+          phone_number,
+          profile_img_url
+        })
+        .returning("*");
+      return { success: true, message: "ok", data: returning };
+    } catch (err) {
+      return { success: false, message: err };
+    }
+  },
   updatePassword: async (email, password) => {
     try {
       const returning = await db("tasttlig_users")
