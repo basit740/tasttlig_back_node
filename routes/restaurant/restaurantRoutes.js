@@ -24,8 +24,15 @@ restaurantRouter.post("/restaurants", authenticateToken, async (req, res) => {
     food_business_license: req.body.food_business_license,
     food_business_license_date_of_issue:
       req.body.food_business_license_date_of_issue,
-    food_business_license_expiry_date:
-      req.body.food_business_license_expiry_date,
+    restaurant_address: req.body.restaurant_address,
+    restaurant_city: req.body.restaurant_city,
+    restaurant_province_territory: req.body.restaurant_province_territory,
+    restaurant_postal_code: req.body.restaurant_postal_code,
+    restaurant_email: req.body.restaurant_email,
+    restaurant_phone_number: req.body.restaurant_phone_number,
+    dine_safe_license: req.body.dine_safe_license,
+    dine_safe_result: req.body.dine_safe_result,
+    dine_safe_reason: req.body.dine_safe_reason,
     food_handler_certificate: req.body.food_handler_certificate,
     food_handler_certificate_date_of_issue:
       req.body.food_handler_certificate_date_of_issue,

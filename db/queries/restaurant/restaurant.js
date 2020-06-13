@@ -27,8 +27,16 @@ module.exports = {
     const food_business_license = restaurant.food_business_license;
     const food_business_license_date_of_issue =
       restaurant.food_business_license_date_of_issue;
-    const food_business_license_expiry_date =
-      restaurant.food_business_license_expiry_date;
+    const restaurant_address = restaurant.restaurant_address;
+    const restaurant_city = restaurant.restaurant_city;
+    const restaurant_province_territory =
+      restaurant.restaurant_province_territory;
+    const restaurant_postal_code = restaurant.restaurant_postal_code;
+    const restaurant_email = restaurant.restaurant_email;
+    const restaurant_phone_number = restaurant.restaurant_phone_number;
+    const dine_safe_license = restaurant.dine_safe_license;
+    const dine_safe_result = restaurant.dine_safe_result;
+    const dine_safe_reason = restaurant.dine_safe_reason;
     const food_handler_certificate = restaurant.food_handler_certificate;
     const food_handler_certificate_date_of_issue =
       restaurant.food_handler_certificate_date_of_issue;
@@ -52,7 +60,15 @@ module.exports = {
           profile_type,
           food_business_license,
           food_business_license_date_of_issue,
-          food_business_license_expiry_date,
+          restaurant_address,
+          restaurant_city,
+          restaurant_province_territory,
+          restaurant_postal_code,
+          restaurant_email,
+          restaurant_phone_number,
+          dine_safe_license,
+          dine_safe_result,
+          dine_safe_reason,
           food_handler_certificate,
           food_handler_certificate_date_of_issue,
           food_handler_certificate_expiry_date,
@@ -92,7 +108,7 @@ module.exports = {
                 to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,
                 subject: `[Kodede] Your application as commercial member is accepted`,
-                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
+                html: `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>
                           Congratulations! Your application as commercial member is accepted from Kodede. You can now publish food in the marketplace for people to taste food from around the world.<br><br>
                         </div>
@@ -122,7 +138,7 @@ module.exports = {
                 to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,
                 subject: `[Kodede] Your application as commercial member is rejected`,
-                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
+                html: `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>
                           We regret to inform you that your application as commercial member is rejected from Kodede. Please see the reason below. If you wish to apply again, consider the feedback shared for the next time.<br><br>
                         </div>
