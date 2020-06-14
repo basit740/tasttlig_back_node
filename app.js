@@ -11,6 +11,7 @@ const cors = require("cors");
 
 // Set up routes
 const indexRouter = require("./routes/index/indexRoutes");
+const authRouter = require("./routes/auth/authRoutes");
 const userRouter = require("./routes/user/userRoutes");
 const applicationRouter = require("./routes/application/applicationRoutes");
 const foodAdRouter = require("./routes/foodAd/foodAdRoutes");
@@ -42,6 +43,7 @@ app.options('*', cors())
 
 // Configure routes
 app.use(indexRouter);
+app.use(authRouter);
 app.use(userRouter);
 app.use(experienceRouter);
 app.use(applicationRouter);
