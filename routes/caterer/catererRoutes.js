@@ -24,8 +24,6 @@ catererRouter.post("/caterers", authenticateToken, async (req, res) => {
     food_business_license: req.body.food_business_license,
     food_business_license_date_of_issue:
       req.body.food_business_license_date_of_issue,
-    food_business_license_expiry_date:
-      req.body.food_business_license_expiry_date,
     food_handler_certificate: req.body.food_handler_certificate,
     food_handler_certificate_date_of_issue:
       req.body.food_handler_certificate_date_of_issue,
