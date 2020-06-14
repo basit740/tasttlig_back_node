@@ -27,8 +27,6 @@ module.exports = {
     const food_business_license = caterer.food_business_license;
     const food_business_license_date_of_issue =
       caterer.food_business_license_date_of_issue;
-    const food_business_license_expiry_date =
-      caterer.food_business_license_expiry_date;
     const food_handler_certificate = caterer.food_handler_certificate;
     const food_handler_certificate_date_of_issue =
       caterer.food_handler_certificate_date_of_issue;
@@ -52,7 +50,6 @@ module.exports = {
           profile_type,
           food_business_license,
           food_business_license_date_of_issue,
-          food_business_license_expiry_date,
           food_handler_certificate,
           food_handler_certificate_date_of_issue,
           food_handler_certificate_expiry_date,

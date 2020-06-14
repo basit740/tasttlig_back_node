@@ -21,7 +21,6 @@ exports.up = function(knex) {
     table.string("profile_type").notNullable();
     table.string("food_business_license").notNullable();
     table.date("food_business_license_date_of_issue").notNullable();
-    table.date("food_business_license_expiry_date").notNullable();
     table.string("food_handler_certificate").notNullable();
     table.date("food_handler_certificate_date_of_issue").notNullable();
     table.date("food_handler_certificate_expiry_date").notNullable();

@@ -1,12 +1,13 @@
 "use strict";
 
+// Experiences table configuration
 const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
 
+// Export experiences table
 module.exports = {
   createExperience: async (experience, user_id) => {
-    console.log(experience);
     const title = experience.title;
     const img_url_1 = experience.img_url_1;
     // const img_url_2 = experience.img_url_2;
