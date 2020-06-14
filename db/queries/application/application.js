@@ -17,7 +17,7 @@ module.exports = {
   },
   getAllApplication: async () => {
     try {
-      const returning = await db("applications").where("quantity", ">", 0);
+      const returning = await db("applications");
       return { success: true, applications: returning };
     } catch (err) {
       return { success: false, message: "No Application found." };
