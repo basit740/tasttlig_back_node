@@ -108,7 +108,7 @@ module.exports = {
                 to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,
                 subject: `[Kodede] Your application as commercial member is accepted`,
-                html: `<div>Hello ${first_name} ${last_name},<br><br></div>
+                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>
                           Congratulations! Your application as commercial member is accepted from Kodede. You can now publish food in the marketplace for people to taste food from around the world.<br><br>
                         </div>
@@ -138,7 +138,7 @@ module.exports = {
                 to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,
                 subject: `[Kodede] Your application as commercial member is rejected`,
-                html: `<div>Hello ${first_name} ${last_name},<br><br></div>
+                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
                         <div>
                           We regret to inform you that your application as commercial member is rejected from Kodede. Please see the reason below. If you wish to apply again, consider the feedback shared for the next time.<br><br>
                         </div>

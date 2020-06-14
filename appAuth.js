@@ -9,7 +9,7 @@ const cors = require("cors");
 
 // Set up routes
 const authRouter = require("./routes/auth/authRoutes");
-const tasttligAuthRouter= require("./routes/tasttligAuth/authRoutes");
+const tasttligAuthRouter = require("./routes/tasttligAuth/authRoutes");
 
 // Configure Express
 const app = express();
