@@ -17,8 +17,6 @@ pipelines:
           - npm test
      - step:
         name: Build & Deploy
-        caches:
-         - node
         script:
          - apt-get update
          - apt-get install -y zip
