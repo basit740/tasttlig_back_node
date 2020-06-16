@@ -2,7 +2,9 @@
 
 // Libraries
 const applicationRouter = require("express").Router();
+const auth = require("../auth/authFunctions");
 const Application = require("../../db/queries/application/application");
+const { authenticateToken } = auth;
 
 // GET all applications
 applicationRouter.get("/applications", async (req, res) => {
@@ -17,7 +19,7 @@ applicationRouter.get("/applications/user", async (req, res) => {
 });
 
 // POST applications from advertiser
-applicationRouter.post("/applications", async (req, res) => {
+applicationRouter.post("/applications", authenticateToken, async (req, res) => {
   const application = {
     first_name: req.body.first_name,
     last_name: req.body.last_name,
@@ -56,13 +58,18 @@ applicationRouter.post("/applications", async (req, res) => {
     tripadvisor_review: req.body.tripadvisor_review,
     instagram_review: req.body.instagram_review,
     youtube_review: req.body.youtube_review,
+    personal_review: req.body.personal_review,
     media_recognition: req.body.media_recognition,
     host_selection: req.body.host_selection,
-    host_selection_video: req.body.host_selection_video
+    host_selection_video: req.body.host_selection_video,
+    youtube_link: req.body.youtube_link
   };
 
   try {
-    const applications = await Application.createApplication(application);
+    const applications = await Application.createApplication(
+      application,
+      req.user.id
+    );
     res.json(applications);
   } catch (err) {
     res.json(err);

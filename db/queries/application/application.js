@@ -4,6 +4,8 @@
 const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
+const jwt = require("jsonwebtoken");
+const Mailer = require("../../../routes/auth/nodemailer");
 
 // Export Applications table
 module.exports = {
@@ -23,7 +25,7 @@ module.exports = {
       return { success: false, message: "No Application found." };
     }
   },
-  createApplication: async application => {
+  createApplication: async (application, user_id) => {
     const first_name = application.first_name;
     const last_name = application.last_name;
     const email = application.email;
@@ -61,12 +63,15 @@ module.exports = {
     const tripadvisor_review = application.tripadvisor_review;
     const instagram_review = application.instagram_review;
     const youtube_review = application.youtube_review;
+    const personal_review = application.personal_review;
     const media_recognition = application.media_recognition;
     const host_selection = application.host_selection;
     const host_selection_video = application.host_selection_video;
+    const youtube_link = application.youtube_link;
     try {
       const returning = await db("applications")
         .insert({
+          user_id,
           first_name,
           last_name,
           email,
@@ -104,12 +109,58 @@ module.exports = {
           tripadvisor_review,
           instagram_review,
           youtube_review,
+          personal_review,
           media_recognition,
           host_selection,
-          host_selection_video
+          host_selection_video,
+          youtube_link
         })
         .returning("*");
-      if (returning) return (response = { success: true });
+      if (returning) {
+        jwt.sign(
+          { application: returning[0].user_id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "7d"
+          },
+          async () => {
+            try {
+              // Async apply to host confirmation email
+              await Mailer.transporter.sendMail({
+                to: email,
+                bcc: process.env.TASTTLIG_ADMIN_EMAIL,
+                subject: `[Tasttlig] Thank you for your application`,
+                html:  `<div>
+                          Hello ${first_name} ${last_name},<br><br>
+                        </div>
+                        <div>
+                          We are so glad that you decided to host Tasttlig!
+                          <br><br>
+                        </div>
+                        <div>
+                          Our team will review your application. If you are 
+                          successful, we will grant you access online to 
+                          create your profile and experience.<br><br>
+                        </div>
+                        <div>
+                          We appreciate your interest in Tasttlig and are 
+                          looking forward to working with you.<br><br>
+                        </div>
+                        <div>Sincerely,<br><br></div>
+                        <div>
+                          Tasttlig Team<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        );
+      }
+      return (response = { success: true, user: returning[0] });
     } catch (err) {
       return (response = { success: false, data: err });
     }
