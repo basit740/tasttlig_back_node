@@ -4,58 +4,17 @@
 const environment = process.env.NODE_ENV || "development";
 const configuration = require("../../../knexfile")[environment];
 const db = require("knex")(configuration);
+const jwt = require("jsonwebtoken");
+const Mailer = require("../../../routes/auth/nodemailer");
 
 // Export experiences table
 module.exports = {
-  createExperience: async (experience, user_id) => {
-    const title = experience.title;
-    const img_url_1 = experience.img_url_1;
-    // const img_url_2 = experience.img_url_2;
-    // const img_url_3 = experience.img_url_3;
-    const category = experience.category;
-    const style = experience.style;
-    const capacity = experience.capacity;
-    const experience_type = experience.experience_type;
-    const dress_code = experience.dress_code;
-    const entertainment = experience.entertainment;
-    const price = experience.price;
-    const start_time = experience.start_time;
-    const end_time = experience.end_time;
-    const date = experience.date;
-    const postal_code = experience.postal_code;
-    const address_line_1 = experience.address_line_1;
-    const address_line_2 = experience.address_line_2;
-    const city = experience.city;
-    const province = experience.province;
-    const experience_information = experience.experience_information;
+  getAllExperiences: async () => {
     try {
-      const returning = await db("experiences")
-        .insert({
-          user_id,
-          title,
-          category,
-          style,
-          img_url_1,
-          price,
-          experience_type,
-          dress_code,
-          entertainment,
-          capacity,
-          start_time,
-          end_time,
-          postal_code,
-          address_line_1,
-          address_line_2,
-          date,
-          city,
-          province,
-          experience_information
-        })
-        .returning("*");
-
-      if (returning) return { success: true, experience: returning[0] };
+      const returning = await db("experiences");
+      return { success: true, experiences: returning };
     } catch (err) {
-      return { success: false, data: err };
+      return { success: false, message: "No experience found." };
     }
   },
   getUserExperiences: async user_id => {
@@ -63,15 +22,95 @@ module.exports = {
       const returning = await db("experiences").where("user_id", user_id);
       return { success: true, experiences: returning };
     } catch (err) {
-      return { success: false, message: "No experience found" };
+      return { success: false, message: "No experience found." };
     }
   },
-  getAllExperiences: async () => {
+  createExperience: async (experience, user_id) => {
+    const img_url_1 = experience.img_url_1;
+    // const img_url_2 = experience.img_url_2;
+    // const img_url_3 = experience.img_url_3;
+    const title = experience.title;
+    const price = experience.price;
+    const category = experience.category;
+    const style = experience.style;
+    const start_date = experience.start_date;
+    const end_date = experience.end_date;
+    const start_time = experience.start_time;
+    const end_time = experience.end_time;
+    const capacity = experience.capacity;
+    const dress_code = experience.dress_code;
+    const address_line_1 = experience.address_line_1;
+    const address_line_2 = experience.address_line_2;
+    const city = experience.city;
+    const province_territory = experience.province_territory;
+    const postal_code = experience.postal_code;
+    const description = experience.description;
+    const first_name = experience.first_name;
+    const last_name = experience.last_name;
+    const email = experience.email;
     try {
-      const returning = await db("experiences");
-      return { success: true, experiences: returning };
+      const returning = await db("experiences")
+        .insert({
+          user_id,
+          img_url_1,
+          title,
+          price,
+          category,
+          style,
+          start_date,
+          end_date,
+          start_time,
+          end_time,
+          capacity,
+          dress_code,
+          address_line_1,
+          address_line_2,
+          city,
+          province_territory,
+          postal_code,
+          description
+        })
+        .returning("*");
+      if (returning) {
+        jwt.sign(
+          { experience: returning[0].user_id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "7d"
+          },
+          async () => {
+            try {
+              // Async create an experience confirmation email
+              await Mailer.transporter.sendMail({
+                to: email,
+                bcc: process.env.TASTTLIG_ADMIN_EMAIL,
+                subject: `[Tasttlig] Thank you for creating your experience`,
+                html:  `<div>
+                          Hello ${first_name} ${last_name},<br><br>
+                        </div>
+                        <div>
+                          Thank you for creating your experience! Our team will 
+                          review it and publish within 24 hours if there is no 
+                          more information required.
+                          <br><br>
+                        </div>
+                        <div>Sincerely,<br><br></div>
+                        <div>
+                          Tasttlig Team<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        );
+      }
+      return { success: true, experience: returning[0] };
     } catch (err) {
-      return { success: false, message: "No experience found" };
+      return { success: false, data: err };
     }
   },
   deleteExperience: async id => {
