@@ -68,6 +68,7 @@ module.exports = {
     const host_selection = application.host_selection;
     const host_selection_video = application.host_selection_video;
     const youtube_link = application.youtube_link;
+    const profile_img_url = application.profile_img_url;
     try {
       const returning = await db("applications")
         .insert({
@@ -113,7 +114,8 @@ module.exports = {
           media_recognition,
           host_selection,
           host_selection_video,
-          youtube_link
+          youtube_link,
+          profile_img_url
         })
         .returning("*");
       if (returning) {
@@ -163,6 +165,22 @@ module.exports = {
       return (response = { success: true, user: returning[0] });
     } catch (err) {
       return (response = { success: false, data: err });
+    }
+  },
+  updateApplication: async (application, id) => {
+    const first_name = application.first_name;
+    const last_name = application.last_name;
+    const email = application.email;
+    const is_host = application.is_host;
+    const reject_note = application.reject_note;
+    try {
+      const returning = await db("applications")
+        .where("id", id)
+        .update({ first_name, last_name, email, is_host, reject_note })
+        .returning("*");
+      return { success: true, message: "ok", data: returning };
+    } catch (err) {
+      return { success: false, message: err };
     }
   }
 };

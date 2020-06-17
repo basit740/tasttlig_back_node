@@ -76,4 +76,25 @@ applicationRouter.post("/applications", authenticateToken, async (req, res) => {
   }
 });
 
+// PUT accept or reject host applicant from admin
+applicationRouter.put("/applications/:id", async (req, res) => {
+  const application = {
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    email: req.body.email,
+    is_host: req.body.is_host,
+    reject_note: req.body.reject_note
+  };
+
+  try {
+    const applications = await Application.updateApplication(
+      application,
+      req.params.id
+    );
+    res.json(applications);
+  } catch (err) {
+    console.log("Update Application", err);
+  }
+});
+
 module.exports = applicationRouter;
