@@ -19,7 +19,7 @@ exports.up = function(knex) {
     table.string("expiry_date");
     table.boolean("verified").defaultTo(false);
     table.boolean("certified");
-    table.string("reject_note");
+    table.text("reject_note");
     table.string("profile_img_url");
     table.string("business_street_address");
     table.string("business_city");
@@ -35,6 +35,7 @@ exports.up = function(knex) {
     table.string("subject");
     table.text("message");
     table.boolean("connected_status");
+    table.boolean("tasttlig");
     table.timestamps(true, true);
   });
 };

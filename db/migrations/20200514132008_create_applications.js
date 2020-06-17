@@ -58,6 +58,9 @@ exports.up = function(knex) {
     table.string("host_selection").notNullable();
     table.string("host_selection_video");
     table.string("youtube_link");
+    table.string("profile_img_url");
+    table.boolean("is_host");
+    table.text("reject_note");
     table.timestamps(true, true);
   });
 };

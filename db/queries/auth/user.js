@@ -15,9 +15,7 @@ module.exports = {
     const email = user.email;
     const password_digest = user.password;
     const phone_number = user.phone_number;
-    const food_handler_certificate = user.food_handler_certificate;
-    const date_of_issue = user.date_of_issue;
-    const expiry_date = user.expiry_date;
+    const tasttlig = user.tasttlig;
     try {
       const returning = await db("users")
         .insert({
@@ -26,12 +24,50 @@ module.exports = {
           email,
           password_digest,
           phone_number,
-          food_handler_certificate,
-          date_of_issue,
-          expiry_date
+          tasttlig
         })
         .returning("*");
-      if (returning) {
+      if (returning && tasttlig) {
+        jwt.sign(
+          { user: returning[0].id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "1d"
+          },
+          // Async email verification email
+          async (err, emailToken) => {
+            try {
+              const urlVerifyEmail = `http://localhost:3000/user/verify/${emailToken}`;
+              await Mailer.transporter.sendMail({
+                to: email,
+                bcc: process.env.TASTTLIG_ADMIN_EMAIL,
+                subject: "[Tasttlig] Welcome to Tasttlig!",
+                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
+                        <div>
+                          We are so glad you joined us!<br><br>
+                        </div>
+                        <div>
+                          Please kindly verify your email so you can begin trying food from experiences from the festival.<br><br>
+                        </div>
+                        <div>
+                          <a href="${urlVerifyEmail}">Verify Email</a><br><br>
+                        </div>
+                        <div>
+                          Sincerely,<br><br>
+                        </div>
+                        <div>
+                          Tasttlig Team<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        );
+      } else if (returning) {
         jwt.sign(
           { user: returning[0].id },
           process.env.EMAIL_SECRET,
@@ -139,13 +175,43 @@ module.exports = {
       return { success: false, message: err };
     }
   },
-  updatePassword: async (email, password) => {
+  updatePassword: async (email, password, tasttlig) => {
     try {
       const returning = await db("users")
         .where("email", email)
         .update("password_digest", password)
+        .update("tasttlig", tasttlig)
         .returning("*");
-      if (returning) {
+      if (returning && tasttlig) {
+        jwt.sign(
+          { user: returning[0].id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "15m"
+          },
+          // Async password change confirmation email
+          async () => {
+            try {
+              await Mailer.transporter.sendMail({
+                to: email,
+                bcc: process.env.TASTTLIG_ADMIN_EMAIL,
+                subject: "[Tasttlig] Password changed",
+                html:  `<div>Hello,<br><br></div>
+                        <div>
+                          The password for your Tasttlig account was recently changed. If so, please disregard this email. If not, review your account now.<br><br>
+                        </div>
+                        <div>Sincerely,<br><br></div>
+                        <div>Tasttlig Team<br><br></div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        );
+      } else if (returning) {
         jwt.sign(
           { user: returning[0].id },
           process.env.EMAIL_SECRET,
