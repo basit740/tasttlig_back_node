@@ -33,9 +33,7 @@ authRouter.post("/user/register", async (req, res) => {
       email: req.body.email,
       password,
       phone_number: req.body.phone_number,
-      food_handler_certificate: req.body.food_handler_certificate,
-      date_of_issue: req.body.date_of_issue,
-      expiry_date: req.body.expiry_date
+      tasttlig: req.body.tasttlig
     };
     const response = await User.userRegister(user);
 
@@ -219,8 +217,49 @@ authRouter.put("/user/location/:id", async (req, res) => {
 // POST user forgot password
 authRouter.post("/user/forgot-password", async (req, res) => {
   const email = req.body.email;
+  const tasttlig = req.body.tasttlig;
   const returning = await User.checkEmail(email);
-  if (returning.success) {
+  if (returning.success && tasttlig) {
+    jwt.sign(
+      { email },
+      process.env.EMAIL_SECRET,
+      {
+        expiresIn: "15m"
+      },
+      // Async reset password email
+      async (err, emailToken) => {
+        try {
+          const url = `http://localhost:3000/forgot-password/${emailToken}/${email}`;
+          const info = await Mailer.transporter.sendMail({
+            to: email,
+            bcc: process.env.TASTTLIG_ADMIN_EMAIL,
+            subject: "[Tasttlig] Reset your password",
+            html:  `<div>Hello,<br><br></div>
+                    <div>
+                      There was a request to reset your password. If so, please click on the link below. If not, disregard this email.<br><br>
+                    </div>
+                    <div>
+                      <a href="${url}">Reset Your Password</a><br><br>
+                    </div>
+                    <div>Sincerely,<br><br></div>
+                    <div>Tasttlig Team<br><br></div>
+                    <div>Tasttlig Corporation</div>
+                    <div>585 Dundas St E, 3rd Floor</div>
+                    <div>Toronto, ON M5A 2B7, Canada</div>`
+          });
+          if (info.accepted[0] === email) {
+            res.send({
+              success: true,
+              message: "ok",
+              response: `Your update password email has been sent to ${email}.`
+            });
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    );
+  } else if (returning.success) {
     jwt.sign(
       { email },
       process.env.EMAIL_SECRET,
@@ -281,8 +320,9 @@ authRouter.put(
       const saltRounds = 10;
       const salt = bcrypt.genSaltSync(saltRounds);
       const password = bcrypt.hashSync(pw, salt);
+      const tasttlig = req.body.tasttlig;
       if (email) {
-        const response = await User.updatePassword(email, password);
+        const response = await User.updatePassword(email, password, tasttlig);
         res.send({
           success: true,
           message: "ok",
