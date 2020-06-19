@@ -26,7 +26,7 @@ module.exports = {
     client: "pg",
     connection: {
       host : process.env.RDS_HOSTNAME,
-      dtabase: process.env.RDS_DB_NAME,
+      database: process.env.RDS_DB_NAME,
       user     : process.env.RDS_USERNAME,
       password : process.env.RDS_PASSWORD,
       port     : process.env.RDS_PORT
