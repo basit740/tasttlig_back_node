@@ -24,6 +24,8 @@ module.exports = {
     const email = cook.email;
     const phone_number = cook.phone_number;
     const profile_type = cook.profile_type;
+    const food_business_name = restaurant.food_business_name;
+    const food_business_number = restaurant.food_business_number;
     const food_business_license = cook.food_business_license;
     const food_business_license_date_of_issue =
       cook.food_business_license_date_of_issue;
@@ -37,6 +39,9 @@ module.exports = {
       cook.food_business_insurance_date_of_issue;
     const food_business_insurance_expiry_date =
       cook.food_business_insurance_expiry_date;
+    const food_business_logo = restaurant.food_business_logo;
+    const food_business_photo = restaurant.food_business_photo;
+    const food_business_story = restaurant.food_business_story;
     const certified = cook.certified;
     try {
       const returning = await db("cooks")
@@ -48,6 +53,8 @@ module.exports = {
           email,
           phone_number,
           profile_type,
+          food_business_name,
+          food_business_number,
           food_business_license,
           food_business_license_date_of_issue,
           food_handler_certificate,
@@ -56,6 +63,9 @@ module.exports = {
           food_business_insurance,
           food_business_insurance_date_of_issue,
           food_business_insurance_expiry_date,
+          food_business_logo,
+          food_business_photo,
+          food_business_story,
           certified
         })
         .returning("*");
