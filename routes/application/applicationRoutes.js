@@ -62,7 +62,8 @@ applicationRouter.post("/applications", authenticateToken, async (req, res) => {
     media_recognition: req.body.media_recognition,
     host_selection: req.body.host_selection,
     host_selection_video: req.body.host_selection_video,
-    youtube_link: req.body.youtube_link
+    youtube_link: req.body.youtube_link,
+    profile_img_url: req.body.profile_img_url
   };
 
   try {
