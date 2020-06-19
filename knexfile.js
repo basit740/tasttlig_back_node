@@ -31,6 +31,9 @@ module.exports = {
       password : process.env.RDS_PASSWORD,
       port     : process.env.RDS_PORT
     },
+    migrations: {
+      directory: "./db/migrations"
+    },
     useNullAsDefault: true
   },
 
