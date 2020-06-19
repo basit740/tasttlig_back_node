@@ -31,8 +31,8 @@ const foodTruckRouter = require("./routes/foodTruck/foodTruckRoutes");
 const catererRouter = require("./routes/caterer/catererRoutes");
 const menuItemRouter = require("./routes/menuItem/menuItemRoutes");
 const searchRouter = require("./routes/search/searchRoutes");
-const tasttligUserRouter = require("./routes/tasttligUser/tasttligUserRoutes");
-const tasttligMessageRouter = require("./routes/tasttligMessage/tasttligMessageRoutes");
+const tasttligFestivalGuestRouter = require("./routes/tasttligFestivalGuest/tasttligFestivalGuestRoutes");
+const tasttligNewsletterRouter = require("./routes/tasttligNewsletter/tasttligNewsletterRoutes");
 
 // Configure Express
 const app = express();
@@ -64,8 +64,8 @@ app.use(foodTruckRouter);
 app.use(catererRouter);
 app.use(menuItemRouter);
 app.use(searchRouter);
-app.use(tasttligUserRouter);
-app.use(tasttligMessageRouter);
+app.use(tasttligFestivalGuestRouter);
+app.use(tasttligNewsletterRouter);
 
 app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*')

@@ -6,6 +6,13 @@ exports.up = function(knex) {
       .increments("id")
       .unsigned()
       .primary();
+    table
+      .bigInteger("user_id")
+      .unsigned()
+      .index()
+      .references("id")
+      .inTable("users")
+      .onDelete("CASCADE");
     table.string("first_name").notNullable();
     table.string("last_name").notNullable();
     table
@@ -46,9 +53,14 @@ exports.up = function(knex) {
     table.string("tripadvisor_review");
     table.string("instagram_review");
     table.string("youtube_review");
+    table.text("personal_review");
     table.string("media_recognition");
     table.string("host_selection").notNullable();
     table.string("host_selection_video");
+    table.string("youtube_link");
+    table.string("profile_img_url");
+    table.boolean("is_host");
+    table.text("reject_note");
     table.timestamps(true, true);
   });
 };
