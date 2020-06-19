@@ -38,7 +38,7 @@ module.exports = {
     connection: ":memory:",
     useNullAsDefault: true,
     migrations: {
-      directory: path.join(__dirname, "db", "migrations")
+      directory: "./db/migrations"
     },
   },
 };

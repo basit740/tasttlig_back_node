@@ -16,16 +16,7 @@ module.exports = {
     const phone_number = user.phone_number;
     const tasttlig = user.tasttlig;
     try {
-      const returning = await db("users")
-        .insert({
-          first_name,
-          last_name,
-          email,
-          password_digest,
-          phone_number,
-          tasttlig
-        })
-        .returning("*");
+      
       if (returning && tasttlig) {
         jwt.sign(
           { user: returning[0].id },
