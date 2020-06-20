@@ -17,7 +17,7 @@ exports.up = function(knex) {
     table.string("name").notNullable();
     table.string("continent").notNullable();
     table.string("ethnicity").notNullable();
-    table.integer("price");
+    table.decimal("price").notNullable();
     table.integer("quantity").notNullable();
     table.string("food_ad_street_address").notNullable();
     table.string("food_ad_city").notNullable();
