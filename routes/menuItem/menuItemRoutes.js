@@ -43,26 +43,30 @@ menuItemRouter.post("/menu-items", authenticateToken, async (req, res) => {
     event_production: req.body.event_production,
     discount: req.body.discount,
     menu_item_code: req.body.menu_item_code,
-    first_name: req.body.first_name,
-    last_name: req.body.last_name,
-    email: req.body.email,
-    phone_number: req.body.phone_number,
-    food_handler_certificate: req.body.food_handler_certificate,
-    date_of_issue: req.body.date_of_issue,
-    expiry_date: req.body.expiry_date,
+    feedback_public_global: req.body.feedback_public_global,
+    feedback_public_local: req.body.feedback_public_local,
+    food_business_logo: req.body.food_business_logo,
     verified: req.body.verified,
-    profile_img_url: req.body.profile_img_url,
+    food_business_license: req.body.food_business_license,
+    dine_safe_license: req.body.dine_safe_license,
+    food_handler_certificate: req.body.food_handler_certificate,
+    food_handler_certificate_date_of_issue:
+      req.body.food_handler_certificate_date_of_issue,
+    food_handler_certificate_expiry_date:
+      req.body.food_handler_certificate_expiry_date,
+    food_business_insurance: req.body.food_business_insurance,
+    food_business_insurance_date_of_issue:
+      req.body.food_business_insurance_date_of_issue,
+    food_business_insurance_expiry_date:
+      req.body.food_business_insurance_expiry_date,
+    food_business_name: req.body.food_business_name,
     business_street_address: req.body.business_street_address,
     business_city: req.body.business_city,
     business_province_territory: req.body.business_province_territory,
     business_postal_code: req.body.business_postal_code,
-    facebook: req.body.facebook,
-    twitter: req.body.twitter,
-    instagram: req.body.instagram,
-    youtube: req.body.youtube,
-    linkedin: req.body.linkedin,
-    website: req.body.website,
-    bio: req.body.bio
+    phone_number: req.body.phone_number,
+    email: req.body.email,
+    food_business_story: req.body.food_business_story
   };
 
   try {

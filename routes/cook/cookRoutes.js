@@ -21,6 +21,8 @@ cookRouter.post("/cooks", authenticateToken, async (req, res) => {
     email: req.body.email,
     phone_number: req.body.phone_number,
     profile_type: req.body.profile_type,
+    food_business_name: req.body.food_business_name,
+    food_business_number: req.body.food_business_number,
     food_business_license: req.body.food_business_license,
     food_business_license_date_of_issue:
       req.body.food_business_license_date_of_issue,
@@ -34,6 +36,9 @@ cookRouter.post("/cooks", authenticateToken, async (req, res) => {
       req.body.food_business_insurance_date_of_issue,
     food_business_insurance_expiry_date:
       req.body.food_business_insurance_expiry_date,
+    food_business_logo: req.body.food_business_logo,
+    food_business_photo: req.body.food_business_photo,
+    food_business_story: req.body.food_business_story,
     certified: req.body.certified
   };
 

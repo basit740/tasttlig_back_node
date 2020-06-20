@@ -46,26 +46,30 @@ module.exports = {
     const event_production = menuItem.event_production;
     const discount = menuItem.discount;
     const menu_item_code = menuItem.menu_item_code;
-    const profile_img_url = menuItem.profile_img_url;
-    const first_name = menuItem.first_name;
-    const last_name = menuItem.last_name;
-    const email = menuItem.email;
-    const phone_number = menuItem.phone_number;
-    const food_handler_certificate = menuItem.food_handler_certificate;
-    const date_of_issue = menuItem.date_of_issue;
-    const expiry_date = menuItem.expiry_date;
+    const feedback_public_global = menuItem.feedback_public_global;
+    const feedback_public_local = menuItem.feedback_public_local;
+    const food_business_logo = menuItem.food_business_logo;
     const verified = menuItem.verified;
+    const food_business_license = menuItem.food_business_license;
+    const dine_safe_license = menuItem.dine_safe_license;
+    const food_handler_certificate = menuItem.food_handler_certificate;
+    const food_handler_certificate_date_of_issue =
+      menuItem.food_handler_certificate_date_of_issue;
+    const food_handler_certificate_expiry_date =
+      menuItem.food_handler_certificate_expiry_date;
+    const food_business_insurance = menuItem.food_business_insurance;
+    const food_business_insurance_date_of_issue =
+      menuItem.food_business_insurance_date_of_issue;
+    const food_business_insurance_expiry_date =
+      menuItem.food_business_insurance_expiry_date;
+    const food_business_name = menuItem.food_business_name;
     const business_street_address = menuItem.business_street_address;
     const business_city = menuItem.business_city;
     const business_province_territory = menuItem.business_province_territory;
     const business_postal_code = menuItem.business_postal_code;
-    const facebook = menuItem.facebook;
-    const twitter = menuItem.twitter;
-    const instagram = menuItem.instagram;
-    const youtube = menuItem.youtube;
-    const linkedin = menuItem.linkedin;
-    const website = menuItem.website;
-    const bio = menuItem.bio;
+    const phone_number = menuItem.phone_number;
+    const email = menuItem.email;
+    const food_business_story = menuItem.food_business_story;
     try {
       const returning = await db("menu_items")
         .insert({
@@ -92,26 +96,26 @@ module.exports = {
           event_production,
           discount,
           menu_item_code,
-          profile_img_url,
-          first_name,
-          last_name,
-          email,
-          phone_number,
-          food_handler_certificate,
-          date_of_issue,
-          expiry_date,
+          feedback_public_global,
+          feedback_public_local,
+          food_business_logo,
           verified,
+          food_business_license,
+          dine_safe_license,
+          food_handler_certificate,
+          food_handler_certificate_date_of_issue,
+          food_handler_certificate_expiry_date,
+          food_business_insurance,
+          food_business_insurance_date_of_issue,
+          food_business_insurance_expiry_date,
+          food_business_name,
           business_street_address,
           business_city,
           business_province_territory,
           business_postal_code,
-          facebook,
-          twitter,
-          instagram,
-          youtube,
-          linkedin,
-          website,
-          bio
+          phone_number,
+          email,
+          food_business_story
         })
         .returning("*");
       if (returning) return (response = { success: true, user: returning[0] });
