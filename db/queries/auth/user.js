@@ -34,37 +34,37 @@ module.exports = {
             expiresIn: "1d"
           },
           // Async email verification email
-          // async (err, emailToken) => {
-          //   try {
-          //     const urlVerifyEmail = `http://localhost:3000/user/verify/${emailToken}`;
-          //     await Mailer.transporter.sendMail({
-          //       to: email,
-          //       bcc: process.env.TASTTLIG_ADMIN_EMAIL,
-          //       subject: "[Tasttlig] Welcome to Tasttlig!",
-          //       html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
-          //               <div>
-          //                 We are so glad you joined us!<br><br>
-          //               </div>
-          //               <div>
-          //                 Please kindly verify your email so you can begin trying food from experiences from the festival.<br><br>
-          //               </div>
-          //               <div>
-          //                 <a href="${urlVerifyEmail}">Verify Email</a><br><br>
-          //               </div>
-          //               <div>
-          //                 Sincerely,<br><br>
-          //               </div>
-          //               <div>
-          //                 Tasttlig Team<br><br>
-          //               </div>
-          //               <div>Tasttlig Corporation</div>
-          //               <div>585 Dundas St E, 3rd Floor</div>
-          //               <div>Toronto, ON M5A 2B7, Canada</div>`
-          //     });
-          //   } catch (err) {
-          //     console.log(err);
-          //   }
-          // }
+          async (err, emailToken) => {
+            try {
+              const urlVerifyEmail = `http://localhost:3000/user/verify/${emailToken}`;
+              await Mailer.transporter.sendMail({
+                to: email,
+                bcc: process.env.TASTTLIG_ADMIN_EMAIL,
+                subject: "[Tasttlig] Welcome to Tasttlig!",
+                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
+                        <div>
+                          We are so glad you joined us!<br><br>
+                        </div>
+                        <div>
+                          Please kindly verify your email so you can begin trying food from experiences from the festival.<br><br>
+                        </div>
+                        <div>
+                          <a href="${urlVerifyEmail}">Verify Email</a><br><br>
+                        </div>
+                        <div>
+                          Sincerely,<br><br>
+                        </div>
+                        <div>
+                          Tasttlig Team<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
         );
       } else if (returning) {
         jwt.sign(
@@ -74,34 +74,34 @@ module.exports = {
             expiresIn: "1d"
           },
           // Async email verification email
-          // async (err, emailToken) => {
-          //   try {
-          //     const urlVerifyEmail = `http://localhost:3000/user/verify/${emailToken}`;
-          //     await Mailer.transporter.sendMail({
-          //       to: email,
-          //       bcc: process.env.KODEDE_ADMIN_EMAIL,
-          //       subject: "[Kodede] Welcome to Kodede!",
-          //       html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
-          //               <div>
-          //                 We are so glad you joined us!<br><br>
-          //               </div>
-          //               <div>
-          //                 Kodede connects you to food from all around the world. Kindly verify your email so you can begin trying food from anywhere.<br><br>
-          //               </div>
-          //               <div>
-          //                 <a href="${urlVerifyEmail}">Verify Email</a><br><br>
-          //               </div>
-          //               <div>
-          //                 Sent with <3 from Kodede (Created By Tasttlig).<br><br>
-          //               </div>
-          //               <div>Tasttlig Corporation</div>
-          //               <div>585 Dundas St E, 3rd Floor</div>
-          //               <div>Toronto, ON M5A 2B7, Canada</div>`
-          //     });
-          //   } catch (err) {
-          //     console.log(err);
-          //   }
-          // }
+          async (err, emailToken) => {
+            try {
+              const urlVerifyEmail = `http://localhost:3000/user/verify/${emailToken}`;
+              await Mailer.transporter.sendMail({
+                to: email,
+                bcc: process.env.KODEDE_ADMIN_EMAIL,
+                subject: "[Kodede] Welcome to Kodede!",
+                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
+                        <div>
+                          We are so glad you joined us!<br><br>
+                        </div>
+                        <div>
+                          Kodede connects you to food from all around the world. Kindly verify your email so you can begin trying food from anywhere.<br><br>
+                        </div>
+                        <div>
+                          <a href="${urlVerifyEmail}">Verify Email</a><br><br>
+                        </div>
+                        <div>
+                          Sent with <3 from Kodede (Created By Tasttlig).<br><br>
+                        </div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
         );
       }
       return { success: true, data: returning[0] };
