@@ -15,7 +15,7 @@ exports.up = function(knex) {
       .onDelete("CASCADE");
     table.string("menu_item_img_url").notNullable();
     table.string("name").notNullable();
-    table.integer("price").notNullable();
+    table.decimal("price").notNullable();
     table.integer("quantity").notNullable();
     table.boolean("vegetarian").defaultTo(false);
     table.boolean("vegan").defaultTo(false);

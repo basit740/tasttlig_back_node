@@ -24,8 +24,8 @@ module.exports = {
     const email = foodTruck.email;
     const phone_number = foodTruck.phone_number;
     const profile_type = foodTruck.profile_type;
-    const food_business_name = restaurant.food_business_name;
-    const food_business_number = restaurant.food_business_number;
+    const food_business_name = foodTruck.food_business_name;
+    const food_business_number = foodTruck.food_business_number;
     const food_business_license = foodTruck.food_business_license;
     const food_business_license_date_of_issue =
       foodTruck.food_business_license_date_of_issue;
@@ -39,9 +39,9 @@ module.exports = {
       foodTruck.food_business_insurance_date_of_issue;
     const food_business_insurance_expiry_date =
       foodTruck.food_business_insurance_expiry_date;
-    const food_business_logo = restaurant.food_business_logo;
-    const food_business_photo = restaurant.food_business_photo;
-    const food_business_story = restaurant.food_business_story;
+    const food_business_logo = foodTruck.food_business_logo;
+    const food_business_photo = foodTruck.food_business_photo;
+    const food_business_story = foodTruck.food_business_story;
     const certified = foodTruck.certified;
     try {
       const returning = await db("food_trucks")
