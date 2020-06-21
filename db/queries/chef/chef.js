@@ -24,8 +24,8 @@ module.exports = {
     const email = chef.email;
     const phone_number = chef.phone_number;
     const profile_type = chef.profile_type;
-    const food_business_name = restaurant.food_business_name;
-    const food_business_number = restaurant.food_business_number;
+    const food_business_name = chef.food_business_name;
+    const food_business_number = chef.food_business_number;
     const food_business_license = chef.food_business_license;
     const food_business_license_date_of_issue =
       chef.food_business_license_date_of_issue;
@@ -39,9 +39,9 @@ module.exports = {
       chef.food_business_insurance_date_of_issue;
     const food_business_insurance_expiry_date =
       chef.food_business_insurance_expiry_date;
-    const food_business_logo = restaurant.food_business_logo;
-    const food_business_photo = restaurant.food_business_photo;
-    const food_business_story = restaurant.food_business_story;
+    const food_business_logo = chef.food_business_logo;
+    const food_business_photo = chef.food_business_photo;
+    const food_business_story = chef.food_business_story;
     const certified = chef.certified;
     try {
       const returning = await db("chefs")
