@@ -24,8 +24,8 @@ module.exports = {
     const email = caterer.email;
     const phone_number = caterer.phone_number;
     const profile_type = caterer.profile_type;
-    const food_business_name = restaurant.food_business_name;
-    const food_business_number = restaurant.food_business_number;
+    const food_business_name = caterer.food_business_name;
+    const food_business_number = caterer.food_business_number;
     const food_business_license = caterer.food_business_license;
     const food_business_license_date_of_issue =
       caterer.food_business_license_date_of_issue;
@@ -39,9 +39,9 @@ module.exports = {
       caterer.food_business_insurance_date_of_issue;
     const food_business_insurance_expiry_date =
       caterer.food_business_insurance_expiry_date;
-    const food_business_logo = restaurant.food_business_logo;
-    const food_business_photo = restaurant.food_business_photo;
-    const food_business_story = restaurant.food_business_story;
+    const food_business_logo = caterer.food_business_logo;
+    const food_business_photo = caterer.food_business_photo;
+    const food_business_story = caterer.food_business_story;
     const certified = caterer.certified;
     try {
       const returning = await db("caterers")
