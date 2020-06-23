@@ -48,6 +48,7 @@ module.exports = {
     const first_name = experience.first_name;
     const last_name = experience.last_name;
     const email = experience.email;
+    const phone_number = experience.phone_number;
     try {
       const returning = await db("experiences")
         .insert({
@@ -68,7 +69,11 @@ module.exports = {
           city,
           province_territory,
           postal_code,
-          description
+          description,
+          first_name,
+          last_name,
+          email,
+          phone_number
         })
         .returning("*");
       if (returning) {
@@ -76,7 +81,7 @@ module.exports = {
           { experience: returning[0].user_id },
           process.env.EMAIL_SECRET,
           {
-            expiresIn: "7d"
+            expiresIn: "15m"
           },
           async () => {
             try {
@@ -95,9 +100,7 @@ module.exports = {
                           <br><br>
                         </div>
                         <div>Sincerely,<br><br></div>
-                        <div>
-                          Tasttlig Team<br><br>
-                        </div>
+                        <div>Tasttlig Team<br><br></div>
                         <div>Tasttlig Corporation</div>
                         <div>585 Dundas St E, 3rd Floor</div>
                         <div>Toronto, ON M5A 2B7, Canada</div>`
@@ -111,6 +114,86 @@ module.exports = {
       return { success: true, experience: returning[0] };
     } catch (err) {
       return { success: false, data: err };
+    }
+  },
+  updateExperience: async (experience, id) => {
+    const title = experience.title;
+    const first_name = experience.first_name;
+    const last_name = experience.last_name;
+    const email = experience.email;
+    const accepted = experience.accepted;
+    const reject_note = experience.reject_note;
+    try {
+      const returning = await db("experiences")
+        .where("id", id)
+        .update({ title, first_name, last_name, email, accepted, reject_note })
+        .returning("*");
+      if (returning && accepted) {
+        jwt.sign(
+          { experience: returning[0].id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "15m"
+          },
+          async () => {
+            try {
+              // Async experience accepted email
+              await Mailer.transporter.sendMail({
+                to: email,
+                bcc: process.env.TASTTLIG_ADMIN_EMAIL,
+                subject: `[Tasttlig] Your experience "${title}" is accepted`,
+                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
+                        <div>
+                          Your experience "${title}" is accepted from Tasttlig.
+                          <br><br>
+                        </div>
+                        <div>Sincerely,<br><br></div>
+                        <div>Tasttlig Team<br><br></div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        );
+      } else if (returning && reject_note) {
+        jwt.sign(
+          { experience: returning[0].id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "15m"
+          },
+          async () => {
+            try {
+              // Async experience rejected email
+              await Mailer.transporter.sendMail({
+                to: email,
+                bcc: process.env.TASTTLIG_ADMIN_EMAIL,
+                subject: `[Tasttlig] Your experience "${title}" is rejected`,
+                html:  `<div>Hello ${first_name} ${last_name},<br><br></div>
+                        <div>
+                          We regret to inform you that your experience "${title}" is rejected from Tasttlig. Please see the reason below. If you wish to create another experience, consider the feedback shared for the next time.<br><br>
+                        </div>
+                        <div>
+                          Reject Reason: ${reject_note}<br><br>
+                        </div>
+                        <div>Sincerely,<br><br></div>
+                        <div>Tasttlig Team<br><br></div>
+                        <div>Tasttlig Corporation</div>
+                        <div>585 Dundas St E, 3rd Floor</div>
+                        <div>Toronto, ON M5A 2B7, Canada</div>`
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        );
+      }
+      return { success: true, message: "ok", data: returning };
+    } catch (err) {
+      return { success: false, message: err };
     }
   },
   deleteExperience: async id => {
