@@ -46,18 +46,43 @@ experienceRouter.post("/experiences", authenticateToken, async (req, res) => {
     description: req.body.description,
     first_name: req.body.first_name,
     last_name: req.body.last_name,
-    email: req.body.email
+    email: req.body.email,
+    phone_number: req.body.phone_number
   };
   try {
-    const response = await Experience.createExperience(experience, req.user.id);
-    response.success ? res.json(response) : res.status(403).send(response);
+    const experiences = await Experience.createExperience(
+      experience,
+      req.user.id
+    );
+    res.json(experiences);
   } catch (err) {
-    console.log(err);
     res.json(err);
   }
 });
 
-// DELETE experiences from admin
+// PUT accept or reject experience from admin
+experienceRouter.put("/experiences/:id", async (req, res) => {
+  const experience = {
+    title: req.body.title,
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    email: req.body.email,
+    accepted: req.body.accepted,
+    reject_note: req.body.reject_note
+  };
+
+  try {
+    const experiences = await Experience.updateExperience(
+      experience,
+      req.params.id
+    );
+    res.json(experiences);
+  } catch (err) {
+    console.log("Update Experience", err);
+  }
+});
+
+// DELETE experience from admin
 experienceRouter.delete("/experiences/:id", async (req, res) => {
   try {
     const returning = await Experience.deleteExperience(req.params.id);

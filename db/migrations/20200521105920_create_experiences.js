@@ -32,6 +32,12 @@ exports.up = function(knex) {
     table.string("province_territory").notNullable();
     table.string("postal_code").notNullable();
     table.text("description").notNullable();
+    table.string("first_name").notNullable();
+    table.string("last_name").notNullable();
+    table.string("email").notNullable();
+    table.string("phone_number").notNullable();
+    table.boolean("accepted");
+    table.text("reject_note");
     table.timestamps(true, true);
   });
 };
