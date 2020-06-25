@@ -32,6 +32,9 @@ const menuItemRouter = require("./routes/menuItem/menuItemRoutes");
 const searchRouter = require("./routes/search/searchRoutes");
 const tasttligFestivalGuestRouter = require("./routes/tasttligFestivalGuest/tasttligFestivalGuestRoutes");
 const tasttligNewsletterRouter = require("./routes/tasttligNewsletter/tasttligNewsletterRoutes");
+const financialServiceRouter = require("./routes/financialService/financialServiceRoutes");
+const marketingServiceRouter = require("./routes/marketingService/marketingServiceRoutes");
+const technologyServiceRouter = require("./routes/technologyService/technologyServiceRoutes");
 
 // Configure Express
 const app = express();
@@ -64,6 +67,9 @@ app.use(menuItemRouter);
 app.use(searchRouter);
 app.use(tasttligFestivalGuestRouter);
 app.use(tasttligNewsletterRouter);
+app.use(financialServiceRouter);
+app.use(marketingServiceRouter);
+app.use(technologyServiceRouter);
 
 app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*')
