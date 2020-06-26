@@ -89,18 +89,27 @@ module.exports = {
               await Mailer.transporter.sendMail({
                 to: email,
                 bcc: process.env.TASTTLIG_ADMIN_EMAIL,
-                subject: `[Tasttlig] Thank you for creating your experience`,
+                subject: `[Tasttlig] Thank you for creating your experience "${title}"`,
                 html:  `<div>
                           Hello ${first_name} ${last_name},<br><br>
                         </div>
                         <div>
-                          Thank you for creating your experience! Our team will 
-                          review it and publish within 24 hours if there is no 
-                          more information required.
+                          Thank you for creating your experience "${title}"! 
+                          Our team will review it and publish within 24 hours 
+                          if there is no more information required.
                           <br><br>
                         </div>
                         <div>Sincerely,<br><br></div>
                         <div>Tasttlig Team<br><br></div>
+                        <div>
+                          <a 
+                            href="https://tasttlig.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            tasttlig.com
+                          </a><br><br>
+                        </div>
                         <div>Tasttlig Corporation</div>
                         <div>585 Dundas St E, 3rd Floor</div>
                         <div>Toronto, ON M5A 2B7, Canada</div>`
@@ -149,6 +158,15 @@ module.exports = {
                         </div>
                         <div>Sincerely,<br><br></div>
                         <div>Tasttlig Team<br><br></div>
+                        <div>
+                          <a 
+                            href="https://tasttlig.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            tasttlig.com
+                          </a><br><br>
+                        </div>
                         <div>Tasttlig Corporation</div>
                         <div>585 Dundas St E, 3rd Floor</div>
                         <div>Toronto, ON M5A 2B7, Canada</div>`
@@ -181,6 +199,15 @@ module.exports = {
                         </div>
                         <div>Sincerely,<br><br></div>
                         <div>Tasttlig Team<br><br></div>
+                        <div>
+                          <a 
+                            href="https://tasttlig.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            tasttlig.com
+                          </a><br><br>
+                        </div>
                         <div>Tasttlig Corporation</div>
                         <div>585 Dundas St E, 3rd Floor</div>
                         <div>Toronto, ON M5A 2B7, Canada</div>`
