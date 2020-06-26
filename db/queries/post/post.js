@@ -34,6 +34,7 @@ module.exports = {
     const last_name = post.last_name;
     const email = post.email;
     const phone_number = post.phone_number;
+    const verified = post.verified;
     try {
       const returning = await db("posts")
         .insert({
@@ -47,7 +48,8 @@ module.exports = {
           first_name,
           last_name,
           email,
-          phone_number
+          phone_number,
+          verified
         })
         .returning("*");
       if (returning) return (response = { success: true, user: returning[0] });

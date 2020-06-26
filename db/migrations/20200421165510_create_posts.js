@@ -19,10 +19,11 @@ exports.up = function(knex) {
     table.text("body").notNullable();
     table.string("post_img_url");
     table.string("profile_img_url");
-    table.string("first_name");
-    table.string("last_name");
-    table.string("email");
-    table.string("phone_number");
+    table.string("first_name").notNullable();
+    table.string("last_name").notNullable();
+    table.string("email").notNullable();
+    table.string("phone_number").notNullable();
+    table.boolean("verified").notNullable();
     table.boolean("remove").defaultTo(false);
     table.timestamps(true, true);
   });

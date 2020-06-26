@@ -30,7 +30,8 @@ postRouter.post("/posts", authenticateToken, async (req, res) => {
     first_name: req.body.first_name,
     last_name: req.body.last_name,
     email: req.body.email,
-    phone_number: req.body.phone_number
+    phone_number: req.body.phone_number,
+    verified: req.body.verified
   };
 
   try {
