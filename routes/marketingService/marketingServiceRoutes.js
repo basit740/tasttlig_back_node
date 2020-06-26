@@ -30,16 +30,12 @@ marketingServiceRouter.post(
   authenticateToken,
   async (req, res) => {
     const marketingService = {
-      category: req.body.category,
-      method_of_transportation: req.body.method_of_transportation,
-      title: req.body.title,
-      body: req.body.body,
-      post_img_url: req.body.post_img_url,
       profile_img_url: req.body.profile_img_url,
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       email: req.body.email,
-      phone_number: req.body.phone_number
+      phone_number: req.body.phone_number,
+      description: req.body.description
     };
 
     try {
