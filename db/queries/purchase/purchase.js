@@ -7,6 +7,8 @@ const db = require("knex")(configuration);
 const jwt = require("jsonwebtoken");
 const Mailer = require("../../../routes/auth/nodemailer");
 
+const SITE_BASE = process.env.SITE_BASE || "http://localhost:3000";
+
 // Export purchases table
 module.exports = {
   getAllPurchase: async () => {
@@ -158,7 +160,7 @@ module.exports = {
           // Async food ad coupon redeemed email
           async () => {
             try {
-              const url = `http://localhost:3000/feedback/${food_ad_number}`;
+              const url = `${SITE_BASE}/feedback/${food_ad_number}`;
               await Mailer.transporter.sendMail({
                 to: receipt_email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,

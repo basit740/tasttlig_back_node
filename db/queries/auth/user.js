@@ -6,6 +6,8 @@ const db = require("../../db-config");
 const jwt = require("jsonwebtoken");
 const Mailer = require("../../../routes/auth/nodemailer");
 
+const SITE_BASE = process.env.SITE_BASE || "http://localhost:3000";
+
 // Exports users table
 module.exports = {
   userRegister: async user => {
@@ -36,7 +38,7 @@ module.exports = {
           // Async email verification email
           async (err, emailToken) => {
             try {
-              const urlVerifyEmail = `http://localhost:3000/user/verify/${emailToken}`;
+              const urlVerifyEmail = `${SITE_BASE}user/verify/${emailToken}`;
               await Mailer.transporter.sendMail({
                 to: email,
                 bcc: process.env.TASTTLIG_ADMIN_EMAIL,
@@ -76,7 +78,7 @@ module.exports = {
           // Async email verification email
           async (err, emailToken) => {
             try {
-              const urlVerifyEmail = `http://localhost:3000/user/verify/${emailToken}`;
+              const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
               await Mailer.transporter.sendMail({
                 to: email,
                 bcc: process.env.KODEDE_ADMIN_EMAIL,

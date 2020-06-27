@@ -12,6 +12,8 @@ const Refreshtoken = require("../../db/queries/auth/refreshtoken");
 const Mailer = require("./nodemailer");
 const { authenticateToken, authForPassUpdate } = auth;
 
+const SITE_BASE = process.env.SITE_BASE || "http://localhost:3000"
+
 // const createAccountLimiter = rateLimit({
 //   windowMs: 60 * 60 * 1000, // 1 hour window
 //   max: 1000, // start blocking after 10 requests
@@ -229,7 +231,7 @@ authRouter.post("/user/forgot-password", async (req, res) => {
       // Async reset password email
       async (err, emailToken) => {
         try {
-          const url = `http://localhost:3000/forgot-password/${emailToken}/${email}`;
+          const url = `${SITE_BASE}/forgot-password/${emailToken}/${email}`;
           const info = await Mailer.transporter.sendMail({
             to: email,
             bcc: process.env.TASTTLIG_ADMIN_EMAIL,
@@ -269,7 +271,7 @@ authRouter.post("/user/forgot-password", async (req, res) => {
       // Async reset password email
       async (err, emailToken) => {
         try {
-          const url = `http://localhost:3000/forgot-password/${emailToken}/${email}`;
+          const url = `${SITE_BASE}/forgot-password/${emailToken}/${email}`;
           const info = await Mailer.transporter.sendMail({
             to: email,
             bcc: process.env.KODEDE_ADMIN_EMAIL,
