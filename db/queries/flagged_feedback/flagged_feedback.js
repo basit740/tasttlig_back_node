@@ -92,6 +92,15 @@ module.exports = {
                         <div>
                           Sent with <3 from Kodede (Created By Tasttlig).<br><br>
                         </div>
+                        <div>
+                          <a 
+                            href="https://kodede.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            kodede.com
+                          </a><br><br>
+                        </div>
                         <div>Tasttlig Corporation</div>
                         <div>585 Dundas St E, 3rd Floor</div>
                         <div>Toronto, ON M5A 2B7, Canada</div>`

@@ -24,20 +24,32 @@ module.exports = {
     }
   },
   createPost: async (post, user_id) => {
-    const profile_img_url = post.profile_img_url;
-    const first_name = post.first_name;
+    const category = post.category;
+    const method_of_transportation = post.method_of_transportation;
     const title = post.title;
     const body = post.body;
     const post_img_url = post.post_img_url;
+    const profile_img_url = post.profile_img_url;
+    const first_name = post.first_name;
+    const last_name = post.last_name;
+    const email = post.email;
+    const phone_number = post.phone_number;
+    const verified = post.verified;
     try {
       const returning = await db("posts")
         .insert({
           user_id,
-          profile_img_url,
-          first_name,
+          category,
+          method_of_transportation,
           title,
           body,
-          post_img_url
+          post_img_url,
+          profile_img_url,
+          first_name,
+          last_name,
+          email,
+          phone_number,
+          verified
         })
         .returning("*");
       if (returning) return (response = { success: true, user: returning[0] });

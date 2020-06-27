@@ -39,9 +39,9 @@ exports.up = function(knex) {
     table.string("last_name").notNullable();
     table.string("email").notNullable();
     table.string("phone_number").notNullable();
-    table.string("food_handler_certificate").notNullable();
-    table.date("date_of_issue").notNullable();
-    table.date("expiry_date").notNullable();
+    table.string("food_handler_certificate");
+    table.date("date_of_issue");
+    table.date("expiry_date");
     table.boolean("verified").notNullable();
     table.string("business_street_address");
     table.string("business_city");
