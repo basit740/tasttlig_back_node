@@ -7,21 +7,19 @@ const auth = require("./authFunctions");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Refreshtoken = require("../../db/queries/auth/refreshtoken");
-// const rateLimit = require("express-rate-limit");
-// const path = require("path");
+const rateLimit = require("express-rate-limit");
 const Mailer = require("./nodemailer");
 const { authenticateToken, authForPassUpdate } = auth;
 
-// const createAccountLimiter = rateLimit({
-//   windowMs: 60 * 60 * 1000, // 1 hour window
-//   max: 1000, // start blocking after 10 requests
-//   message:
-//     "Too many accounts created from this IP, please try again after an hour"
-// });
-// const { authenticateToken } = authFunctions;
+const createAccountLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour window
+  max: 1000, // start blocking after 10 requests
+  message:
+    "Too many accounts created from this IP, please try again after an hour"
+});
 
 // POST user register
-authRouter.post("/user/register", async (req, res) => {
+authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
   try {
     const pw = req.body.password;
     const saltRounds = 10;
@@ -215,117 +213,121 @@ authRouter.put("/user/location/:id", async (req, res) => {
 });
 
 // POST user forgot password
-authRouter.post("/user/forgot-password", async (req, res) => {
-  const email = req.body.email;
-  const tasttlig = req.body.tasttlig;
-  const returning = await User.checkEmail(email);
-  if (returning.success && tasttlig) {
-    jwt.sign(
-      { email },
-      process.env.EMAIL_SECRET,
-      {
-        expiresIn: "15m"
-      },
-      // Async reset password email
-      async (err, emailToken) => {
-        try {
-          const url = `http://localhost:3000/forgot-password/${emailToken}/${email}`;
-          const info = await Mailer.transporter.sendMail({
-            to: email,
-            bcc: process.env.TASTTLIG_ADMIN_EMAIL,
-            subject: "[Tasttlig] Reset your password",
-            html:  `<div>Hello,<br><br></div>
-                    <div>
-                      There was a request to reset your password. If so, please click on the link below. If not, disregard this email.<br><br>
-                    </div>
-                    <div>
-                      <a href="${url}">Reset Your Password</a><br><br>
-                    </div>
-                    <div>Sincerely,<br><br></div>
-                    <div>Tasttlig Team<br><br></div>
-                    <div>
-                      <a 
-                        href="https://tasttlig.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        tasttlig.com
-                      </a><br><br>
-                    </div>
-                    <div>Tasttlig Corporation</div>
-                    <div>585 Dundas St E, 3rd Floor</div>
-                    <div>Toronto, ON M5A 2B7, Canada</div>`
-          });
-          if (info.accepted[0] === email) {
-            res.send({
-              success: true,
-              message: "ok",
-              response: `Your update password email has been sent to ${email}.`
+authRouter.post(
+  "/user/forgot-password",
+  createAccountLimiter,
+  async (req, res) => {
+    const email = req.body.email;
+    const tasttlig = req.body.tasttlig;
+    const returning = await User.checkEmail(email);
+    if (returning.success && tasttlig) {
+      jwt.sign(
+        { email },
+        process.env.EMAIL_SECRET,
+        {
+          expiresIn: "15m"
+        },
+        // Async reset password email
+        async (err, emailToken) => {
+          try {
+            const url = `http://localhost:3000/forgot-password/${emailToken}/${email}`;
+            const info = await Mailer.transporter.sendMail({
+              to: email,
+              bcc: process.env.TASTTLIG_ADMIN_EMAIL,
+              subject: "[Tasttlig] Reset your password",
+              html:  `<div>Hello,<br><br></div>
+                      <div>
+                        There was a request to reset your password. If so, please click on the link below. If not, disregard this email.<br><br>
+                      </div>
+                      <div>
+                        <a href="${url}">Reset Your Password</a><br><br>
+                      </div>
+                      <div>Sincerely,<br><br></div>
+                      <div>Tasttlig Team<br><br></div>
+                      <div>
+                        <a 
+                          href="https://tasttlig.com"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          tasttlig.com
+                        </a><br><br>
+                      </div>
+                      <div>Tasttlig Corporation</div>
+                      <div>585 Dundas St E, 3rd Floor</div>
+                      <div>Toronto, ON M5A 2B7, Canada</div>`
             });
+            if (info.accepted[0] === email) {
+              res.send({
+                success: true,
+                message: "ok",
+                response: `Your update password email has been sent to ${email}.`
+              });
+            }
+          } catch (err) {
+            console.log(err);
           }
-        } catch (err) {
-          console.log(err);
         }
-      }
-    );
-  } else if (returning.success) {
-    jwt.sign(
-      { email },
-      process.env.EMAIL_SECRET,
-      {
-        expiresIn: "15m"
-      },
-      // Async reset password email
-      async (err, emailToken) => {
-        try {
-          const url = `http://localhost:3000/forgot-password/${emailToken}/${email}`;
-          const info = await Mailer.transporter.sendMail({
-            to: email,
-            bcc: process.env.KODEDE_ADMIN_EMAIL,
-            subject: "[Kodede] Reset your password",
-            html:  `<div>Hello,<br><br></div>
-                    <div>
-                      There was a request to reset your password. If so, please click on the link below. If not, disregard this email.<br><br>
-                    </div>
-                    <div>
-                      <a href="${url}">Reset Your Password</a><br><br>
-                    </div>
-                    <div>
-                      Sent with <3 from Kodede (Created By Tasttlig).<br><br>
-                    </div>
-                    <div>
-                      <a 
-                        href="https://kodede.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        kodede.com
-                      </a><br><br>
-                    </div>
-                    <div>Tasttlig Corporation</div>
-                    <div>585 Dundas St E, 3rd Floor</div>
-                    <div>Toronto, ON M5A 2B7, Canada</div>`
-          });
-          if (info.accepted[0] === email) {
-            res.send({
-              success: true,
-              message: "ok",
-              response: `Your update password email has been sent to ${email}.`
+      );
+    } else if (returning.success) {
+      jwt.sign(
+        { email },
+        process.env.EMAIL_SECRET,
+        {
+          expiresIn: "15m"
+        },
+        // Async reset password email
+        async (err, emailToken) => {
+          try {
+            const url = `http://localhost:3000/forgot-password/${emailToken}/${email}`;
+            const info = await Mailer.transporter.sendMail({
+              to: email,
+              bcc: process.env.KODEDE_ADMIN_EMAIL,
+              subject: "[Kodede] Reset your password",
+              html:  `<div>Hello,<br><br></div>
+                      <div>
+                        There was a request to reset your password. If so, please click on the link below. If not, disregard this email.<br><br>
+                      </div>
+                      <div>
+                        <a href="${url}">Reset Your Password</a><br><br>
+                      </div>
+                      <div>
+                        Sent with <3 from Kodede (Created By Tasttlig).<br><br>
+                      </div>
+                      <div>
+                        <a 
+                          href="https://kodede.com"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          kodede.com
+                        </a><br><br>
+                      </div>
+                      <div>Tasttlig Corporation</div>
+                      <div>585 Dundas St E, 3rd Floor</div>
+                      <div>Toronto, ON M5A 2B7, Canada</div>`
             });
+            if (info.accepted[0] === email) {
+              res.send({
+                success: true,
+                message: "ok",
+                response: `Your update password email has been sent to ${email}.`
+              });
+            }
+          } catch (err) {
+            console.log(err);
           }
-        } catch (err) {
-          console.log(err);
         }
-      }
-    );
-  } else {
-    res.send({
-      success: false,
-      message: "ok",
-      response: `There is no account for ${email}.`
-    });
+      );
+    } else {
+      res.send({
+        success: false,
+        message: "ok",
+        response: `There is no account for ${email}.`
+      });
+    }
   }
-});
+);
 
 // PUT user enter new password
 authRouter.put(
