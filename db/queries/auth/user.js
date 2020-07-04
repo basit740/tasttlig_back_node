@@ -32,7 +32,7 @@ module.exports = {
           { user: returning[0].id },
           process.env.EMAIL_SECRET,
           {
-            expiresIn: "1d"
+            expiresIn: "28d"
           },
           // Async email verification email
           async (err, emailToken) => {
@@ -47,7 +47,7 @@ module.exports = {
                           We are so glad you joined us!<br><br>
                         </div>
                         <div>
-                          Please kindly verify your email so you can begin trying food from experiences from the festival.<br><br>
+                          Please kindly verify your email to host experiences on Tasttlig.<br><br>
                         </div>
                         <div>
                           <a href="${urlVerifyEmail}">Verify Email</a><br><br>
