@@ -36,6 +36,7 @@ const tasttligNewsletterRouter = require("./routes/tasttligNewsletter/tasttligNe
 const financialServiceRouter = require("./routes/financialService/financialServiceRoutes");
 const marketingServiceRouter = require("./routes/marketingService/marketingServiceRoutes");
 const technologyServiceRouter = require("./routes/technologyService/technologyServiceRoutes");
+const s3UploaderRouter = require("./routes/s3Uploader/s3UploaderRoutes");
 
 // Configure Express
 const app = express();
@@ -72,6 +73,7 @@ app.use(tasttligNewsletterRouter);
 app.use(financialServiceRouter);
 app.use(marketingServiceRouter);
 app.use(technologyServiceRouter);
+app.use(s3UploaderRouter);
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
