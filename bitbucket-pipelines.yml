@@ -27,7 +27,7 @@ pipelines:
              AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
              AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
              APPLICATION_NAME: "kodede"
-             ENVIRONMENT_NAME: 'kodede-test-2'
+             ENVIRONMENT_NAME: 'kodede-test-3'
              S3_BUCKET: 'kodede-codedeploy-deployment'
              ZIP_FILE: "app.zip"
              
