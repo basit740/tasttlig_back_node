@@ -125,6 +125,7 @@ module.exports = {
         }
       }
     } catch (err) {
+      console.log(err);
       return { 
         success: false, 
         data: err 
