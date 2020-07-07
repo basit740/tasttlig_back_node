@@ -110,9 +110,23 @@ module.exports = {
           bio
         })
         .returning("*");
-      if (returning) return (response = { success: true, user: returning[0] });
+
+      if (returning) { 
+        return { 
+          success: true, 
+          user: returning[0] 
+        };
+      } else {
+        return {
+          success: false,
+          data: "Failed to save food ad"
+        }
+      }
     } catch (err) {
-      return (response = { success: false, data: err });
+      return { 
+        success: false, 
+        data: err 
+      };
     }
   },
   updateFoodAdQuantity: async (foodAd, id) => {
