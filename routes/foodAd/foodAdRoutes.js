@@ -67,7 +67,8 @@ foodAdRouter.post("/food-ads", authenticateToken, async (req, res) => {
     const foodAds = await FoodAd.createFoodAd(foodAd, req.user.id);
     res.json(foodAds);
   } catch (err) {
-    res.json(err);
+    console.log(err);
+    res.status(500).json(err);
   }
 });
 
