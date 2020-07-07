@@ -111,6 +111,8 @@ module.exports = {
         })
         .returning("*");
 
+        console.log(returning);
+
       if (returning) { 
         return { 
           success: true, 
