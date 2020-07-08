@@ -43,7 +43,7 @@ exports.up = function(knex) {
     table.date("date_of_issue");
     table.date("expiry_date");
     table.boolean("verified").notNullable();
-    table.boolean("certified");
+    table.boolean("certified").defaultTo(false);
     table.string("business_street_address");
     table.string("business_city");
     table.string("business_province_territory");
