@@ -1,12 +1,10 @@
 "use strict";
 
-const path = require("path")
-
 module.exports = {
   development: {
     client: "pg",
     connection: {
-      database: "kodede_back_node_development"
+      database: "tasttlig_back_node_development"
     },
     migrations: {
       directory: "./db/migrations"
@@ -17,7 +15,7 @@ module.exports = {
   staging: {
     client: "pg",
     connection: {
-      database: "kodede_back_node_staging"
+      database: "tasttlig_back_node_staging"
     },
     useNullAsDefault: true
   },
@@ -25,11 +23,11 @@ module.exports = {
   production: {
     client: "pg",
     connection: {
-      host : process.env.DB_HOSTNAME,
+      host: process.env.DB_HOSTNAME,
       database: process.env.DB_NAME,
-      user     : process.env.DB_USERNAME,
-      password : process.env.DB_PASSWORD,
-      port     : process.env.DB_PORT
+      user: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      port: process.env.DB_PORT
     },
     migrations: {
       directory: "./db/migrations"
@@ -43,6 +41,6 @@ module.exports = {
     useNullAsDefault: true,
     migrations: {
       directory: "./db/migrations"
-    },
-  },
+    }
+  }
 };

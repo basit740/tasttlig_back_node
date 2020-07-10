@@ -38,7 +38,7 @@ module.exports = {
           // Async email verification email
           async (err, emailToken) => {
             try {
-              const urlVerifyEmail = `${SITE_BASE}user/verify/${emailToken}`;
+              const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
               await Mailer.transporter.sendMail({
                 to: email,
                 bcc: process.env.TASTTLIG_ADMIN_EMAIL,

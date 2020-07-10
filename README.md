@@ -1,14 +1,14 @@
-# Kodede Back-End (Node.js)
+# Tasttlig Back-End (Node.js)
 
 The purpose of this README.md file is to show how to set up the development environment on your computer to run the repository.
 
 ## Getting Started
 
-1. Clone: `git clone https://tasttlig@bitbucket.org/tasttlig/kodede-back-node.git`.
+1. Clone: `git clone https://tasttlig@bitbucket.org/tasttlig/tasttlig-back-node.git`.
 2. Download Node.js at <https://nodejs.org/en/download/> (skip this step if you already have one).
 3. Follow the Node.js installation instructions (skip this step if you already have one).
 4. Install dependencies: `npm install`.
-5. Create the database: `createdb kodede_back_node_development`.
+5. Create the database: `createdb tasttlig_back_node_development`.
 6. Load the database: `node_modules/.bin/knex migrate:latest`.
 7. Open Node.js console: `node`.
 8. Get the access token secret (repeat this step to get the refresh token and email secrets): `require('crypto').randomBytes(64).toString('hex')`.
@@ -25,6 +25,4 @@ The purpose of this README.md file is to show how to set up the development envi
 19. Go to API keys at <https://dashboard.stripe.com/test/apikeys>.
 20. Click on `Reveal test key token` and copy and paste the Secret key to `.env` file.
 21. Start the development server: `npm run devStart`.
-22. Start the authorization server: `npm run devStartAuth`.
-23. Go to <http://localhost:8000> in your browser.
-24. Go to <http://localhost:4000> in your browser. :tada:
+22. Go to <http://localhost:8000> in your browser. :tada:

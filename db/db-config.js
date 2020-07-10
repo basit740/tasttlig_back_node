@@ -6,6 +6,6 @@ console.log(config);
 
 const db = require("knex")(config);
 
-db.migrate.latest()
+db.migrate.latest();
 
 module.exports = db;

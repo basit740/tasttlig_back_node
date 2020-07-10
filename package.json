@@ -1,7 +1,7 @@
 {
-  "name": "kodede-back-node",
+  "name": "tasttlig-back-node",
   "version": "0.1.0",
-  "description": "kodede-beta",
+  "description": "tasttlig",
   "main": "index.js",
   "scripts": {
     "devStart": "nodemon app.js",
