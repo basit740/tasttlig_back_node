@@ -4,7 +4,7 @@ The purpose of this README.md file is to show how to set up the development envi
 
 ## Getting Started
 
-1. Clone: `git clone https://tasttlig@bitbucket.org/tasttlig/tasttlig-back-node.git`.
+1. Clone: `git clone https://tasttlig@bitbucket.org/tasttlig/tasttlig-festival-back-node.git`.
 2. Download Node.js at <https://nodejs.org/en/download/> (skip this step if you already have one).
 3. Follow the Node.js installation instructions (skip this step if you already have one).
 4. Install dependencies: `npm install`.
