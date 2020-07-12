@@ -16,7 +16,6 @@ module.exports = {
     const email = user.email;
     const password_digest = user.password;
     const phone_number = user.phone_number;
-    const tasttlig = user.tasttlig;
     try {
       const returning = await db("users")
         .insert({
@@ -24,11 +23,10 @@ module.exports = {
           last_name,
           email,
           password_digest,
-          phone_number,
-          tasttlig
+          phone_number
         })
         .returning("*");
-      if (returning && tasttlig) {
+      if (returning) {
         jwt.sign(
           { user: returning[0].id },
           process.env.EMAIL_SECRET,
