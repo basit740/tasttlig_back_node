@@ -115,7 +115,7 @@ authRouter.post("/user/login", async (req, res) => {
       res.status(401).send({ success: false, message: response.message });
     }
   } catch (err) {
-    return send(err);
+    return res.send(err);
   }
 });
 
