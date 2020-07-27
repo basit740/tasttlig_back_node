@@ -23,8 +23,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 app.options("*", cors());
 
-app.use('/api/', user_authentication_router);
-app.use('/api/', profile_router);
+app.use(user_authentication_router);
+app.use(profile_router);
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
