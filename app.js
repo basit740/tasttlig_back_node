@@ -14,17 +14,10 @@ const profile_router = require('./routes/user/profile');
 const user_authentication_router = require('./routes/user/authentication');
 
 const app = express();
-
-app.use(logger('combined'));
-app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 app.use(cors());
 app.options("*", cors());
-
-app.use(user_authentication_router);
-app.use(profile_router);
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -39,6 +32,13 @@ app.use(function(req, res, next) {
   );
   next();
 });
+
+app.use(logger('combined'));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(user_authentication_router);
+app.use(profile_router);
 
 // Boot development server
 const port = process.env.PORT || 8000;
