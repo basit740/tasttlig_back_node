@@ -1,4 +1,3 @@
-"use strict";
 
 module.exports = {
   development: {
@@ -16,6 +15,9 @@ module.exports = {
     client: "pg",
     connection: {
       database: "tasttlig_back_node_staging"
+    },
+    migrations: {
+      directory: "./db/migrations"
     },
     useNullAsDefault: true
   },
