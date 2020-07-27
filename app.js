@@ -23,9 +23,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 app.options("*", cors());
 
-app.use(user_authentication_router);
-app.use(profile_router);
-
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Credentials", true);
@@ -39,6 +36,9 @@ app.use(function(req, res, next) {
   );
   next();
 });
+
+app.use(user_authentication_router);
+app.use(profile_router);
 
 // Boot development server
 const port = process.env.PORT || 8000;
