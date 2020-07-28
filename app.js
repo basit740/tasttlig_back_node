@@ -16,8 +16,8 @@ const user_authentication_router = require('./routes/user/authentication');
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(cors());
-app.options("*", cors());
+// app.use(cors());
+// app.options("*", cors());
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
