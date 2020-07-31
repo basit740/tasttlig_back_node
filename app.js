@@ -14,19 +14,6 @@ const profile_router = require('./routes/user/profile');
 const user_authentication_router = require('./routes/user/authentication');
 
 const app = express();
-// app.use(function(req, res, next) {
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header("Access-Control-Allow-Credentials", true);
-//   res.header(
-//     "Access-Control-Allow-Methods",
-//     "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"
-//   );
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept"
-//   );
-//   next();
-// });
 let corsOptions = {
   origin: '*',
   optionsSuccessStatus: 200,

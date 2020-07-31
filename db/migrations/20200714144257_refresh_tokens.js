@@ -4,7 +4,7 @@ exports.up = function(knex) {
     table.increments("refresh_token_id").unsigned().primary();
     table.integer("user_id").unsigned().index()
       .references("tasttlig_user_id").inTable("tasttlig_users");
-    table.string("refresh_token", 512).notNullable();
+    table.string("refresh_token", 2048).notNullable();
     table.dateTime("created_at_datetime").notNullable();
     table.dateTime("updated_at_datetime").notNullable();
   });

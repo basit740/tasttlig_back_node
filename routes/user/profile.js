@@ -7,6 +7,12 @@ const user_profile_service = require("../../services/profile/user_profile")
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
   const response = await user_profile_service.getUserById(req.user.id);
+  if(!response.success) {
+    return res.status(403).json({
+      success: false,
+      message: response.message
+    });
+  }
   res.json({
     user: {
       id: response.user.tasttlig_user_id,
@@ -18,6 +24,54 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
       verified: response.user.is_email_verified
     }
   });
+});
+
+router.post("/user/upgrade", token_service.authenticateToken, async (req, res) => {
+  if (!req.body.upgrade_type || !req.body.document_type
+    || !req.body.document_link || !req.body.issue_date
+    || !req.body.expiry_date) {
+    return res.status(403).json({
+      success: false,
+      message: "Required Parameters are not available in request"
+    });
+  }
+  console.log(req.body);
+  try{
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
+    if(!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false,
+        message: user_details_from_db.message
+      });
+    }
+    const db_user = user_details_from_db.user;
+    const upgrade_details = {
+      upgrade_type: req.body.upgrade_type,
+      document_type: req.body.document_type,
+      document_link: req.body.document_link,
+      issue_date: req.body.issue_date,
+      expiry_date: req.body.expiry_date
+    }
+    const response = await user_profile_service.upgradeUser(db_user, upgrade_details);
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err
+    });
+  }
+});
+
+router.post("/user/upgrade/action/:token", async (req, res) => {
+  if (!req.params.token){
+    return res.status(403).json({
+      success: false,
+      message: "Required Parameters are not available in request"
+    });
+  }
+  const response = await user_profile_service.upgradeUserResponse(req.params.token);
+  return res.send(response);
 });
 
 module.exports = router;

@@ -34,8 +34,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
       last_name: req.body.last_name,
       email: req.body.email,
       password: password,
-      phone_number: req.body.phone_number,
-      role: "NON_VERIFIED_MEMBER"
+      phone_number: req.body.phone_number
     };
     const response = await authenticate_user_service.userRegister(user);
     if (response.success) {

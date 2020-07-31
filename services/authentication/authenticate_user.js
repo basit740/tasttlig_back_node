@@ -14,7 +14,7 @@ const userRegister = async user => {
         email: user.email,
         password: user.password,
         phone_number: user.phone_number,
-        role: user.role,
+        role: "MEMBER",
         created_at_datetime: new Date(),
         updated_at_datetime: new Date()
       })
