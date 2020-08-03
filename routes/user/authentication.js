@@ -46,7 +46,10 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("Register", err);
+    return res.status(401).json({
+      success: false,
+      message: err.message
+    });
   }
 });
 
@@ -63,7 +66,10 @@ authRouter.get("/user/confirmation/:token", async (req, res) => {
     const response = await authenticate_user_service.verifyAccount(user_id);
     res.send(response);
   } catch (err) {
-    res.send(err);
+    return res.status(401).json({
+      success: false,
+      message: err.message
+    });
   }
 });
 
@@ -117,7 +123,10 @@ authRouter.post("/user/login", async (req, res) => {
       res.status(401).send({ success: false, message: response.message });
     }
   } catch (err) {
-    return res.send(err);
+    return res.status(401).json({
+      success: false,
+      message: err.message
+    });
   }
 });
 
@@ -140,7 +149,7 @@ authRouter.delete("/user/logout", token_service.authenticateToken, async (req, r
     res.send({
       success: false,
       message: "error",
-      response: err
+      response: err.message
     });
   }
 });
@@ -180,13 +189,19 @@ authRouter.put("/user/update-password/:id", token_service.authForPassUpdate, asy
       });
     }
   } catch (err) {
-    console.log(err);
-    err.message === "jwt expired" &&
-    res.send({
-      success: false,
-      message: "error",
-      response: "token is expired"
-    });
+    if(err.message === "jwt expired"){
+      res.send({
+        success: false,
+        message: "error",
+        response: "token is expired"
+      });
+    } else {
+      res.send({
+        success: false,
+        message: "error",
+        response: err.message
+      });
+    }
   }
     }
 );

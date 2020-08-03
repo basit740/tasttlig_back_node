@@ -43,13 +43,12 @@ const userRegister = async user => {
                   }
                 });
               } catch (error) {
-                console.log(error);
+                return {success: false, data: reason};
               }
             }
         );
         return {success: true, data: value[0]};
       }).catch(reason => {
-        console.log("Error: " + reason);
         return {success: false, data: reason};
       });
 }
@@ -60,7 +59,6 @@ const verifyAccount = async user_id => {
       .update("is_email_verified", true)
       .returning("*")
       .then(value => {
-        console.log(value);
         return {success: true, message: "ok", user_id: value[0].tasttlig_user_id};
       })
       .catch(reason => {
@@ -78,7 +76,6 @@ const getUserLogin = async email => {
         }
         return { success: true, user: value };
       }).catch(reason => {
-        console.log(reason);
         return { success: false, data: reason };
       });
 }

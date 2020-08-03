@@ -35,7 +35,6 @@ router.post("/user/upgrade", token_service.authenticateToken, async (req, res) =
       message: "Required Parameters are not available in request"
     });
   }
-  console.log(req.body);
   try{
     const user_details_from_db = await user_profile_service.getUserById(req.user.id);
     if(!user_details_from_db.success) {

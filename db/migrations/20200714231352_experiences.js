@@ -8,8 +8,11 @@ exports.up = function(knex) {
     table.decimal("price");
     table.string("category");
     table.string("style");
-    table.dateTime("start_datetime");
-    table.dateTime("end_datetime");
+    table.date("start_date");
+    table.time("start_time");
+    table.date("end_date");
+    table.time("end_time");
+    table.integer("menu_id");
     table.integer("capacity");
     table.string("dress_code");
     table.text("description");

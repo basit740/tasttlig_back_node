@@ -119,6 +119,12 @@ const upgradeUserResponse = async (token) => {
       await db("tasttlig_users")
           .where("tasttlig_user_id", db_user.tasttlig_user_id)
           .update("role", "HOST");
+
+      //Update all Experience to Active state
+      await db("experiences")
+        .where("experience_creator_user_id", db_user.tasttlig_user_id)
+        .update("status", "ACTIVE");
+
       // Async experience accepted email
       await Mailer.sendMail({
         to: db_user.email,

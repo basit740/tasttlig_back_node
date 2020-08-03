@@ -12,6 +12,7 @@ require("./db/db-config");
 
 const profile_router = require('./routes/user/profile');
 const user_authentication_router = require('./routes/user/authentication');
+const experience_router = require('./routes/experience/experience');
 
 const app = express();
 let corsOptions = {
@@ -28,6 +29,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(user_authentication_router);
 app.use(profile_router);
+app.use(experience_router);
 
 // Boot development server
 const port = process.env.PORT || 8000;
