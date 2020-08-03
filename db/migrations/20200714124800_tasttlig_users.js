@@ -12,7 +12,7 @@ exports.up = function(knex) {
     table.string("state");
     table.string("country");
     table.string("postal_code");
-    table.string("role").notNullable();
+    table.string("role", 512).notNullable();
     table.string("profile_image_link");
     table.boolean("is_email_verified").defaultTo(false);
     table.string("facebook_link");

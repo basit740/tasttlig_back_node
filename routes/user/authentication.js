@@ -4,6 +4,7 @@
 const authRouter = require("express").Router();
 const token_service = require("../../services/authentication/token");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
+const user_role_manager = require("../../services/profile/user_roles_manager");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit");
@@ -90,7 +91,7 @@ authRouter.post("/user/login", async (req, res) => {
         last_name: response.user.last_name,
         email: response.user.email,
         phone_number: response.user.phone_number,
-        role: response.user.role,
+        role: user_role_manager.createRoleObject(response.user.role),
         verified: response.user.is_email_verified
       };
       const isPassCorrect = bcrypt.compareSync(req.body.password, response.user.password);

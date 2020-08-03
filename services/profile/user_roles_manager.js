@@ -6,7 +6,8 @@ const addRole = (currentRole, newRole) => {
 }
 
 const removeRole = (currentRole, deleteRole) => {
-  return currentRole.splice(currentRole.indexOf(deleteRole), 1);
+  currentRole.splice(currentRole.indexOf(deleteRole), 1);
+  return currentRole;
 }
 
 const createRoleObject = (roleInString) => {
