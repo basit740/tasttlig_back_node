@@ -18,7 +18,7 @@ const storeToken = async (refresh_token, user_id) => {
           updated_at_datetime: new Date()
         });
       } catch (err) {
-        console.log(err);
+        return {success: false, message: err.message};
       }
     } else {
       try {
@@ -27,11 +27,11 @@ const storeToken = async (refresh_token, user_id) => {
             .update("refresh_token", refresh_token)
             .returning("*");
       } catch (err) {
-        console.log(err);
+        return {success: false, message: err.message};
       }
     }
   } catch (err) {
-    return {success: false, message: err};
+    return {success: false, message: err.message};
   }
 }
 

@@ -4,6 +4,7 @@
 const authRouter = require("express").Router();
 const token_service = require("../../services/authentication/token");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
+const user_role_manager = require("../../services/profile/user_roles_manager");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit");
@@ -34,8 +35,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
       last_name: req.body.last_name,
       email: req.body.email,
       password: password,
-      phone_number: req.body.phone_number,
-      role: "NON_VERIFIED_MEMBER"
+      phone_number: req.body.phone_number
     };
     const response = await authenticate_user_service.userRegister(user);
     if (response.success) {
@@ -47,7 +47,10 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("Register", err);
+    return res.status(401).json({
+      success: false,
+      message: err.message
+    });
   }
 });
 
@@ -64,7 +67,10 @@ authRouter.get("/user/confirmation/:token", async (req, res) => {
     const response = await authenticate_user_service.verifyAccount(user_id);
     res.send(response);
   } catch (err) {
-    res.send(err);
+    return res.status(401).json({
+      success: false,
+      message: err.message
+    });
   }
 });
 
@@ -85,7 +91,7 @@ authRouter.post("/user/login", async (req, res) => {
         last_name: response.user.last_name,
         email: response.user.email,
         phone_number: response.user.phone_number,
-        role: response.user.role,
+        role: user_role_manager.createRoleObject(response.user.role),
         verified: response.user.is_email_verified
       };
       const isPassCorrect = bcrypt.compareSync(req.body.password, response.user.password);
@@ -118,7 +124,10 @@ authRouter.post("/user/login", async (req, res) => {
       res.status(401).send({ success: false, message: response.message });
     }
   } catch (err) {
-    return res.send(err);
+    return res.status(401).json({
+      success: false,
+      message: err.message
+    });
   }
 });
 
@@ -141,7 +150,7 @@ authRouter.delete("/user/logout", token_service.authenticateToken, async (req, r
     res.send({
       success: false,
       message: "error",
-      response: err
+      response: err.message
     });
   }
 });
@@ -181,13 +190,19 @@ authRouter.put("/user/update-password/:id", token_service.authForPassUpdate, asy
       });
     }
   } catch (err) {
-    console.log(err);
-    err.message === "jwt expired" &&
-    res.send({
-      success: false,
-      message: "error",
-      response: "token is expired"
-    });
+    if(err.message === "jwt expired"){
+      res.send({
+        success: false,
+        message: "error",
+        response: "token is expired"
+      });
+    } else {
+      res.send({
+        success: false,
+        message: "error",
+        response: err.message
+      });
+    }
   }
     }
 );
