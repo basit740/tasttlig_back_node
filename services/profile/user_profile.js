@@ -123,11 +123,8 @@ const upgradeUserResponse = async (token) => {
     const db_user = db_user_row.user;
     if (status === "APPROVED"){
       let user_role_object = role_manager.createRoleObject(db_user.role);
-      console.log(user_role_object);
       user_role_object = role_manager.removeRole(user_role_object, "HOST_PENDING");
-      console.log(user_role_object);
       user_role_object = role_manager.addRole(user_role_object, "HOST");
-      console.log(user_role_object);
       await db("tasttlig_users")
         .where("tasttlig_user_id", db_user.tasttlig_user_id)
         .update("role", role_manager.createRoleString(user_role_object));

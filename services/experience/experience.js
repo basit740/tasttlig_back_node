@@ -2,13 +2,15 @@
 
 const db = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
+const user_role_manager = require("../profile/user_roles_manager");
 
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
 const createNewExperience = async (db_user, experience_details) => {
   try{
     let status = "INACTIVE";
-    if(db_user.role == "HOST"){
+    let user_role_object = user_role_manager.createRoleObject(db.user.role)
+    if(user_role_object.includes("HOST")){
       status = "ACTIVE";
     }
     const db_experience = await db("experiences")
