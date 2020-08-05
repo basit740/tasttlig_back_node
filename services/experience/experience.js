@@ -9,7 +9,7 @@ const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const createNewExperience = async (db_user, experience_details) => {
   try{
     let status = "INACTIVE";
-    let user_role_object = user_role_manager.createRoleObject(db.user.role)
+    let user_role_object = user_role_manager.createRoleObject(db_user.role)
     if(user_role_object.includes("HOST")){
       status = "ACTIVE";
     }
