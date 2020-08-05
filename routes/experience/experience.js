@@ -93,6 +93,6 @@ router.delete("/experience/delete/:experience_id", token_service.authenticateTok
       response: e.message
     });
   }
-})
+});
 
 module.exports = router;

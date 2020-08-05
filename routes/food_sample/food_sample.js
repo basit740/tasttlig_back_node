@@ -7,9 +7,8 @@ const user_profile_service = require("../../services/profile/user_profile");
 
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
   if (!req.body.title || !req.body.start_date || !req.body.end_date || !req.body.start_time
-    || !req.body.end_time || !req.body.description || !req.body.address
-    || !req.body.city || !req.body.state || !req.body.country || !req.body.postal_code
-    || !req.body.image) {
+    || !req.body.end_time || !req.body.description || !req.body.address || !req.body.city
+    || !req.body.state || !req.body.country || !req.body.postal_code || !req.body.images) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -25,6 +24,7 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
     }
     const db_user = user_details_from_db.user;
     const food_sample_details = {
+      food_sample_creater_user_id: db_user.tasttlig_user_id,
       title: req.body.title,
       start_date: req.body.start_date,
       end_date: req.body.end_date,
@@ -35,16 +35,102 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
       city: req.body.city,
       state: req.body.state,
       country: req.body.country,
-      postal_code: req.body.postal_code,
-      image_url: req.body.image
+      postal_code: req.body.postal_code
     }
-    const response = await food_sample_service.createNewFoodSample(db_user, food_sample_details);
+    const response = await food_sample_service.createNewFoodSample(db_user, food_sample_details, req.body.images);
     return res.send(response);
   } catch (err) {
     res.send({
       success: false,
       message: "error",
       response: err
+    });
+  }
+});
+
+router.get("/food-sample/all", token_service.authenticateToken, async (req, res) => {
+  try{
+    const status_operator = "=";
+    const food_sample_status = "ACTIVE";
+    const response = await food_sample_service.getAllFoodSamples(status_operator, food_sample_status);
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
+router.get("/food-sample/user/all", token_service.authenticateToken, async (req, res) => {
+  try{
+    const status_operator = "!=";
+    const food_sample_status = "ARCHIVED";
+    const response = await food_sample_service.getAllUserFoodSamples(req.user.id, status_operator, food_sample_status);
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
+router.get("/food-sample/user/archived", token_service.authenticateToken, async (req, res) => {
+  try{
+    const status_operator = "=";
+    const food_sample_status = "ARCHIVED";
+    const response = await food_sample_service.getAllUserFoodSamples(req.user.id, status_operator, food_sample_status);
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
+router.put("/food-sample/update/:food_sample_id", token_service.authenticateToken, async (req, res) => {
+  if(!req.params.food_sample_id || !req.body.food_sample_update_data){
+    return res.status(403).json({
+      success: false,
+      message: "Required Parameters are not available in request"
+    });
+  }
+  try {
+    const response = await food_sample_service.updateFoodSample(
+      req.user.id,
+      req.params.food_sample_id,
+      req.body.food_sample_update_data
+    );
+    return res.send(response);
+  } catch (e) {
+    res.send({
+      success: false,
+      message: "error",
+      response: e.message
+    });
+  }
+});
+
+router.delete("/food-sample/delete/:food_sample_id", token_service.authenticateToken, async (req, res) => {
+  if(!req.params.food_sample_id){
+    return res.status(403).json({
+      success: false,
+      message: "Required Parameters are not available in request"
+    });
+  }
+  try {
+    const response = await food_sample_service.deleteFoodSample(req.user.id, req.params.food_sample_id);
+    return res.send(response);
+  } catch (e) {
+    res.send({
+      success: false,
+      message: "error",
+      response: e.message
     });
   }
 });

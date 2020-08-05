@@ -91,7 +91,6 @@ const deleteExperience = async (id, experience_id) => {
     }).catch(reason => {
       return {success: false, details:reason};
     });
-
 }
 
 module.exports = {

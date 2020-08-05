@@ -2,7 +2,7 @@
 exports.up = function(knex) {
   return knex.schema.createTable("food_samples", table => {
     table.increments("food_sample_id").unsigned().primary();
-    table.integer("food_sample_owner_user_id").unsigned().index()
+    table.integer("food_sample_creater_user_id").unsigned().index()
       .references("tasttlig_user_id").inTable("tasttlig_users");
     table.string("title");
     table.date("start_date");
