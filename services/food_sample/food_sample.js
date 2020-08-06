@@ -93,10 +93,17 @@ const deleteFoodSample = async (user_id, food_sample_id) => {
 
 const getAllFoodSamples = async (operator, status) => {
   return await db
-    .select("food_samples.*", db.raw('ARRAY_AGG(food_sample_images.image_url) as image_urls'))
+    .select(
+      "food_samples.*",
+      "tasttlig_users.first_name",
+      "tasttlig_users.last_name",
+      db.raw('ARRAY_AGG(food_sample_images.image_url) as image_urls'))
     .from("food_samples")
     .leftJoin("food_sample_images", "food_samples.food_sample_id", "food_sample_images.food_sample_id")
+    .leftJoin("tasttlig_users", "food_samples.food_sample_creater_user_id" ,"tasttlig_users.tasttlig_user_id")
     .groupBy("food_samples.food_sample_id")
+    .groupBy("tasttlig_users.first_name")
+    .groupBy("tasttlig_users.last_name")
     .having("food_samples.status", operator, status)
     .then(value => {
       return {success: true, details:value};

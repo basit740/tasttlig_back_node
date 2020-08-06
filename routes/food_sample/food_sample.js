@@ -48,7 +48,7 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
   }
 });
 
-router.get("/food-sample/all", token_service.authenticateToken, async (req, res) => {
+router.get("/food-sample/all", async (req, res) => {
   try{
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
