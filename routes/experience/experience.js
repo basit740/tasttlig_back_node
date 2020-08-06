@@ -67,7 +67,7 @@ router.get("/experience/user/all", token_service.authenticateToken, async (req, 
     }
     const db_user = user_details_from_db.user;
     const status_operator = "!=";
-    const experience_status = "ARCHIVE";
+    const experience_status = "ARCHIVED";
     const response = await experience_service.getAllUserExperience(db_user, status_operator, experience_status);
     return res.send(response);
   } catch (err) {
