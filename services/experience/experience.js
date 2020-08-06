@@ -6,44 +6,28 @@ const user_role_manager = require("../profile/user_roles_manager");
 
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
-const createNewExperience = async (db_user, experience_details) => {
+const createNewExperience = async (db_user, experience_details, experience_images) => {
   try{
-    let status = "INACTIVE";
-    let user_role_object = user_role_manager.createRoleObject(db_user.role)
-    if(user_role_object.includes("HOST")){
-      status = "ACTIVE";
-    }
-    const db_experience = await db("experiences")
-      .insert({
-        experience_creator_user_id: db_user.tasttlig_user_id,
-        title: experience_details.title,
-        price: experience_details.price,
-        category: experience_details.category,
-        style: experience_details.style,
-        start_date: experience_details.start_date,
-        end_date: experience_details.end_date,
-        start_time: experience_details.start_time,
-        end_time: experience_details.end_time,
-        capacity: experience_details.capacity,
-        dress_code: experience_details.dress_code,
-        description: experience_details.description,
-        status: status,
-        address: experience_details.address,
-        city: experience_details.city,
-        state: experience_details.state,
-        country: experience_details.country,
-        postal_code: experience_details.postal_code
-      })
-      .returning("*");
-    if(!db_experience){
-      return {success: false, details:"Inserting new experience failed"};
-    }
-    await db("experience_images")
-      .insert({
+    await db.transaction(async trx => {
+      experience_details.status = "INACTIVE";
+      let user_role_object = user_role_manager.createRoleObject(db_user.role)
+      if(user_role_object.includes("HOST")){
+        experience_details.status = "ACTIVE";
+      }
+      console.log(experience_details);
+      const db_experience = await trx("experiences")
+        .insert(experience_details)
+        .returning("*");
+      if(!db_experience){
+        return {success: false, details:"Inserting new experience failed"};
+      }
+      const images = experience_images.map(experience_image => ({
         experience_id: db_experience[0].experience_id,
-        image_url: experience_details.image_url
-      });
-
+        image_url: experience_image
+      }));
+      await trx("experience_images")
+        .insert(images);
+    })
     // Email to user on submitting the request to upgrade
     await Mailer.sendMail({
       to: db_user.email,
@@ -54,7 +38,7 @@ const createNewExperience = async (db_user, experience_details) => {
         first_name: db_user.first_name,
         last_name: db_user.last_name,
         title: experience_details.title,
-        status: status
+        status: experience_details.status
       }
     });
     return {success: true, details:"success"};
@@ -63,14 +47,14 @@ const createNewExperience = async (db_user, experience_details) => {
   }
 }
 
-const getAllUserExperience = async (db_user) => {
+const getAllUserExperience = async (db_user, operator, status) => {
   return await db
     .select("experiences.*", db.raw('ARRAY_AGG(experience_images.image_url) as image_urls'))
     .from("experiences")
     .leftJoin("experience_images", "experiences.experience_id", "experience_images.experience_id")
     .groupBy("experiences.experience_id")
     .having("experience_creator_user_id", "=", db_user.tasttlig_user_id)
-    .having("experiences.status", "!=", "DELETED")
+    .having("experiences.status", operator, status)
     .then(value => {
       return {success: true, details:value};
     })
@@ -79,13 +63,27 @@ const getAllUserExperience = async (db_user) => {
     });
 }
 
-const deleteExperience = async (id, experience_id) => {
+const updateExperience = async (user_id, experience_id, experience_update_data) => {
   return await db("experiences")
     .where({
       experience_id: experience_id,
-      experience_creator_user_id: id
+      experience_creator_user_id: user_id
     })
-    .update({status: "DELETED"})
+    .update(experience_update_data)
+    .then(() => {
+      return {success: true};
+    }).catch(reason => {
+      return {success: false, details:reason};
+    });
+}
+
+const deleteExperience = async (user_id, experience_id) => {
+  return await db("experiences")
+    .where({
+      experience_id: experience_id,
+      experience_creator_user_id: user_id
+    })
+    .del()
     .then(() => {
       return {success: true};
     }).catch(reason => {
@@ -96,5 +94,6 @@ const deleteExperience = async (id, experience_id) => {
 module.exports = {
   createNewExperience,
   getAllUserExperience,
-  deleteExperience
+  deleteExperience,
+  updateExperience
 }

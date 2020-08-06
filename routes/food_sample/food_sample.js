@@ -78,6 +78,40 @@ router.get("/food-sample/user/all", token_service.authenticateToken, async (req,
   }
 });
 
+router.get("/food-sample/owner/all", async (req, res) => {
+  if (!req.body.owner_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required Parameters are not available in request"
+    });
+  }
+  try{
+    const status_operator = "=";
+    const food_sample_status = "ACTIVE";
+    const food_sample_response = await food_sample_service.getAllUserFoodSamples(req.body.owner_id, status_operator, food_sample_status);
+    const db_food_samples = food_sample_response.details;
+    const user_details_response = await user_profile_service.getUserById(req.body.owner_id);
+    if(!user_details_response.success) {
+      return res.status(403).json({
+        success: false,
+        message: user_details_response.message
+      });
+    }
+    const db_user = user_details_response.user;
+    return res.send({
+      success: true,
+      owner_user: db_user,
+      food_samples: db_food_samples
+    });
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
 router.get("/food-sample/user/archived", token_service.authenticateToken, async (req, res) => {
   try{
     const status_operator = "=";

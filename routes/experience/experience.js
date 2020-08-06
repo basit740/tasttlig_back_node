@@ -10,7 +10,7 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
     || !req.body.start_date || !req.body.end_date || !req.body.start_time || !req.body.end_time
     || !req.body.capacity || !req.body.dress_code || !req.body.description || !req.body.address
     || !req.body.city || !req.body.state || !req.body.country || !req.body.postal_code
-    || !req.body.image) {
+    || !req.body.images) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -26,6 +26,7 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
     }
     const db_user = user_details_from_db.user;
     const experience_details = {
+      experience_creator_user_id: db_user.tasttlig_user_id,
       title: req.body.title,
       price: req.body.price,
       category: req.body.category,
@@ -41,10 +42,10 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
       city: req.body.city,
       state: req.body.state,
       country: req.body.country,
-      postal_code: req.body.postal_code,
-      image_url: req.body.image
+      postal_code: req.body.postal_code
     }
-    const response = await experience_service.createNewExperience(db_user, experience_details);
+    const response = await experience_service.createNewExperience(db_user, experience_details, req.body.images);
+    console.log(response);
     return res.send(response);
   } catch (err) {
     res.send({
@@ -65,13 +66,37 @@ router.get("/experience/user/all", token_service.authenticateToken, async (req, 
       });
     }
     const db_user = user_details_from_db.user;
-    const response = await experience_service.getAllUserExperience(db_user);
+    const status_operator = "!=";
+    const experience_status = "ARCHIVE";
+    const response = await experience_service.getAllUserExperience(db_user, status_operator, experience_status);
     return res.send(response);
   } catch (err) {
     res.send({
       success: false,
       message: "error",
       response: err.message
+    });
+  }
+});
+
+router.put("/experience/update/:experience_id", token_service.authenticateToken, async (req, res) => {
+  if(!req.params.experience_id || !req.body.experience_update_data){
+    return res.status(403).json({
+      success: false,
+      message: "Required Parameters are not available in request"
+    });
+  }
+  try {
+    const response = await experience_service.updateExperience(
+      req.user.id,
+      req.params.experience_id,
+      req.body.experience_update_data);
+    return res.send(response);
+  } catch (e) {
+    res.send({
+      success: false,
+      message: "error",
+      response: e.message
     });
   }
 });
