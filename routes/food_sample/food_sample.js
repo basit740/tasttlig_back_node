@@ -135,8 +135,16 @@ router.put("/food-sample/update/:food_sample_id", token_service.authenticateToke
     });
   }
   try {
+    const user_details_response = await user_profile_service.getUserById(req.params.owner_id);
+    if(!user_details_response.success) {
+      return res.status(403).json({
+        success: false,
+        message: user_details_response.message
+      });
+    }
+    const db_user = user_details_response.user;
     const response = await food_sample_service.updateFoodSample(
-      req.user.id,
+      db_user,
       req.params.food_sample_id,
       req.body.food_sample_update_data
     );
