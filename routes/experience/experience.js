@@ -58,17 +58,24 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
 
 router.get("/experience/user/all", token_service.authenticateToken, async (req, res) => {
   try{
-    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
-    if(!user_details_from_db.success) {
-      return res.status(403).json({
-        success: false,
-        message: user_details_from_db.message
-      });
-    }
-    const db_user = user_details_from_db.user;
     const status_operator = "!=";
     const experience_status = "ARCHIVED";
-    const response = await experience_service.getAllUserExperience(db_user, status_operator, experience_status);
+    const response = await experience_service.getAllUserExperience(req.user.id, status_operator, experience_status);
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
+router.get("/experience/user/archived", token_service.authenticateToken, async (req, res) => {
+  try{
+    const status_operator = "=";
+    const food_sample_status = "ARCHIVED";
+    const response = await experience_service.getAllUserExperience(req.user.id, status_operator, food_sample_status);
     return res.send(response);
   } catch (err) {
     res.send({
@@ -87,8 +94,17 @@ router.put("/experience/update/:experience_id", token_service.authenticateToken,
     });
   }
   try {
+
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
+    if(!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false,
+        message: user_details_from_db.message
+      });
+    }
+    const db_user = user_details_from_db.user;
     const response = await experience_service.updateExperience(
-      req.user.id,
+      db_user,
       req.params.experience_id,
       req.body.experience_update_data);
     return res.send(response);

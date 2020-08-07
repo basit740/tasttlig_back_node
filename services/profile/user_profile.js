@@ -129,9 +129,20 @@ const upgradeUserResponse = async (token) => {
         .where("tasttlig_user_id", db_user.tasttlig_user_id)
         .update("role", role_manager.createRoleString(user_role_object));
 
-      //Update all Experience to Active state
+      //Update all Experiences to Active state
       await db("experiences")
-        .where("experience_creator_user_id", db_user.tasttlig_user_id)
+        .where({
+          experience_creator_user_id: db_user.tasttlig_user_id,
+          status: "INACTIVE"
+        })
+        .update("status", "ACTIVE");
+
+      //Update all Food Samples to Active state
+      await db("food_samples")
+        .where({
+          food_sample_creater_user_id: db_user.tasttlig_user_id,
+          status: "INACTIVE"
+        })
         .update("status", "ACTIVE");
 
       // Async experience accepted email

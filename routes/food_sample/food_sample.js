@@ -78,8 +78,8 @@ router.get("/food-sample/user/all", token_service.authenticateToken, async (req,
   }
 });
 
-router.get("/food-sample/owner/all", async (req, res) => {
-  if (!req.body.owner_id) {
+router.get("/food-sample/owner/:owner_id", async (req, res) => {
+  if (!req.params.owner_id) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -88,9 +88,9 @@ router.get("/food-sample/owner/all", async (req, res) => {
   try{
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
-    const food_sample_response = await food_sample_service.getAllUserFoodSamples(req.body.owner_id, status_operator, food_sample_status);
+    const food_sample_response = await food_sample_service.getAllUserFoodSamples(req.params.owner_id, status_operator, food_sample_status);
     const db_food_samples = food_sample_response.details;
-    const user_details_response = await user_profile_service.getUserById(req.body.owner_id);
+    const user_details_response = await user_profile_service.getUserById(req.params.owner_id);
     if(!user_details_response.success) {
       return res.status(403).json({
         success: false,
