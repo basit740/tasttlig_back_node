@@ -63,11 +63,19 @@ const getAllUserFoodSamples = async (user_id, operator, status) => {
     });
 }
 
-const updateFoodSample = async (user_id, food_sample_id, food_sample_update_data) => {
+const updateFoodSample = async (db_user, food_sample_id, food_sample_update_data) => {
+  if(!food_sample_update_data.status){
+    let user_role_object = user_role_manager.createRoleObject(db_user.role)
+    if(user_role_object.includes("HOST")){
+      food_sample_update_data.status = "ACTIVE";
+    } else {
+      food_sample_update_data.status = "INACTIVE";
+    }
+  }
   return await db("food_samples")
     .where({
       food_sample_id: food_sample_id,
-      food_sample_creater_user_id: user_id
+      food_sample_creater_user_id: db_user.tasttlig_user_id
     })
     .update(food_sample_update_data)
     .then(() => {
