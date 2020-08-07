@@ -47,13 +47,13 @@ const createNewExperience = async (db_user, experience_details, experience_image
   }
 }
 
-const getAllUserExperience = async (db_user, operator, status) => {
+const getAllUserExperience = async (user_id, operator, status) => {
   return await db
     .select("experiences.*", db.raw('ARRAY_AGG(experience_images.image_url) as image_urls'))
     .from("experiences")
     .leftJoin("experience_images", "experiences.experience_id", "experience_images.experience_id")
     .groupBy("experiences.experience_id")
-    .having("experience_creator_user_id", "=", db_user.tasttlig_user_id)
+    .having("experience_creator_user_id", "=", user_id)
     .having("experiences.status", operator, status)
     .then(value => {
       return {success: true, details:value};
@@ -63,11 +63,19 @@ const getAllUserExperience = async (db_user, operator, status) => {
     });
 }
 
-const updateExperience = async (user_id, experience_id, experience_update_data) => {
+const updateExperience = async (db_user, experience_id, experience_update_data) => {
+  if(experience_update_data.status && experience_update_data.status != "ARCHIVED"){
+    let user_role_object = user_role_manager.createRoleObject(db_user.role)
+    if(user_role_object.includes("HOST")){
+      experience_update_data.status = "ACTIVE";
+    } else {
+      experience_update_data.status = "INACTIVE";
+    }
+  }
   return await db("experiences")
     .where({
       experience_id: experience_id,
-      experience_creator_user_id: user_id
+      experience_creator_user_id: db_user.tasttlig_user_id
     })
     .update(experience_update_data)
     .then(() => {
