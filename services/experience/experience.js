@@ -14,7 +14,6 @@ const createNewExperience = async (db_user, experience_details, experience_image
       if(user_role_object.includes("HOST")){
         experience_details.status = "ACTIVE";
       }
-      console.log(experience_details);
       const db_experience = await trx("experiences")
         .insert(experience_details)
         .returning("*");
@@ -64,7 +63,7 @@ const getAllUserExperience = async (user_id, operator, status) => {
 }
 
 const updateExperience = async (db_user, experience_id, experience_update_data) => {
-  if(experience_update_data.status && experience_update_data.status != "ARCHIVED"){
+  if(!experience_update_data.status){
     let user_role_object = user_role_manager.createRoleObject(db_user.role)
     if(user_role_object.includes("HOST")){
       experience_update_data.status = "ACTIVE";

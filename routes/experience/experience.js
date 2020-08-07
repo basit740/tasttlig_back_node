@@ -45,7 +45,6 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
       postal_code: req.body.postal_code
     }
     const response = await experience_service.createNewExperience(db_user, experience_details, req.body.images);
-    console.log(response);
     return res.send(response);
   } catch (err) {
     res.send({
