@@ -11,7 +11,7 @@ const createNewFoodSample = async (db_user, food_sample_details, food_sample_ima
     await db.transaction(async trx => {
       food_sample_details.status = "INACTIVE";
       let user_role_object = user_role_manager.createRoleObject(db_user.role)
-      if(user_role_object.includes("HOST")){
+      if(user_role_object.includes("HOST") && db_user.is_participating_in_festival){
         food_sample_details.status = "ACTIVE";
       }
       const db_food_sample = await trx("food_samples")
@@ -26,7 +26,7 @@ const createNewFoodSample = async (db_user, food_sample_details, food_sample_ima
       }));
       await trx("food_sample_images")
         .insert(images);
-    })
+    });
 
     // Email to user on submitting the request to upgrade
     await Mailer.sendMail({
@@ -66,7 +66,7 @@ const getAllUserFoodSamples = async (user_id, operator, status) => {
 const updateFoodSample = async (db_user, food_sample_id, food_sample_update_data) => {
   if(!food_sample_update_data.status){
     let user_role_object = user_role_manager.createRoleObject(db_user.role)
-    if(user_role_object.includes("HOST")){
+    if(user_role_object.includes("HOST") && db_user.is_participating_in_festival){
       food_sample_update_data.status = "ACTIVE";
     } else {
       food_sample_update_data.status = "INACTIVE";

@@ -15,6 +15,7 @@ exports.up = function(knex) {
     table.string("role", 512).notNullable();
     table.string("profile_image_link");
     table.boolean("is_email_verified").defaultTo(false);
+    table.boolean("is_participating_in_festival").defaultTo(false);
     table.string("facebook_link");
     table.string("youtube_link");
     table.string("twitter_link");

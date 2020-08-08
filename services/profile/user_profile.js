@@ -49,7 +49,10 @@ const upgradeUser = async (db_user, upgrade_details) => {
     user_role_object = role_manager.addRole(user_role_object, "HOST_PENDING");
     await db("tasttlig_users")
       .where("tasttlig_user_id", db_user.tasttlig_user_id)
-      .update("role", role_manager.createRoleString(user_role_object));
+      .update({
+        role: role_manager.createRoleString(user_role_object),
+        is_participating_in_festival: upgrade_details.is_participating_in_festival
+      });
 
     const document_details = document_response.details;
     const document_approve_token = jwt.sign({
@@ -121,7 +124,7 @@ const upgradeUserResponse = async (token) => {
       return {success: false, message: db_user_row.message}
     }
     const db_user = db_user_row.user;
-    if (status === "APPROVED"){
+    if (status === "APPROVED") {
       let user_role_object = role_manager.createRoleObject(db_user.role);
       user_role_object = role_manager.removeRole(user_role_object, "HOST_PENDING");
       user_role_object = role_manager.addRole(user_role_object, "HOST");
@@ -137,13 +140,15 @@ const upgradeUserResponse = async (token) => {
         })
         .update("status", "ACTIVE");
 
-      //Update all Food Samples to Active state
-      await db("food_samples")
-        .where({
-          food_sample_creater_user_id: db_user.tasttlig_user_id,
-          status: "INACTIVE"
-        })
-        .update("status", "ACTIVE");
+      //Update all Food Samples to Active state if the user agreed to participate in festival
+      if (db_user.is_participating_in_festival) {
+        await db("food_samples")
+          .where({
+            food_sample_creater_user_id: db_user.tasttlig_user_id,
+            status: "INACTIVE"
+          })
+          .update("status", "ACTIVE");
+      }
 
       // Async experience accepted email
       await Mailer.sendMail({
