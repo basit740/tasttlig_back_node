@@ -52,7 +52,8 @@ router.post("/user/upgrade", token_service.authenticateToken, async (req, res) =
       document_type: req.body.document_type,
       document_link: req.body.document_link,
       issue_date: req.body.issue_date,
-      expiry_date: req.body.expiry_date
+      expiry_date: req.body.expiry_date,
+      is_participating_in_festival: req.body.is_participating_in_festival
     }
     const response = await user_profile_service.upgradeUser(db_user, upgrade_details);
     return res.send(response);

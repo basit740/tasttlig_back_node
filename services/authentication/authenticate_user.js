@@ -121,7 +121,6 @@ const checkEmail = async email => {
             const url = `${SITE_BASE}/forgot-password/${emailToken}/${email}`;
             await Mailer.sendMail({
               to: email,
-              bcc: process.env.TASTTLIG_ADMIN_EMAIL,
               subject: "[Tasttlig] Reset your password",
               template: 'password_reset_request',
               context: {
@@ -167,7 +166,6 @@ const updatePassword = async (email, password) => {
         async () => {
           await Mailer.sendMail({
             to: email,
-            bcc: process.env.TASTTLIG_ADMIN_EMAIL,
             subject: "[Tasttlig] Password changed",
             template: 'password_reset_request'
           })
