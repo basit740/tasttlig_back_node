@@ -167,7 +167,7 @@ const updatePassword = async (email, password) => {
           await Mailer.sendMail({
             to: email,
             subject: "[Tasttlig] Password changed",
-            template: 'password_reset_request'
+            template: 'password_reset_success'
           })
             .then(value1 => {
               return {success: true, message: "ok", data: value[0]};
