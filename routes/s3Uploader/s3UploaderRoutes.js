@@ -2,9 +2,10 @@
 
 const aws = require('aws-sdk');
 const s3UploaderRouter = require("express").Router();
+const aws_region = process.env.AWS_DEFAULT_REGION;
 
 aws.config.update({
-  region: process.env.AWS_DEFAULT_REGION,
+  region: aws_region,
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
 });
@@ -29,7 +30,7 @@ s3UploaderRouter.post("/s3_signed_url", async (req, res) => {
     .then(function(url) {
       const data = {
         signedRequest: url,
-        url: `http://${S3_BUCKET}.s3.amazonaws.com/${fileName}`
+        url: `https://s3.${aws_region}.amazonaws.com/${S3_BUCKET}/${fileName}`
       };
       res.json({ success: true, ...data});
     }).catch(err => res.json({ success: false, error: err }));
