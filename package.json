@@ -19,7 +19,8 @@
     "morgan": "~1.9.1",
     "nodemailer": "^6.4.10",
     "nodemailer-express-handlebars": "^4.0.0",
-    "pg": "^8.3.0"
+    "pg": "^8.3.0",
+    "stripe": "^8.84.0"
   },
   "devDependencies": {
     "jest": "^26.0.1",

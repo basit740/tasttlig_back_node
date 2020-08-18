@@ -13,13 +13,13 @@ const createAccountLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour window
   max: 1000, // start blocking after 10 requests
   message:
-      "Too many accounts created from this IP. Please try again after an hour."
+    "Too many accounts created from this IP. Please try again after an hour."
 });
 
 // POST user register
 authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
   if (!req.body.first_name || !req.body.last_name || !req.body.email
-      || !req.body.password || !req.body.phone_number){
+    || !req.body.password || !req.body.phone_number){
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -97,7 +97,7 @@ authRouter.post("/user/login", async (req, res) => {
       const isPassCorrect = bcrypt.compareSync(req.body.password, response.user.password);
       const access_token = token_service.generateAccessToken(jwtUser);
       const refresh_token = token_service.generateRefreshToken(jwtUser);
-
+      
       if (!isPassCorrect) {
         return res.status(401).json({
           success: false,
@@ -109,7 +109,7 @@ authRouter.post("/user/login", async (req, res) => {
         } catch (err) {
           res.status(401).send(err);
         }
-
+        
         return res.status(200).json({
           success: true,
           message: "logged",
@@ -204,7 +204,23 @@ authRouter.put("/user/update-password/:id", token_service.authForPassUpdate, asy
       });
     }
   }
-    }
+  }
 );
+
+// POST user forgot password
+authRouter.post("/user/guest_checkout", createAccountLimiter, async (req, res) => {
+  if (!req.body.email) {
+    return res.status(403).json({
+      success: false,
+      message: "Required Parameters are not available in request"
+    });
+  }
+  const returning = await authenticate_user_service.findUserByEmail(req.body.email);
+  if(!returning.success) {
+    const response = authenticate_user_service.createDummyUser(req.body.email);
+    res.send(response);
+  }
+  res.send(returning);
+});
 
 module.exports = authRouter;

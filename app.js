@@ -15,6 +15,7 @@ const user_authentication_router = require('./routes/user/authentication');
 const experience_router = require('./routes/experience/experience');
 const food_sample_router = require('./routes/food_sample/food_sample');
 const s3UploaderRouter = require("./routes/s3Uploader/s3UploaderRoutes");
+const payment_router = require('./routes/payment/payment')
 const newsletter_router = require("./routes/user/newsletter");
 
 const app = express();
@@ -35,6 +36,7 @@ app.use(profile_router);
 app.use(experience_router);
 app.use(food_sample_router);
 app.use(s3UploaderRouter);
+app.use(payment_router);
 app.use(newsletter_router);
 
 // Boot development server
