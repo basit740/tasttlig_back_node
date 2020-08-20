@@ -5,6 +5,7 @@ const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const user_role_manager = require("../profile/user_roles_manager");
 
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
+const SITE_BASE = process.env.SITE_BASE;
 
 const createNewExperience = async (db_user, experience_details, experience_images, createdByAdmin) => {
   try{
@@ -26,29 +27,60 @@ const createNewExperience = async (db_user, experience_details, experience_image
       }));
       await trx("experience_images")
         .insert(images);
+      if (createdByAdmin){
+        // Email to confirm the new experience by hosts
+        const url_review_experience = `${SITE_BASE}/review-experience/${db_experience[0].experience_id}`;
+        await Mailer.sendMail({
+          to: db_user.email,
+          subject: `[Tasttlig] Review Experience "${experience_details.title}"`,
+          template: "review_experience",
+          context: {
+            title: experience_details.title,
+            url_review_experience
+          }
+        });
+      } else {
+        // Email to user on submitting the request to upgrade
+        await Mailer.sendMail({
+          to: db_user.email,
+          bcc: ADMIN_EMAIL,
+          subject: `[Tasttlig] New Experience Created`,
+          template: 'new_experience',
+          context: {
+            first_name: db_user.first_name,
+            last_name: db_user.last_name,
+            title: experience_details.title,
+            status: experience_details.status
+          }
+        });
+      }
     });
-    if (createdByAdmin){
-      //TODO: email to confirm the new experience by hosts
-    } else {
-      // Email to user on submitting the request to upgrade
-      await Mailer.sendMail({
-        to: db_user.email,
-        bcc: ADMIN_EMAIL,
-        subject: `[Tasttlig] New Experience Created`,
-        template: 'new_experience',
-        context: {
-          first_name: db_user.first_name,
-          last_name: db_user.last_name,
-          title: experience_details.title,
-          status: experience_details.status
-        }
-      });
-    }
     return {success: true, details:"success"};
   } catch (err) {
     return {success: false, details:err.message};
   }
 }
+
+const getAllExperience = async () => {
+  return await db
+    .select(
+      "experiences.*",
+      db.raw("ARRAY_AGG(experience_images.image_url) as image_urls")
+    )
+    .from("experiences")
+    .leftJoin(
+      "experience_images",
+      "experiences.experience_id",
+      "experience_images.experience_id"
+    )
+    .groupBy("experiences.experience_id")
+    .then(value => {
+      return { success: true, details: value };
+    })
+    .catch(reason => {
+      return { success: false, details: reason };
+    });
+};
 
 const getAllUserExperience = async (user_id, operator, status, requestByAdmin) => {
   let query = db
@@ -73,6 +105,54 @@ const getAllUserExperience = async (user_id, operator, status, requestByAdmin) =
       return {success: false, details:reason};
     });
 }
+
+const updateReviewExperience = async (
+  experience_id,
+  experience_update_data
+) => {
+  if (!experience_update_data.status) {
+    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    if (user_role_object.includes("HOST")) {
+      experience_update_data.status = "ACTIVE";
+    } else {
+      experience_update_data.status = "INACTIVE";
+    }
+  }
+  return await db("experiences")
+    .where({ experience_id })
+    .update(experience_update_data)
+    .then(() => {
+      if (experience_update_data.status === "ACCEPTED") {
+        Mailer.sendMail({
+          to: ADMIN_EMAIL,
+          subject: `[Tasttlig] Experience "${experience_update_data.title}" has been accepted`,
+          template: "accept_experience",
+          context: {
+            title: experience_update_data.title,
+            review_experience_reason:
+              experience_update_data.review_experience_reason
+          }
+        });
+      } else {
+        Mailer.sendMail({
+          to: ADMIN_EMAIL,
+          subject: `[Tasttlig] Experience "${experience_update_data.title}" has been rejected`,
+          template: "reject_experience",
+          context: {
+            title: experience_update_data.title,
+            review_experience_reason:
+              experience_update_data.review_experience_reason
+          }
+        });
+      }
+    })
+    .then(() => {
+      return { success: true };
+    })
+    .catch(reason => {
+      return { success: false, details: reason };
+    });
+};
 
 const updateExperience = async (db_user, experience_id, experience_update_data, createdByAdmin) => {
   if(!experience_update_data.status){
@@ -121,7 +201,9 @@ const deleteExperience = async (user_id, experience_id) => {
 
 module.exports = {
   createNewExperience,
+  getAllExperience,
   getAllUserExperience,
   deleteExperience,
+  updateReviewExperience,
   updateExperience
 }

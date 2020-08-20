@@ -74,6 +74,19 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
   }
 });
 
+router.get("/experience/all", async (req, res) => {
+  try {
+    const response = await experience_service.getAllExperience();
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
 router.get("/experience/user/all", token_service.authenticateToken, async (req, res) => {
   try{
     const status_operator = "!=";
@@ -135,6 +148,28 @@ router.get("/experience/user/archived", token_service.authenticateToken, async (
       status_operator,
       food_sample_status,
       requestByAdmin
+    );
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
+router.put("/experience/review/:experience_id", async (req, res) => {
+  if (!req.params.experience_id || !req.body.experience_update_data) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request."
+    });
+  }
+  try {
+    const response = await experience_service.updateReviewExperience(
+      req.params.experience_id,
+      req.body.experience_update_data
     );
     return res.send(response);
   } catch (err) {
