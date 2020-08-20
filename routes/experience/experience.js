@@ -4,6 +4,7 @@ const router = require('express').Router();
 const token_service = require("../../services/authentication/token");
 const experience_service = require("../../services/experience/experience");
 const user_profile_service = require("../../services/profile/user_profile");
+const user_role_manager = require("../../services/profile/user_roles_manager");
 
 router.post("/experience/add", token_service.authenticateToken, async (req, res) => {
   if (!req.body.title || !req.body.price || !req.body.category || !req.body.style
@@ -24,7 +25,20 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
         message: user_details_from_db.message
       });
     }
-    const db_user = user_details_from_db.user;
+    let createdByAdmin = false;
+    let db_user = user_details_from_db.user;
+    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    if (user_role_object.includes("ADMIN")){
+      if (!req.body.userEmail) {
+        return res.status(403).json({
+          success: false,
+          message: "Required Parameters are not available in request"
+        });
+      }
+      const host_details_from_db = await user_profile_service.getUserByEmail(req.body.userEmail);
+      db_user = host_details_from_db.user;
+      createdByAdmin = true;
+    }
     const experience_details = {
       experience_creator_user_id: db_user.tasttlig_user_id,
       title: req.body.title,
@@ -44,7 +58,12 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
       country: req.body.country,
       postal_code: req.body.postal_code
     }
-    const response = await experience_service.createNewExperience(db_user, experience_details, req.body.images);
+    const response = await experience_service.createNewExperience(
+      db_user,
+      experience_details,
+      req.body.images,
+      createdByAdmin
+    );
     return res.send(response);
   } catch (err) {
     res.send({
@@ -59,7 +78,25 @@ router.get("/experience/user/all", token_service.authenticateToken, async (req, 
   try{
     const status_operator = "!=";
     const experience_status = "ARCHIVED";
-    const response = await experience_service.getAllUserExperience(req.user.id, status_operator, experience_status);
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
+    if(!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false,
+        message: user_details_from_db.message
+      });
+    }
+    let requestByAdmin = false;
+    let db_user = user_details_from_db.user;
+    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    if (user_role_object.includes("ADMIN")){
+      requestByAdmin = true;
+    }
+    const response = await experience_service.getAllUserExperience(
+      req.user.id,
+      status_operator,
+      experience_status,
+      requestByAdmin
+    );
     return res.send(response);
   } catch (err) {
     res.send({
@@ -74,7 +111,31 @@ router.get("/experience/user/archived", token_service.authenticateToken, async (
   try{
     const status_operator = "=";
     const food_sample_status = "ARCHIVED";
-    const response = await experience_service.getAllUserExperience(req.user.id, status_operator, food_sample_status);
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
+    if(!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false,
+        message: user_details_from_db.message
+      });
+    }
+    let requestByAdmin = false;
+    let db_user = user_details_from_db.user;
+    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    if (user_role_object.includes("ADMIN")){
+      if (!req.body.userEmail) {
+        return res.status(403).json({
+          success: false,
+          message: "Required Parameters are not available in request"
+        });
+      }
+      requestByAdmin = true;
+    }
+    const response = await experience_service.getAllUserExperience(
+      req.user.id,
+      status_operator,
+      food_sample_status,
+      requestByAdmin
+    );
     return res.send(response);
   } catch (err) {
     res.send({
@@ -93,7 +154,6 @@ router.put("/experience/update/:experience_id", token_service.authenticateToken,
     });
   }
   try {
-
     const user_details_from_db = await user_profile_service.getUserById(req.user.id);
     if(!user_details_from_db.success) {
       return res.status(403).json({
@@ -101,11 +161,17 @@ router.put("/experience/update/:experience_id", token_service.authenticateToken,
         message: user_details_from_db.message
       });
     }
-    const db_user = user_details_from_db.user;
+    let createdByAdmin = false;
+    let db_user = user_details_from_db.user;
+    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    if (user_role_object.includes("ADMIN")){
+      createdByAdmin = true;
+    }
     const response = await experience_service.updateExperience(
       db_user,
       req.params.experience_id,
-      req.body.experience_update_data);
+      req.body.experience_update_data,
+      createdByAdmin);
     return res.send(response);
   } catch (e) {
     res.send({

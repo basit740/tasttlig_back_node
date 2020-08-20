@@ -184,8 +184,24 @@ const upgradeUserResponse = async (token) => {
   }
 }
 
+const getUserByEmail = async email => {
+  return await db("tasttlig_users")
+    .where("email", email)
+    .first()
+    .then(value => {
+      if (!value){
+        return { success: false, message: "No user found." };
+      }
+      return { success: true, user: value };
+    })
+    .catch(error => {
+      return { success: false, message: error };
+    });
+}
+
 module.exports = {
   getUserById,
   upgradeUser,
-  upgradeUserResponse
+  upgradeUserResponse,
+  getUserByEmail
 }
