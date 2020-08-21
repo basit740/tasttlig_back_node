@@ -135,12 +135,6 @@ router.get("/experience/user/archived", token_service.authenticateToken, async (
     let db_user = user_details_from_db.user;
     let user_role_object = user_role_manager.createRoleObject(db_user.role);
     if (user_role_object.includes("ADMIN")){
-      if (!req.body.userEmail) {
-        return res.status(403).json({
-          success: false,
-          message: "Required Parameters are not available in request"
-        });
-      }
       requestByAdmin = true;
     }
     const response = await experience_service.getAllUserExperience(

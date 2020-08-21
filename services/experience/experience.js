@@ -163,7 +163,6 @@ const updateExperience = async (db_user, experience_id, experience_update_data, 
       experience_update_data.status = "INACTIVE";
     }
   }
-  console.log(experience_update_data);
   return await db("experiences")
     .where(builder => {
       if(createdByAdmin){
