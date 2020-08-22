@@ -6,47 +6,53 @@ const Mailer = require("../email/nodemailer").nodemailer_transporter;
 
 const SITE_BASE = process.env.SITE_BASE;
 
-const userRegister = async user => {
+const userRegister = async (user, sendEmail= true) => {
+  const userData = {
+    first_name: user.first_name,
+    last_name: user.last_name,
+    email: user.email,
+    password: user.password,
+    phone_number: user.phone_number,
+    role: "MEMBER",
+    created_at_datetime: new Date(),
+    updated_at_datetime: new Date()
+  }
+  if (user.is_participating_in_festival){
+    userData.is_participating_in_festival = user.is_participating_in_festival;
+  }
   return await db("tasttlig_users")
-    .insert({
-      first_name: user.first_name,
-      last_name: user.last_name,
-      email: user.email,
-      password: user.password,
-      phone_number: user.phone_number,
-      role: "MEMBER",
-      created_at_datetime: new Date(),
-      updated_at_datetime: new Date()
-    })
+    .insert(userData)
     .returning("*")
     .then(value => {
-      jwt.sign({
-          user: value[0].tasttlig_user_id
-        },
-        process.env.EMAIL_SECRET,
-        {
-          expiresIn: "28d"
-        },
-        // Async email verification email
-        async (err, emailToken) => {
-          try {
-            const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
-            await Mailer.sendMail({
-              to: user.email,
-              bcc: process.env.TASTTLIG_ADMIN_EMAIL,
-              subject: "[Tasttlig] Welcome to Tasttlig!",
-              template: 'signup',
-              context: {
-                first_name: user.first_name,
-                last_name: user.last_name,
-                urlVerifyEmail: urlVerifyEmail
-              }
-            });
-          } catch (error) {
-            return {success: false, data: reason};
+      if(sendEmail) {
+        jwt.sign({
+            user: value[0].tasttlig_user_id
+          },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "28d"
+          },
+          // Async email verification email
+          async (err, emailToken) => {
+            try {
+              const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
+              await Mailer.sendMail({
+                to: user.email,
+                bcc: process.env.TASTTLIG_ADMIN_EMAIL,
+                subject: "[Tasttlig] Welcome to Tasttlig!",
+                template: 'signup',
+                context: {
+                  first_name: user.first_name,
+                  last_name: user.last_name,
+                  urlVerifyEmail: urlVerifyEmail
+                }
+              });
+            } catch (error) {
+              return {success: false, data: error.message};
+            }
           }
-        }
-      );
+        );
+      }
       return {success: true, data: value[0]};
     }).catch(reason => {
       return {success: false, data: reason};
