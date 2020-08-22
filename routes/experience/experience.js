@@ -87,6 +87,25 @@ router.get("/experience/all", async (req, res) => {
   }
 });
 
+router.get("/experience/:experience_id", async (req, res) => {
+  if (!req.params.experience_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request."
+    });
+  }
+  try {
+    const response = await experience_service.getExperience(req.params.experience_id);
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
 router.get("/experience/user/all", token_service.authenticateToken, async (req, res) => {
   try{
     const status_operator = "!=";
@@ -153,8 +172,8 @@ router.get("/experience/user/archived", token_service.authenticateToken, async (
   }
 });
 
-router.put("/experience/review/:experience_id", async (req, res) => {
-  if (!req.params.experience_id || !req.body.experience_update_data) {
+router.put("/experience/review", token_service.verifyTokenForReview, async (req, res) => {
+  if (!req.body.experience_update_data) {
     return res.status(403).json({
       success: false,
       message: "Required parameters are not available in request."
@@ -162,7 +181,8 @@ router.put("/experience/review/:experience_id", async (req, res) => {
   }
   try {
     const response = await experience_service.updateReviewExperience(
-      req.params.experience_id,
+      req.details.id,
+      req.details.user_id,
       req.body.experience_update_data
     );
     return res.send(response);

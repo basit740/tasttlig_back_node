@@ -6,7 +6,7 @@ const user_role_manager = require("../profile/user_roles_manager");
 
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
-const createNewFoodSample = async (db_user, food_sample_details, food_sample_images) => {
+const createNewFoodSample = async (db_user, food_sample_details, food_sample_images, createdByAdmin) => {
   try{
     await db.transaction(async trx => {
       food_sample_details.status = "INACTIVE";
