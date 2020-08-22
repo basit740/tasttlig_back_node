@@ -4,6 +4,7 @@ const router = require('express').Router();
 const token_service = require("../../services/authentication/token");
 const food_sample_service = require("../../services/food_sample/food_sample");
 const user_profile_service = require("../../services/profile/user_profile");
+const user_role_manager = require("../../services/profile/user_roles_manager");
 
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
   if (!req.body.title || !req.body.start_date || !req.body.end_date || !req.body.start_time
@@ -22,7 +23,20 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
         message: user_details_from_db.message
       });
     }
-    const db_user = user_details_from_db.user;
+    let createdByAdmin = false;
+    let db_user = user_details_from_db.user;
+    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    if (user_role_object.includes("ADMIN")){
+      if (!req.body.userEmail) {
+        return res.status(403).json({
+          success: false,
+          message: "Required Parameters are not available in request"
+        });
+      }
+      const host_details_from_db = await user_profile_service.getUserByEmail(req.body.userEmail);
+      db_user = host_details_from_db.user;
+      createdByAdmin = true;
+    }
     const food_sample_details = {
       food_sample_creater_user_id: db_user.tasttlig_user_id,
       title: req.body.title,
@@ -37,7 +51,12 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
       country: req.body.country,
       postal_code: req.body.postal_code
     }
-    const response = await food_sample_service.createNewFoodSample(db_user, food_sample_details, req.body.images);
+    const response = await food_sample_service.createNewFoodSample(
+      db_user,
+      food_sample_details,
+      req.body.images,
+      createdByAdmin
+    );
     return res.send(response);
   } catch (err) {
     res.send({
@@ -63,11 +82,48 @@ router.get("/food-sample/all", async (req, res) => {
   }
 });
 
+router.get("/food-sample/:food_sample_id", async (req, res) => {
+  if (!req.params.food_sample_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request."
+    });
+  }
+  try {
+    const response = await food_sample_service.getFoodSample(req.params.food_sample_id);
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
 router.get("/food-sample/user/all", token_service.authenticateToken, async (req, res) => {
   try{
     const status_operator = "!=";
     const food_sample_status = "ARCHIVED";
-    const response = await food_sample_service.getAllUserFoodSamples(req.user.id, status_operator, food_sample_status);
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
+    if(!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false,
+        message: user_details_from_db.message
+      });
+    }
+    let requestByAdmin = false;
+    let db_user = user_details_from_db.user;
+    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    if (user_role_object.includes("ADMIN")){
+      requestByAdmin = true;
+    }
+    const response = await food_sample_service.getAllUserFoodSamples(
+      req.user.id,
+      status_operator,
+      food_sample_status,
+      requestByAdmin
+    );
     return res.send(response);
   } catch (err) {
     res.send({
@@ -116,7 +172,48 @@ router.get("/food-sample/user/archived", token_service.authenticateToken, async 
   try{
     const status_operator = "=";
     const food_sample_status = "ARCHIVED";
-    const response = await food_sample_service.getAllUserFoodSamples(req.user.id, status_operator, food_sample_status);
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
+    if(!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false,
+        message: user_details_from_db.message
+      });
+    }
+    let requestByAdmin = false;
+    let db_user = user_details_from_db.user;
+    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    if (user_role_object.includes("ADMIN")){
+      requestByAdmin = true;
+    }
+    const response = await food_sample_service.getAllUserFoodSamples(
+      req.user.id,
+      status_operator,
+      food_sample_status,
+      requestByAdmin
+    );
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
+router.put("/food-sample/review", token_service.verifyTokenForReview, async (req, res) => {
+  if (!req.body.food_sample_update_data) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request."
+    });
+  }
+  try {
+    const response = await food_sample_service.updateReviewFoodSample(
+      req.details.id,
+      req.details.user_id,
+      req.body.food_sample_update_data
+    );
     return res.send(response);
   } catch (err) {
     res.send({
@@ -142,11 +239,17 @@ router.put("/food-sample/update/:food_sample_id", token_service.authenticateToke
         message: user_details_response.message
       });
     }
-    const db_user = user_details_response.user;
+    let updatedByAdmin = false;
+    let db_user = user_details_response.user;
+    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    if (user_role_object.includes("ADMIN")){
+      updatedByAdmin = true;
+    }
     const response = await food_sample_service.updateFoodSample(
       db_user,
       req.params.food_sample_id,
-      req.body.food_sample_update_data
+      req.body.food_sample_update_data,
+      updatedByAdmin
     );
     return res.send(response);
   } catch (e) {

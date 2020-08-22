@@ -8,7 +8,11 @@ const jwt = require("jsonwebtoken");
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const SITE_BASE = process.env.SITE_BASE;
 
-const createNewExperience = async (db_user, experience_details, experience_images, createdByAdmin) => {
+const createNewExperience = async (
+  db_user,
+  experience_details,
+  experience_images,
+  createdByAdmin) => {
   try{
     await db.transaction(async trx => {
       experience_details.status = "INACTIVE";
@@ -81,7 +85,7 @@ const createNewExperience = async (db_user, experience_details, experience_image
   }
 }
 
-const getAllExperience = async () => {
+const getAllExperience = async (operator, status) => {
   return await db
     .select(
       "experiences.*",
@@ -94,6 +98,7 @@ const getAllExperience = async () => {
       "experience_images.experience_id"
     )
     .groupBy("experiences.experience_id")
+    .having("experiences.status", operator, status)
     .then(value => {
       return { success: true, details: value };
     })
@@ -169,10 +174,14 @@ const updateReviewExperience = async (
     });
 };
 
-const updateExperience = async (db_user, experience_id, experience_update_data, createdByAdmin) => {
+const updateExperience = async (
+  db_user,
+  experience_id,
+  experience_update_data,
+  updatedByAdmin) => {
   if(!experience_update_data.status){
     let user_role_object = user_role_manager.createRoleObject(db_user.role);
-    if(user_role_object.includes("HOST") && !createdByAdmin){
+    if(user_role_object.includes("HOST") && !updatedByAdmin){
       experience_update_data.status = "ACTIVE";
     } else {
       experience_update_data.status = "INACTIVE";
@@ -180,7 +189,7 @@ const updateExperience = async (db_user, experience_id, experience_update_data, 
   }
   return await db("experiences")
     .where(builder => {
-      if(createdByAdmin){
+      if(updatedByAdmin){
         return builder.where({
           experience_id: experience_id
         })

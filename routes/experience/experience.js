@@ -76,7 +76,9 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
 
 router.get("/experience/all", async (req, res) => {
   try {
-    const response = await experience_service.getAllExperience();
+    const status_operator = "=";
+    const experience_status = "ACTIVE";
+    const response = await experience_service.getAllExperience(status_operator, experience_status);
     return res.send(response);
   } catch (err) {
     res.send({
@@ -210,17 +212,18 @@ router.put("/experience/update/:experience_id", token_service.authenticateToken,
         message: user_details_from_db.message
       });
     }
-    let createdByAdmin = false;
+    let updatedByAdmin = false;
     let db_user = user_details_from_db.user;
     let user_role_object = user_role_manager.createRoleObject(db_user.role);
     if (user_role_object.includes("ADMIN")){
-      createdByAdmin = true;
+      updatedByAdmin = true;
     }
     const response = await experience_service.updateExperience(
       db_user,
       req.params.experience_id,
       req.body.experience_update_data,
-      createdByAdmin);
+      updatedByAdmin
+    );
     return res.send(response);
   } catch (e) {
     res.send({
