@@ -107,7 +107,7 @@ router.post("/user/upgrade/action/:token", async (req, res) => {
   return res.send(response);
 });
 
-router.put("/user/:id", async (req, res) => {
+router.put("/user/update-account/:id", async (req, res) => {
   try {
     const pw = req.body.password;
     const saltRounds = 10;
@@ -115,14 +115,35 @@ router.put("/user/:id", async (req, res) => {
     const password = bcrypt.hashSync(pw, salt);
     const user = {
       id: req.params.id,
+      profile_image_link: req.body.profile_image_link,
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       password,
       phone_number: req.body.phone_number,
-      profile_image_link: req.body.profile_image_link,
       profile_tag_line: req.body.profile_tag_line,
-      bio_text: req.body.bio,
-      banner_image_link: req.body.banner_image_link,
+      bio_text: req.body.bio_text,
+      banner_image_link: req.body.banner_image_link
+    };
+
+    const response = await user_profile_service.updateUserAccount(user);
+
+    if (response.success) {
+      res.status(200).send(response);
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: "Email already exists."
+      });
+    }
+  } catch (err) {
+    console.log("Update", err);
+  }
+});
+
+router.put("/user/update-profile/:id", async (req, res) => {
+  try {
+    const user = {
+      id: req.params.id,
       address_line_1: req.body.address_line_1,
       address_line_2: req.body.address_line_2,
       city: req.body.city,
@@ -134,7 +155,7 @@ router.put("/user/:id", async (req, res) => {
       profile_status: req.body.profile_status
     };
 
-    const response = await user_profile_service.updateUser(user);
+    const response = await user_profile_service.updateUserProfile(user);
 
     if (response.success) {
       res.status(200).send(response);

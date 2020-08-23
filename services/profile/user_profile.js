@@ -210,7 +210,7 @@ const getUserByEmail = async email => {
     });
 };
 
-const updateUser = async user => {
+const updateUserAccount = async user => {
   try {
     return await db("tasttlig_users")
       .where("tasttlig_user_id", user.id)
@@ -218,12 +218,31 @@ const updateUser = async user => {
       .update({
         first_name: user.first_name,
         last_name: user.last_name,
-        password_digest: user.password,
+        password: user.password,
         phone_number: user.phone_number,
         profile_image_link: user.profile_image_link,
         profile_tag_line: user.profile_tag_line,
         bio_text: user.bio_text,
-        banner_image_link: user.banner_image_link,
+        banner_image_link: user.banner_image_link
+      })
+      .returning("*")
+      .then(value => {
+        return { success: true, details: value[0] };
+      })
+      .catch(reason => {
+        return { success: false, details: reason };
+      });
+  } catch (err) {
+    return { success: false, message: err };
+  }
+};
+
+const updateUserProfile = async user => {
+  try {
+    return await db("tasttlig_users")
+      .where("tasttlig_user_id", user.id)
+      .first()
+      .update({
         address_line_1: user.address_line_1,
         address_line_2: user.address_line_2,
         city: user.city,
@@ -251,5 +270,6 @@ module.exports = {
   upgradeUser,
   upgradeUserResponse,
   getUserByEmail,
-  updateUser
+  updateUserAccount,
+  updateUserProfile
 };
