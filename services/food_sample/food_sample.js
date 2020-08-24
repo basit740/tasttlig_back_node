@@ -49,7 +49,7 @@ const createNewFoodSample = async (
               const url = `${SITE_BASE}/review-food-sample/${db_food_sample[0].food_sample_id}/${emailToken}`;
               await Mailer.sendMail({
                 to: db_user.email,
-                subject: `[Tasttlig] Review Food sample "${food_sample_details.title}"`,
+                subject: `[Tasttlig] Review Food Sample "${food_sample_details.title}"`,
                 template: "review_food_sample",
                 context: {
                   title: food_sample_details.title,
@@ -210,21 +210,21 @@ const updateReviewFoodSample = async(
       if (food_sample_update_data.status === "ACTIVE") {
         Mailer.sendMail({
           to: ADMIN_EMAIL,
-          subject: `[Tasttlig] Food sample "${value[0].title}" has been accepted`,
+          subject: `[Tasttlig] Food Sample "${value[0].title}" has been accepted`,
           template: "accept_food_sample",
           context: {
             title: value[0].title,
-            review_food_sample_reason: food_sample_update_data.review_experience_reason
+            review_food_sample_reason: food_sample_update_data.review_food_sample_reason
           }
         });
       } else {
         Mailer.sendMail({
           to: ADMIN_EMAIL,
-          subject: `[Tasttlig] Food sample "${value[0].title}" has been rejected`,
+          subject: `[Tasttlig] Food Sample "${value[0].title}" has been rejected`,
           template: "reject_food_sample",
           context: {
             title: value[0].title,
-            review_food_sample_reason: food_sample_update_data.review_experience_reason
+            review_food_sample_reason: food_sample_update_data.review_food_sample_reason
           }
         });
       }
