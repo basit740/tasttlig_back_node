@@ -71,13 +71,34 @@ router.get("/food-sample/all", async (req, res) => {
   try{
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
-    const response = await food_sample_service.getAllFoodSamples(status_operator, food_sample_status);
+
+    const filters = {
+      countries: req.query.countries,
+      startDate: req.query.startDate,
+      endDate: req.query.endDate
+    }
+
+    const response = await food_sample_service.getAllFoodSamples(status_operator, food_sample_status, filters);
+
     return res.send(response);
   } catch (err) {
     res.send({
       success: false,
       message: "error",
       response: err.message
+    });
+  }
+});
+
+router.get("/food-sample/countries", async (req, res) => {
+  try {
+    const response = await food_sample_service.getDistinctCountries();
+    return res.send(response);
+  } catch (e) {
+    res.send({
+      success: false,
+      message: "error",
+      response: e.message
     });
   }
 });
