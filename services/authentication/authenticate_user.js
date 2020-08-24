@@ -6,8 +6,23 @@ const Mailer = require("../email/nodemailer").nodemailer_transporter;
 
 const SITE_BASE = process.env.SITE_BASE;
 
-const userRegister = async user => {
+const userRegister = async (user, sendEmail= true) => {
   try{
+    const userData = {
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      password: user.password,
+      phone_number: user.phone_number,
+      role: "MEMBER",
+      status: "ACTIVE",
+      created_at_datetime: new Date(),
+      updated_at_datetime: new Date()
+    }
+    if (user.is_participating_in_festival){
+      userData.is_participating_in_festival = user.is_participating_in_festival;
+    }
+    
     return db.transaction(async trx => {
       return await trx("tasttlig_users")
         .where("email", user.email)
@@ -17,29 +32,14 @@ const userRegister = async user => {
           if (!value) {
             new_db_user = trx("tasttlig_users")
               .insert({
-                first_name: user.first_name,
-                last_name: user.last_name,
-                email: user.email,
-                password: user.password,
-                phone_number: user.phone_number,
-                role: "MEMBER",
-                status: "ACTIVE",
-                created_at_datetime: new Date(),
-                updated_at_datetime: new Date()
+                userData
               })
               .returning("*");
           } else {
             new_db_user = trx("tasttlig_users")
               .where("tasttlig_user_id", value.tasttlig_user_id)
               .update({
-                first_name: user.first_name,
-                last_name: user.last_name,
-                password: user.password,
-                phone_number: user.phone_number,
-                role: "MEMBER",
-                status: "ACTIVE",
-                created_at_datetime: new Date(),
-                updated_at_datetime: new Date()
+                userData
               })
               .returning("*");
           }
