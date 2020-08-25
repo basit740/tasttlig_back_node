@@ -9,7 +9,7 @@ const user_role_manager = require("../../services/profile/user_roles_manager");
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
   if (!req.body.title || !req.body.start_date || !req.body.end_date || !req.body.start_time
     || !req.body.end_time || !req.body.description || !req.body.address || !req.body.city
-    || !req.body.state || !req.body.country || !req.body.postal_code || !req.body.images) {
+    || !req.body.state || !req.body.country || !req.body.postal_code || !req.body.nationality_id || !req.body.images) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -49,7 +49,8 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
       city: req.body.city,
       state: req.body.state,
       country: req.body.country,
-      postal_code: req.body.postal_code
+      postal_code: req.body.postal_code,
+      nationality_id: req.body.nationality_id
     }
     const response = await food_sample_service.createNewFoodSample(
       db_user,
@@ -73,7 +74,7 @@ router.get("/food-sample/all", async (req, res) => {
     const food_sample_status = "ACTIVE";
 
     const filters = {
-      countries: req.query.countries,
+      nationalities: req.query.nationalities,
       startDate: req.query.startDate,
       endDate: req.query.endDate
     }
@@ -90,7 +91,7 @@ router.get("/food-sample/all", async (req, res) => {
   }
 });
 
-router.get("/food-sample/countries", async (req, res) => {
+router.get("/food-sample/nationalities", async (req, res) => {
   try {
     const response = await food_sample_service.getDistinctCountries();
     return res.send(response);

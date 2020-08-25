@@ -164,29 +164,28 @@ const getAllFoodSamples = async (operator, status, filters) => {
             "food_samples.*",
             "tasttlig_users.first_name",
             "tasttlig_users.last_name",
+            "nationalities.nationality",
+            "nationalities.alpha_2_code",
             db.raw('ARRAY_AGG(food_sample_images.image_url) as image_urls'))
         .from("food_samples")
         .leftJoin("food_sample_images", "food_samples.food_sample_id", "food_sample_images.food_sample_id")
         .leftJoin("tasttlig_users", "food_samples.food_sample_creater_user_id", "tasttlig_users.tasttlig_user_id")
+        .leftJoin("nationalities", "food_samples.nationality_id", "nationalities.id")
         .groupBy("food_samples.food_sample_id")
         .groupBy("tasttlig_users.first_name")
         .groupBy("tasttlig_users.last_name")
+        .groupBy("nationalities.nationality")
+        .groupBy("nationalities.alpha_2_code")
         .having("food_samples.status", operator, status);
 
-    if (filters.countries && filters.countries.length) {
-        query.whereIn("food_samples.country", filters.countries);
+    if (filters.nationalities && filters.nationalities.length) {
+        query.whereIn("nationalities.nationality", filters.nationalities);
     }
 
     if(filters.startDate) {
         query.whereRaw(
             "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) >= ?",
             [filters.startDate]);
-    }
-
-    if(filters.endDate) {
-        query.whereRaw(
-            "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) <= ?",
-            [filters.endDate]);
     }
 
     return await query
@@ -255,12 +254,14 @@ const updateReviewFoodSample = async (
         });
 }
 
-const getDistinctCountries = async () => {
+const getDistinctNationalities = async () => {
     return await db('food_samples')
-        .pluck('country')
+        .leftJoin("nationalities", "food_samples.nationality_id", "nationalities.id")
+        .pluck('nationalities.nationality')
+        .orderBy("nationalities.nationality")
         .distinct()
         .then(value => {
-            return {success: true, countries: value};
+            return {success: true, nationalities: value};
         })
         .catch(err => {
             return {success: false, details: err};
@@ -275,5 +276,5 @@ module.exports = {
     getAllFoodSamples,
     getFoodSample,
     updateReviewFoodSample,
-    getDistinctCountries
+    getDistinctCountries: getDistinctNationalities
 }
