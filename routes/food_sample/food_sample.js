@@ -67,12 +67,13 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
   }
 });
 
-router.get("/food-sample/all/:page", async (req, res) => {
+router.get("/food-sample/all", async (req, res) => {
   try{
-    const current_page = req.params.page;
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || ""
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
-    const response = await food_sample_service.getAllFoodSamples(status_operator, food_sample_status, current_page);
+    const response = await food_sample_service.getAllFoodSamples(status_operator, food_sample_status, keyword, current_page);
     return res.send(response);
   } catch (err) {
     res.send({

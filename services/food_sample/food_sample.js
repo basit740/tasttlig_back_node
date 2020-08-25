@@ -159,8 +159,11 @@ const deleteFoodSample = async (user_id, food_sample_id) => {
 }
 
 // pagination so we can create infinite scroll
-const getAllFoodSamples = async (operator, status, currentPage) => {
-  return await db
+const getAllFoodSamples = async (operator, status, keyword, currentPage) => {
+  // combine the columns so we can search for one column, it's faster. will modify to a real search engine this week.
+  const main_table = db.select('main.*',
+    db.raw("main.title || ' ' || main.description || ' ' || main.first_name || ' ' || main.last_name as search_text"))
+    .from(db
     .select(
       "food_samples.*",
       "tasttlig_users.first_name",
@@ -172,12 +175,16 @@ const getAllFoodSamples = async (operator, status, currentPage) => {
     .groupBy("food_samples.food_sample_id")
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
-    .having("food_samples.status", operator, status)
-    .paginate({
-      perPage: 6,
-      isLengthAware: true,
-      currentPage: currentPage
-    })
+    .having("food_samples.status", operator, status).as('main'))
+
+    return await db.select('*')
+      .from(main_table.as('main'))
+      .where('main.search_text', 'ILIKE', `%${keyword}%`)
+      .paginate({
+        perPage: 6,
+        isLengthAware: true,
+        currentPage: currentPage
+      })
     .then(value => {
       return {success: true, details:value};
     })
