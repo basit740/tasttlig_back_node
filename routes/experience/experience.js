@@ -76,7 +76,28 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
 
 router.get("/experience/all", async (req, res) => {
   try {
-    const response = await experience_service.getAllExperience();
+    const status_operator = "=";
+    const experience_status = "ACTIVE";
+    const response = await experience_service.getAllExperience(status_operator, experience_status);
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
+router.get("/experience/:experience_id", async (req, res) => {
+  if (!req.params.experience_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request."
+    });
+  }
+  try {
+    const response = await experience_service.getExperience(req.params.experience_id);
     return res.send(response);
   } catch (err) {
     res.send({
@@ -135,12 +156,6 @@ router.get("/experience/user/archived", token_service.authenticateToken, async (
     let db_user = user_details_from_db.user;
     let user_role_object = user_role_manager.createRoleObject(db_user.role);
     if (user_role_object.includes("ADMIN")){
-      if (!req.body.userEmail) {
-        return res.status(403).json({
-          success: false,
-          message: "Required Parameters are not available in request"
-        });
-      }
       requestByAdmin = true;
     }
     const response = await experience_service.getAllUserExperience(
@@ -159,8 +174,8 @@ router.get("/experience/user/archived", token_service.authenticateToken, async (
   }
 });
 
-router.put("/experience/review/:experience_id", async (req, res) => {
-  if (!req.params.experience_id || !req.body.experience_update_data) {
+router.put("/experience/review", token_service.verifyTokenForReview, async (req, res) => {
+  if (!req.body.experience_update_data) {
     return res.status(403).json({
       success: false,
       message: "Required parameters are not available in request."
@@ -168,7 +183,8 @@ router.put("/experience/review/:experience_id", async (req, res) => {
   }
   try {
     const response = await experience_service.updateReviewExperience(
-      req.params.experience_id,
+      req.details.id,
+      req.details.user_id,
       req.body.experience_update_data
     );
     return res.send(response);
@@ -196,17 +212,18 @@ router.put("/experience/update/:experience_id", token_service.authenticateToken,
         message: user_details_from_db.message
       });
     }
-    let createdByAdmin = false;
+    let updatedByAdmin = false;
     let db_user = user_details_from_db.user;
     let user_role_object = user_role_manager.createRoleObject(db_user.role);
     if (user_role_object.includes("ADMIN")){
-      createdByAdmin = true;
+      updatedByAdmin = true;
     }
     const response = await experience_service.updateExperience(
       db_user,
       req.params.experience_id,
       req.body.experience_update_data,
-      createdByAdmin);
+      updatedByAdmin
+    );
     return res.send(response);
   } catch (e) {
     res.send({

@@ -17,6 +17,7 @@ const food_sample_router = require('./routes/food_sample/food_sample');
 const s3UploaderRouter = require("./routes/s3Uploader/s3UploaderRoutes");
 const newsletter_router = require("./routes/user/newsletter");
 const admin_user_router = require('./routes/admin/user');
+const nationality_router = require('./routes/nationality/nationality');
 
 const app = express();
 let corsOptions = {
@@ -38,6 +39,7 @@ app.use(food_sample_router);
 app.use(s3UploaderRouter);
 app.use(newsletter_router);
 app.use(admin_user_router);
+app.use("/nationalities", nationality_router);
 
 // Boot development server
 const port = process.env.PORT || 8000;

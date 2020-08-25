@@ -7,8 +7,8 @@ const jwt = require("jsonwebtoken");
 const storeToken = async (refresh_token, user_id) => {
   try {
     const response = await db("refresh_tokens")
-        .select()
-        .where("user_id", user_id);
+      .select()
+      .where("user_id", user_id);
     if (response.length === 0) {
       try {
         await db("refresh_tokens").insert({
@@ -23,9 +23,9 @@ const storeToken = async (refresh_token, user_id) => {
     } else {
       try {
         await db("refresh_tokens")
-            .where("user_id", user_id)
-            .update("refresh_token", refresh_token)
-            .returning("*");
+          .where("user_id", user_id)
+          .update("refresh_token", refresh_token)
+          .returning("*");
       } catch (err) {
         return {success: false, message: err.message};
       }
@@ -72,12 +72,26 @@ const authForPassUpdate = (req, res, next) => {
   });
 };
 
+//check email token for experience review and food sample review
+const verifyTokenForReview = (req, res, next) => {
+  const token = req.body.token;
+  const id = req.body.id;
+  jwt.verify(token, process.env.EMAIL_SECRET, (err, details) => {
+    if (err) return res.status(403).send(err);
+    if (details.id != id) return res.status(403).send("Invalid Token");
+    req.details = details;
+    next();
+  });
+}
+
+
 const auth = {
   storeToken,
   generateAccessToken,
   generateRefreshToken,
   authenticateToken,
-  authForPassUpdate
+  authForPassUpdate,
+  verifyTokenForReview
 };
 
 module.exports = auth;
