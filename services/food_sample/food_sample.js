@@ -299,8 +299,9 @@ const updateReviewFoodSample = async (
     });
 };
 
-const getDistinctNationalities = async () => {
+const getDistinctNationalities = async (operator, status) => {
   return await db("food_samples")
+    .where("food_samples.status", operator, status)
     .leftJoin(
       "nationalities",
       "food_samples.nationality_id",
