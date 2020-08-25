@@ -8,8 +8,8 @@ const user_role_manager = require("../../services/profile/user_roles_manager");
 
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
   if (!req.body.title || !req.body.start_date || !req.body.end_date || !req.body.start_time
-    || !req.body.end_time || !req.body.description || !req.body.address || !req.body.city
-    || !req.body.state || !req.body.country || !req.body.postal_code || !req.body.images) {
+    || !req.body.end_time || !req.body.frequency || !req.body.description || !req.body.address || !req.body.city
+    || !req.body.state || !req.body.country || !req.body.postal_code || !req.body.nationality_id || !req.body.images) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -49,7 +49,9 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
       city: req.body.city,
       state: req.body.state,
       country: req.body.country,
-      postal_code: req.body.postal_code
+      postal_code: req.body.postal_code,
+      nationality_id: req.body.nationality_id,
+      frequency: req.body.frequency
     }
     const response = await food_sample_service.createNewFoodSample(
       db_user,
@@ -71,13 +73,34 @@ router.get("/food-sample/all", async (req, res) => {
   try{
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
-    const response = await food_sample_service.getAllFoodSamples(status_operator, food_sample_status);
+
+    const filters = {
+      nationalities: req.query.nationalities,
+      startDate: req.query.startDate,
+      endDate: req.query.endDate
+    }
+
+    const response = await food_sample_service.getAllFoodSamples(status_operator, food_sample_status, filters);
+
     return res.send(response);
   } catch (err) {
     res.send({
       success: false,
       message: "error",
       response: err.message
+    });
+  }
+});
+
+router.get("/food-sample/nationalities", async (req, res) => {
+  try {
+    const response = await food_sample_service.getDistinctNationalities();
+    return res.send(response);
+  } catch (e) {
+    res.send({
+      success: false,
+      message: "error",
+      response: e.message
     });
   }
 });
