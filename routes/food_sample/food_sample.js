@@ -8,7 +8,7 @@ const user_role_manager = require("../../services/profile/user_roles_manager");
 
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
   if (!req.body.title || !req.body.start_date || !req.body.end_date || !req.body.start_time
-    || !req.body.end_time || !req.body.description || !req.body.address || !req.body.city
+    || !req.body.end_time || !req.body.frequency || !req.body.description || !req.body.address || !req.body.city
     || !req.body.state || !req.body.country || !req.body.postal_code || !req.body.nationality_id || !req.body.images) {
     return res.status(403).json({
       success: false,
@@ -50,7 +50,8 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
       state: req.body.state,
       country: req.body.country,
       postal_code: req.body.postal_code,
-      nationality_id: req.body.nationality_id
+      nationality_id: req.body.nationality_id,
+      frequency: req.body.frequency
     }
     const response = await food_sample_service.createNewFoodSample(
       db_user,
@@ -93,7 +94,7 @@ router.get("/food-sample/all", async (req, res) => {
 
 router.get("/food-sample/nationalities", async (req, res) => {
   try {
-    const response = await food_sample_service.getDistinctCountries();
+    const response = await food_sample_service.getDistinctNationalities();
     return res.send(response);
   } catch (e) {
     res.send({

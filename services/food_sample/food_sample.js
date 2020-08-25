@@ -276,5 +276,5 @@ module.exports = {
     getAllFoodSamples,
     getFoodSample,
     updateReviewFoodSample,
-    getDistinctCountries: getDistinctNationalities
+    getDistinctNationalities
 }
