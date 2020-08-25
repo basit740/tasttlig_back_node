@@ -158,7 +158,8 @@ const deleteFoodSample = async (user_id, food_sample_id) => {
     });
 }
 
-const getAllFoodSamples = async (operator, status) => {
+// pagination so we can create infinite scroll
+const getAllFoodSamples = async (operator, status, currentPage) => {
   return await db
     .select(
       "food_samples.*",
@@ -172,6 +173,11 @@ const getAllFoodSamples = async (operator, status) => {
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
     .having("food_samples.status", operator, status)
+    .paginate({
+      perPage: 6,
+      isLengthAware: true,
+      currentPage: currentPage
+    })
     .then(value => {
       return {success: true, details:value};
     })
