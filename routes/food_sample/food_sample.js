@@ -75,14 +75,15 @@ router.get("/food-sample/all", async (req, res) => {
     const keyword = req.query.keyword || ""
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
-
+    const food_ad_code = req.query.food_ad_code
+    console.log(req.query)
     const filters = {
       nationalities: req.query.nationalities,
       startDate: req.query.startDate,
       endDate: req.query.endDate
     }
 
-    const response = await food_sample_service.getAllFoodSamples(status_operator, food_sample_status, keyword, current_page, filters);
+    const response = await food_sample_service.getAllFoodSamples(status_operator, food_sample_status, keyword, current_page, food_ad_code, filters);
 
     return res.send(response);
   } catch (err) {
