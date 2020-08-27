@@ -3,60 +3,84 @@
 const db = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
+const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
 const SITE_BASE = process.env.SITE_BASE;
 
 const userRegister = async (user, sendEmail= true) => {
-  const userData = {
-    first_name: user.first_name,
-    last_name: user.last_name,
-    email: user.email,
-    password: user.password,
-    phone_number: user.phone_number,
-    role: "MEMBER",
-    created_at_datetime: new Date(),
-    updated_at_datetime: new Date()
-  }
-  if (user.is_participating_in_festival){
-    userData.is_participating_in_festival = user.is_participating_in_festival;
-  }
-  return await db("tasttlig_users")
-    .insert(userData)
-    .returning("*")
-    .then(value => {
-      if(sendEmail) {
-        jwt.sign({
-            user: value[0].tasttlig_user_id
-          },
-          process.env.EMAIL_SECRET,
-          {
-            expiresIn: "28d"
-          },
-          // Async email verification email
-          async (err, emailToken) => {
-            try {
-              const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
-              await Mailer.sendMail({
-                to: user.email,
-                bcc: process.env.TASTTLIG_ADMIN_EMAIL,
-                subject: "[Tasttlig] Welcome to Tasttlig!",
-                template: 'signup',
-                context: {
-                  first_name: user.first_name,
-                  last_name: user.last_name,
-                  urlVerifyEmail: urlVerifyEmail
-                }
-              });
-            } catch (error) {
-              return {success: false, data: error.message};
+  try{
+    return db.transaction(async trx => {
+      let new_db_user = [];
+      await trx("tasttlig_users")
+        .where("email", user.email)
+        .first()
+        .then(value => {
+          if (!value) {
+            const userData = {
+              first_name: user.first_name,
+              last_name: user.last_name,
+              email: user.email,
+              password: user.password,
+              phone_number: user.phone_number,
+              role: "MEMBER",
+              status: "ACTIVE",
+              created_at_datetime: new Date(),
+              updated_at_datetime: new Date()
             }
+            if (user.is_participating_in_festival) {
+              userData.is_participating_in_festival = user.is_participating_in_festival;
+            }
+            new_db_user = trx("tasttlig_users")
+              .insert(userData)
+              .returning("*");
+          } else {
+            new_db_user = trx("tasttlig_users")
+              .where("tasttlig_user_id", value.tasttlig_user_id)
+              .update({
+                first_name: user.first_name,
+                last_name: user.last_name,
+                password: user.password,
+                phone_number: user.phone_number,
+                role: "MEMBER",
+                status: "ACTIVE",
+                created_at_datetime: new Date(),
+                updated_at_datetime: new Date()
+              })
+              .returning("*");
           }
-        );
-      }
-      return {success: true, data: value[0]};
-    }).catch(reason => {
-      return {success: false, data: reason};
+        });
+      return await new_db_user
+        .then(value1 => {
+          if(sendEmail) {
+            jwt.sign({
+                user: value1[0].tasttlig_user_id
+              },
+              process.env.EMAIL_SECRET,
+              {
+                expiresIn: "28d"
+              },
+              // Async email verification email
+              async (err, emailToken) => {
+                const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
+                await Mailer.sendMail({
+                  to: user.email,
+                  bcc: process.env.TASTTLIG_ADMIN_EMAIL,
+                  subject: "[Tasttlig] Welcome to Tasttlig!",
+                  template: 'signup',
+                  context: {
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                    urlVerifyEmail: urlVerifyEmail
+                  }
+                });
+              });
+          }
+          return {success: true, data: value1[0]};
+        })
     });
+  }catch (error) {
+    return {success: false, data: error.message};
+  }
 }
 
 const verifyAccount = async user_id => {
@@ -105,7 +129,10 @@ const getUserLogOut = async user_id => {
 
 const checkEmail = async email => {
   return await db("tasttlig_users")
-    .where("email", email)
+    .where({
+      email: email,
+      status: "ACTIVE"
+    })
     .first()
     .then(value => {
       if(!value){
@@ -188,11 +215,54 @@ const updatePassword = async (email, password) => {
     });
 }
 
+const createDummyUser = async email => {
+  return await db("tasttlig_users")
+    .insert({
+      first_name: "NA",
+      last_name: "NA",
+      email: email,
+      password: "NA",
+      phone_number: "NA",
+      role: "VISITOR",
+      status: "DUMMY",
+      created_at_datetime: new Date(),
+      updated_at_datetime: new Date()
+    })
+    .returning("*")
+    .then(value => {
+      return {success: true, user: value[0]};
+    }).catch(reason => {
+      return {success: false, data: reason};
+    });
+}
+
+const findUserByEmail = async email => {
+  return await db("tasttlig_users")
+    .where({
+      email: email
+    })
+    .first()
+    .then(value => {
+      if(!value){
+        return {
+          success: false,
+          message: "ok",
+          response: `There is no account for ${email}.`
+        }
+      }
+      return {success: true, user: value};
+    }).catch(reason => {
+      return {success: false, data: reason};
+    });
+}
+
 module.exports = {
   userRegister,
   verifyAccount,
   getUserLogin,
   getUserLogOut,
   checkEmail,
-  updatePassword
+  updatePassword,
+  createDummyUser,
+  findUserByEmail
 }

@@ -16,15 +16,16 @@ const createNewFoodSample = async (
 ) => {
   try {
     await db.transaction(async trx => {
-      food_sample_details.status = "INACTIVE";
-      food_sample_details.food_ad_code = Math.random().toString(36).substring(2, 4) + Math.random().toString(36).substring(2, 4);
-      let user_role_object = user_role_manager.createRoleObject(db_user.role);
-      if (
-        user_role_object.includes("HOST") &&
-        db_user.is_participating_in_festival
-      ) {
-        food_sample_details.status = "ACTIVE";
-      }
+      // food_sample_details.status = "INACTIVE";
+      // food_sample_details.food_ad_code = Math.random().toString(36).substring(2, 4) + Math.random().toString(36).substring(2, 4);
+      // let user_role_object = user_role_manager.createRoleObject(db_user.role);
+      // if (
+      //   user_role_object.includes("HOST") &&
+      //   db_user.is_participating_in_festival
+      // ) {
+      //   food_sample_details.status = "ACTIVE";
+      // }
+      food_sample_details.status = "ACTIVE";
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
         .returning("*");
@@ -99,6 +100,8 @@ const getAllUserFoodSamples = async (
   let query = db
     .select(
       "food_samples.*",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
       db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
     )
     .from("food_samples")
@@ -107,7 +110,14 @@ const getAllUserFoodSamples = async (
       "food_samples.food_sample_id",
       "food_sample_images.food_sample_id"
     )
-    .groupBy("food_samples.food_sample_id");
+    .leftJoin(
+      "nationalities",
+      "food_samples.nationality_id",
+      "nationalities.id"
+    )
+    .groupBy("food_samples.food_sample_id")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code");
 
   if (!requestByAdmin) {
     query = query
@@ -132,16 +142,17 @@ const updateFoodSample = async (
   updatedByAdmin
 ) => {
   if (!food_sample_update_data.status) {
-    let user_role_object = user_role_manager.createRoleObject(db_user.role);
-    if (
-      user_role_object.includes("HOST") &&
-      db_user.is_participating_in_festival &&
-      !updatedByAdmin
-    ) {
-      food_sample_update_data.status = "ACTIVE";
-    } else {
-      food_sample_update_data.status = "INACTIVE";
-    }
+    // let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    // if (
+    //   user_role_object.includes("HOST") &&
+    //   db_user.is_participating_in_festival &&
+    //   !updatedByAdmin
+    // ) {
+    //   food_sample_update_data.status = "ACTIVE";
+    // } else {
+    //   food_sample_update_data.status = "INACTIVE";
+    // }
+    food_sample_update_data.status = "ACTIVE";
   }
   return await db("food_samples")
     .where(builder => {
@@ -261,6 +272,8 @@ const getFoodSample = async food_sample_id => {
   return await db
     .select(
       "food_samples.*",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
       db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
     )
     .from("food_samples")
@@ -269,7 +282,14 @@ const getFoodSample = async food_sample_id => {
       "food_samples.food_sample_id",
       "food_sample_images.food_sample_id"
     )
+    .leftJoin(
+      "nationalities",
+      "food_samples.nationality_id",
+      "nationalities.id"
+    )
     .groupBy("food_samples.food_sample_id")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code")
     .having("food_samples.food_sample_id", "=", food_sample_id)
     .then(value => {
       return { success: true, details: value };
