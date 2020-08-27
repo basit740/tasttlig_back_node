@@ -16,14 +16,15 @@ const createNewFoodSample = async (
 ) => {
   try {
     await db.transaction(async trx => {
-      food_sample_details.status = "INACTIVE";
-      let user_role_object = user_role_manager.createRoleObject(db_user.role);
-      if (
-        user_role_object.includes("HOST") &&
-        db_user.is_participating_in_festival
-      ) {
-        food_sample_details.status = "ACTIVE";
-      }
+      // food_sample_details.status = "INACTIVE";
+      // let user_role_object = user_role_manager.createRoleObject(db_user.role);
+      // if (
+      //   user_role_object.includes("HOST") &&
+      //   db_user.is_participating_in_festival
+      // ) {
+      //   food_sample_details.status = "ACTIVE";
+      // }
+      food_sample_details.status = "ACTIVE";
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
         .returning("*");
@@ -140,16 +141,17 @@ const updateFoodSample = async (
   updatedByAdmin
 ) => {
   if (!food_sample_update_data.status) {
-    let user_role_object = user_role_manager.createRoleObject(db_user.role);
-    if (
-      user_role_object.includes("HOST") &&
-      db_user.is_participating_in_festival &&
-      !updatedByAdmin
-    ) {
-      food_sample_update_data.status = "ACTIVE";
-    } else {
-      food_sample_update_data.status = "INACTIVE";
-    }
+    // let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    // if (
+    //   user_role_object.includes("HOST") &&
+    //   db_user.is_participating_in_festival &&
+    //   !updatedByAdmin
+    // ) {
+    //   food_sample_update_data.status = "ACTIVE";
+    // } else {
+    //   food_sample_update_data.status = "INACTIVE";
+    // }
+    food_sample_update_data.status = "ACTIVE";
   }
   return await db("food_samples")
     .where(builder => {
