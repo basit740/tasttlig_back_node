@@ -9,9 +9,9 @@ const stripe = new Stripe(keySecret);
 const paymentIntent = async (order_details) => {
   try {
     const payment = await stripe.paymentIntents.create({
-      amount: parseFloat(order_details.membership.price) * 100,
+      amount: parseFloat(order_details.subscription.price) * 100,
       currency: "cad",
-      description: order_details.membership.description
+      description: order_details.subscription.description
     });
     return {success: true, client_secret: payment.client_secret};
   } catch (error) {

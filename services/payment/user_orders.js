@@ -1,20 +1,22 @@
 "use strict";
 
 const db = require("../../db/db-config");
+const Mailer = require("../email/nodemailer").nodemailer_transporter;
+const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
 const getOrderDetails = async(order_details) => {
-  if (order_details.item_type === "membership"){
-    return await db("memberships")
+  if (order_details.item_type === "subscription"){
+    return await db("subscriptions")
       .where({
-        membership_id: order_details.item_id,
+        subscription_code: order_details.item_id,
         status: "ACTIVE"
       })
       .first()
       .then(value => {
         if (!value){
-          return { success: false, message: "No Membership found." };
+          return { success: false, message: "No Subscription found." };
         }
-        return { success: true, membership: value };
+        return { success: true, subscription: value };
       })
       .catch(error => {
         return { success: false, message: error };
@@ -23,22 +25,24 @@ const getOrderDetails = async(order_details) => {
   return { success: false, message: "Item type not supported" };
 }
 
-const createOrder = async(order_details) => {
-  if (order_details.item_type === "membership"){
-    try{
+const createOrder = async(order_details, db_order_details) => {
+  if (order_details.item_type === "subscription") {
+    try {
       await db.transaction(async trx => {
+        const total_amount_before_tax = parseFloat(db_order_details.membership.price);
+        const total_tax = Math.round(total_amount_before_tax * 13) / 100;
         const db_orders = await trx("orders")
           .insert({
             order_by_user_id: order_details.user_id,
             status: "SUCCESS",
-            total_amount_before_tax: 20,
-            total_tax: 2.6,
-            total_amount_after_tax: 22.6,
+            total_amount_before_tax: total_amount_before_tax,
+            total_tax: total_tax,
+            total_amount_after_tax: total_amount_before_tax + total_tax,
             order_datetime: new Date()
           })
           .returning("*");
-        if(!db_orders){
-          return {success: false, details:"Inserting new Order failed"};
+        if (!db_orders) {
+          return {success: false, details: "Inserting new Order failed"};
         }
         await trx("order_items")
           .insert({
@@ -46,7 +50,7 @@ const createOrder = async(order_details) => {
             item_id: order_details.item_id,
             item_type: order_details.item_type,
             quantity: 1,
-            price_before_tax: 22.6
+            price_before_tax: total_amount_before_tax
           });
         await trx("payments")
           .insert({
@@ -54,46 +58,36 @@ const createOrder = async(order_details) => {
             payment_reference_number: order_details.payment_id,
             payment_type: "CARD",
             payment_vender: "STRIPE"
-          })
-      })
-      // Email to user on submitting the request to upgrade
-      // await Mailer.sendMail({
-      //   to: db_user.email,
-      //   bcc: ADMIN_EMAIL,
-      //   subject: `[Tasttlig] New Experience Created`,
-      //   template: 'new_experience',
-      //   context: {
-      //     first_name: db_user.first_name,
-      //     last_name: db_user.last_name,
-      //     title: experience_details.title,
-      //     status: experience_details.status
-      //   }
-      // });
-      return {success: true, details:"success"};
-    } catch (err) {
-      return {success: false, details:err.message};
-    }
-
-
-
-
-
-
-
-    return await db("orders")
-      .where("membership_id", order_details.item_id)
-      .first()
-      .then(value => {
-        if (!value){
-          return { success: false, message: "No Membership found." };
-        }
-        return { success: true, membership: value };
-      })
-      .catch(error => {
-        return { success: false, message: error };
+          });
+        await trx("user_subscriptions")
+          .insert({
+            subscription_code: db_order_details.subscription.subscription_code,
+            subscription_start_datetime: new Date(),
+            subscription_end_datetime: new Date()
+              .setMonth(new Date().getMonth()
+                + db_order_details.subscription.validity_in_months)
+          });
       });
+      //Email to user on submitting the request to upgrade
+      await Mailer.sendMail({
+        to: order_details.email,
+        bcc: ADMIN_EMAIL,
+        subject: `Subscription Purchase`,
+        template: 'new_subscription_purchase',
+        context: {
+          first_name: db_user.first_name,
+          last_name: db_user.last_name,
+          title: experience_details.title,
+          status: experience_details.status
+        }
+      });
+      return {success: true, details: "success"};
+    } catch (err) {
+      return {success: false, details: err.message};
+    }
+  } else {
+    return {success: false, details: "Invalid Item Type"};
   }
-  return { success: false, message: "Item type not supported" };
 }
 
 module.exports = {
