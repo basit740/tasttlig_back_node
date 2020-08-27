@@ -208,7 +208,7 @@ authRouter.put("/user/update-password/:id", token_service.authForPassUpdate, asy
 );
 
 // POST user forgot password
-authRouter.post("/user/guest_checkout", createAccountLimiter, async (req, res) => {
+authRouter.post("/user/create_visitor_account", createAccountLimiter, async (req, res) => {
   if (!req.body.email) {
     return res.status(403).json({
       success: false,
@@ -217,10 +217,11 @@ authRouter.post("/user/guest_checkout", createAccountLimiter, async (req, res) =
   }
   const returning = await authenticate_user_service.findUserByEmail(req.body.email);
   if(!returning.success) {
-    const response = authenticate_user_service.createDummyUser(req.body.email);
+    const response = await authenticate_user_service.createDummyUser(req.body.email);
     res.send(response);
+  } else {
+    res.send(returning);
   }
-  res.send(returning);
 });
 
 module.exports = authRouter;
