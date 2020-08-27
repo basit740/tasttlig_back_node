@@ -76,7 +76,6 @@ router.get("/food-sample/all", async (req, res) => {
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
     const food_ad_code = req.query.food_ad_code
-    console.log(req.query)
     const filters = {
       nationalities: req.query.nationalities,
       startDate: req.query.startDate,
