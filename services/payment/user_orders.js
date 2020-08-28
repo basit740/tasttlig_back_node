@@ -29,7 +29,7 @@ const createOrder = async(order_details, db_order_details) => {
   if (order_details.item_type === "subscription") {
     try {
       await db.transaction(async trx => {
-        const total_amount_before_tax = parseFloat(db_order_details.membership.price);
+        const total_amount_before_tax = parseFloat(db_order_details.subscription.price);
         const total_tax = Math.round(total_amount_before_tax * 13) / 100;
         const db_orders = await trx("orders")
           .insert({
@@ -59,26 +59,29 @@ const createOrder = async(order_details, db_order_details) => {
             payment_type: "CARD",
             payment_vender: "STRIPE"
           });
+        let subscription_end_datetime = null;
+        if(db_order_details.subscription.validity_in_months){
+          subscription_end_datetime = new Date()
+            .setMonth(new Date().getMonth()
+              + db_order_details.subscription.validity_in_months)
+        } else {
+          subscription_end_datetime = db_order_details.subscription.date_of_expiry;
+        }
         await trx("user_subscriptions")
           .insert({
             subscription_code: db_order_details.subscription.subscription_code,
             subscription_start_datetime: new Date(),
-            subscription_end_datetime: new Date()
-              .setMonth(new Date().getMonth()
-                + db_order_details.subscription.validity_in_months)
+            subscription_end_datetime: subscription_end_datetime
           });
       });
       //Email to user on submitting the request to upgrade
       await Mailer.sendMail({
-        to: order_details.email,
+        to: order_details.user_email,
         bcc: ADMIN_EMAIL,
         subject: `Subscription Purchase`,
         template: 'new_subscription_purchase',
         context: {
-          first_name: db_user.first_name,
-          last_name: db_user.last_name,
-          title: experience_details.title,
-          status: experience_details.status
+          passport_name: "Festival"
         }
       });
       return {success: true, details: "success"};
