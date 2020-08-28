@@ -17,6 +17,7 @@ const createNewFoodSample = async (
   try {
     await db.transaction(async trx => {
       // food_sample_details.status = "INACTIVE";
+      // food_sample_details.food_ad_code = Math.random().toString(36).substring(2, 4) + Math.random().toString(36).substring(2, 4);
       // let user_role_object = user_role_manager.createRoleObject(db_user.role);
       // if (
       //   user_role_object.includes("HOST") &&
@@ -190,7 +191,7 @@ const deleteFoodSample = async (user_id, food_sample_id) => {
     });
 };
 
-const getAllFoodSamples = async (operator, status, filters) => {
+const getAllFoodSamples = async (operator, status, keyword, currentPage, food_ad_code, filters) => {
   let query = db
     .select(
       "food_samples.*",
@@ -234,6 +235,30 @@ const getAllFoodSamples = async (operator, status, filters) => {
     );
   }
 
+  if (food_ad_code) {
+    query.where('food_ad_code', '=', food_ad_code)
+  }
+
+  if (keyword) {
+    query = db.select('*')
+      .from(db.select('main.*',
+        db.raw(
+          "to_tsvector(main.title) " +
+          "|| to_tsvector(main.description) " +
+          "|| to_tsvector(main.first_name) " +
+          "|| to_tsvector(main.last_name) " +
+          "as search_text"))
+        .from(query.as('main'))
+        .as('main'))
+      .where(db.raw(`main.search_text @@ plainto_tsquery('${keyword}')`))
+  }
+
+  query = query.paginate({
+        perPage: 6,
+        isLengthAware: true,
+        currentPage: currentPage
+      })
+  
   return await query
     .then(value => {
       return { success: true, details: value };
