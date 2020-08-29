@@ -1,43 +1,45 @@
 "use strict";
 
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
+const express = require("express");
+const path = require("path");
+const cookieParser = require("cookie-parser");
+const logger = require("morgan");
 const cors = require("cors");
 
 // Set up dotenv
 require("dotenv").config();
 require("./db/db-config");
 
-const profile_router = require('./routes/user/profile');
-const user_authentication_router = require('./routes/user/authentication');
-const experience_router = require('./routes/experience/experience');
-const food_sample_router = require('./routes/food_sample/food_sample');
+const profile_router = require("./routes/user/profile");
+const user_authentication_router = require("./routes/user/authentication");
+const experience_router = require("./routes/experience/experience");
+const food_sample_router = require("./routes/food_sample/food_sample");
+const food_sample_claim_router = require("./routes/food_sample_claim/food_sample_claim");
 const s3UploaderRouter = require("./routes/s3Uploader/s3UploaderRoutes");
-const payment_router = require('./routes/payment/payment');
+const payment_router = require("./routes/payment/payment");
 const newsletter_router = require("./routes/user/newsletter");
-const admin_user_router = require('./routes/admin/user');
-const nationality_router = require('./routes/nationality/nationality');
-const subscription_router = require('./routes/subscriptions/subscriptions');
+const admin_user_router = require("./routes/admin/user");
+const nationality_router = require("./routes/nationality/nationality");
+const subscription_router = require("./routes/subscriptions/subscriptions");
 
 const app = express();
 let corsOptions = {
-  origin: '*',
+  origin: "*",
   optionsSuccessStatus: 200,
-}
+};
 app.use(cors(corsOptions));
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(logger('combined'));
+app.use(logger("combined"));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use(user_authentication_router);
 app.use(profile_router);
 app.use(experience_router);
 app.use(food_sample_router);
+app.user(food_sample_claim_router);
 app.use(s3UploaderRouter);
 app.use(payment_router);
 app.use(newsletter_router);
