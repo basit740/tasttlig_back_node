@@ -26,12 +26,16 @@ const createNewFoodSampleClaim = async (
         };
       }
     });
+    const mail_list_claimed = [
+      process.env.KODEDE_ADMIN_EMAIL,
+      db_food_sample.email
+    ];
     // Email to user on claiming food sample
     await Mailer.sendMail({
       to: db_user.email,
-      bcc: ADMIN_EMAIL,
+      bcc: mail_list_claimed,
       subject: `[Tasttlig] You have claimed ${db_food_sample.title}`,
-      template: "new_food_sample_claim_user",
+      template: "new_food_sample_claim",
       context: {
         first_name: db_user.first_name,
         last_name: db_user.last_name,
