@@ -39,7 +39,7 @@ app.use(user_authentication_router);
 app.use(profile_router);
 app.use(experience_router);
 app.use(food_sample_router);
-app.user(food_sample_claim_router);
+app.use(food_sample_claim_router);
 app.use(s3UploaderRouter);
 app.use(payment_router);
 app.use(newsletter_router);

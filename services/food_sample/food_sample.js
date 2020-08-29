@@ -363,6 +363,21 @@ const getDistinctNationalities = async (operator, status) => {
     });
 };
 
+const getFoodSampleById = async id => {
+  return await db("food_samples")
+    .where("food_sample_id", id)
+    .first()
+    .then(value => {
+      if (!value) {
+        return { success: false, message: "No food sample found." };
+      }
+      return { success: true, food_sample: value };
+    })
+    .catch(error => {
+      return { success: false, message: error };
+    });
+};
+
 module.exports = {
   createNewFoodSample,
   getAllUserFoodSamples,
@@ -371,5 +386,6 @@ module.exports = {
   getAllFoodSamples,
   getFoodSample,
   updateReviewFoodSample,
-  getDistinctNationalities
+  getDistinctNationalities,
+  getFoodSampleById
 };
