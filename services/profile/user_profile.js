@@ -243,11 +243,11 @@ const updateUserProfile = async user => {
       .where("tasttlig_user_id", user.id)
       .first()
       .update({
-        address_line_1: user.address_line_1,
-        address_line_2: user.address_line_2,
-        city: user.city,
-        postal_code: user.postal_code,
-        state: user.state,
+        user_address_line_1: user.address_line_1,
+        user_address_line_2: user.address_line_2,
+        user_city: user.city,
+        user_postal_code: user.postal_code,
+        user_state: user.state,
         address_type: user.address_type,
         business_name: user.business_name,
         business_type: user.business_type,
