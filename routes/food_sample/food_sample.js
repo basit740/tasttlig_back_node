@@ -5,6 +5,7 @@ const token_service = require("../../services/authentication/token");
 const food_sample_service = require("../../services/food_sample/food_sample");
 const user_profile_service = require("../../services/profile/user_profile");
 const user_role_manager = require("../../services/profile/user_roles_manager");
+const { generateRandomString } = require("../../functions/functions");
 
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
   if (!req.body.title || !req.body.start_date || !req.body.end_date || !req.body.start_time
@@ -51,7 +52,8 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
       country: req.body.country,
       postal_code: req.body.postal_code,
       nationality_id: req.body.nationality_id,
-      frequency: req.body.frequency
+      frequency: req.body.frequency,
+      food_ad_code: generateRandomString()
     }
     const response = await food_sample_service.createNewFoodSample(
       db_user,

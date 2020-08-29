@@ -48,7 +48,8 @@ const createNewFoodSampleClaim = async (
         end_date: formatDate(db_food_sample.end_date),
         start_time: formatMilitaryToStandardTime(db_food_sample.start_time),
         end_time: formatMilitaryToStandardTime(db_food_sample.end_time),
-        frequency: db_food_sample.frequency
+        frequency: db_food_sample.frequency,
+        code: db_food_sample.food_ad_code
       },
     });
     return { success: true, details: "success" };

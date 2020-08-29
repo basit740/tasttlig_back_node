@@ -18,7 +18,19 @@ const formatMilitaryToStandardTime = (event) => {
   return standardTime;
 };
 
+/* Generate string of 4 random alphanumeric characters for the Food Sample code 
+helper function */
+const generateRandomString = () => {
+  let text = "";
+  let str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  for (let i = 0; i < 4; i++) {
+    text += str.charAt(Math.floor(Math.random() * str.length));
+  }
+  return text;
+};
+
 module.exports = {
   formatDate,
-  formatMilitaryToStandardTime
+  formatMilitaryToStandardTime,
+  generateRandomString
 };
