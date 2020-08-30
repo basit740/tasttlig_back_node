@@ -78,7 +78,7 @@ const createOrder = async(order_details, db_order_details) => {
       await Mailer.sendMail({
         to: order_details.user_email,
         bcc: ADMIN_EMAIL,
-        subject: `Subscription Purchase`,
+        subject: "[Tasttlig] Subscription Purchase",
         template: 'new_subscription_purchase',
         context: {
           passport_name: "Festival"
