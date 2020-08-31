@@ -1,6 +1,6 @@
 "use strict";
 
-const db = require("../../db/db-config");
+const {db} = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const role_manager = require("./user_roles_manager");

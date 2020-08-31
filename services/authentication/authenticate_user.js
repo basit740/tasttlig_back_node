@@ -1,6 +1,6 @@
 "use strict";
 
-const db = require("../../db/db-config");
+const {db} = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;

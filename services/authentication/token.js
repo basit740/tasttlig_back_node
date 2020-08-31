@@ -1,7 +1,7 @@
 "use strict";
 
 // Libraries
-const db = require("../../db/db-config");
+const {db} = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
 
 const storeToken = async (refresh_token, user_id) => {
