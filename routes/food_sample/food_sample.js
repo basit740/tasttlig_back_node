@@ -79,7 +79,9 @@ router.get("/food-sample/all", async (req, res) => {
     const filters = {
       nationalities: req.query.nationalities,
       startDate: req.query.startDate,
-      endDate: req.query.endDate
+      endDate: req.query.endDate,
+      latitude: req.query.latitude,
+      longitude: req.query.longitude
     }
 
     const response = await food_sample_service.getAllFoodSamples(status_operator, food_sample_status, keyword, current_page, food_ad_code, filters);

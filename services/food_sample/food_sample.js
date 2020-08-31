@@ -232,6 +232,15 @@ const getAllFoodSamples = async (operator, status, keyword, currentPage, food_ad
     query.whereIn("nationalities.nationality", filters.nationalities);
   }
 
+  if (filters.latitude && filters.longitude) {
+    query.select(gis.distance("food_samples.coordinates", gis.geography(gis.makePoint(filters.longitude, filters.latitude)))
+      .as("distanceAway"))
+    query.where(gis.dwithin(
+      "food_samples.coordinates",
+      gis.geography(gis.makePoint(filters.longitude, filters.latitude)),
+      200000));
+  }
+
   if (filters.startDate) {
     query.whereRaw(
       "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) >= ?",
