@@ -27,7 +27,7 @@ const createNewFoodSampleClaim = async (
       }
     });
     const mail_list_claimed = [
-      process.env.KODEDE_ADMIN_EMAIL,
+      ADMIN_EMAIL,
       db_food_sample.email
     ];
     // Email to user on claiming food sample
