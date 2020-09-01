@@ -1,6 +1,6 @@
 "use strict";
 
-const db = require("../../db/db-config");
+const {db} = require("../../db/db-config");
 
 const getAll = async () => {
     return await db
