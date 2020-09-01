@@ -20,13 +20,14 @@ const formatMilitaryToStandardTime = (event) => {
 
 /* Generate string of 4 random alphanumeric characters for the Food Sample code 
 helper function */
-const generateRandomString = (len) => {
-  let text = "";
-  let str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  for (let i = 0; i < len; i++) {
-    text += str.charAt(Math.floor(Math.random() * str.length));
+const generateRandomString = (len, seed='tasttlig') => {
+  seed = parseInt(seed, 36) % 10
+  if (seed === 0) {
+    seed += 1
   }
-  return text;
+  let rand = (Math.random() * seed) % 1
+  let rand2 = (Math.random() * seed) % 1
+  return (rand.toString(36).substring(2, 4) + rand2.toString(36).substring(2, 4)).toUpperCase();
 };
 
 module.exports = {
