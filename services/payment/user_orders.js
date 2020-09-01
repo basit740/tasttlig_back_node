@@ -76,6 +76,7 @@ const createOrder = async(order_details, db_order_details) => {
       });
       //Email to user on submitting the request to upgrade
       await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
         to: order_details.user_email,
         bcc: ADMIN_EMAIL,
         subject: `Subscription Purchase`,

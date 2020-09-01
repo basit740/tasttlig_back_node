@@ -76,6 +76,7 @@ const upgradeUser = async (db_user, upgrade_details) => {
 
     // Email to user on submitting the request to upgrade
     await Mailer.sendMail({
+      from: process.env.SES_DEFAULT_FROM,
       to: db_user.email,
       subject: `[Tasttlig] Thank you for your application`,
       template: "user_upgrade_request",
@@ -87,6 +88,7 @@ const upgradeUser = async (db_user, upgrade_details) => {
 
     //Send Email to admin for document approval
     await Mailer.sendMail({
+      from: process.env.SES_DEFAULT_FROM,
       to: ADMIN_EMAIL,
       subject: "[Tasttlig] Document Verification",
       template: "document_admin_approval_decline",
@@ -160,6 +162,7 @@ const upgradeUserResponse = async token => {
 
       // Async experience accepted email
       await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
         to: db_user.email,
         subject: `[Tasttlig] Your request for upgradation to Host is accepted`,
         template: "user_upgrade_approve",
@@ -180,6 +183,7 @@ const upgradeUserResponse = async token => {
         .update("role", role_manager.createRoleString(user_role_object));
 
       await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
         to: db_user.email,
         subject: `[Tasttlig] Your request for upgradation to Host is rejected`,
         template: "user_upgrade_reject",

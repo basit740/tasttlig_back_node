@@ -47,6 +47,7 @@ const createNewExperience = async (
             try {
               const url = `${SITE_BASE}/review-experience/${db_experience[0].experience_id}/${emailToken}`;
               await Mailer.sendMail({
+                from: process.env.SES_DEFAULT_FROM,
                 to: db_user.email,
                 subject: `[Tasttlig] Review Experience "${experience_details.title}"`,
                 template: "review_experience",
@@ -66,6 +67,7 @@ const createNewExperience = async (
       } else {
         // Email to user on submitting the request to upgrade
         await Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
           to: db_user.email,
           bcc: ADMIN_EMAIL,
           subject: `[Tasttlig] New Experience Created`,
@@ -146,6 +148,7 @@ const updateReviewExperience = async (
     .then(value => {
       if (experience_update_data.status === "ACTIVE") {
         Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
           to: ADMIN_EMAIL,
           subject: `[Tasttlig] Experience "${value[0].title}" has been accepted`,
           template: "accept_experience",
@@ -156,6 +159,7 @@ const updateReviewExperience = async (
         });
       } else {
         Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
           to: ADMIN_EMAIL,
           subject: `[Tasttlig] Experience "${value[0].title}" has been rejected`,
           template: "reject_experience",
