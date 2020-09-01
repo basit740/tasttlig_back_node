@@ -1,9 +1,10 @@
 "use strict";
 
-const db = require("../../db/db-config");
+const {db, gis} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const user_role_manager = require("../profile/user_roles_manager");
 const jwt = require("jsonwebtoken");
+const geocoder = require("../geocoder");
 
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const SITE_BASE = process.env.SITE_BASE;
@@ -25,12 +26,15 @@ const createNewFoodSample = async (
       // ) {
       //   food_sample_details.status = "ACTIVE";
       // }
+
+      await setFoodSampleCoordinates(food_sample_details);
+
       food_sample_details.status = "ACTIVE";
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
         .returning("*");
       if (!db_food_sample) {
-        return { success: false, details: "Inserting new Food Sample failed" };
+        return {success: false, details: "Inserting new Food Sample failed"};
       }
       const images = food_sample_images.map((food_sample_image) => ({
         food_sample_id: db_food_sample[0].food_sample_id,
@@ -85,9 +89,9 @@ const createNewFoodSample = async (
         });
       }
     });
-    return { success: true, details: "success" };
+    return {success: true, details: "success"};
   } catch (err) {
-    return { success: false, details: err.message };
+    return {success: false, details: err.message};
   }
 };
 
@@ -127,11 +131,11 @@ const getAllUserFoodSamples = async (
     query = query.having("food_samples.status", operator, status);
   }
   return await query
-    .then((value) => {
-      return { success: true, details: value };
+    .then(value => {
+      return {success: true, details: value};
     })
-    .catch((reason) => {
-      return { success: false, details: reason };
+    .catch(reason => {
+      return {success: false, details: reason};
     });
 };
 
@@ -169,10 +173,10 @@ const updateFoodSample = async (
     })
     .update(food_sample_update_data)
     .then(() => {
-      return { success: true };
+      return {success: true};
     })
-    .catch((reason) => {
-      return { success: false, details: reason };
+    .catch(reason => {
+      return {success: false, details: reason};
     });
 };
 
@@ -184,10 +188,10 @@ const deleteFoodSample = async (user_id, food_sample_id) => {
     })
     .del()
     .then(() => {
-      return { success: true };
+      return {success: true};
     })
-    .catch((reason) => {
-      return { success: false, details: reason };
+    .catch(reason => {
+      return {success: false, details: reason};
     });
 };
 
@@ -235,6 +239,15 @@ const getAllFoodSamples = async (
     query.whereIn("nationalities.nationality", filters.nationalities);
   }
 
+  if (filters.latitude && filters.longitude) {
+    query.select(gis.distance("food_samples.coordinates", gis.geography(gis.makePoint(filters.longitude, filters.latitude)))
+      .as("distanceAway"))
+    query.where(gis.dwithin(
+      "food_samples.coordinates",
+      gis.geography(gis.makePoint(filters.longitude, filters.latitude)),
+      200000));
+  }
+
   if (filters.startDate) {
     query.whereRaw(
       "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) >= ?",
@@ -270,15 +283,15 @@ const getAllFoodSamples = async (
   query = query.paginate({
     perPage: 6,
     isLengthAware: true,
-    currentPage: currentPage,
-  });
+    currentPage: currentPage
+  })
 
   return await query
-    .then((value) => {
-      return { success: true, details: value };
+    .then(value => {
+      return {success: true, details: value};
     })
-    .catch((reason) => {
-      return { success: false, details: reason };
+    .catch(reason => {
+      return {success: false, details: reason};
     });
 };
 
@@ -305,11 +318,11 @@ const getFoodSample = async (food_sample_id) => {
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
     .having("food_samples.food_sample_id", "=", food_sample_id)
-    .then((value) => {
-      return { success: true, details: value };
+    .then(value => {
+      return {success: true, details: value};
     })
-    .catch((reason) => {
-      return { success: false, details: reason };
+    .catch(reason => {
+      return {success: false, details: reason};
     });
 };
 
@@ -334,8 +347,8 @@ const updateReviewFoodSample = async (
           context: {
             title: value[0].title,
             review_food_sample_reason:
-              food_sample_update_data.review_experience_reason,
-          },
+            food_sample_update_data.review_experience_reason
+          }
         });
       } else {
         Mailer.sendMail({
@@ -345,16 +358,16 @@ const updateReviewFoodSample = async (
           context: {
             title: value[0].title,
             review_food_sample_reason:
-              food_sample_update_data.review_experience_reason,
-          },
+            food_sample_update_data.review_experience_reason
+          }
         });
       }
     })
     .then(() => {
-      return { success: true };
+      return {success: true};
     })
-    .catch((reason) => {
-      return { success: false, details: reason };
+    .catch(reason => {
+      return {success: false, details: reason};
     });
 };
 
@@ -369,11 +382,11 @@ const getDistinctNationalities = async (operator, status) => {
     .pluck("nationalities.nationality")
     .orderBy("nationalities.nationality")
     .distinct()
-    .then((value) => {
-      return { success: true, nationalities: value };
+    .then(value => {
+      return {success: true, nationalities: value};
     })
-    .catch((err) => {
-      return { success: false, details: err };
+    .catch(err => {
+      return {success: false, details: err};
     });
 };
 
@@ -397,6 +410,26 @@ const getFoodSampleById = async (id) => {
     });
 };
 
+const setFoodSampleCoordinates = async (details) => {
+  try {
+    const address = [
+      details.address,
+      details.city,
+      details.state,
+      details.country,
+      details.postal_code
+    ].join(",");
+
+    const coordinates = (await geocoder.geocode(address))[0];
+
+    details.latitude = coordinates.latitude;
+    details.longitude = coordinates.longitude;
+    details.coordinates = gis.setSRID(gis.makePoint(coordinates.longitude, coordinates.latitude), 4326);
+  } catch (e) {
+    console.log(e);
+  }
+}
+
 module.exports = {
   createNewFoodSample,
   getAllUserFoodSamples,
@@ -406,5 +439,5 @@ module.exports = {
   getFoodSample,
   updateReviewFoodSample,
   getDistinctNationalities,
-  getFoodSampleById,
+  getFoodSampleById
 };
