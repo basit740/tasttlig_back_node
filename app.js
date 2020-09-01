@@ -15,9 +15,11 @@ const user_authentication_router = require('./routes/user/authentication');
 const experience_router = require('./routes/experience/experience');
 const food_sample_router = require('./routes/food_sample/food_sample');
 const s3UploaderRouter = require("./routes/s3Uploader/s3UploaderRoutes");
+const payment_router = require('./routes/payment/payment');
 const newsletter_router = require("./routes/user/newsletter");
 const admin_user_router = require('./routes/admin/user');
 const nationality_router = require('./routes/nationality/nationality');
+const subscription_router = require('./routes/subscriptions/subscriptions');
 
 const app = express();
 let corsOptions = {
@@ -37,9 +39,11 @@ app.use(profile_router);
 app.use(experience_router);
 app.use(food_sample_router);
 app.use(s3UploaderRouter);
+app.use(payment_router);
 app.use(newsletter_router);
 app.use(admin_user_router);
 app.use("/nationalities", nationality_router);
+app.use(subscription_router);
 
 // Boot development server
 const port = process.env.PORT || 8000;

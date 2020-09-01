@@ -14,7 +14,7 @@ const getUserById = async id => {
     .where("tasttlig_user_id", id)
     .first()
     .then(value => {
-      if (!value){
+      if (!value) {
         return { success: false, message: "No user found." };
       }
       return { success: true, user: value };
@@ -22,10 +22,10 @@ const getUserById = async id => {
     .catch(error => {
       return { success: false, message: error };
     });
-}
+};
 
 const upgradeUser = async (db_user, upgrade_details) => {
-  try{
+  try {
     const document_response = await db("documents")
       .insert({
         user_id: db_user.tasttlig_user_id,
@@ -37,13 +37,13 @@ const upgradeUser = async (db_user, upgrade_details) => {
       })
       .returning("*")
       .then(value => {
-        return {success: true, details:value[0]};
+        return { success: true, details: value[0] };
       })
       .catch(reason => {
-        return {success: false, details:reason};
+        return { success: false, details: reason };
       });
     if (!document_response.success) {
-      return document_response
+      return document_response;
     }
     let user_role_object = role_manager.createRoleObject(db_user.role);
     user_role_object = role_manager.addRole(user_role_object, "HOST_PENDING");
@@ -51,20 +51,25 @@ const upgradeUser = async (db_user, upgrade_details) => {
       .where("tasttlig_user_id", db_user.tasttlig_user_id)
       .update({
         role: role_manager.createRoleString(user_role_object),
-        is_participating_in_festival: upgrade_details.is_participating_in_festival
+        is_participating_in_festival:
+          upgrade_details.is_participating_in_festival
       });
 
     const document_details = document_response.details;
-    const document_approve_token = jwt.sign({
+    const document_approve_token = jwt.sign(
+      {
         document_id: document_details.document_id,
         status: "APPROVED"
       },
-      EMAIL_SECRET);
-    const document_reject_token = jwt.sign({
+      EMAIL_SECRET
+    );
+    const document_reject_token = jwt.sign(
+      {
         document_id: document_details.document_id,
         status: "REJECT"
       },
-      EMAIL_SECRET);
+      EMAIL_SECRET
+    );
 
     const document_approve_url = `${SITE_BASE}/user/upgrade/action/${document_approve_token}`;
     const document_reject_url = `${SITE_BASE}/user/upgrade/action/${document_reject_token}`;
@@ -73,7 +78,7 @@ const upgradeUser = async (db_user, upgrade_details) => {
     await Mailer.sendMail({
       to: db_user.email,
       subject: `[Tasttlig] Thank you for your application`,
-      template: 'user_upgrade_request',
+      template: "user_upgrade_request",
       context: {
         first_name: db_user.first_name,
         last_name: db_user.last_name
@@ -84,7 +89,7 @@ const upgradeUser = async (db_user, upgrade_details) => {
     await Mailer.sendMail({
       to: ADMIN_EMAIL,
       subject: "[Tasttlig] Document Verification",
-      template: 'document_admin_approval_decline',
+      template: "document_admin_approval_decline",
       context: {
         first_name: db_user.first_name,
         last_name: db_user.last_name,
@@ -98,13 +103,13 @@ const upgradeUser = async (db_user, upgrade_details) => {
         reject_link: document_reject_url
       }
     });
-    return {success: true, message: "success"}
+    return { success: true, message: "success" };
   } catch (err) {
-    return {success: false, message: err};
+    return { success: false, message: err };
   }
-}
+};
 
-const upgradeUserResponse = async (token) => {
+const upgradeUserResponse = async token => {
   try {
     const decrypted_token = jwt.verify(token, EMAIL_SECRET);
     const document_id = decrypted_token.document_id;
@@ -115,18 +120,21 @@ const upgradeUserResponse = async (token) => {
       .update("status", status)
       .returning("*")
       .catch(reason => {
-        return {success: false, message: reason}
+        return { success: false, message: reason };
       });
 
     const document_user_id = db_document[0].user_id;
     const db_user_row = await getUserById(document_user_id);
-    if(!db_user_row.success){
-      return {success: false, message: db_user_row.message}
+    if (!db_user_row.success) {
+      return { success: false, message: db_user_row.message };
     }
     const db_user = db_user_row.user;
     if (status === "APPROVED") {
       let user_role_object = role_manager.createRoleObject(db_user.role);
-      user_role_object = role_manager.removeRole(user_role_object, "HOST_PENDING");
+      user_role_object = role_manager.removeRole(
+        user_role_object,
+        "HOST_PENDING"
+      );
       user_role_object = role_manager.addRole(user_role_object, "HOST");
       await db("tasttlig_users")
         .where("tasttlig_user_id", db_user.tasttlig_user_id)
@@ -154,15 +162,18 @@ const upgradeUserResponse = async (token) => {
       await Mailer.sendMail({
         to: db_user.email,
         subject: `[Tasttlig] Your request for upgradation to Host is accepted`,
-        template: 'user_upgrade_approve',
+        template: "user_upgrade_approve",
         context: {
           first_name: db_user.first_name,
-          last_name: db_user.last_name,
+          last_name: db_user.last_name
         }
       });
     } else {
       let user_role_object = role_manager.createRoleObject(db_user.role);
-      user_role_object = role_manager.removeRole(user_role_object, "HOST_PENDING");
+      user_role_object = role_manager.removeRole(
+        user_role_object,
+        "HOST_PENDING"
+      );
 
       await db("tasttlig_users")
         .where("tasttlig_user_id", db_user.tasttlig_user_id)
@@ -171,25 +182,25 @@ const upgradeUserResponse = async (token) => {
       await Mailer.sendMail({
         to: db_user.email,
         subject: `[Tasttlig] Your request for upgradation to Host is rejected`,
-        template: 'user_upgrade_reject',
+        template: "user_upgrade_reject",
         context: {
           first_name: db_user.first_name,
-          last_name: db_user.last_name,
+          last_name: db_user.last_name
         }
       });
     }
-    return {success: true, message: status}
+    return { success: true, message: status };
   } catch (err) {
-    return {success: false, message: err}
+    return { success: false, message: err };
   }
-}
+};
 
 const getUserByEmail = async email => {
   return await db("tasttlig_users")
     .where("email", email)
     .first()
     .then(value => {
-      if (!value){
+      if (!value) {
         return { success: false, message: "No user found." };
       }
       return { success: true, user: value };
@@ -197,11 +208,68 @@ const getUserByEmail = async email => {
     .catch(error => {
       return { success: false, message: error };
     });
-}
+};
+
+const updateUserAccount = async user => {
+  try {
+    return await db("tasttlig_users")
+      .where("tasttlig_user_id", user.id)
+      .first()
+      .update({
+        first_name: user.first_name,
+        last_name: user.last_name,
+        password: user.password,
+        phone_number: user.phone_number,
+        profile_image_link: user.profile_image_link,
+        profile_tag_line: user.profile_tag_line,
+        bio_text: user.bio_text,
+        banner_image_link: user.banner_image_link
+      })
+      .returning("*")
+      .then(value => {
+        return { success: true, details: value[0] };
+      })
+      .catch(reason => {
+        return { success: false, details: reason };
+      });
+  } catch (err) {
+    return { success: false, message: err };
+  }
+};
+
+const updateUserProfile = async user => {
+  try {
+    return await db("tasttlig_users")
+      .where("tasttlig_user_id", user.id)
+      .first()
+      .update({
+        address_line_1: user.address_line_1,
+        address_line_2: user.address_line_2,
+        city: user.city,
+        postal_code: user.postal_code,
+        state: user.state,
+        address_type: user.address_type,
+        business_name: user.business_name,
+        business_type: user.business_type,
+        profile_status: user.profile_status
+      })
+      .returning("*")
+      .then(value => {
+        return { success: true, details: value[0] };
+      })
+      .catch(reason => {
+        return { success: false, details: reason };
+      });
+  } catch (err) {
+    return { success: false, message: err };
+  }
+};
 
 module.exports = {
   getUserById,
   upgradeUser,
   upgradeUserResponse,
-  getUserByEmail
-}
+  getUserByEmail,
+  updateUserAccount,
+  updateUserProfile
+};
