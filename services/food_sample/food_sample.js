@@ -3,6 +3,7 @@
 const db = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const user_role_manager = require("../profile/user_roles_manager");
+const {generateRandomString} = require("../../functions/functions");
 const jwt = require("jsonwebtoken");
 
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -87,6 +88,16 @@ const createNewFoodSample = async (
     });
     return { success: true, details: "success" };
   } catch (err) {
+    // duplicate key
+    if (err.code === 23505){
+      food_sample_details.food_ad_code = generateRandomString(4)
+      return createNewFoodSample(
+        db_user,
+        food_sample_details,
+        food_sample_images,
+        createdByAdmin
+      )
+    }
     return { success: false, details: err.message };
   }
 };

@@ -53,7 +53,7 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
       postal_code: req.body.postal_code,
       nationality_id: req.body.nationality_id,
       frequency: req.body.frequency,
-      food_ad_code: generateRandomString()
+      food_ad_code: generateRandomString(4)
     }
     const response = await food_sample_service.createNewFoodSample(
       db_user,
