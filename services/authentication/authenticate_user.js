@@ -65,7 +65,7 @@ const userRegister = async (user, sendEmail= true) => {
                 await Mailer.sendMail({
                   from: process.env.SES_DEFAULT_FROM,
                   to: user.email,
-                  bcc: process.env.TASTTLIG_ADMIN_EMAIL,
+                  bcc: ADMIN_EMAIL,
                   subject: "[Tasttlig] Welcome to Tasttlig!",
                   template: 'signup',
                   context: {
