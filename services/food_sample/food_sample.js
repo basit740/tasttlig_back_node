@@ -82,7 +82,7 @@ const createNewFoodSample = async (
           to: db_user.email,
           bcc: ADMIN_EMAIL,
           subject: `[Tasttlig] New Food Sample Created`,
-          template: "new_sample",
+          template: "new_food_sample",
           context: {
             first_name: db_user.first_name,
             last_name: db_user.last_name,
