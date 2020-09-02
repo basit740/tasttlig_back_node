@@ -63,6 +63,7 @@ const userRegister = async (user, sendEmail= true) => {
               async (err, emailToken) => {
                 const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
                 await Mailer.sendMail({
+                  from: process.env.SES_DEFAULT_FROM,
                   to: user.email,
                   bcc: process.env.TASTTLIG_ADMIN_EMAIL,
                   subject: "[Tasttlig] Welcome to Tasttlig!",
@@ -153,6 +154,7 @@ const checkEmail = async email => {
           try {
             const url = `${SITE_BASE}/forgot-password/${emailToken}/${email}`;
             await Mailer.sendMail({
+              from: process.env.SES_DEFAULT_FROM,
               to: email,
               subject: "[Tasttlig] Reset your password",
               template: 'password_reset_request',
@@ -198,6 +200,7 @@ const updatePassword = async (email, password) => {
         // Async password change confirmation email
         async () => {
           await Mailer.sendMail({
+            from: process.env.SES_DEFAULT_FROM,
             to: email,
             subject: "[Tasttlig] Password changed",
             template: 'password_reset_success'
