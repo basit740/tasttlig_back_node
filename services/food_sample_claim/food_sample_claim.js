@@ -32,6 +32,7 @@ const createNewFoodSampleClaim = async (
     ];
     // Email to user on claiming food sample
     await Mailer.sendMail({
+      from: process.env.SES_DEFAULT_FROM,
       to: db_user.email,
       bcc: mail_list_claimed,
       subject: `[Tasttlig] You have claimed ${db_food_sample.title}`,
