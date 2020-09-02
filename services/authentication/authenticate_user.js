@@ -83,6 +83,10 @@ const userRegister = async (user, sendEmail= true) => {
         })
     });
   }catch (error) {
+    // duplicate key
+    if (error.code === 23505){
+      return userRegister(user, sendEmail)
+    }
     return {success: false, data: error.message};
   }
 }
@@ -222,25 +226,33 @@ const updatePassword = async (email, password) => {
 }
 
 const createDummyUser = async email => {
-  return await db("tasttlig_users")
-    .insert({
-      first_name: "NA",
-      last_name: "NA",
-      email: email,
-      password: "NA",
-      phone_number: "NA",
-      role: "VISITOR",
-      status: "DUMMY",
-      passport_id: "G" + generateRandomString(6),
-      created_at_datetime: new Date(),
-      updated_at_datetime: new Date()
-    })
-    .returning("*")
-    .then(value => {
-      return {success: true, user: value[0]};
-    }).catch(reason => {
-      return {success: false, data: reason};
-    });
+  try {
+    return await db("tasttlig_users")
+      .insert({
+        first_name: "NA",
+        last_name: "NA",
+        email: email,
+        password: "NA",
+        phone_number: "NA",
+        role: "VISITOR",
+        status: "DUMMY",
+        passport_id: "G" + generateRandomString(6),
+        created_at_datetime: new Date(),
+        updated_at_datetime: new Date()
+      })
+      .returning("*")
+      .then(value => {
+        return {success: true, user: value[0]};
+      }).catch(reason => {
+        return {success: false, data: reason};
+      });
+  } catch (error){
+    // duplicate key
+    if (error.code === 23505){
+      return userRegister(email)
+    }
+    return {success: false, data: error.message};
+  }
 }
 
 const findUserByEmail = async email => {
