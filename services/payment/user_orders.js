@@ -70,6 +70,7 @@ const createOrder = async(order_details, db_order_details) => {
         await trx("user_subscriptions")
           .insert({
             subscription_code: db_order_details.subscription.subscription_code,
+            user_id: order_details.user_id,
             subscription_start_datetime: new Date(),
             subscription_end_datetime: subscription_end_datetime
           });

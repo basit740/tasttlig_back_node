@@ -13,6 +13,11 @@ const getUserById = async id => {
   return await db("tasttlig_users")
     .where("tasttlig_user_id", id)
     .first()
+    .leftJoin(
+      "user_subscriptions",
+      "tasttlig_users.tasttlig_user_id",
+      "user_subscriptions.user_id"
+    )
     .then(value => {
       if (!value) {
         return { success: false, message: "No user found." };
