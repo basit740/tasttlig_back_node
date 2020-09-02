@@ -27,12 +27,7 @@ const generateRandomString = (len, seed='tasttlig') => {
   }
   let rand = (Math.random() * seed) % 1
   let rand2 = (Math.random() * seed) % 1
-  let length1 = len/2;
-  let length2 = len/2;
-  if(len%2 == 1){
-    length2 += 1;
-  }
-  return (rand.toString(36).substring(2, length1 + 2) + rand2.toString(36).substring(2, length2 + 2)).toUpperCase();
+  return (rand.toString(36).substring(2, 2 + len/2) + rand2.toString(36).substring(2, 2 + len/2)).toUpperCase();
 };
 
 module.exports = {
