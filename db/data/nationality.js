@@ -297,6 +297,14 @@ const nationalities = [
     continent: "Africa"
   },
   {
+    num_code: "840",
+    alpha_2_code: "US",
+    alpha_3_code: "USA",
+    en_short_name: "United States of America",
+    nationality: "American",
+    continent: "North America"
+  },
+  {
     num_code: "16",
     alpha_2_code: "AS",
     alpha_3_code: "ASM",
@@ -456,12 +464,21 @@ const nationalities = [
     nationality: "Bermudian, Bermudan",
     continent: "North America"
   },
+  
   {
     num_code: "64",
     alpha_2_code: "BT",
     alpha_3_code: "BTN",
     en_short_name: "Bhutan",
     nationality: "Bhutanese",
+    continent: "Asia"
+  },
+  {
+    num_code: "86",
+    alpha_2_code: "IO",
+    alpha_3_code: "IOT",
+    en_short_name: "British Indian Ocean Territory",
+    nationality: "BIOT",
     continent: "Asia"
   },
   {
@@ -513,12 +530,12 @@ const nationalities = [
     continent: "South America"
   },
   {
-    num_code: "86",
-    alpha_2_code: "IO",
-    alpha_3_code: "IOT",
-    en_short_name: "British Indian Ocean Territory",
-    nationality: "BIOT",
-    continent: "Asia"
+    num_code: "826",
+    alpha_2_code: "GB",
+    alpha_3_code: "GBR",
+    en_short_name: "United Kingdom",
+    nationality: "British",
+    continent: "Europe"
   },
   {
     num_code: "96",
@@ -2104,22 +2121,6 @@ const nationalities = [
     en_short_name: "United Arab Emirates",
     nationality: "Emirati, Emirian, Emiri",
     continent: "Asia"
-  },
-  {
-    num_code: "826",
-    alpha_2_code: "GB",
-    alpha_3_code: "GBR",
-    en_short_name: "United Kingdom",
-    nationality: "British",
-    continent: "Europe"
-  },
-  {
-    num_code: "840",
-    alpha_2_code: "US",
-    alpha_3_code: "USA",
-    en_short_name: "United States of America",
-    nationality: "American",
-    continent: "North America"
   },
   {
     num_code: "858",
