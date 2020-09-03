@@ -464,7 +464,6 @@ const nationalities = [
     nationality: "Bermudian, Bermudan",
     continent: "North America"
   },
-  
   {
     num_code: "64",
     alpha_2_code: "BT",
