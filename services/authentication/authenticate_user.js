@@ -45,7 +45,6 @@ const userRegister = async (user, sendEmail= true) => {
                 phone_number: user.phone_number,
                 role: "MEMBER",
                 status: "ACTIVE",
-                passport_id: "M" + generateRandomString(6),
                 created_at_datetime: new Date(),
                 updated_at_datetime: new Date()
               })
@@ -236,7 +235,7 @@ const createDummyUser = async email => {
         phone_number: "NA",
         role: "VISITOR",
         status: "DUMMY",
-        passport_id: "G" + generateRandomString(6),
+        passport_id: "M" + generateRandomString(6),
         created_at_datetime: new Date(),
         updated_at_datetime: new Date()
       })

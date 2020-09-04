@@ -290,6 +290,21 @@ const getUserByEmailWithSubscription = async email => {
     });
 };
 
+const getUserByPassportId = async passport_id => {
+  return await db("tasttlig_users")
+    .where("passport_id", passport_id)
+    .first()
+    .then(value => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+      return { success: true, user: value };
+    })
+    .catch(error => {
+      return { success: false, message: error };
+    });
+}
+
 module.exports = {
   getUserById,
   upgradeUser,
@@ -297,5 +312,6 @@ module.exports = {
   getUserByEmail,
   updateUserAccount,
   updateUserProfile,
-  getUserByEmailWithSubscription
+  getUserByEmailWithSubscription,
+  getUserByPassportId
 };
