@@ -4,11 +4,7 @@ exports.up = async function(knex) {
     .from("tasttlig_users")
     .then((tasttlig_users) => {
       const new_tasttlig_users_details = tasttlig_users.map((user) => {
-        if(user.role == "VISITOR") {
-          return { tasttlig_user_id: user.tasttlig_user_id, passport_id: "G" + generateRandomString(6) };
-        } else {
-          return { tasttlig_user_id: user.tasttlig_user_id, passport_id: "M" + generateRandomString(6) };
-        }
+        return { tasttlig_user_id: user.tasttlig_user_id, passport_id: "M" + generateRandomString(6) };
       });
       return knex.transaction((trx) => {
         return trx.schema.table("tasttlig_users", (table) => table.string("passport_id"))
