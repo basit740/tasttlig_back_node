@@ -4,7 +4,7 @@ const router = require('express').Router();
 const stripe_payment_service = require("../../services/payment/stripe_payment");
 const user_order_service = require("../../services/payment/user_orders");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
-const user_profile_service = require("../../services/user_profile/user_profile");
+const user_profile_service = require("../../services/profile/user_profile");
 
 router.post("/payment/stripe", async (req, res) => {
   if (!req.body.item_id || !req.body.item_type || !req.body.email) {
@@ -38,7 +38,7 @@ router.post("/payment/stripe", async (req, res) => {
 
 router.post("/payment/stripe/success", async (req, res) => {
   if (!req.body.item_id || !req.body.item_type || !req.body.payment_id
-    || (!req.body.email || !req.body.passport_id)) {
+    || (!req.body.email && !req.body.passport_id)) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"

@@ -53,12 +53,25 @@ const createNewFoodSampleClaim = async (
         code: db_food_sample.food_ad_code
       },
     });
-    return { success: true, details: "success" };
+    return {success: true, details: "success"};
   } catch (err) {
-    return { success: false, details: err.message };
+    return {success: false, details: err.message};
   }
 };
 
+const getFoodClaimCount = async (email) => {
+  try {
+    const count = await db
+      .select("count(*)")
+      .from("food_sample_claims")
+      .where("food_sample_claim_email", email);
+    return {success: true, count,};
+  } catch (e) {
+    return {success: false, error: err.message};
+  }
+}
+
 module.exports = {
-  createNewFoodSampleClaim
+  createNewFoodSampleClaim,
+  getFoodClaimCount
 };
