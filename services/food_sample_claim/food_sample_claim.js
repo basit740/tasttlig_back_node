@@ -38,8 +38,8 @@ const createNewFoodSampleClaim = async (
       subject: `[Tasttlig] You have claimed ${db_food_sample.title}`,
       template: "new_food_sample_claim",
       context: {
-        first_name: db_user.first_name,
-        last_name: db_user.last_name,
+        // first_name: db_user.first_name,
+        // last_name: db_user.last_name,
         title: db_food_sample.title,
         address: db_food_sample.address,
         city: db_food_sample.city,
