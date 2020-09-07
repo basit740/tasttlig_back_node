@@ -103,9 +103,9 @@ const verifyAccount = async user_id => {
     });
 }
 
-const getUserLogin = async email => {
+const getUserLogin = async passport_id => {
   return await db("tasttlig_users")
-    .where("email", email)
+    .where("passport_id", passport_id)
     .first()
     .then(value => {
       if (!value) {
