@@ -269,11 +269,49 @@ const updateUserProfile = async user => {
   }
 };
 
+const getUserByEmailWithSubscription = async email => {
+  return await db("tasttlig_users")
+    .where("email", email)
+    .first()
+    .leftJoin(
+      "user_subscriptions",
+      "tasttlig_users.tasttlig_user_id",
+      "user_subscriptions.user_id"
+    )
+    .where("user_subscriptions.subscription_end_datetime", ">", new Date())
+    .then(value => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+      return { success: true, user: value };
+    })
+    .catch(error => {
+      return { success: false, message: error };
+    });
+};
+
+const getUserByPassportId = async passport_id => {
+  return await db("tasttlig_users")
+    .where("passport_id", passport_id)
+    .first()
+    .then(value => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+      return { success: true, user: value };
+    })
+    .catch(error => {
+      return { success: false, message: error };
+    });
+}
+
 module.exports = {
   getUserById,
   upgradeUser,
   upgradeUserResponse,
   getUserByEmail,
   updateUserAccount,
-  updateUserProfile
+  updateUserProfile,
+  getUserByEmailWithSubscription,
+  getUserByPassportId
 };

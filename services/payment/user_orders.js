@@ -21,6 +21,22 @@ const getOrderDetails = async(order_details) => {
       .catch(error => {
         return { success: false, message: error };
       });
+  } else if (order_details.item_type === "food_sample"){
+    return await db("food_samples")
+      .where({
+        food_sample_id: order_details.item_id,
+        status: "ACTIVE"
+      })
+      .first()
+      .then(value => {
+        if (!value){
+          return { success: false, message: "No Food Sample found." };
+        }
+        return { success: true, food_sample: value };
+      })
+      .catch(error => {
+        return { success: false, message: error };
+      });
   }
   return { success: false, message: "Item type not supported" };
 }
@@ -70,6 +86,7 @@ const createOrder = async(order_details, db_order_details) => {
         await trx("user_subscriptions")
           .insert({
             subscription_code: db_order_details.subscription.subscription_code,
+            user_id: order_details.user_id,
             subscription_start_datetime: new Date(),
             subscription_end_datetime: subscription_end_datetime
           });
@@ -83,6 +100,55 @@ const createOrder = async(order_details, db_order_details) => {
         template: 'new_subscription_purchase',
         context: {
           passport_name: "Festival"
+        }
+      });
+      return {success: true, details: "success"};
+    } catch (err) {
+      return {success: false, details: err.message};
+    }
+  } else if (order_details.item_type === "food_sample") {
+    try {
+      await db.transaction(async trx => {
+        const total_amount_before_tax = parseFloat(db_order_details.food_sample.price);
+        const total_tax = Math.round(total_amount_before_tax * 13) / 100;
+        const db_orders = await trx("orders")
+          .insert({
+            order_by_user_id: order_details.user_id,
+            status: "SUCCESS",
+            total_amount_before_tax: total_amount_before_tax,
+            total_tax: total_tax,
+            total_amount_after_tax: total_amount_before_tax + total_tax,
+            order_datetime: new Date()
+          })
+          .returning("*");
+        if (!db_orders) {
+          return {success: false, details: "Inserting new Order failed"};
+        }
+        await trx("order_items")
+          .insert({
+            order_id: db_orders[0].order_id,
+            item_id: order_details.item_id,
+            item_type: order_details.item_type,
+            quantity: 1,
+            price_before_tax: total_amount_before_tax
+          });
+        await trx("payments")
+          .insert({
+            order_id: db_orders[0].order_id,
+            payment_reference_number: order_details.payment_id,
+            payment_type: "CARD",
+            payment_vender: "STRIPE"
+          });
+      });
+      //Email to user on success purchase
+      await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: order_details.user_email,
+        bcc: ADMIN_EMAIL,
+        subject: "[Tasttlig] Purchase Successful",
+        template: 'new_food_sample_purchase',
+        context: {
+          title: db_order_details.food_sample.title
         }
       });
       return {success: true, details: "success"};
