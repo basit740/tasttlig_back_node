@@ -8,12 +8,12 @@ const stripe = new Stripe(keySecret);
 
 const paymentIntent = async (order_details) => {
   try {
-    const total_amount_before_tax = parseFloat(order_details.subscription.price);
-    const total_tax = Math.round(total_amount_before_tax * 13) / 100;
+    const total_amount_before_tax = parseFloat(order_details.item.price);
+    const total_tax = Math.round(total_amount_before_tax * 13)/100;
     const payment = await stripe.paymentIntents.create({
-      amount: (total_amount_before_tax + total_tax) * 100,
+      amount: Math.round((total_amount_before_tax + total_tax) * 100),
       currency: "cad",
-      description: order_details.subscription.description
+      description: order_details.item.description
     });
     return {success: true, client_secret: payment.client_secret};
   } catch (error) {
