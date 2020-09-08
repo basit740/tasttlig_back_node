@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const token_service = require("../../services/authentication/token");
 const user_profile_service = require("../../services/profile/user_profile");
 const user_role_manager = require("../../services/profile/user_roles_manager");
+const apply_host_request = require("../../middleware/validator/apply_host_request").apply_host_request;
 
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
@@ -93,6 +94,175 @@ router.post(
     }
   }
 );
+
+const extractBusinessInfo = (requestBody) => {
+  return {
+    'user_id': requestBody.id,
+    'business_name': requestBody.business_name,
+    'business_type': requestBody.business_type,
+    'ethnicity_of_restaurant': requestBody.culture,
+    'business_address_1': requestBody.address_line_1,
+    'business_address_2': requestBody.address_line_2,
+    'city': requestBody.business_city,
+    'state': requestBody.state,
+    'postal_code': requestBody.postal_code,
+    'country': requestBody.country,
+    'business_registration_number': requestBody.registration_number,
+    'instagram': requestBody.instagram,
+    'facebook': requestBody.facebook,
+  }
+}
+
+const extractFoodHandlerCertificate = (requestBody) => {
+  return {
+    document_type: 'Food Handler Certificate',
+    issue_date: new Date(requestBody.date_of_issue),
+    expiry_date: new Date(requestBody.expiry_date),
+    document_link: requestBody.food_handler_certificate,
+    status: "Pending"
+  }
+}
+
+// /usr/host route handles when a user apply to be a host.
+// whom been applied to be host has to input their business info,
+// documents, bank info. we handle each request in different services.
+router.post(
+  "/user/host",
+  token_service.authenticateToken,
+  apply_host_request,
+  async (req, res) => {
+    const user_details_from_db = await user_profile_service.getUserById(
+      req.user.id
+    );
+    if (!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false,
+        message: user_details_from_db.message
+      });
+    }
+
+    // first, get all the data for business
+    const business_info = extractBusinessInfo(req.body)
+    await user_profile_service.insertBusinessForUser(business_info)
+
+    // second, get all the data for documents.
+    // food handler certificate is always required
+    const food_handler_certificate = extractFoodHandlerCertificate(req.body)
+
+    await user_profile_service.insertDocument(user_details_from_db, food_handler_certificate)
+
+    // insurance is not always required, but if the user input their insurance
+    if (req.body.insurance_file) {
+      const insurance = {
+        document_type: 'Insurance',
+        document_link: req.body.insurance_file,
+        status: 'Pending'
+      }
+      await user_profile_service.insertDocument(user_details_from_db, insurance)
+    } else {
+      const insurance = null
+    }
+    // same thing for health safety certificate
+    if (req.body.health_safety_certificate) {
+      const health_safety_certificate = {
+        document_type: 'Health and Safety Certificate',
+        document_link: req.body.health_safety_certificate,
+        status: 'Pending'
+      }
+      await user_profile_service.insertDocument(user_details_from_db, health_safety_certificate)
+    } else {
+      const health_safety_certificate = null
+    }
+
+    // third, we need to handle bank information
+    switch (req.body.banking) {
+      case "Bank":
+        const banking_info = {
+          user_id: user_details_from_db.user.tasttlig_user_id,
+          bank_number: req.body.bank_number,
+          account_number: req.body.account_number,
+          institution_number: req.body.institution_number,
+          void_cheque: req.body.void_cheque
+        }
+        await user_profile_service.insertBankingInfo(banking_info, 'payment_bank')
+        break;
+      case "Online":
+        const online_transfer_info = {
+          user_id: user_details_from_db.user.tasttlig_user_id,
+          transfer_email: req.body.online_email,
+        }
+        await user_profile_service.insertBankingInfo(online_transfer_info, 'payment_online_tranfer')
+        break;
+      case "PayPal":
+        const paypal_info = {
+          user_id: user_details_from_db.user.tasttlig_user_id,
+          paypal_email: req.body.paypal_email,
+        }
+        await user_profile_service.insertBankingInfo(paypal_info, 'payment_paypal')
+        break;
+      case "Stripe":
+        const stripe_info = {
+          user_id: user_details_from_db.user.tasttlig_user_id,
+          stripe_account: req.body.stripe_account,
+        }
+        await user_profile_service.insertBankingInfo(stripe_info, 'payment_stripe')
+        break
+    }
+
+    // STEP 4, link to external website
+    const external_websites_review = [
+      'yelp',
+      'google',
+      'tripadvisor',
+      'instagram',
+      'youtube',
+    ]
+    let reviews = []
+    for (let i = 0; i < external_websites_review.length; i++) {
+      let website = external_websites_review[i]
+      if (req.body[website + '_review']){
+        let review = {
+          user_id: user_details_from_db.user.tasttlig_user_id,
+          platform: website,
+          link: req.body[website + '_review'],
+        }
+        reviews.push(review)
+      }
+    }
+
+    if (req.body.media_recognition) {
+      reviews.push({
+        user_id: user_details_from_db.user.tasttlig_user_id,
+        platform: 'media recognition',
+        link: req.body.media_recognition
+      })
+    }
+
+    if (req.body.personal_review) {
+      reviews.push({
+        user_id: user_details_from_db.user.tasttlig_user_id,
+        platform: 'personal',
+        text: req.body.personal_review
+      })
+    }
+
+    await user_profile_service.insertExternalReviewLink(reviews)
+
+    // Final STEP, hosting information
+    const application_info = {
+      user_id: user_details_from_db.user.tasttlig_user_id,
+      video_link: req.body.host_selection_video,
+      youtube_link: req.body.youtube_link,
+      reason: req.body.host_selection,
+      created_at: new Date(),
+      status: "Pending"
+    }
+    await user_profile_service.insertHostingInformation(application_info)
+
+
+  }
+);
+
 
 router.post("/user/upgrade/action/:token", async (req, res) => {
   if (!req.params.token) {

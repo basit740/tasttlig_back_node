@@ -265,11 +265,112 @@ const updateUserProfile = async user => {
   }
 };
 
+const insertBusinessForUser = async (business_info) => {
+  try {
+    return await db('business_details')
+      .insert(business_info)
+      .returning("*")
+      .then(value => {
+        console.log('success')
+        return { success: true, details: value[0] };
+      })
+      .catch(reason => {
+        console.log(reason)
+        return { success: false, details: reason };
+      });
+  } catch (err) {
+    return {success: false, message: err}
+  }
+}
+
+const insertDocument = async (user, document) => {
+  try {
+    return await db('documents')
+      .insert({user_id: user.user.tasttlig_user_id, ...document})
+      .returning("*")
+      .then(value => {
+        console.log('success')
+        return {success: true, details: value[0]}
+      })
+      .catch(reason => {
+        console.log(reason)
+        return {success: false, details: reason}
+      })
+  } catch (err) {
+    return {success: false, details: err}
+  }
+}
+
+const insertBankingInfo = async (banking, tableName) => {
+  try {
+    return await db(tableName)
+      .insert(banking)
+      .returning("*")
+      .then(value => {
+        console.log('success')
+        return {success: true, details: value[0]}
+      })
+      .catch(reason => {
+        return {success: false, details: reason}
+      })
+  } catch (err) {
+    return {success: false, details: err}
+  }
+}
+
+const insertExternalReviewLink = async (review) => {
+  try {
+    return await db('external_review')
+      .insert(review)
+      .returning('*')
+      .then(value => {
+        return {success: true, details: value[0]}
+      })
+      .catch(reason => {
+        console.log(reason)
+        return {success: false, details: reason}
+      })
+  } catch (err) {
+    return {success: false, details: err}
+  }
+}
+
+const insertHostingInformation = async (application_info) => {
+  try {
+    return await db('hosting_application')
+      .insert(application_info)
+      .returning('*')
+      .then(value => {
+        return {success: true, details: value[0]}
+      })
+      .catch(reason => {
+        console.log(reason)
+        return {success: false, details: reason}
+      })
+  } catch (err) {
+    return {success: false, details: err}
+  }
+}
+
+
+const updateFullUserProfile = async user => {
+  try {
+    // return await db(;
+  } catch (err) {
+    return { success: false, message: err };
+  }
+}
+
 module.exports = {
   getUserById,
   upgradeUser,
   upgradeUserResponse,
   getUserByEmail,
   updateUserAccount,
-  updateUserProfile
+  updateUserProfile,
+  insertBusinessForUser,
+  insertDocument,
+  insertBankingInfo,
+  insertExternalReviewLink,
+  insertHostingInformation,
 };
