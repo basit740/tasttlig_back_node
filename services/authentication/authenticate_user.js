@@ -4,6 +4,7 @@ const {db} = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
+const { generateRandomString } = require("../../functions/functions");
 
 const SITE_BASE = process.env.SITE_BASE;
 
@@ -24,6 +25,7 @@ const userRegister = async (user, sendEmail= true) => {
               phone_number: user.phone_number,
               role: "MEMBER",
               status: "ACTIVE",
+              passport_id: "M" + generateRandomString(6),
               created_at_datetime: new Date(),
               updated_at_datetime: new Date()
             }
@@ -63,8 +65,9 @@ const userRegister = async (user, sendEmail= true) => {
               async (err, emailToken) => {
                 const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
                 await Mailer.sendMail({
+                  from: process.env.SES_DEFAULT_FROM,
                   to: user.email,
-                  bcc: process.env.TASTTLIG_ADMIN_EMAIL,
+                  bcc: ADMIN_EMAIL,
                   subject: "[Tasttlig] Welcome to Tasttlig!",
                   template: 'signup',
                   context: {
@@ -79,6 +82,10 @@ const userRegister = async (user, sendEmail= true) => {
         })
     });
   }catch (error) {
+    // duplicate key
+    if (error.code === 23505){
+      return userRegister(user, sendEmail)
+    }
     return {success: false, data: error.message};
   }
 }
@@ -153,6 +160,7 @@ const checkEmail = async email => {
           try {
             const url = `${SITE_BASE}/forgot-password/${emailToken}/${email}`;
             await Mailer.sendMail({
+              from: process.env.SES_DEFAULT_FROM,
               to: email,
               subject: "[Tasttlig] Reset your password",
               template: 'password_reset_request',
@@ -198,6 +206,7 @@ const updatePassword = async (email, password) => {
         // Async password change confirmation email
         async () => {
           await Mailer.sendMail({
+            from: process.env.SES_DEFAULT_FROM,
             to: email,
             subject: "[Tasttlig] Password changed",
             template: 'password_reset_success'
@@ -216,24 +225,33 @@ const updatePassword = async (email, password) => {
 }
 
 const createDummyUser = async email => {
-  return await db("tasttlig_users")
-    .insert({
-      first_name: "NA",
-      last_name: "NA",
-      email: email,
-      password: "NA",
-      phone_number: "NA",
-      role: "VISITOR",
-      status: "DUMMY",
-      created_at_datetime: new Date(),
-      updated_at_datetime: new Date()
-    })
-    .returning("*")
-    .then(value => {
-      return {success: true, user: value[0]};
-    }).catch(reason => {
-      return {success: false, data: reason};
-    });
+  try {
+    return await db("tasttlig_users")
+      .insert({
+        first_name: "NA",
+        last_name: "NA",
+        email: email,
+        password: "NA",
+        phone_number: "NA",
+        role: "VISITOR",
+        status: "DUMMY",
+        passport_id: "M" + generateRandomString(6),
+        created_at_datetime: new Date(),
+        updated_at_datetime: new Date()
+      })
+      .returning("*")
+      .then(value => {
+        return {success: true, user: value[0]};
+      }).catch(reason => {
+        return {success: false, data: reason};
+      });
+  } catch (error){
+    // duplicate key
+    if (error.code === 23505){
+      return userRegister(email)
+    }
+    return {success: false, data: error.message};
+  }
 }
 
 const findUserByEmail = async email => {

@@ -76,6 +76,7 @@ const upgradeUser = async (db_user, upgrade_details) => {
 
     // Email to user on submitting the request to upgrade
     await Mailer.sendMail({
+      from: process.env.SES_DEFAULT_FROM,
       to: db_user.email,
       subject: `[Tasttlig] Thank you for your application`,
       template: "user_upgrade_request",
@@ -87,6 +88,7 @@ const upgradeUser = async (db_user, upgrade_details) => {
 
     //Send Email to admin for document approval
     await Mailer.sendMail({
+      from: process.env.SES_DEFAULT_FROM,
       to: ADMIN_EMAIL,
       subject: "[Tasttlig] Document Verification",
       template: "document_admin_approval_decline",
@@ -160,6 +162,7 @@ const upgradeUserResponse = async token => {
 
       // Async experience accepted email
       await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
         to: db_user.email,
         subject: `[Tasttlig] Your request for upgradation to Host is accepted`,
         template: "user_upgrade_approve",
@@ -180,6 +183,7 @@ const upgradeUserResponse = async token => {
         .update("role", role_manager.createRoleString(user_role_object));
 
       await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
         to: db_user.email,
         subject: `[Tasttlig] Your request for upgradation to Host is rejected`,
         template: "user_upgrade_reject",
@@ -359,6 +363,40 @@ const updateFullUserProfile = async user => {
   } catch (err) {
     return { success: false, message: err };
   }
+const getUserByEmailWithSubscription = async email => {
+  return await db("tasttlig_users")
+    .where("email", email)
+    .first()
+    .leftJoin(
+      "user_subscriptions",
+      "tasttlig_users.tasttlig_user_id",
+      "user_subscriptions.user_id"
+    )
+    .where("user_subscriptions.subscription_end_datetime", ">", new Date())
+    .then(value => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+      return { success: true, user: value };
+    })
+    .catch(error => {
+      return { success: false, message: error };
+    });
+};
+
+const getUserByPassportId = async passport_id => {
+  return await db("tasttlig_users")
+    .where("passport_id", passport_id)
+    .first()
+    .then(value => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+      return { success: true, user: value };
+    })
+    .catch(error => {
+      return { success: false, message: error };
+    });
 }
 
 module.exports = {
@@ -373,4 +411,6 @@ module.exports = {
   insertBankingInfo,
   insertExternalReviewLink,
   insertHostingInformation,
+  getUserByEmailWithSubscription,
+  getUserByPassportId
 };

@@ -1,6 +1,6 @@
 "use strict";
 
-const db = require("../../db/db-config");
+const {db} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const {
   formatDate,
@@ -32,6 +32,7 @@ const createNewFoodSampleClaim = async (
     ];
     // Email to user on claiming food sample
     await Mailer.sendMail({
+      from: process.env.SES_DEFAULT_FROM,
       to: db_user.email,
       bcc: mail_list_claimed,
       subject: `[Tasttlig] You have claimed ${db_food_sample.title}`,
@@ -52,12 +53,25 @@ const createNewFoodSampleClaim = async (
         code: db_food_sample.food_ad_code
       },
     });
-    return { success: true, details: "success" };
+    return {success: true, details: "success"};
   } catch (err) {
-    return { success: false, details: err.message };
+    return {success: false, details: err.message};
   }
 };
 
+const getFoodClaimCount = async (email) => {
+  try {
+    const count = await db
+      .select("count(*)")
+      .from("food_sample_claims")
+      .where("food_sample_claim_email", email);
+    return {success: true, count,};
+  } catch (e) {
+    return {success: false, error: err.message};
+  }
+}
+
 module.exports = {
-  createNewFoodSampleClaim
+  createNewFoodSampleClaim,
+  getFoodClaimCount
 };

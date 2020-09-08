@@ -37,6 +37,7 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     business_name: response.user.business_name,
     business_type: response.user.business_type,
     profile_status: response.user.profile_status,
+    subscription_code: response.user.subscription_code,
     verified: response.user.is_email_verified
   };
   res.status(200).json({
