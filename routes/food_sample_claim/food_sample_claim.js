@@ -5,6 +5,7 @@ const router = require("express").Router();
 const food_sample_claim_service = require("../../services/food_sample_claim/food_sample_claim");
 const user_profile_service = require("../../services/profile/user_profile");
 const food_sample_service = require("../../services/food_sample/food_sample");
+const authenticate_user_service = require("../../services/authentication/authenticate_user");
 
 router.post(
   "/food-sample-claim",
@@ -15,9 +16,23 @@ router.post(
         message: "Required Parameters are not available in request",
       });
     }
-
+    let db_user;
+    db_user = await user_profile_service.getUserByPassportIdOrEmail(req.body.food_sample_claim_user);
+    if(!db_user.success) {
+      //check if input is an email
+      if(req.body.food_sample_claim_user.includes("@")) {
+        db_user = await authenticate_user_service.createDummyUser(db_user.user.email);
+      } else {
+        res.send({
+          success: false,
+          message: "Entered Passport Id is Invalid"
+        });
+      }
+    }
+    db_user = db_user.user;
+    
     const {canClaim, message, error} = await food_sample_claim_service
-      .userCanClaimFoodSample(req.body.food_sample_claim_email, req.body.food_sample_id)
+      .userCanClaimFoodSample(db_user.email, req.body.food_sample_id)
 
     if (!canClaim) {
       return res.status(error ? 500 : 200).json({
@@ -29,7 +44,7 @@ router.post(
 
     try {
       const user_details_from_db = await user_profile_service.getUserByEmailWithSubscription(
-        req.body.food_sample_claim_user
+        db_user.email
       );
       if (!user_details_from_db.user.user_subscription_id) {
         return res.status(403).json({
@@ -78,5 +93,20 @@ router.post(
     }
   }
 );
+
+router.post(
+  "/food-sample-claim/confirm",
+  async (req, res) => {
+    if (!req.body.token) {
+      return res.status(403).json({
+        success: false,
+        message: "Token not present in request",
+      });
+    }
+
+    const response = await food_sample_claim_service.confirmFoodSampleClaim(req.body.token);
+
+    return res.status(response.error ? 500:200).json(response);
+  });
 
 module.exports = router;

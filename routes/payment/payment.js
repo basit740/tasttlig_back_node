@@ -62,6 +62,7 @@ router.post("/payment/stripe/success", async (req, res) => {
     if(!db_order_details.success) {
       return {success: false, message: "Invalid Order Details"};
     }
+    
     const response = await user_order_service.createOrder(order_details, db_order_details);
     if(response.success) {
       return res.send({

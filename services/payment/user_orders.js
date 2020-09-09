@@ -76,7 +76,7 @@ const createOrder = async(order_details, db_order_details) => {
             payment_vender: "STRIPE"
           });
         let subscription_end_datetime = null;
-        if(db_order_details.subscription.validity_in_months){
+        if(db_order_details.item.validity_in_months){
           subscription_end_datetime = new Date()
             .setMonth(new Date().getMonth()
               + db_order_details.item.validity_in_months)

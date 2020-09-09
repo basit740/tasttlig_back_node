@@ -326,6 +326,22 @@ const getUserByPassportId = async passport_id => {
     });
 }
 
+const getUserByPassportIdOrEmail = async passport_id_or_email => {
+  return await db("tasttlig_users")
+    .where("email", passport_id_or_email)
+    .orWhere({passport_id: passport_id_or_email})
+    .first()
+    .then(value => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+      return { success: true, user: value };
+    })
+    .catch(error => {
+      return { success: false, message: error };
+    });
+}
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
@@ -335,5 +351,6 @@ module.exports = {
   updateUserAccount,
   updateUserProfile,
   getUserByEmailWithSubscription,
-  getUserByPassportId
+  getUserByPassportId,
+  getUserByPassportIdOrEmail
 };
