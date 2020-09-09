@@ -17,11 +17,13 @@ router.post(
       });
     }
     let db_user;
+    let new_user = false;
     db_user = await user_profile_service.getUserByPassportIdOrEmail(req.body.food_sample_claim_user);
     if(!db_user.success) {
       //check if input is an email
       if(req.body.food_sample_claim_user.includes("@")) {
-        db_user = await authenticate_user_service.createDummyUser(db_user.user.email);
+        db_user = await authenticate_user_service.createDummyUser(req.body.food_sample_claim_user);
+        new_user = true;
       } else {
         res.send({
           success: false,
@@ -31,36 +33,40 @@ router.post(
     }
     db_user = db_user.user;
     
-    const {canClaim, message, error} = await food_sample_claim_service
-      .userCanClaimFoodSample(db_user.email, req.body.food_sample_id)
-
-    if (!canClaim) {
-      return res.status(error ? 500 : 200).json({
-        success: false,
-        message,
-        error
-      })
+    if(!new_user) {
+      const {canClaim, message, error} = await food_sample_claim_service
+        .userCanClaimFoodSample(db_user.email, req.body.food_sample_id)
+      
+      if (!canClaim) {
+        return res.status(error ? 500 : 200).json({
+          success: false,
+          message,
+          error
+        })
+      }
     }
-
+    
     try {
-      const user_details_from_db = await user_profile_service.getUserByEmailWithSubscription(
-        db_user.email
-      );
-      if (!user_details_from_db.user.user_subscription_id) {
-        return res.status(403).json({
-          success: false,
-          message: "Email not found for user subscription. Enter new email or buy a festival pass"
-        });
+      if(!new_user){
+        const user_details_from_db = await user_profile_service.getUserByEmailWithSubscription(
+          db_user.email
+        );
+        if (!canClaim && !user_details_from_db.user.user_subscription_id) {
+          return res.status(403).json({
+            success: false,
+            message: "Email not found for user subscription. Enter new email or buy a festival pass"
+          });
+        }
+        
+        if (!user_details_from_db.success) {
+          return res.status(403).json({
+            success: false,
+            message: user_details_from_db.message,
+          });
+        }
+        db_user = user_details_from_db.user;
       }
-
-      if (!user_details_from_db.success) {
-        return res.status(403).json({
-          success: false,
-          message: user_details_from_db.message,
-        });
-      }
-      let db_user = user_details_from_db.user;
-
+      
       const food_sample_details_from_db = await food_sample_service.getFoodSampleById(
         req.body.food_sample_id
       );
@@ -71,13 +77,13 @@ router.post(
         });
       }
       let db_food_sample = food_sample_details_from_db.food_sample;
-
+      
       const food_sample_claim_details = {
         food_sample_claim_email: db_user.email,
         food_sample_claim_user_id: db_user.tasttlig_user_id,
         food_sample_id: db_food_sample.food_sample_id,
       };
-
+      
       const response = await food_sample_claim_service.createNewFoodSampleClaim(
         db_user,
         db_food_sample,
@@ -103,9 +109,9 @@ router.post(
         message: "Token not present in request",
       });
     }
-
+    
     const response = await food_sample_claim_service.confirmFoodSampleClaim(req.body.token);
-
+    
     return res.status(response.error ? 500:200).json(response);
   });
 

@@ -121,8 +121,8 @@ const sendPendingClaimedEmailToUser = async (db_user, db_food_sample) => {
     subject: `[Tasttlig] You have claimed ${db_food_sample.title}`,
     template: "new_food_sample_claim_pending",
     context: {
-      first_name: db_user.first_name,
-      last_name: db_user.last_name,
+      first_name: (db_user.first_name === "NA" ? "" : db_user.first_name),
+      last_name: (db_user.last_name === "NA" ? "" : db_user.last_name),
       title: db_food_sample.title,
     },
   });
@@ -136,8 +136,8 @@ const sendClaimedEmailToUser = async (db_user, db_food_sample) => {
     subject: `[Tasttlig] You have claimed ${db_food_sample.title}`,
     template: "new_food_sample_claim",
     context: {
-      first_name: db_user.first_name,
-      last_name: db_user.last_name,
+      first_name: (db_user.first_name === "NA" ? "" : db_user.first_name),
+      last_name: (db_user.last_name === "NA" ? "" : db_user.last_name),
       title: db_food_sample.title,
       address: db_food_sample.address,
       city: db_food_sample.city,
@@ -169,8 +169,9 @@ const sendClaimedEmailToProvider = async (db_user, db_food_sample, db_food_sampl
     subject: `[Tasttlig] Food sample has been reserved - ${db_food_sample.title}`,
     template: "new_food_sample_reserved",
     context: {
-      first_name: db_user.first_name,
-      last_name: db_user.last_name,
+      first_name:  (db_user.first_name === "NA" ? "" : db_user.first_name),
+      last_name:  (db_user.last_name === "NA" ? "" : db_user.last_name),
+      email: db_user.email,
       title: db_food_sample.title,
       url
     },

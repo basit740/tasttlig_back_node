@@ -289,10 +289,9 @@ const updateUserProfile = async user => {
   }
 };
 
-const getUserByEmailWithSubscription = async passportIdOrEmail => {
+const getUserByEmailWithSubscription = async email => {
   return await db("tasttlig_users")
-    .where("email", passportIdOrEmail)
-    .orWhere({passport_id: passportIdOrEmail})
+    .where("email", email)
     .first()
     .leftJoin(
       "user_subscriptions",
