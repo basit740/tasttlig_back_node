@@ -31,7 +31,7 @@ const createNewFoodSampleClaim = async (
       }
 
       // Email to user on claiming food sample
-      await sendClaimedEmailToUser(db_user, db_food_sample);
+      await sendPendingClaimedEmailToUser(db_user, db_food_sample);
       await sendClaimedEmailToProvider(db_user, db_food_sample, db_food_sample_claim[0]);
     });
 
@@ -100,11 +100,33 @@ const confirmFoodSampleClaim = async (token) => {
         .update({
           status: Food_Sample_Claim_Status.CONFIRMED
         });
+
+      const db_food_sample = await trx("food_samples")
+        .select("food_samples.*")
+        .where("food_sample_id", payload.food_sample_id)
+        .first();
+
+      await sendClaimedEmailToUser(payload.db_user, db_food_sample);
     });
     return {success: true};
   } catch (e) {
     return {success: false, error: e.message};
   }
+}
+
+const sendPendingClaimedEmailToUser = async (db_user, db_food_sample) => {
+  return Mailer.sendMail({
+    from: process.env.SES_DEFAULT_FROM,
+    to: db_user.email,
+    bcc: ADMIN_EMAIL,
+    subject: `[Tasttlig] You have claimed ${db_food_sample.title}`,
+    template: "new_food_sample_claim_pending",
+    context: {
+      first_name: db_user.first_name,
+      last_name: db_user.last_name,
+      title: db_food_sample.title,
+    },
+  });
 }
 
 const sendClaimedEmailToUser = async (db_user, db_food_sample) => {
@@ -134,7 +156,9 @@ const sendClaimedEmailToUser = async (db_user, db_food_sample) => {
 
 const sendClaimedEmailToProvider = async (db_user, db_food_sample, db_food_sample_claim) => {
   const token = jwt.sign({
-    claim_id: db_food_sample_claim.food_sample_claim_id
+    claim_id: db_food_sample_claim.food_sample_claim_id,
+    food_sample_id: db_food_sample.food_sample_id,
+    db_user
   }, process.env.EMAIL_SECRET);
 
   const url = `${process.env.SITE_BASE}/confirm-food-sample/${token}`;
