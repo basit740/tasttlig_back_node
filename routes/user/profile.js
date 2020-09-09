@@ -46,59 +46,9 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
   });
 });
 
-router.post(
-  "/user/upgrade",
-  token_service.authenticateToken,
-  async (req, res) => {
-    if (
-      !req.body.upgrade_type ||
-      !req.body.document_type ||
-      !req.body.document_link ||
-      !req.body.issue_date ||
-      !req.body.expiry_date
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "Required Parameters are not available in request"
-      });
-    }
-    try {
-      const user_details_from_db = await user_profile_service.getUserById(
-        req.user.id
-      );
-      if (!user_details_from_db.success) {
-        return res.status(403).json({
-          success: false,
-          message: user_details_from_db.message
-        });
-      }
-      const db_user = user_details_from_db.user;
-      const upgrade_details = {
-        upgrade_type: req.body.upgrade_type,
-        document_type: req.body.document_type,
-        document_link: req.body.document_link,
-        issue_date: req.body.issue_date,
-        expiry_date: req.body.expiry_date,
-        is_participating_in_festival: req.body.is_participating_in_festival
-      };
-      const response = await user_profile_service.upgradeUser(
-        db_user,
-        upgrade_details
-      );
-      return res.send(response);
-    } catch (err) {
-      res.send({
-        success: false,
-        message: "error",
-        response: err
-      });
-    }
-  }
-);
-
-const extractBusinessInfo = (requestBody) => {
+const extractBusinessInfo = (user_details_from_db, requestBody) => {
   return {
-    'user_id': requestBody.id,
+    'user_id': user_details_from_db.user.tasttlig_user_id,
     'business_name': requestBody.business_name,
     'business_type': requestBody.business_type,
     'ethnicity_of_restaurant': requestBody.culture,
@@ -132,151 +82,232 @@ router.post(
   token_service.authenticateToken,
   apply_host_request,
   async (req, res) => {
-    const user_details_from_db = await user_profile_service.getUserById(
-      req.user.id
-    );
-    if (!user_details_from_db.success) {
-      return res.status(403).json({
-        success: false,
-        message: user_details_from_db.message
-      });
-    }
+    try {
 
-    // first, get all the data for business
-    const business_info = extractBusinessInfo(req.body)
-    await user_profile_service.insertBusinessForUser(business_info)
-
-    // second, get all the data for documents.
-    // food handler certificate is always required
-    const food_handler_certificate = extractFoodHandlerCertificate(req.body)
-
-    await user_profile_service.insertDocument(user_details_from_db, food_handler_certificate)
-
-    // insurance is not always required, but if the user input their insurance
-    if (req.body.insurance_file) {
-      const insurance = {
-        document_type: 'Insurance',
-        document_link: req.body.insurance_file,
-        status: 'Pending'
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message
+        });
       }
-      await user_profile_service.insertDocument(user_details_from_db, insurance)
-    } else {
-      const insurance = null
-    }
-    // same thing for health safety certificate
-    if (req.body.health_safety_certificate) {
-      const health_safety_certificate = {
-        document_type: 'Health and Safety Certificate',
-        document_link: req.body.health_safety_certificate,
-        status: 'Pending'
+
+      // Step 1, get all the data for business
+      const business_info = extractBusinessInfo(user_details_from_db, req.body)
+      let response = await user_profile_service.insertBusinessForUser(business_info)
+      if (! response.success) {
+        res.status(403).json({success: false, message: response.details})
       }
-      await user_profile_service.insertDocument(user_details_from_db, health_safety_certificate)
-    } else {
-      const health_safety_certificate = null
-    }
 
-    // third, we need to handle bank information
-    switch (req.body.banking) {
-      case "Bank":
-        const banking_info = {
-          user_id: user_details_from_db.user.tasttlig_user_id,
-          bank_number: req.body.bank_number,
-          account_number: req.body.account_number,
-          institution_number: req.body.institution_number,
-          void_cheque: req.body.void_cheque
-        }
-        await user_profile_service.insertBankingInfo(banking_info, 'payment_bank')
-        break;
-      case "Online":
-        const online_transfer_info = {
-          user_id: user_details_from_db.user.tasttlig_user_id,
-          transfer_email: req.body.online_email,
-        }
-        await user_profile_service.insertBankingInfo(online_transfer_info, 'payment_online_tranfer')
-        break;
-      case "PayPal":
-        const paypal_info = {
-          user_id: user_details_from_db.user.tasttlig_user_id,
-          paypal_email: req.body.paypal_email,
-        }
-        await user_profile_service.insertBankingInfo(paypal_info, 'payment_paypal')
-        break;
-      case "Stripe":
-        const stripe_info = {
-          user_id: user_details_from_db.user.tasttlig_user_id,
-          stripe_account: req.body.stripe_account,
-        }
-        await user_profile_service.insertBankingInfo(stripe_info, 'payment_stripe')
-        break
-    }
+      // Step 2, get all the data for documents.
+      // food handler certificate is always required
+      const food_handler_certificate = extractFoodHandlerCertificate(req.body)
 
-    // STEP 4, link to external website
-    const external_websites_review = [
-      'yelp',
-      'google',
-      'tripadvisor',
-      'instagram',
-      'youtube',
-    ]
-    let reviews = []
-    for (let i = 0; i < external_websites_review.length; i++) {
-      let website = external_websites_review[i]
-      if (req.body[website + '_review']){
-        let review = {
-          user_id: user_details_from_db.user.tasttlig_user_id,
-          platform: website,
-          link: req.body[website + '_review'],
-        }
-        reviews.push(review)
+      response = await user_profile_service.insertDocument(user_details_from_db, food_handler_certificate)
+      if (! response.success) {
+        res.status(403).json({success: false, message: response.details})
       }
-    }
 
-    if (req.body.media_recognition) {
-      reviews.push({
+      // insurance is not always required, but if the user input their insurance
+      if (req.body.insurance_file) {
+        const insurance = {
+          document_type: 'Insurance',
+          document_link: req.body.insurance_file,
+          status: 'Pending',
+          issue_date: new Date(),
+          expiry_date: new Date(),
+        }
+        response = await user_profile_service.insertDocument(user_details_from_db, insurance)
+        if (! response.success) {
+          res.status(403).json({success: false, message: response.details})
+        }
+      }
+
+      // same thing for health safety certificate
+      if (req.body.health_safety_certificate) {
+        const health_safety_certificate = {
+          document_type: 'Health and Safety Certificate',
+          document_link: req.body.health_safety_certificate,
+          status: 'Pending',
+          issue_date: new Date(),
+          expiry_date: new Date(),
+        }
+        response = await user_profile_service.insertDocument(user_details_from_db, health_safety_certificate)
+        if (! response.success) {
+          res.status(403).json({success: false, message: response.details})
+        }
+      }
+
+      // Step 3, we need to handle bank information
+      switch (req.body.banking) {
+        case "Bank":
+          const banking_info = {
+            user_id: user_details_from_db.user.tasttlig_user_id,
+            bank_number: req.body.bank_number,
+            account_number: req.body.account_number,
+            institution_number: req.body.institution_number,
+            void_cheque: req.body.void_cheque
+          }
+
+          response = await user_profile_service.insertBankingInfo(banking_info, 'payment_bank')
+          if (! response.success) {
+            res.status(403).json({success: false, message: response.details})
+          }
+          break;
+        case "Online":
+          const online_transfer_info = {
+            user_id: user_details_from_db.user.tasttlig_user_id,
+            transfer_email: req.body.online_email,
+          }
+          response = await user_profile_service.insertBankingInfo(online_transfer_info, 'payment_online_transfer')
+          if (! response.success) {
+            res.status(403).json({success: false, message: response.details})
+          }
+          break;
+        case "PayPal":
+          const paypal_info = {
+            user_id: user_details_from_db.user.tasttlig_user_id,
+            paypal_email: req.body.paypal_email,
+          }
+
+          response = await user_profile_service.insertBankingInfo(paypal_info, 'payment_paypal')
+          if (! response.success) {
+            res.status(403).json({success: false, message: response.details})
+          }
+          break;
+        case "Stripe":
+          const stripe_info = {
+            user_id: user_details_from_db.user.tasttlig_user_id,
+            stripe_account: req.body.stripe_account,
+          }
+
+          response = await user_profile_service.insertBankingInfo(stripe_info, 'payment_stripe')
+          if (! response.success) {
+            res.status(403).json({success: false, message: response.details})
+          }
+          break
+      }
+
+      // STEP 4, link to external website
+      const external_websites_review = [
+        'yelp',
+        'google',
+        'tripadvisor',
+        'instagram',
+        'youtube',
+      ]
+      let reviews = []
+      for (let i = 0; i < external_websites_review.length; i++) {
+        let website = external_websites_review[i]
+        if (req.body[website + '_review']){
+          let review = {
+            user_id: user_details_from_db.user.tasttlig_user_id,
+            platform: website,
+            link: req.body[website + '_review'],
+          }
+          reviews.push(review)
+        }
+      }
+
+      if (req.body.media_recognition) {
+        reviews.push({
+          user_id: user_details_from_db.user.tasttlig_user_id,
+          platform: 'media recognition',
+          link: req.body.media_recognition
+        })
+      }
+
+      if (req.body.personal_review) {
+        reviews.push({
+          user_id: user_details_from_db.user.tasttlig_user_id,
+          platform: 'personal',
+          text: req.body.personal_review
+        })
+      }
+
+
+      response = await user_profile_service.insertExternalReviewLink(reviews)
+      if (! response.success) {
+        res.status(403).json({success: false, message: response.details})
+      }
+      // STEP 5, hosting information, including why I want to host.
+      const application_info = {
         user_id: user_details_from_db.user.tasttlig_user_id,
-        platform: 'media recognition',
-        link: req.body.media_recognition
-      })
-    }
+        video_link: req.body.host_selection_video,
+        youtube_link: req.body.youtube_link,
+        reason: req.body.host_selection,
+        created_at: new Date(),
+        status: "Pending"
+      }
 
-    if (req.body.personal_review) {
-      reviews.push({
+      response = await user_profile_service.insertHostingInformation(application_info)
+      if (! response.success) {
+        res.status(403).json({success: false, message: response.details})
+      }
+
+      // STEP 6, sending email to admin for approval
+      const applier = {
         user_id: user_details_from_db.user.tasttlig_user_id,
-        platform: 'personal',
-        text: req.body.personal_review
+        last_name: user_details_from_db.user.last_name,
+        first_name: user_details_from_db.user.first_name,
+        email: user_details_from_db.user.email,
+      }
+      let documents = [
+        {
+          document_type: 'Food Handler Certificate',
+          issue_date: req.body.date_of_issue,
+          expiry_date: req.body.expiry_date,
+          document_link: req.body.food_handler_certificate,
+        }
+      ]
+
+      if (req.body.insurance_file) {
+        documents = documents.push({
+          document_type: 'Insurance',
+          document_link: req.body.insurance_file,
+        })
+      }
+
+      // same thing for health safety certificate
+      if (req.body.health_safety_certificate) {
+        documents.push( {
+          document_type: 'Health and Safety Certificate',
+          document_link: req.body.health_safety_certificate,
+        })
+      }
+      applier.documents = documents;
+      await user_profile_service.sendAdminEmailForHosting(applier).catch(e => {
+        res.status(403).json({success: false, message: e})
       })
+
+      // STEP 7, sending email to user who apply hosting.
+      await user_profile_service.sendApplierEmailForHosting(user_details_from_db).catch(e => {
+        res.status(403).json({success: false, message: e})
+
+      })
+
+    } catch (e) {
+      res.status(403).json({success: false, message: e})
     }
 
-    await user_profile_service.insertExternalReviewLink(reviews)
-
-    // Final STEP, hosting information
-    const application_info = {
-      user_id: user_details_from_db.user.tasttlig_user_id,
-      video_link: req.body.host_selection_video,
-      youtube_link: req.body.youtube_link,
-      reason: req.body.host_selection,
-      created_at: new Date(),
-      status: "Pending"
-    }
-    await user_profile_service.insertHostingInformation(application_info)
-
-
+    res.send({ success: true });
   }
 );
 
-
-router.post("/user/upgrade/action/:token", async (req, res) => {
+router.get("/user/application/:token", async (req, res) => {
   if (!req.params.token) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
     });
   }
-  const response = await user_profile_service.upgradeUserResponse(
+  const response = await user_profile_service.handleAction(
     req.params.token
   );
   return res.send(response);
-});
+})
 
 router.put("/user/update-account/:id", async (req, res) => {
   try {
