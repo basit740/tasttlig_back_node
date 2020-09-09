@@ -1,11 +1,14 @@
 "use strict";
 
+const Food_Sample_Claim_Status = require("../../enums/food_sample_claim_status");
+
 const {db, gis} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const user_role_manager = require("../profile/user_roles_manager");
 const {generateRandomString} = require("../../functions/functions");
 const jwt = require("jsonwebtoken");
 const geocoder = require("../geocoder");
+const moment = require("moment");
 
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const SITE_BASE = process.env.SITE_BASE;
@@ -95,7 +98,7 @@ const createNewFoodSample = async (
     return {success: true, details: "success"};
   } catch (err) {
     // duplicate key
-    if (err.code === 23505){
+    if (err.code === 23505) {
       food_sample_details.food_ad_code = generateRandomString(4)
       return createNewFoodSample(
         db_user,
@@ -104,7 +107,7 @@ const createNewFoodSample = async (
         createdByAdmin
       )
     }
-    return { success: false, details: err.message };
+    return {success: false, details: err.message};
   }
 };
 
@@ -216,6 +219,8 @@ const getAllFoodSamples = async (
   food_ad_code,
   filters
 ) => {
+  const startOfDay = moment().startOf('day').format("YYYY-MM-DD HH:mm:ss");
+  const endOfDay = moment().endOf('day').format("YYYY-MM-DD HH:mm:ss");
   let query = db
     .select(
       "food_samples.*",
@@ -223,7 +228,8 @@ const getAllFoodSamples = async (
       "tasttlig_users.last_name",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
-      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
+      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls"),
+      db.raw("(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims", [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay])
     )
     .from("food_samples")
     .leftJoin(
@@ -281,10 +287,10 @@ const getAllFoodSamples = async (
             "main.*",
             db.raw(
               "to_tsvector(main.title) " +
-                "|| to_tsvector(main.description) " +
-                "|| to_tsvector(main.first_name) " +
-                "|| to_tsvector(main.last_name) " +
-                "as search_text"
+              "|| to_tsvector(main.description) " +
+              "|| to_tsvector(main.first_name) " +
+              "|| to_tsvector(main.last_name) " +
+              "as search_text"
             )
           )
           .from(query.as("main"))
@@ -416,12 +422,12 @@ const getFoodSampleById = async (id) => {
     )
     .then((value) => {
       if (!value) {
-        return { success: false, message: "No food sample found." };
+        return {success: false, message: "No food sample found."};
       }
-      return { success: true, food_sample: value };
+      return {success: true, food_sample: value};
     })
     .catch((error) => {
-      return { success: false, message: error };
+      return {success: false, message: error};
     });
 };
 

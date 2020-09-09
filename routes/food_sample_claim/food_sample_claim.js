@@ -79,4 +79,19 @@ router.post(
   }
 );
 
+router.post(
+  "/food-sample-claim/confirm",
+  async (req, res) => {
+    if (!req.body.token) {
+      return res.status(403).json({
+        success: false,
+        message: "Token not present in request",
+      });
+    }
+
+    const response = await food_sample_claim_service.confirmFoodSampleClaim(req.body.token);
+
+    return res.status(response.error ? 500:200).json(response);
+  });
+
 module.exports = router;

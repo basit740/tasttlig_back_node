@@ -1,8 +1,10 @@
 "use strict";
 
 const {db} = require("../../db/db-config");
+const jwt = require("jsonwebtoken");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const user_profile_service = require("../profile/user_profile");
+const Food_Sample_Claim_Status = require("../../enums/food_sample_claim_status");
 const {
   formatDate,
   formatMilitaryToStandardTime,
@@ -28,33 +30,11 @@ const createNewFoodSampleClaim = async (
         };
       }
     });
-    const mail_list_claimed = [
-      ADMIN_EMAIL,
-      db_food_sample.email
-    ];
+
     // Email to user on claiming food sample
-    await Mailer.sendMail({
-      from: process.env.SES_DEFAULT_FROM,
-      to: db_user.email,
-      bcc: mail_list_claimed,
-      subject: `[Tasttlig] You have claimed ${db_food_sample.title}`,
-      template: "new_food_sample_claim",
-      context: {
-        first_name: db_user.first_name,
-        last_name: db_user.last_name,
-        title: db_food_sample.title,
-        address: db_food_sample.address,
-        city: db_food_sample.city,
-        state: db_food_sample.state,
-        postal_code: db_food_sample.postal_code,
-        start_date: formatDate(db_food_sample.start_date),
-        end_date: formatDate(db_food_sample.end_date),
-        start_time: formatMilitaryToStandardTime(db_food_sample.start_time),
-        end_time: formatMilitaryToStandardTime(db_food_sample.end_time),
-        frequency: db_food_sample.frequency,
-        code: db_food_sample.food_ad_code
-      },
-    });
+    await sendClaimedEmailToUser(db_user, db_food_sample);
+    await sendClaimedEmailToProvider(db_user, db_food_sample);
+
     return {success: true, details: "success"};
   } catch (err) {
     return {success: false, details: err.message};
@@ -71,14 +51,14 @@ const userCanClaimFoodSample = async (email, food_sample_id) => {
       .where("food_sample_claim_email", email)
       .where("food_sample_id", food_sample_id);
 
-    if(claimIds.length) {
+    if (claimIds.length) {
       if (user == null && claimIds.length >= MAX_CLAIMS) {
         return {
           success: true,
           canClaim: false,
           message: "Maximum number of claims reached"
         }
-      } else if((user == null || user.subscription_code.endsWith("_S")) && claimIds.includes(food_sample_id)) {
+      } else if ((user == null || user.subscription_code.endsWith("_S")) && claimIds.includes(food_sample_id)) {
         return {
           success: true,
           canClaim: false,
@@ -111,8 +91,73 @@ const getFoodClaimCount = async (email, food_sample_id) => {
   }
 }
 
+const confirmFoodSampleClaim = async (token) => {
+  try {
+    var payload = jwt.verify(token, process.env.EMAIL_SECRET);
+    await db.transaction(async (trx) => {
+      await trx("food_sample_claims")
+        .where("food_sample_id", payload.food_sample_id)
+        .update({
+          status: Food_Sample_Claim_Status.CONFIRMED
+        });
+    });
+    return {success: true};
+  } catch (e) {
+    return {success: false, error: e.message};
+  }
+}
+
+const sendClaimedEmailToUser = async (db_user, db_food_sample) => {
+  return Mailer.sendMail({
+    from: process.env.SES_DEFAULT_FROM,
+    to: db_user.email,
+    bcc: ADMIN_EMAIL,
+    subject: `[Tasttlig] You have claimed ${db_food_sample.title}`,
+    template: "new_food_sample_claim",
+    context: {
+      first_name: db_user.first_name,
+      last_name: db_user.last_name,
+      title: db_food_sample.title,
+      address: db_food_sample.address,
+      city: db_food_sample.city,
+      state: db_food_sample.state,
+      postal_code: db_food_sample.postal_code,
+      start_date: formatDate(db_food_sample.start_date),
+      end_date: formatDate(db_food_sample.end_date),
+      start_time: formatMilitaryToStandardTime(db_food_sample.start_time),
+      end_time: formatMilitaryToStandardTime(db_food_sample.end_time),
+      frequency: db_food_sample.frequency,
+      code: db_food_sample.food_ad_code
+    },
+  });
+}
+
+const sendClaimedEmailToProvider = async (db_user, db_food_sample) => {
+  const token = jwt.sign({
+    user_id: db_user.id,
+    food_sample_id: db_food_sample.food_sample_id
+  }, process.env.EMAIL_SECRET);
+
+  const url = `${process.env.SITE_BASE}/confirm-food-sample/${token}`;
+
+  return Mailer.sendMail({
+    from: process.env.SES_DEFAULT_FROM,
+    to: db_food_sample.email,
+    bcc: ADMIN_EMAIL,
+    subject: `[Tasttlig] Food sample has been reserved - ${db_food_sample.title}`,
+    template: "new_food_sample_reserved",
+    context: {
+      first_name: db_user.first_name,
+      last_name: db_user.last_name,
+      title: db_food_sample.title,
+      url
+    },
+  });
+}
+
 module.exports = {
   createNewFoodSampleClaim,
   getFoodClaimCount,
-  userCanClaimFoodSample
+  userCanClaimFoodSample,
+  confirmFoodSampleClaim
 };
