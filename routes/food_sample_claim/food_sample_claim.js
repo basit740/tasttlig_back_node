@@ -33,21 +33,19 @@ router.post(
     }
     db_user = db_user.user;
     
-    if(!new_user) {
-      const {canClaim, message, error} = await food_sample_claim_service
-        .userCanClaimFoodSample(db_user.email, req.body.food_sample_id)
-      
-      if (!canClaim) {
-        return res.status(error ? 500 : 200).json({
-          success: false,
-          message,
-          error
-        })
-      }
-    }
-    
     try {
       if(!new_user){
+        const {canClaim, message, error} = await food_sample_claim_service
+          .userCanClaimFoodSample(db_user.email, req.body.food_sample_id)
+  
+        if (!canClaim) {
+          return res.status(error ? 500 : 200).json({
+            success: false,
+            message,
+            error
+          })
+        }
+      
         const user_details_from_db = await user_profile_service.getUserByEmailWithSubscription(
           db_user.email
         );
@@ -57,7 +55,6 @@ router.post(
             message: "Email not found for user subscription. Enter new email or buy a festival pass"
           });
         }
-        
         if (!user_details_from_db.success) {
           return res.status(403).json({
             success: false,
