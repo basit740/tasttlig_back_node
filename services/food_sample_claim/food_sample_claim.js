@@ -29,11 +29,11 @@ const createNewFoodSampleClaim = async (
           details: "Inserting new Food Sample Claim failed",
         };
       }
-    });
 
-    // Email to user on claiming food sample
-    await sendClaimedEmailToUser(db_user, db_food_sample);
-    await sendClaimedEmailToProvider(db_user, db_food_sample);
+      // Email to user on claiming food sample
+      await sendClaimedEmailToUser(db_user, db_food_sample);
+      await sendClaimedEmailToProvider(db_user, db_food_sample, db_food_sample_claim[0]);
+    });
 
     return {success: true, details: "success"};
   } catch (err) {
@@ -96,7 +96,7 @@ const confirmFoodSampleClaim = async (token) => {
     var payload = jwt.verify(token, process.env.EMAIL_SECRET);
     await db.transaction(async (trx) => {
       await trx("food_sample_claims")
-        .where("food_sample_id", payload.food_sample_id)
+        .where("food_sample_claim_id", payload.claim_id)
         .update({
           status: Food_Sample_Claim_Status.CONFIRMED
         });
@@ -132,10 +132,9 @@ const sendClaimedEmailToUser = async (db_user, db_food_sample) => {
   });
 }
 
-const sendClaimedEmailToProvider = async (db_user, db_food_sample) => {
+const sendClaimedEmailToProvider = async (db_user, db_food_sample, db_food_sample_claim) => {
   const token = jwt.sign({
-    user_id: db_user.id,
-    food_sample_id: db_food_sample.food_sample_id
+    claim_id: db_food_sample_claim.food_sample_claim_id
   }, process.env.EMAIL_SECRET);
 
   const url = `${process.env.SITE_BASE}/confirm-food-sample/${token}`;
