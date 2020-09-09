@@ -18,8 +18,7 @@ const createAccountLimiter = rateLimit({
 
 // POST user register
 authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
-  if (!req.body.first_name || !req.body.last_name || !req.body.email
-    || !req.body.password || !req.body.phone_number){
+  if (!req.body.email || !req.body.password) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -31,11 +30,11 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
     const salt = bcrypt.genSaltSync(saltRounds);
     const password = bcrypt.hashSync(pw, salt);
     const user = {
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
+      first_name: "",
+      last_name: "",
       email: req.body.email,
       password: password,
-      phone_number: req.body.phone_number
+      phone_number: ""
     };
     const response = await authenticate_user_service.userRegister(user);
     if (response.success) {
@@ -49,7 +48,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
   } catch (err) {
     return res.status(401).json({
       success: false,
-      message: err.message
+      message: "Email already exists."
     });
   }
 });
@@ -76,20 +75,21 @@ authRouter.get("/user/confirmation/:token", async (req, res) => {
 
 // POST user login
 authRouter.post("/user/login", async (req, res) => {
-  if (!req.body.email || !req.body.password){
+  if (!req.body.password) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
     });
   }
   try {
-    const response = await authenticate_user_service.getUserLogin(req.body.email);
+    const response = await authenticate_user_service.getUserLogin(req.body);
     if (response.success) {
       const jwtUser = {
         id: response.user.tasttlig_user_id,
         first_name: response.user.first_name,
         last_name: response.user.last_name,
         email: response.user.email,
+        passport_id: response.user.passport_id,
         phone_number: response.user.phone_number,
         role: user_role_manager.createRoleObject(response.user.role),
         verified: response.user.is_email_verified

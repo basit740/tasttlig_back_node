@@ -16,7 +16,7 @@ const getOrderDetails = async(order_details) => {
         if (!value){
           return { success: false, message: "No Subscription found." };
         }
-        return { success: true, subscription: value };
+        return { success: true, item: value };
       })
       .catch(error => {
         return { success: false, message: error };
@@ -32,7 +32,7 @@ const getOrderDetails = async(order_details) => {
         if (!value){
           return { success: false, message: "No Food Sample found." };
         }
-        return { success: true, food_sample: value };
+        return { success: true, item: value };
       })
       .catch(error => {
         return { success: false, message: error };
@@ -45,7 +45,7 @@ const createOrder = async(order_details, db_order_details) => {
   if (order_details.item_type === "subscription") {
     try {
       await db.transaction(async trx => {
-        const total_amount_before_tax = parseFloat(db_order_details.subscription.price);
+        const total_amount_before_tax = parseFloat(db_order_details.item.price);
         const total_tax = Math.round(total_amount_before_tax * 13) / 100;
         const db_orders = await trx("orders")
           .insert({
@@ -79,13 +79,13 @@ const createOrder = async(order_details, db_order_details) => {
         if(db_order_details.subscription.validity_in_months){
           subscription_end_datetime = new Date()
             .setMonth(new Date().getMonth()
-              + db_order_details.subscription.validity_in_months)
+              + db_order_details.item.validity_in_months)
         } else {
-          subscription_end_datetime = db_order_details.subscription.date_of_expiry;
+          subscription_end_datetime = db_order_details.item.date_of_expiry;
         }
         await trx("user_subscriptions")
           .insert({
-            subscription_code: db_order_details.subscription.subscription_code,
+            subscription_code: db_order_details.item.subscription_code,
             user_id: order_details.user_id,
             subscription_start_datetime: new Date(),
             subscription_end_datetime: subscription_end_datetime
@@ -109,7 +109,7 @@ const createOrder = async(order_details, db_order_details) => {
   } else if (order_details.item_type === "food_sample") {
     try {
       await db.transaction(async trx => {
-        const total_amount_before_tax = parseFloat(db_order_details.food_sample.price);
+        const total_amount_before_tax = parseFloat(db_order_details.item.price);
         const total_tax = Math.round(total_amount_before_tax * 13) / 100;
         const db_orders = await trx("orders")
           .insert({
@@ -148,7 +148,7 @@ const createOrder = async(order_details, db_order_details) => {
         subject: "[Tasttlig] Purchase Successful",
         template: 'new_food_sample_purchase',
         context: {
-          title: db_order_details.food_sample.title
+          title: db_order_details.item.title
         }
       });
       return {success: true, details: "success"};

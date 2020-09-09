@@ -2,12 +2,14 @@
 
 const {db} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
+const user_profile_service = require("../profile/user_profile");
 const {
   formatDate,
   formatMilitaryToStandardTime,
 } = require("../../functions/functions");
 
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
+const MAX_CLAIMS = 3;
 
 const createNewFoodSampleClaim = async (
   db_user,
@@ -38,8 +40,8 @@ const createNewFoodSampleClaim = async (
       subject: `[Tasttlig] You have claimed ${db_food_sample.title}`,
       template: "new_food_sample_claim",
       context: {
-        first_name: db_user.first_name,
-        last_name: db_user.last_name,
+        // first_name: db_user.first_name,
+        // last_name: db_user.last_name,
         title: db_food_sample.title,
         address: db_food_sample.address,
         city: db_food_sample.city,
@@ -59,12 +61,50 @@ const createNewFoodSampleClaim = async (
   }
 };
 
-const getFoodClaimCount = async (email) => {
+const userCanClaimFoodSample = async (email, food_sample_id) => {
   try {
-    const count = await db
+    const {user} = await user_profile_service.getUserByEmailWithSubscription(email);
+
+    const claimIds = await db
+      .pluck("food_sample_id")
+      .from("food_sample_claims")
+      .where("food_sample_claim_email", email)
+      .where("food_sample_id", food_sample_id);
+
+    if(claimIds.length) {
+      if (user == null && claimIds.length >= MAX_CLAIMS) {
+        return {
+          success: true,
+          canClaim: false,
+          message: "Maximum number of claims reached"
+        }
+      } else if((user == null || user.subscription_code.endsWith("_S")) && claimIds.includes(food_sample_id)) {
+        return {
+          success: true,
+          canClaim: false,
+          message: "Food sample has already been claimed"
+        }
+      }
+    }
+
+    return {success: true, canClaim: true};
+  } catch (e) {
+    return {success: false, error: e.message}
+  }
+}
+
+const getFoodClaimCount = async (email, food_sample_id) => {
+  try {
+    const query = db
       .select("count(*)")
       .from("food_sample_claims")
       .where("food_sample_claim_email", email);
+
+    if (food_sample_id) {
+      query.where("food_sample_id", food_sample_id);
+    }
+
+    const count = await query;
     return {success: true, count,};
   } catch (e) {
     return {success: false, error: err.message};
@@ -73,5 +113,6 @@ const getFoodClaimCount = async (email) => {
 
 module.exports = {
   createNewFoodSampleClaim,
-  getFoodClaimCount
+  getFoodClaimCount,
+  userCanClaimFoodSample
 };

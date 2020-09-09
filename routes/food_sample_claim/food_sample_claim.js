@@ -16,6 +16,17 @@ router.post(
       });
     }
 
+    const {canClaim, message, error} = await food_sample_claim_service
+      .userCanClaimFoodSample(req.body.food_sample_claim_email, req.body.food_sample_id)
+
+    if (!canClaim) {
+      return res.status(error ? 500 : 200).json({
+        success: false,
+        message,
+        error
+      })
+    }
+
     try {
       const user_details_from_db = await user_profile_service.getUserByEmailWithSubscription(
         req.body.food_sample_claim_email
