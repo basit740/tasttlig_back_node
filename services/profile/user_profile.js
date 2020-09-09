@@ -24,6 +24,26 @@ const getUserById = async id => {
     });
 };
 
+const getUserBySubscriptionId = async id => {
+  return await db("tasttlig_users")
+    .where("tasttlig_user_id", id)
+    .first()
+    .leftJoin(
+      "user_subscriptions",
+      "tasttlig_users.tasttlig_user_id",
+      "user_subscriptions.user_id"
+    )
+    .then(value => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+      return { success: true, user: value };
+    })
+    .catch(error => {
+      return { success: false, message: error };
+    });
+};
+
 const upgradeUser = async (db_user, upgrade_details) => {
   try {
     const document_response = await db("documents")
@@ -307,6 +327,7 @@ const getUserByPassportId = async passport_id => {
 
 module.exports = {
   getUserById,
+  getUserBySubscriptionId,
   upgradeUser,
   upgradeUserResponse,
   getUserByEmail,

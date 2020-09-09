@@ -8,7 +8,7 @@ const user_role_manager = require("../../services/profile/user_roles_manager");
 
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
-  const response = await user_profile_service.getUserById(req.user.id);
+  const response = await user_profile_service.getUserBySubscriptionId(req.user.id);
   if (!response.success) {
     return res.status(403).json({
       success: false,
