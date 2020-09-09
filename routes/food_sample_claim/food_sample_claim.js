@@ -9,7 +9,7 @@ const food_sample_service = require("../../services/food_sample/food_sample");
 router.post(
   "/food-sample-claim",
   async (req, res) => {
-    if (!req.body.food_sample_claim_email || !req.body.food_sample_id) {
+    if (!req.body.food_sample_claim_user || !req.body.food_sample_id) {
       return res.status(403).json({
         success: false,
         message: "Required Parameters are not available in request",
@@ -29,7 +29,7 @@ router.post(
 
     try {
       const user_details_from_db = await user_profile_service.getUserByEmailWithSubscription(
-        req.body.food_sample_claim_email
+        req.body.food_sample_claim_user
       );
       if (!user_details_from_db.user.user_subscription_id) {
         return res.status(403).json({
@@ -58,7 +58,7 @@ router.post(
       let db_food_sample = food_sample_details_from_db.food_sample;
 
       const food_sample_claim_details = {
-        food_sample_claim_email: req.body.food_sample_claim_email,
+        food_sample_claim_email: db_user.email,
         food_sample_claim_user_id: db_user.tasttlig_user_id,
         food_sample_id: db_food_sample.food_sample_id,
       };
