@@ -177,6 +177,7 @@ const sendClaimedEmailToProvider = async (db_user, db_food_sample, db_food_sampl
       last_name:  (db_user.last_name === "NA" ? "" : db_user.last_name),
       email: db_user.email,
       title: db_food_sample.title,
+      food_ad_code: db_food_sample.food_ad_code,
       url
     },
   });
