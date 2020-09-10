@@ -157,7 +157,11 @@ const sendClaimedEmailToProvider = async (db_user, db_food_sample, db_food_sampl
   const token = jwt.sign({
     claim_id: db_food_sample_claim.food_sample_claim_id,
     food_sample_id: db_food_sample.food_sample_id,
-    db_user
+    db_user: {
+      email:db_user.email,
+      first_name: db_user.first_name,
+      last_name: db_user.last_name
+    }
   }, process.env.EMAIL_SECRET);
 
   const url = `${process.env.SITE_BASE}/confirm-food-sample/${token}`;
