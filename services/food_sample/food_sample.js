@@ -298,7 +298,7 @@ const getAllFoodSamples = async (
   }
 
   query = query.paginate({
-    perPage: 6,
+    perPage: 12,
     isLengthAware: true,
     currentPage: currentPage
   })
