@@ -5,6 +5,7 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cors = require("cors");
+const cron = require('node-cron');
 
 // Set up dotenv
 require("dotenv").config();
@@ -46,6 +47,11 @@ app.use(newsletter_router);
 app.use(admin_user_router);
 app.use("/nationalities", nationality_router);
 app.use(subscription_router);
+
+
+
+// Cron Job scripts
+cron.schedule('0 0 1-31 * *', );
 
 // Boot development server
 const port = process.env.PORT || 8000;
