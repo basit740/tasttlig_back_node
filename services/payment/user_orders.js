@@ -37,6 +37,22 @@ const getOrderDetails = async(order_details) => {
       .catch(error => {
         return { success: false, message: error };
       });
+  } else if (order_details.item_type === "experience"){
+    return await db("experiences")
+      .where({
+        experience_id: order_details.item_id,
+        status: "ACTIVE"
+      })
+      .first()
+      .then(value => {
+        if (!value){
+          return { success: false, message: "No experience found." };
+        }
+        return { success: true, item: value };
+      })
+      .catch(error => {
+        return { success: false, message: error };
+      });
   }
   return { success: false, message: "Item type not supported" };
 }
@@ -149,6 +165,64 @@ const createOrder = async(order_details, db_order_details) => {
         template: 'new_food_sample_purchase',
         context: {
           title: db_order_details.item.title
+        }
+      });
+      return {success: true, details: "success"};
+    } catch (err) {
+      return {success: false, details: err.message};
+    }
+  } else if (order_details.item_type === "experience") {
+    try {
+      await db.transaction(async trx => {
+        const total_amount_before_tax = parseFloat(db_order_details.item.price);
+        const total_tax = Math.round(total_amount_before_tax * 13) / 100;
+        const db_orders = await trx("orders")
+          .insert({
+            order_by_user_id: order_details.user_id,
+            status: "SUCCESS",
+            total_amount_before_tax: total_amount_before_tax,
+            total_tax: total_tax,
+            total_amount_after_tax: total_amount_before_tax + total_tax,
+            order_datetime: new Date()
+          })
+          .returning("*");
+        if (!db_orders) {
+          return {success: false, details: "Inserting new Order failed"};
+        }
+        await trx("order_items")
+          .insert({
+            order_id: db_orders[0].order_id,
+            item_id: order_details.item_id,
+            item_type: order_details.item_type,
+            quantity: 1,
+            price_before_tax: total_amount_before_tax
+          });
+        await trx("payments")
+          .insert({
+            order_id: db_orders[0].order_id,
+            payment_reference_number: order_details.payment_id,
+            payment_type: "CARD",
+            payment_vender: "STRIPE"
+          });
+        await trx("experience_guests")
+          .insert({
+            experience_id: db_order_details.item.experience_id,
+            guest_user_id: order_details.user_id,
+            status: "CONFIRMED",
+            created_at_datetime: new Date(),
+            updated_at_datetime: new Date()
+          });
+      });
+      //Email to user on success purchase
+      await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: order_details.user_email,
+        bcc: ADMIN_EMAIL,
+        subject: "[Tasttlig] Purchase Successful",
+        template: 'experience/new_experience_purchase',
+        context: {
+          title: db_order_details.item.title,
+          passport_id: order_details.user_passport_id
         }
       });
       return {success: true, details: "success"};
