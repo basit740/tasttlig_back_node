@@ -22,6 +22,7 @@ const newsletter_router = require("./routes/user/newsletter");
 const admin_user_router = require("./routes/admin/user");
 const nationality_router = require("./routes/nationality/nationality");
 const subscription_router = require("./routes/subscriptions/subscriptions");
+const cron_job_functions = require("./services/cron_job/cron_job_functions")
 
 const app = express();
 let corsOptions = {
@@ -51,7 +52,7 @@ app.use(subscription_router);
 
 
 // Cron Job scripts
-cron.schedule('0 0 1-31 * *', );
+cron.schedule('0 0 1-31 * *', cron_job_functions.deleteInactiveItems);
 
 // Boot development server
 const port = process.env.PORT || 8000;
