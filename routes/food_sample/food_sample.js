@@ -9,8 +9,9 @@ const { generateRandomString } = require("../../functions/functions");
 
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
   if (!req.body.title || !req.body.start_date || !req.body.end_date || !req.body.start_time
-    || !req.body.end_time || !req.body.frequency || !req.body.food_sample_type || !req.body.description || !req.body.address || !req.body.city
-    || !req.body.state || !req.body.country || !req.body.postal_code || !req.body.nationality_id || !req.body.images) {
+    || !req.body.end_time || !req.body.frequency || !req.body.food_sample_type || !req.body.description
+    || !req.body.address || !req.body.city || !req.body.state || !req.body.country || !req.body.postal_code
+    || !req.body.nationality_id || !req.body.images || !req.body.quantity) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -55,6 +56,7 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
       frequency: req.body.frequency,
       food_sample_type: req.body.food_sample_type,
       price: 2.0,
+      quantity: req.body.quantity,
       food_ad_code: generateRandomString(4)
     }
     const response = await food_sample_service.createNewFoodSample(
