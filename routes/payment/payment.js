@@ -57,6 +57,7 @@ router.post("/payment/stripe/success", async (req, res) => {
       item_type: req.body.item_type,
       user_id: db_user.user.tasttlig_user_id,
       user_email: db_user.user.email,
+      user_passport_id: db_user.user.passport_id,
       payment_id: req.body.payment_id
     }
     const db_order_details = await user_order_service.getOrderDetails(order_details);
