@@ -71,6 +71,33 @@ const upgradeUser = async (db_user, upgrade_details) => {
   }
 };
 
+const updateUserAccount = async user => {
+  try {
+    return await db("tasttlig_users")
+      .where("tasttlig_user_id", user.id)
+      .first()
+      .update({
+        first_name: user.first_name,
+        last_name: user.last_name,
+        password: user.password,
+        phone_number: user.phone_number,
+        profile_image_link: user.profile_image_link,
+        profile_tag_line: user.profile_tag_line,
+        bio_text: user.bio_text,
+        banner_image_link: user.banner_image_link
+      })
+      .returning("*")
+      .then(value => {
+        return { success: true, details: value[0] };
+      })
+      .catch(reason => {
+        return { success: false, details: reason };
+      });
+  } catch (err) {
+    return { success: false, message: err };
+  }
+};
+
 const updateUserProfile = async user => {
   try {
     return await db("tasttlig_users")
@@ -415,6 +442,7 @@ module.exports = {
   getUserById,
   getUserBySubscriptionId,
   upgradeUser,
+  updateUserAccount,
   updateUserProfile,
   insertBusinessForUser,
   insertDocument,
