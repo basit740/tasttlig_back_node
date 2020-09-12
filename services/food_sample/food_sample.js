@@ -262,7 +262,8 @@ const getAllFoodSamples = async (
     query.where(gis.dwithin(
       "food_samples.coordinates",
       gis.geography(gis.makePoint(filters.longitude, filters.latitude)),
-      200000));
+      filters.radius || 100000));
+    query.orderBy("distanceAway", "asc");
   }
 
   if (filters.startDate) {
