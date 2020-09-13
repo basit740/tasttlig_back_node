@@ -86,6 +86,7 @@ router.get("/food-sample/all", async (req, res) => {
       nationalities: req.query.nationalities,
       startDate: req.query.startDate,
       endDate: req.query.endDate,
+      radius: req.query.radius,
       latitude: req.query.latitude,
       longitude: req.query.longitude
     }
