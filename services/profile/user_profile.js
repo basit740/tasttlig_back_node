@@ -24,10 +24,15 @@ const getUserById = async id => {
     });
 };
 
-const getUserByEmail = async email => {
+const getUserBySubscriptionId = async id => {
   return await db("tasttlig_users")
-    .where("email", email)
+    .where("tasttlig_user_id", id)
     .first()
+    .leftJoin(
+      "user_subscriptions",
+      "tasttlig_users.tasttlig_user_id",
+      "user_subscriptions.user_id"
+    )
     .then(value => {
       if (!value) {
         return { success: false, message: "No user found." };
@@ -39,7 +44,7 @@ const getUserByEmail = async email => {
     });
 };
 
-const updateUserAccount = async user => {
+const upgradeUser = async (db_user, upgrade_details) => {
   try {
     return await db("tasttlig_users")
       .where("tasttlig_user_id", user.id)
@@ -390,10 +395,26 @@ const getUserByPassportId = async passport_id => {
     });
 }
 
+const getUserByPassportIdOrEmail = async passport_id_or_email => {
+  return await db("tasttlig_users")
+    .where("email", passport_id_or_email)
+    .orWhere({passport_id: passport_id_or_email})
+    .first()
+    .then(value => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+      return { success: true, user: value };
+    })
+    .catch(error => {
+      return { success: false, message: error };
+    });
+}
+
 module.exports = {
   getUserById,
-  getUserByEmail,
-  updateUserAccount,
+  getUserBySubscriptionId,
+  upgradeUser,
   updateUserProfile,
   insertBusinessForUser,
   insertDocument,
@@ -402,7 +423,5 @@ module.exports = {
   insertHostingInformation,
   getUserByEmailWithSubscription,
   getUserByPassportId,
-  sendAdminEmailForHosting,
-  sendApplierEmailForHosting,
-  handleAction,
+  getUserByPassportIdOrEmail
 };

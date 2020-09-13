@@ -8,8 +8,8 @@ const { generateRandomString } = require("../../functions/functions");
 
 const SITE_BASE = process.env.SITE_BASE;
 
-const userRegister = async (user, sendEmail= true) => {
-  try{
+const userRegister = async (user, sendEmail = true) => {
+  try {
     return db.transaction(async trx => {
       let new_db_user = [];
       await trx("tasttlig_users")
@@ -35,25 +35,25 @@ const userRegister = async (user, sendEmail= true) => {
             new_db_user = trx("tasttlig_users")
               .insert(userData)
               .returning("*");
-          } else {
-            new_db_user = trx("tasttlig_users")
-              .where("tasttlig_user_id", value.tasttlig_user_id)
-              .update({
-                first_name: user.first_name,
-                last_name: user.last_name,
-                password: user.password,
-                phone_number: user.phone_number,
-                role: "MEMBER",
-                status: "ACTIVE",
-                created_at_datetime: new Date(),
-                updated_at_datetime: new Date()
-              })
-              .returning("*");
+          // } else {
+          //   new_db_user = trx("tasttlig_users")
+          //     .where("tasttlig_user_id", value.tasttlig_user_id)
+          //     .update({
+          //       first_name: user.first_name,
+          //       last_name: user.last_name,
+          //       password: user.password,
+          //       phone_number: user.phone_number,
+          //       role: "MEMBER",
+          //       status: "ACTIVE",
+          //       created_at_datetime: new Date(),
+          //       updated_at_datetime: new Date()
+          //     })
+          //     .returning("*");
           }
         });
       return await new_db_user
         .then(value1 => {
-          if(sendEmail) {
+          if (sendEmail) {
             jwt.sign({
                 user: value1[0].tasttlig_user_id
               },
@@ -69,10 +69,9 @@ const userRegister = async (user, sendEmail= true) => {
                   to: user.email,
                   bcc: ADMIN_EMAIL,
                   subject: "[Tasttlig] Welcome to Tasttlig!",
-                  template: 'signup',
+                  template: "signup",
                   context: {
-                    first_name: user.first_name,
-                    last_name: user.last_name,
+                    passport_id: new_db_user._single.insert.passport_id,
                     urlVerifyEmail: urlVerifyEmail
                   }
                 });
@@ -81,9 +80,9 @@ const userRegister = async (user, sendEmail= true) => {
           return {success: true, data: value1[0]};
         })
     });
-  }catch (error) {
+  } catch (error) {
     // duplicate key
-    if (error.code === 23505){
+    if (error.code === 23505) {
       return userRegister(user, sendEmail)
     }
     return {success: false, data: error.message};
@@ -103,18 +102,34 @@ const verifyAccount = async user_id => {
     });
 }
 
-const getUserLogin = async email => {
-  return await db("tasttlig_users")
-    .where("email", email)
-    .first()
-    .then(value => {
-      if (!value) {
-        return { success: false, message: "User not found." };
-      }
-      return { success: true, user: value };
-    }).catch(reason => {
-      return { success: false, data: reason };
-    });
+const getUserLogin = async body => {
+  if (body.email) {
+    return await db("tasttlig_users")
+      .where("email", body.email)
+      .first()
+      .then(value => {
+        if (!value) {
+          return { success: false, message: "User not found." };
+        }
+        return { success: true, user: value };
+      })
+      .catch(reason => {
+        return { success: false, data: reason };
+      });
+  } else if (body.passport_id) {
+    return await db("tasttlig_users")
+      .where("passport_id", body.passport_id)
+      .first()
+      .then(value => {
+        if (!value) {
+          return { success: false, message: "User not found." };
+        }
+        return { success: true, user: value };
+      })
+      .catch(reason => {
+        return { success: false, data: reason };
+      });
+  }
 }
 
 const getUserLogOut = async user_id => {

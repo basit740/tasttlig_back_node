@@ -8,9 +8,9 @@ exports.up = function(knex) {
         {
           subscription_code: "F_SEP_2020_S",
           subscription_name: "FESTIVAL_SEPTEMBER_2020_SINGLE",
-          date_of_expiry: new Date("2030-12-31 00:00:00"),
+          date_of_expiry: new Date("2020-09-31 00:00:00"),
           validity_in_months: null,
-          price: 10,
+          price: 25,
           description: "SEPTEMBER 2020 FESTIVAL PASS FOR SINGLE RESERVE",
           status: "ACTIVE",
           subscription_type: "FESTIVAL"
@@ -20,7 +20,7 @@ exports.up = function(knex) {
           subscription_name: "FESTIVAL_SEPTEMBER_2020_MULTIPLE",
           date_of_expiry: new Date("2020-09-31 00:00:00"),
           validity_in_months: null,
-          price: 20,
+          price: 50,
           description: "SEPTEMBER 2020 FESTIVAL PASS FOR MULTIPLE RESERVE",
           status: "ACTIVE",
           subscription_type: "FESTIVAL"
