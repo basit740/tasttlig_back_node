@@ -4,6 +4,7 @@ const {db} = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const role_manager = require("./user_roles_manager");
+const geocoder = require("../geocoder");
 
 const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -201,6 +202,24 @@ const insertHostingInformation = async (application_info) => {
       .catch(reason => {
         return {success: false, details: reason}
       })
+  } catch (err) {
+    return {success: false, details: err}
+  }
+}
+
+const insertMenuItem = async (menu_item_details) => {
+  try {
+    await db.transaction(async (trx) => {
+      await setFoodSampleCoordinates(menu_item_details);
+
+      console.log(menu_item_details);
+      const db_menu_item = await trx("menu_items")
+        .insert(menu_item_details)
+        .returning("*");
+      if (!db_menu_item) {
+        return {success: false, details: "Inserting new Menu Item failed"};
+      }
+    });
   } catch (err) {
     return {success: false, details: err}
   }
@@ -438,6 +457,26 @@ const getUserByPassportIdOrEmail = async passport_id_or_email => {
     });
 }
 
+const setFoodSampleCoordinates = async (details) => {
+  try {
+    const address = [
+      details.address,
+      details.city,
+      details.state,
+      details.country,
+      details.postal_code
+    ].join(",");
+
+    const coordinates = (await geocoder.geocode(address))[0];
+
+    details.latitude = coordinates.latitude;
+    details.longitude = coordinates.longitude;
+    details.coordinates = gis.setSRID(gis.makePoint(coordinates.longitude, coordinates.latitude), 4326);
+  } catch (e) {
+    console.log(e);
+  }
+}
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
@@ -449,6 +488,7 @@ module.exports = {
   insertBankingInfo,
   insertExternalReviewLink,
   insertHostingInformation,
+  insertMenuItem,
   getUserByEmailWithSubscription,
   getUserByPassportId,
   getUserByPassportIdOrEmail,
