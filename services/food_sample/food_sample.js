@@ -33,7 +33,6 @@ const createNewFoodSample = async (
 
       await setFoodSampleCoordinates(food_sample_details);
 
-      food_sample_details.status = "ACTIVE";
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
         .returning("*");
@@ -78,7 +77,7 @@ const createNewFoodSample = async (
             }
           }
         );
-      } else {
+      } else if (food_sample_details.status === "ACTIVE") {
         // Email to user on submitting the request to upgrade
         await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,

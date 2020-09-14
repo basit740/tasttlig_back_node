@@ -4,14 +4,16 @@
     this document for upgrading to become a {{upgrade_type}}
     <br><br>
 </div>
+{{#each documents}}
+  <div>
+      Document Type: {{this.document_type}}<br>
+      Document Link: <a href="{{this.document_link}}">{{this.document_link}}</a><br>
+      Date of Issue: {{this.issue_date}}<br>
+      Date of Expiry: {{this.expiry_date}}
+      <br><br>
+  </div>
+{{/each}}
 <div>
-    Document Type: {{document_type}}<br>
-    Document Link: <a href="{{document_link}}">{{document_link}}</a><br>
-    Date of Issue: {{date_of_issue}}<br>
-    Date of Expiry: {{date_of_expiry}}
-    <br><br>
-</div>
-<div>
-    Approve Link: <a href="{{approve_link}}">{{approve_link}}</a><br><br>
-    Reject Link: <a href="{{reject_link}}">{{reject_link}}</a><br><br>
+    Approve Link: <a href="{{approve_link}}">Approve</a><br><br>
+    Reject Link: <a href="{{reject_link}}">Reject</a><br><br>
 </div>
