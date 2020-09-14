@@ -208,7 +208,6 @@ const insertHostingInformation = async (application_info) => {
 }
 
 const insertMenuItem = async (menu_item_details) => {
-  console.log(menu_item_details);
   try {
     for (let menu_item of menu_item_details) {
       return await db("menu_items")
@@ -221,17 +220,6 @@ const insertMenuItem = async (menu_item_details) => {
           return {success: false, details: reason}
         })
     }
-    // await db.transaction(async (trx) => {
-    //   // await setFoodSampleCoordinates(menu_item_details);
-
-    //   console.log(menu_item_details);
-    //   const db_menu_item = await trx("menu_items")
-    //     .insert(menu_item_details)
-    //     .returning("*");
-    //   if (!db_menu_item) {
-    //     return {success: false, details: "Inserting new Menu Item failed"};
-    //   }
-    // });
   } catch (err) {
     return {success: false, details: err}
   }

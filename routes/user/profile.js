@@ -7,8 +7,6 @@ const user_profile_service = require("../../services/profile/user_profile");
 const user_role_manager = require("../../services/profile/user_roles_manager");
 const apply_host_request = require("../../middleware/validator/apply_host_request")
   .apply_host_request;
-const food_sample_service = require("../../services/food_sample/food_sample");
-const { generateRandomString } = require("../../functions/functions");
 
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
@@ -86,8 +84,9 @@ const extractFoodHandlerCertificate = (requestBody) => {
 router.post(
   "/user/host",
   token_service.authenticateToken,
+  apply_host_request,
   async (req, res) => {
-    // console.log(req.body.menu_list);
+
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -115,6 +114,7 @@ router.post(
       //   db_user = host_details_from_db.user;
       //   createdByAdmin = true;
       // }
+
       // Step 1, get all the data for business
       const business_info = extractBusinessInfo(user_details_from_db, req.body);
       let response = await user_profile_service.insertBusinessForUser(
@@ -274,6 +274,7 @@ router.post(
       if (!response.success) {
         res.status(403).json({ success: false, message: response.details });
       }
+
       // STEP 5, hosting information, including why I want to host.
       const application_info = {
         user_id: user_details_from_db.user.tasttlig_user_id,
@@ -293,52 +294,20 @@ router.post(
 
       /* STEP 6, add up to 3 menu items, check to see if they are also going to 
       be in the festival */
-      // for (let menu_item of req.body.menu_list) {
-        // const menu_item_details = {
-        //   // food_sample_creater_user_id: user_details_from_db.user.tasttlig_user_id,
-        //   menu_item_code: menu_item.id.toString(),
-        //   image: menu_item.image,
-        //   title: menu_item.title,
-        //   start_date: menu_item.start_date,
-        //   end_date: menu_item.end_date,
-        //   start_time: menu_item.start_time,
-        //   end_time: menu_item.end_time,
-        //   description: menu_item.description,
-        //   address: menu_item.address,
-        //   city: menu_item.city,
-        //   state: menu_item.state,
-        //   postal_code: menu_item.postal_code,
-        //   country: "CANADA",
-        //   nationality_id: menu_item.nationality_id,
-        //   frequency: menu_item.frequency,
-        //   food_sample_type: menu_item.food_sample_type,
-        //   price: menu_item.price,
-        //   quantity: menu_item.quantity,
-        //   is_vegetarian: menu_item.is_vegetarian,
-        //   is_vegan: menu_item.is_vegan,
-        //   is_gluten_free: menu_item.is_gluten_free,
-        //   is_halal: menu_item.is_halal,
-        //   spice_level: menu_item.spice_level,
-        //   food_ad_code: generateRandomString(4),
-        //   status: "INACTIVE"
-        // };
-        response = await user_profile_service.insertMenuItem(req.body.menu_list);
-        // console.log(response);
-        // if (req.body.participating_in_festival) {
-        //   response = await food_sample_service.createNewFoodSample(
-        //     db_user,
-        //     menu_item_details,
-        //     req.body.images,
-        //     createdByAdmin
-        //   );
-        // }
-      console.log("Response", response);
-        if (!response.success) {
-          console.log("I am Thor");
-          res.status(403).json({ success: false, message: response.details });
-        }
-        console.log("I am Meow");
+      response = await user_profile_service.insertMenuItem(req.body.menu_list);
+
+      // if (req.body.participating_in_festival) {
+      //   response = await food_sample_service.createNewFoodSample(
+      //     db_user,
+      //     menu_item_details,
+      //     req.body.images,
+      //     createdByAdmin
+      //   );
       // }
+
+      if (!response.success) {
+        res.status(403).json({ success: false, message: response.details });
+      }
 
       // STEP 7, sending email to admin for approval
       const applier = {
