@@ -208,18 +208,30 @@ const insertHostingInformation = async (application_info) => {
 }
 
 const insertMenuItem = async (menu_item_details) => {
+  console.log(menu_item_details);
   try {
-    await db.transaction(async (trx) => {
-      await setFoodSampleCoordinates(menu_item_details);
+    for (let menu_item of menu_item_details) {
+      return await db("menu_items")
+        .insert(menu_item)
+        .returning("*")
+        .then(value => {
+          return {success: true, details: value[0]}
+        })
+        .catch(reason => {
+          return {success: false, details: reason}
+        })
+    }
+    // await db.transaction(async (trx) => {
+    //   // await setFoodSampleCoordinates(menu_item_details);
 
-      console.log(menu_item_details);
-      const db_menu_item = await trx("menu_items")
-        .insert(menu_item_details)
-        .returning("*");
-      if (!db_menu_item) {
-        return {success: false, details: "Inserting new Menu Item failed"};
-      }
-    });
+    //   console.log(menu_item_details);
+    //   const db_menu_item = await trx("menu_items")
+    //     .insert(menu_item_details)
+    //     .returning("*");
+    //   if (!db_menu_item) {
+    //     return {success: false, details: "Inserting new Menu Item failed"};
+    //   }
+    // });
   } catch (err) {
     return {success: false, details: err}
   }
@@ -457,25 +469,25 @@ const getUserByPassportIdOrEmail = async passport_id_or_email => {
     });
 }
 
-const setFoodSampleCoordinates = async (details) => {
-  try {
-    const address = [
-      details.address,
-      details.city,
-      details.state,
-      details.country,
-      details.postal_code
-    ].join(",");
+// const setFoodSampleCoordinates = async (details) => {
+//   try {
+//     const address = [
+//       details.address,
+//       details.city,
+//       details.state,
+//       details.country,
+//       details.postal_code
+//     ].join(",");
 
-    const coordinates = (await geocoder.geocode(address))[0];
+//     const coordinates = (await geocoder.geocode(address))[0];
 
-    details.latitude = coordinates.latitude;
-    details.longitude = coordinates.longitude;
-    details.coordinates = gis.setSRID(gis.makePoint(coordinates.longitude, coordinates.latitude), 4326);
-  } catch (e) {
-    console.log(e);
-  }
-}
+//     details.latitude = coordinates.latitude;
+//     details.longitude = coordinates.longitude;
+//     details.coordinates = gis.setSRID(gis.makePoint(coordinates.longitude, coordinates.latitude), 4326);
+//   } catch (e) {
+//     console.log(e);
+//   }
+// }
 
 module.exports = {
   getUserById,

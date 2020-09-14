@@ -75,7 +75,7 @@ const extractFoodHandlerCertificate = (requestBody) => {
     document_type: "Food Handler Certificate",
     issue_date: new Date(requestBody.date_of_issue),
     expiry_date: new Date(requestBody.expiry_date),
-    document_link: requestBody.food_handler_certificate[0],
+    document_link: requestBody.food_handler_certificate,
     status: "Pending"
   };
 };
@@ -87,6 +87,7 @@ router.post(
   "/user/host",
   token_service.authenticateToken,
   async (req, res) => {
+    // console.log(req.body.menu_list);
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -98,141 +99,139 @@ router.post(
         });
       }
 
-      let createdByAdmin = false;
-      let db_user = user_details_from_db.user;
-      let user_role_object = user_role_manager.createRoleObject(db_user.role);
-      if (user_role_object.includes("ADMIN")) {
-        if (!req.body.userEmail) {
-          return res.status(403).json({
-            success: false,
-            message: "Required Parameters are not available in request",
-          });
-        }
-        const host_details_from_db = await user_profile_service.getUserByEmail(
-          req.body.userEmail
-        );
-        db_user = host_details_from_db.user;
-        createdByAdmin = true;
-      }
-
-      // Step 1, get all the data for business
-      // const business_info = extractBusinessInfo(user_details_from_db, req.body);
-      // let response = await user_profile_service.insertBusinessForUser(
-      //   business_info
-      // );
-      // if (!response.success) {
-      //   res.status(403).json({ success: false, message: response.details });
+      // let createdByAdmin = false;
+      // let db_user = user_details_from_db.user;
+      // let user_role_object = user_role_manager.createRoleObject(db_user.role);
+      // if (user_role_object.includes("ADMIN")) {
+      //   if (!req.body.userEmail) {
+      //     return res.status(403).json({
+      //       success: false,
+      //       message: "Required Parameters are not available in request",
+      //     });
+      //   }
+      //   const host_details_from_db = await user_profile_service.getUserByEmail(
+      //     req.body.userEmail
+      //   );
+      //   db_user = host_details_from_db.user;
+      //   createdByAdmin = true;
       // }
+      // Step 1, get all the data for business
+      const business_info = extractBusinessInfo(user_details_from_db, req.body);
+      let response = await user_profile_service.insertBusinessForUser(
+        business_info
+      );
+      if (!response.success) {
+        res.status(403).json({ success: false, message: response.details });
+      }
 
       // Step 2, get all the data for documents.
       // food handler certificate is always required
-      // const food_handler_certificate = extractFoodHandlerCertificate(req.body);
-
-      // response = await user_profile_service.insertDocument(
-      //   user_details_from_db,
-      //   food_handler_certificate
-      // );
-      // if (!response.success) {
-      //   res.status(403).json({ success: false, message: response.details });
-      // }
-
+      const food_handler_certificate = extractFoodHandlerCertificate(req.body);
+      response = await user_profile_service.insertDocument(
+        user_details_from_db,
+        food_handler_certificate
+      );
+      if (!response.success) {
+        res.status(403).json({ success: false, message: response.details });
+      }
+      
       // insurance is not always required, but if the user input their insurance
-      // if (req.body.insurance_file) {
-      //   const insurance = {
-      //     document_type: "Insurance",
-      //     document_link: req.body.insurance_file[0],
-      //     status: "Pending",
-      //     issue_date: new Date(),
-      //     expiry_date: new Date()
-      //   };
-      //   response = await user_profile_service.insertDocument(
-      //     user_details_from_db,
-      //     insurance
-      //   );
-      //   if (!response.success) {
-      //     res.status(403).json({ success: false, message: response.details });
-      //   }
-      // }
+      if (req.body.insurance_file) {
+        const insurance = {
+          document_type: "Insurance",
+          document_link: req.body.insurance_file,
+          status: "Pending",
+          issue_date: new Date(),
+          expiry_date: new Date()
+        };
+        response = await user_profile_service.insertDocument(
+          user_details_from_db,
+          insurance
+        );
+        if (!response.success) {
+          res.status(403).json({ success: false, message: response.details });
+        }
+      }
 
       // same thing for health safety certificate
-      // if (req.body.health_safety_certificate) {
-      //   const health_safety_certificate = {
-      //     document_type: "Health and Safety Certificate",
-      //     document_link: req.body.health_safety_certificate[0],
-      //     status: "Pending",
-      //     issue_date: new Date(),
-      //     expiry_date: new Date()
-      //   };
-      //   response = await user_profile_service.insertDocument(
-      //     user_details_from_db,
-      //     health_safety_certificate
-      //   );
-      //   if (!response.success) {
-      //     res.status(403).json({ success: false, message: response.details });
-      //   }
-      // }
+      if (req.body.health_safety_certificate) {
+        const health_safety_certificate = {
+          document_type: "Health and Safety Certificate",
+          document_link: req.body.health_safety_certificate,
+          status: "Pending",
+          issue_date: new Date(),
+          expiry_date: new Date()
+        };
+        response = await user_profile_service.insertDocument(
+          user_details_from_db,
+          health_safety_certificate
+        );
+        if (!response.success) {
+          res.status(403).json({ success: false, message: response.details });
+        }
+      }
 
       // Step 3, we need to handle bank information
-      // switch (req.body.banking) {
-      //   case "Bank":
-      //     const banking_info = {
-      //       user_id: user_details_from_db.user.tasttlig_user_id,
-      //       bank_number: req.body.bank_number,
-      //       account_number: req.body.account_number,
-      //       institution_number: req.body.institution_number,
-      //       void_cheque: req.body.void_cheque[0]
-      //     };
+      switch (req.body.banking) {
+        case "Bank":
+          const banking_info = {
+            user_id: user_details_from_db.user.tasttlig_user_id,
+            bank_number: req.body.bank_number,
+            account_number: req.body.account_number,
+            institution_number: req.body.institution_number,
+            void_cheque: req.body.void_cheque
+          };
 
-      //     response = await user_profile_service.insertBankingInfo(
-      //       banking_info,
-      //       "payment_bank"
-      //     );
-      //     if (!response.success) {
-      //       res.status(403).json({ success: false, message: response.details });
-      //     }
-      //     break;
-      //   case "Online":
-      //     const online_transfer_info = {
-      //       user_id: user_details_from_db.user.tasttlig_user_id,
-      //       transfer_email: req.body.online_email
-      //     };
-      //     response = await user_profile_service.insertBankingInfo(
-      //       online_transfer_info,
-      //       "payment_online_transfer"
-      //     );
-      //     if (!response.success) {
-      //       res.status(403).json({ success: false, message: response.details });
-      //     }
-      //     break;
-      //   case "PayPal":
-      //     const paypal_info = {
-      //       user_id: user_details_from_db.user.tasttlig_user_id,
-      //       paypal_email: req.body.paypal_email
-      //     };
+          response = await user_profile_service.insertBankingInfo(
+            banking_info,
+            "payment_bank"
+          );
+          if (!response.success) {
+            res.status(403).json({ success: false, message: response.details });
+          }
+          break;
+        case "Online":
+          const online_transfer_info = {
+            user_id: user_details_from_db.user.tasttlig_user_id,
+            transfer_email: req.body.online_email
+          };
+          response = await user_profile_service.insertBankingInfo(
+            online_transfer_info,
+            "payment_online_transfer"
+          );
+          if (!response.success) {
+            res.status(403).json({ success: false, message: response.details });
+          }
+          break;
+        case "PayPal":
+          const paypal_info = {
+            user_id: user_details_from_db.user.tasttlig_user_id,
+            paypal_email: req.body.paypal_email
+          };
 
-      //     response = await user_profile_service.insertBankingInfo(
-      //       paypal_info,
-      //       "payment_paypal"
-      //     );
-      //     if (!response.success) {
-      //       res.status(403).json({ success: false, message: response.details });
-      //     }
-      //     break;
-      //   case "Stripe":
-      //     const stripe_info = {
-      //       user_id: user_details_from_db.user.tasttlig_user_id,
-      //       stripe_account: req.body.stripe_account
-      //     };
+          response = await user_profile_service.insertBankingInfo(
+            paypal_info,
+            "payment_paypal"
+          );
+          if (!response.success) {
+            res.status(403).json({ success: false, message: response.details });
+          }
+          break;
+        case "Stripe":
+          const stripe_info = {
+            user_id: user_details_from_db.user.tasttlig_user_id,
+            stripe_account: req.body.stripe_account
+          };
 
-      //     response = await user_profile_service.insertBankingInfo(
-      //       stripe_info,
-      //       "payment_stripe"
-      //     );
-      //     if (!response.success) {
-      //       res.status(403).json({ success: false, message: response.details });
-      //     }
-      //     break;
-      // }
+          response = await user_profile_service.insertBankingInfo(
+            stripe_info,
+            "payment_stripe"
+          );
+          if (!response.success) {
+            res.status(403).json({ success: false, message: response.details });
+          }
+          break;
+      }
 
       // STEP 4, link to external website
       const external_websites_review = [
@@ -276,68 +275,70 @@ router.post(
         res.status(403).json({ success: false, message: response.details });
       }
       // STEP 5, hosting information, including why I want to host.
-      // const application_info = {
-      //   user_id: user_details_from_db.user.tasttlig_user_id,
-      //   video_link: req.body.host_selection_video[0],
-      //   youtube_link: req.body.youtube_link,
-      //   reason: req.body.host_selection,
-      //   created_at: new Date(),
-      //   status: "Pending"
-      // };
+      const application_info = {
+        user_id: user_details_from_db.user.tasttlig_user_id,
+        video_link: req.body.host_selection_video,
+        youtube_link: req.body.youtube_link,
+        reason: req.body.host_selection,
+        created_at: new Date(),
+        status: "Pending"
+      };
 
-      // response = await user_profile_service.insertHostingInformation(
-      //   application_info
-      // );
-      // if (!response.success) {
-      //   res.status(403).json({ success: false, message: response.details });
-      // }
+      response = await user_profile_service.insertHostingInformation(
+        application_info
+      );
+      if (!response.success) {
+        res.status(403).json({ success: false, message: response.details });
+      }
 
       /* STEP 6, add up to 3 menu items, check to see if they are also going to 
       be in the festival */
-      for (let menu_item of req.body.menu_list) {
-        const menu_item_details = {
-          food_sample_creater_user_id: req.user.id,
-          image: menu_item.image[0],
-          title: menu_item.title,
-          start_date: menu_item.start_date,
-          end_date: menu_item.end_date,
-          start_time: menu_item.start_time.toString().substring(16, 21),
-          end_time: menu_item.end_time.toString().substring(16, 21),
-          description: menu_item.description,
-          address: menu_item.address,
-          city: menu_item.city,
-          state: menu_item.state,
-          postal_code: menu_item.postal_code,
-          country: "CANADA",
-          nationality_id: menu_item.nationality_id,
-          frequency: menu_item.frequency,
-          food_sample_type: menu_item.food_sample_type,
-          price: menu_item.price,
-          quantity: menu_item.quantity,
-          is_vegetarian: menu_item.is_vegetarian,
-          is_vegan: menu_item.is_vegan,
-          is_gluten_free: menu_item.is_gluten_free,
-          is_halal: menu_item.is_halal,
-          spice_level: menu_item.spice_level,
-          food_ad_code: generateRandomString(4),
-          status: "INACTIVE"
-        };
-        console.log(menu_item_details);
-        response = await user_profile_service.insertMenuItem(menu_item_details);
-
-        if (req.body.participating_in_festival) {
-          response = await food_sample_service.createNewFoodSample(
-            db_user,
-            menu_item_details,
-            req.body.images,
-            createdByAdmin
-          );
-        }
-
+      // for (let menu_item of req.body.menu_list) {
+        // const menu_item_details = {
+        //   // food_sample_creater_user_id: user_details_from_db.user.tasttlig_user_id,
+        //   menu_item_code: menu_item.id.toString(),
+        //   image: menu_item.image,
+        //   title: menu_item.title,
+        //   start_date: menu_item.start_date,
+        //   end_date: menu_item.end_date,
+        //   start_time: menu_item.start_time,
+        //   end_time: menu_item.end_time,
+        //   description: menu_item.description,
+        //   address: menu_item.address,
+        //   city: menu_item.city,
+        //   state: menu_item.state,
+        //   postal_code: menu_item.postal_code,
+        //   country: "CANADA",
+        //   nationality_id: menu_item.nationality_id,
+        //   frequency: menu_item.frequency,
+        //   food_sample_type: menu_item.food_sample_type,
+        //   price: menu_item.price,
+        //   quantity: menu_item.quantity,
+        //   is_vegetarian: menu_item.is_vegetarian,
+        //   is_vegan: menu_item.is_vegan,
+        //   is_gluten_free: menu_item.is_gluten_free,
+        //   is_halal: menu_item.is_halal,
+        //   spice_level: menu_item.spice_level,
+        //   food_ad_code: generateRandomString(4),
+        //   status: "INACTIVE"
+        // };
+        response = await user_profile_service.insertMenuItem(req.body.menu_list);
+        // console.log(response);
+        // if (req.body.participating_in_festival) {
+        //   response = await food_sample_service.createNewFoodSample(
+        //     db_user,
+        //     menu_item_details,
+        //     req.body.images,
+        //     createdByAdmin
+        //   );
+        // }
+      console.log("Response", response);
         if (!response.success) {
+          console.log("I am Thor");
           res.status(403).json({ success: false, message: response.details });
         }
-      }
+        console.log("I am Meow");
+      // }
 
       // STEP 7, sending email to admin for approval
       const applier = {
