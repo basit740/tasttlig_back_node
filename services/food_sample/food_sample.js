@@ -114,12 +114,15 @@ const getAllUserFoodSamples = async (
   status,
   requestByAdmin
 ) => {
+  const startOfDay = moment().startOf('day').format("YYYY-MM-DD HH:mm:ss");
+  const endOfDay = moment().endOf('day').format("YYYY-MM-DD HH:mm:ss");
   let query = db
     .select(
       "food_samples.*",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
-      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
+      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls"),
+      db.raw("(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims", [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay])
     )
     .from("food_samples")
     .leftJoin(
