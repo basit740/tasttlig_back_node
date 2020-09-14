@@ -1,4 +1,11 @@
 <div>Hello {{first_name}} {{last_name}},<br><br></div>
 <div>
     We regret to inform you that your document for upgradation is rejected from Tasttlig.<br><br>
+
+    {{#if declineReason}}
+        <div style="margin-top: 8px">
+            <h3>Reason for decline:</h3>
+            <span>{{declineReason}}</span>
+        </div>
+    {{/if}}
 </div>

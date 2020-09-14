@@ -146,78 +146,83 @@ const upgradeUserResponse = async token => {
       });
 
     const document_user_id = db_document[0].user_id;
-    const db_user_row = await getUserById(document_user_id);
-    if (!db_user_row.success) {
-      return { success: false, message: db_user_row.message };
-    }
-    const db_user = db_user_row.user;
-    if (status === "APPROVED") {
-      let user_role_object = role_manager.createRoleObject(db_user.role);
-      user_role_object = role_manager.removeRole(
-        user_role_object,
-        "HOST_PENDING"
-      );
-      user_role_object = role_manager.addRole(user_role_object, "HOST");
-      await db("tasttlig_users")
-        .where("tasttlig_user_id", db_user.tasttlig_user_id)
-        .update("role", role_manager.createRoleString(user_role_object));
-
-      //Update all Experiences to Active state
-      await db("experiences")
-        .where({
-          experience_creator_user_id: db_user.tasttlig_user_id,
-          status: "INACTIVE"
-        })
-        .update("status", "ACTIVE");
-
-      //Update all Food Samples to Active state if the user agreed to participate in festival
-      if (db_user.is_participating_in_festival) {
-        await db("food_samples")
-          .where({
-            food_sample_creater_user_id: db_user.tasttlig_user_id,
-            status: "INACTIVE"
-          })
-          .update("status", "ACTIVE");
-      }
-
-      // Async experience accepted email
-      await Mailer.sendMail({
-        from: process.env.SES_DEFAULT_FROM,
-        to: db_user.email,
-        subject: `[Tasttlig] Your request for upgradation to Host is accepted`,
-        template: "user_upgrade_approve",
-        context: {
-          first_name: db_user.first_name,
-          last_name: db_user.last_name
-        }
-      });
-    } else {
-      let user_role_object = role_manager.createRoleObject(db_user.role);
-      user_role_object = role_manager.removeRole(
-        user_role_object,
-        "HOST_PENDING"
-      );
-
-      await db("tasttlig_users")
-        .where("tasttlig_user_id", db_user.tasttlig_user_id)
-        .update("role", role_manager.createRoleString(user_role_object));
-
-      await Mailer.sendMail({
-        from: process.env.SES_DEFAULT_FROM,
-        to: db_user.email,
-        subject: `[Tasttlig] Your request for upgradation to Host is rejected`,
-        template: "user_upgrade_reject",
-        context: {
-          first_name: db_user.first_name,
-          last_name: db_user.last_name
-        }
-      });
-    }
-    return { success: true, message: status };
+    return approveOrDeclineHostApplication(document_user_id, status)
   } catch (err) {
     return { success: false, message: err };
   }
 };
+
+const approveOrDeclineHostApplication = async (userId, status, declineReason) => {
+  const db_user_row = await getUserById(userId);
+  if (!db_user_row.success) {
+    return { success: false, message: db_user_row.message };
+  }
+  const db_user = db_user_row.user;
+  if (status === "APPROVED") {
+    let user_role_object = role_manager.createRoleObject(db_user.role);
+    user_role_object = role_manager.removeRole(
+      user_role_object,
+      "HOST_PENDING"
+    );
+    user_role_object = role_manager.addRole(user_role_object, "HOST");
+    await db("tasttlig_users")
+      .where("tasttlig_user_id", db_user.tasttlig_user_id)
+      .update("role", role_manager.createRoleString(user_role_object));
+
+    //Update all Experiences to Active state
+    await db("experiences")
+      .where({
+        experience_creator_user_id: db_user.tasttlig_user_id,
+        status: "INACTIVE"
+      })
+      .update("status", "ACTIVE");
+
+    //Update all Food Samples to Active state if the user agreed to participate in festival
+    if (db_user.is_participating_in_festival) {
+      await db("food_samples")
+        .where({
+          food_sample_creater_user_id: db_user.tasttlig_user_id,
+          status: "INACTIVE"
+        })
+        .update("status", "ACTIVE");
+    }
+
+    // Async experience accepted email
+    await Mailer.sendMail({
+      from: process.env.SES_DEFAULT_FROM,
+      to: db_user.email,
+      subject: `[Tasttlig] Your request for upgradation to Host is accepted`,
+      template: "user_upgrade_approve",
+      context: {
+        first_name: db_user.first_name,
+        last_name: db_user.last_name
+      }
+    });
+  } else {
+    let user_role_object = role_manager.createRoleObject(db_user.role);
+    user_role_object = role_manager.removeRole(
+      user_role_object,
+      "HOST_PENDING"
+    );
+
+    await db("tasttlig_users")
+      .where("tasttlig_user_id", db_user.tasttlig_user_id)
+      .update("role", role_manager.createRoleString(user_role_object));
+
+    await Mailer.sendMail({
+      from: process.env.SES_DEFAULT_FROM,
+      to: db_user.email,
+      subject: `[Tasttlig] Your request for upgradation to Host is rejected`,
+      template: "user_upgrade_reject",
+      context: {
+        first_name: db_user.first_name,
+        last_name: db_user.last_name,
+        declineReason
+      }
+    });
+  }
+  return { success: true, message: status };
+}
 
 const getUserByEmail = async email => {
   return await db("tasttlig_users")
@@ -351,5 +356,6 @@ module.exports = {
   updateUserProfile,
   getUserByEmailWithSubscription,
   getUserByPassportId,
-  getUserByPassportIdOrEmail
+  getUserByPassportIdOrEmail,
+  approveOrDeclineHostApplication
 };
