@@ -4,6 +4,7 @@
 const authRouter = require("express").Router();
 const token_service = require("../../services/authentication/token");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
+const user_profile_service = require("../../services/profile/user_profile");
 const user_role_manager = require("../../services/profile/user_roles_manager");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -18,7 +19,7 @@ const createAccountLimiter = rateLimit({
 
 // POST user register
 authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
-  if (!req.body.email || !req.body.password) {
+  if (!req.body.passport_id_or_email || !req.body.password) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -32,7 +33,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
     const user = {
       first_name: "",
       last_name: "",
-      email: req.body.email,
+      email: req.body.passport_id_or_email,
       password: password,
       phone_number: ""
     };
@@ -75,14 +76,14 @@ authRouter.get("/user/confirmation/:token", async (req, res) => {
 
 // POST user login
 authRouter.post("/user/login", async (req, res) => {
-  if (!req.body.password) {
+  if (!req.body.passport_id_or_email || !req.body.password) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
     });
   }
   try {
-    const response = await authenticate_user_service.getUserLogin(req.body);
+    const response = await user_profile_service.getUserByPassportIdOrEmail(req.body.passport_id_or_email);
     if (response.success) {
       const jwtUser = {
         id: response.user.tasttlig_user_id,

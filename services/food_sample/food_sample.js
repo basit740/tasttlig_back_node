@@ -33,7 +33,6 @@ const createNewFoodSample = async (
 
       await setFoodSampleCoordinates(food_sample_details);
 
-      food_sample_details.status = "ACTIVE";
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
         .returning("*");
@@ -78,7 +77,7 @@ const createNewFoodSample = async (
             }
           }
         );
-      } else {
+      } else if (food_sample_details.status === "ACTIVE") {
         // Email to user on submitting the request to upgrade
         await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,
@@ -115,12 +114,15 @@ const getAllUserFoodSamples = async (
   status,
   requestByAdmin
 ) => {
+  const startOfDay = moment().startOf('day').format("YYYY-MM-DD HH:mm:ss");
+  const endOfDay = moment().endOf('day').format("YYYY-MM-DD HH:mm:ss");
   let query = db
     .select(
       "food_samples.*",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
-      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
+      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls"),
+      db.raw("(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims", [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay])
     )
     .from("food_samples")
     .leftJoin(
@@ -262,7 +264,8 @@ const getAllFoodSamples = async (
     query.where(gis.dwithin(
       "food_samples.coordinates",
       gis.geography(gis.makePoint(filters.longitude, filters.latitude)),
-      200000));
+      filters.radius || 100000));
+    query.orderBy("distanceAway", "asc");
   }
 
   if (filters.startDate) {

@@ -53,11 +53,17 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
       country: req.body.country,
       postal_code: req.body.postal_code,
       nationality_id: req.body.nationality_id,
+      is_vegetarian: req.body.is_vegetarian,
+      is_vegan: req.body.is_vegan,
+      is_gluten_free: req.body.is_gluten_free,
+      is_halal: req.body.is_halal,
+      spice_level: req.body.spice_level,
       frequency: req.body.frequency,
       food_sample_type: req.body.food_sample_type,
       price: 2.0,
       quantity: req.body.quantity,
-      food_ad_code: generateRandomString(4)
+      food_ad_code: generateRandomString(4),
+      status: "ACTIVE"
     }
     const response = await food_sample_service.createNewFoodSample(
       db_user,
@@ -86,6 +92,7 @@ router.get("/food-sample/all", async (req, res) => {
       nationalities: req.query.nationalities,
       startDate: req.query.startDate,
       endDate: req.query.endDate,
+      radius: req.query.radius,
       latitude: req.query.latitude,
       longitude: req.query.longitude
     }
