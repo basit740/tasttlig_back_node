@@ -4,6 +4,7 @@ const {db} = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const role_manager = require("./user_roles_manager");
+const geocoder = require("../geocoder");
 
 const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -45,6 +46,33 @@ const getUserBySubscriptionId = async id => {
 };
 
 const upgradeUser = async (db_user, upgrade_details) => {
+  try {
+    return await db("tasttlig_users")
+      .where("tasttlig_user_id", user.id)
+      .first()
+      .update({
+        first_name: user.first_name,
+        last_name: user.last_name,
+        password: user.password,
+        phone_number: user.phone_number,
+        profile_image_link: user.profile_image_link,
+        profile_tag_line: user.profile_tag_line,
+        bio_text: user.bio_text,
+        banner_image_link: user.banner_image_link
+      })
+      .returning("*")
+      .then(value => {
+        return { success: true, details: value[0] };
+      })
+      .catch(reason => {
+        return { success: false, details: reason };
+      });
+  } catch (err) {
+    return { success: false, message: err };
+  }
+};
+
+const updateUserAccount = async user => {
   try {
     return await db("tasttlig_users")
       .where("tasttlig_user_id", user.id)
@@ -174,6 +202,24 @@ const insertHostingInformation = async (application_info) => {
       .catch(reason => {
         return {success: false, details: reason}
       })
+  } catch (err) {
+    return {success: false, details: err}
+  }
+}
+
+const insertMenuItem = async (menu_item_details) => {
+  try {
+    for (let menu_item of menu_item_details) {
+      return await db("menu_items")
+        .insert(menu_item)
+        .returning("*")
+        .then(value => {
+          return {success: true, details: value[0]}
+        })
+        .catch(reason => {
+          return {success: false, details: reason}
+        })
+    }
   } catch (err) {
     return {success: false, details: err}
   }
@@ -411,17 +457,42 @@ const getUserByPassportIdOrEmail = async passport_id_or_email => {
     });
 }
 
+// const setFoodSampleCoordinates = async (details) => {
+//   try {
+//     const address = [
+//       details.address,
+//       details.city,
+//       details.state,
+//       details.country,
+//       details.postal_code
+//     ].join(",");
+
+//     const coordinates = (await geocoder.geocode(address))[0];
+
+//     details.latitude = coordinates.latitude;
+//     details.longitude = coordinates.longitude;
+//     details.coordinates = gis.setSRID(gis.makePoint(coordinates.longitude, coordinates.latitude), 4326);
+//   } catch (e) {
+//     console.log(e);
+//   }
+// }
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
   upgradeUser,
+  updateUserAccount,
   updateUserProfile,
   insertBusinessForUser,
   insertDocument,
   insertBankingInfo,
   insertExternalReviewLink,
   insertHostingInformation,
+  insertMenuItem,
   getUserByEmailWithSubscription,
   getUserByPassportId,
-  getUserByPassportIdOrEmail
+  getUserByPassportIdOrEmail,
+  sendAdminEmailForHosting,
+  sendApplierEmailForHosting,
+  handleAction,
 };
