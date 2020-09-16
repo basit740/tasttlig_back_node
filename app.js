@@ -5,6 +5,7 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cors = require("cors");
+const cron = require('node-cron');
 
 // Set up dotenv
 require("dotenv").config();
@@ -22,6 +23,7 @@ const admin_user_router = require("./routes/admin/user");
 const nationality_router = require("./routes/nationality/nationality");
 const subscription_router = require("./routes/subscriptions/subscriptions");
 const hosts_router = require("./routes/hosts/hosts");
+const cron_job_functions = require("./services/cron_job/cron_job_functions")
 
 const app = express();
 let corsOptions = {
@@ -48,6 +50,11 @@ app.use(admin_user_router);
 app.use("/nationalities", nationality_router);
 app.use(subscription_router);
 app.use("/hosts", hosts_router);
+
+
+
+// Cron Job scripts
+cron.schedule('0 0 1-31 * *', cron_job_functions.deleteInactiveItems);
 
 // Boot development server
 const port = process.env.PORT || 8000;
