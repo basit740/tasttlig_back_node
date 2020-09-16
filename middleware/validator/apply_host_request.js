@@ -1,30 +1,6 @@
 const apply_host_request = (req, res, next) => {
   let banking_info = {}
-  switch (req.body.banking) {
-    case "Bank":
-      banking_info = [
-        'bank_number',
-        'account_number',
-        'institution_number',
-        'void_cheque',
-      ]
-      break;
-    case "Online":
-      banking_info = [
-        'online_email',
-      ]
-      break;
-    case "PayPal":
-      banking_info = [
-        'paypal_email'
-      ]
-      break;
-    case "Stripe":
-      banking_info = [
-        'stripe_account'
-      ]
-      break
-  }
+
 
   let required_field = [
     'postal_code',
@@ -40,13 +16,17 @@ const apply_host_request = (req, res, next) => {
     'host_selection_video',
 
     'food_handler_certificate',
-    'date_of_issue',
-    'expiry_date',
+    'food_handler_certificate_date_of_issue',
+    'food_handler_certificate_date_of_expired',
 
     'banking',
+    'bank_number',
+    'account_number',
+    'institution_number',
+    'void_cheque',
+
   ]
 
-  required_field = required_field.concat(banking_info)
 
   required_field.forEach(field => {
     if (! req.body[field]) {

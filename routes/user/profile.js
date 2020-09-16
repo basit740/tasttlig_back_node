@@ -68,11 +68,11 @@ const extractBusinessInfo = (user_details_from_db, requestBody) => {
   };
 };
 
-const extractFoodHandlerCertificate = (requestBody) => {
+const extractFile = (requestBody, key, text) => {
   return {
-    document_type: "Food Handler Certificate",
-    issue_date: new Date(requestBody.date_of_issue),
-    expiry_date: new Date(requestBody.expiry_date),
+    document_type: text,
+    issue_date: new Date(requestBody[key + '_date_of_issue']),
+    expiry_date: new Date(requestBody[key + '_date_of_expired']),
     document_link: requestBody.food_handler_certificate,
     status: "Pending"
   };
@@ -98,23 +98,6 @@ router.post(
         });
       }
 
-      // let createdByAdmin = false;
-      // let db_user = user_details_from_db.user;
-      // let user_role_object = user_role_manager.createRoleObject(db_user.role);
-      // if (user_role_object.includes("ADMIN")) {
-      //   if (!req.body.userEmail) {
-      //     return res.status(403).json({
-      //       success: false,
-      //       message: "Required Parameters are not available in request",
-      //     });
-      //   }
-      //   const host_details_from_db = await user_profile_service.getUserByEmail(
-      //     req.body.userEmail
-      //   );
-      //   db_user = host_details_from_db.user;
-      //   createdByAdmin = true;
-      // }
-
       // Step 1, get all the data for business
       const business_info = extractBusinessInfo(user_details_from_db, req.body);
       let response = await user_profile_service.insertBusinessForUser(
@@ -126,24 +109,20 @@ router.post(
 
       // Step 2, get all the data for documents.
       // food handler certificate is always required
-      const food_handler_certificate = extractFoodHandlerCertificate(req.body);
+      const food_handler_certificate = extractFile(req.body, 'food_handler_certificate', 'Food Handler Certificate');
       response = await user_profile_service.insertDocument(
         user_details_from_db,
         food_handler_certificate
       );
       if (!response.success) {
+        console.log(response)
         res.status(403).json({ success: false, message: response.details });
       }
       
       // insurance is not always required, but if the user input their insurance
-      if (req.body.insurance_file) {
-        const insurance = {
-          document_type: "Insurance",
-          document_link: req.body.insurance_file,
-          status: "Pending",
-          issue_date: new Date(),
-          expiry_date: new Date()
-        };
+      if (req.body.insurance) {
+        const insurance = extractFile(req.body, 'insurance', 'Insurance');
+
         response = await user_profile_service.insertDocument(
           user_details_from_db,
           insurance
@@ -155,13 +134,8 @@ router.post(
 
       // same thing for health safety certificate
       if (req.body.health_safety_certificate) {
-        const health_safety_certificate = {
-          document_type: "Health and Safety Certificate",
-          document_link: req.body.health_safety_certificate,
-          status: "Pending",
-          issue_date: new Date(),
-          expiry_date: new Date()
-        };
+        const health_safety_certificate =
+          extractFile(req.body, 'health_safety_certificate', 'Health And Safety Certificate')
         response = await user_profile_service.insertDocument(
           user_details_from_db,
           health_safety_certificate
@@ -171,66 +145,34 @@ router.post(
         }
       }
 
+      // same thing for dine fine certificate
+      if (req.body.dine_safe_certificate) {
+        const dine_safe_certificate =
+          extractFile(req.body, 'dine_safe_certificate', 'Dine Safe Certificate')
+        response = await user_profile_service.insertDocument(
+          user_details_from_db,
+          dine_safe_certificate
+        );
+        if (!response.success) {
+          res.status(403).json({ success: false, message: response.details });
+        }
+      }
+
       // Step 3, we need to handle bank information
-      switch (req.body.banking) {
-        case "Bank":
-          const banking_info = {
-            user_id: user_details_from_db.user.tasttlig_user_id,
-            bank_number: req.body.bank_number,
-            account_number: req.body.account_number,
-            institution_number: req.body.institution_number,
-            void_cheque: req.body.void_cheque
-          };
+      const banking_info = {
+        user_id: user_details_from_db.user.tasttlig_user_id,
+        bank_number: req.body.bank_number,
+        account_number: req.body.account_number,
+        institution_number: req.body.institution_number,
+        void_cheque: req.body.void_cheque
+      };
 
-          response = await user_profile_service.insertBankingInfo(
-            banking_info,
-            "payment_bank"
-          );
-          if (!response.success) {
-            res.status(403).json({ success: false, message: response.details });
-          }
-          break;
-        case "Online":
-          const online_transfer_info = {
-            user_id: user_details_from_db.user.tasttlig_user_id,
-            transfer_email: req.body.online_email
-          };
-          response = await user_profile_service.insertBankingInfo(
-            online_transfer_info,
-            "payment_online_transfer"
-          );
-          if (!response.success) {
-            res.status(403).json({ success: false, message: response.details });
-          }
-          break;
-        case "PayPal":
-          const paypal_info = {
-            user_id: user_details_from_db.user.tasttlig_user_id,
-            paypal_email: req.body.paypal_email
-          };
-
-          response = await user_profile_service.insertBankingInfo(
-            paypal_info,
-            "payment_paypal"
-          );
-          if (!response.success) {
-            res.status(403).json({ success: false, message: response.details });
-          }
-          break;
-        case "Stripe":
-          const stripe_info = {
-            user_id: user_details_from_db.user.tasttlig_user_id,
-            stripe_account: req.body.stripe_account
-          };
-
-          response = await user_profile_service.insertBankingInfo(
-            stripe_info,
-            "payment_stripe"
-          );
-          if (!response.success) {
-            res.status(403).json({ success: false, message: response.details });
-          }
-          break;
+      response = await user_profile_service.insertBankingInfo(
+        banking_info,
+        "payment_bank"
+      );
+      if (!response.success) {
+        res.status(403).json({ success: false, message: response.details });
       }
 
       // STEP 4, link to external website
@@ -282,6 +224,7 @@ router.post(
         youtube_link: req.body.youtube_link,
         reason: req.body.host_selection,
         created_at: new Date(),
+        updated_at: new Date(),
         status: "Pending"
       };
 
@@ -319,16 +262,18 @@ router.post(
       let documents = [
         {
           document_type: "Food Handler Certificate",
-          issue_date: req.body.date_of_issue,
-          expiry_date: req.body.expiry_date,
+          issue_date: req.body.food_handler_certificate_date_of_issue,
+          expiry_date: req.body.food_handler_certificate_date_of_expired,
           document_link: req.body.food_handler_certificate,
         },
       ];
 
-      if (req.body.insurance_file) {
+      if (req.body.insurance) {
         documents = documents.push({
           document_type: "Insurance",
-          document_link: req.body.insurance_file,
+          document_link: req.body.insurance,
+          issue_date: req.body.insurance_date_of_issue,
+          expiry_date: req.body.insurance_date_of_expired,
         });
       }
 
@@ -337,6 +282,18 @@ router.post(
         documents.push({
           document_type: "Health and Safety Certificate",
           document_link: req.body.health_safety_certificate,
+          issue_date: req.body.health_safety_certificate_date_of_issue,
+          expiry_date: req.body.health_safety_certificate_date_of_expired,
+        });
+      }
+
+      // same thing for health safety certificate
+      if (req.body.dine_safe_certificate) {
+        documents.push({
+          document_type: "Dine Safe Certificate",
+          document_link: req.body.dine_safe_certificate,
+          issue_date: req.body.dine_safe_certificate_date_of_issue,
+          expiry_date: req.body.dine_safe_certificate_date_of_expired
         });
       }
       applier.documents = documents;
@@ -353,10 +310,11 @@ router.post(
           res.status(403).json({ success: false, message: e });
         });
     } catch (e) {
+      console.log(e)
       res.status(403).json({ success: false, message: e });
     }
 
-    res.send({ success: true });
+    res.status(200).send({success: true});
   }
 );
 

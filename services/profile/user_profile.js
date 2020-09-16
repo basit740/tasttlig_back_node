@@ -266,7 +266,7 @@ const sendApplierEmailForHosting = async(db_user) => {
   // Email to user on submitting the request to upgrade
   await Mailer.sendMail({
     from: process.env.SES_DEFAULT_FROM,
-    to: db_user.user.email,
+    to: 'chenmr9769@gmail.com',
     subject: `[Tasttlig] Thank you for your application`,
     template: "user_upgrade_request",
     context: {
