@@ -317,7 +317,7 @@ const handleAction = async token => {
       if (db_user.is_participating_in_festival) {
         await db("food_samples")
           .where({
-            food_sample_creater_user_id: db_user.tasttlig_user_id,
+            menu_item_creator_user_id: db_user.tasttlig_user_id,
             status: "INACTIVE"
           })
           .update("status", "ACTIVE");
