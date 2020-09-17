@@ -45,33 +45,6 @@ const getUserBySubscriptionId = async id => {
     });
 };
 
-const upgradeUser = async (db_user, upgrade_details) => {
-  try {
-    return await db("tasttlig_users")
-      .where("tasttlig_user_id", user.id)
-      .first()
-      .update({
-        first_name: user.first_name,
-        last_name: user.last_name,
-        password: user.password,
-        phone_number: user.phone_number,
-        profile_image_link: user.profile_image_link,
-        profile_tag_line: user.profile_tag_line,
-        bio_text: user.bio_text,
-        banner_image_link: user.banner_image_link
-      })
-      .returning("*")
-      .then(value => {
-        return { success: true, details: value[0] };
-      })
-      .catch(reason => {
-        return { success: false, details: reason };
-      });
-  } catch (err) {
-    return { success: false, message: err };
-  }
-};
-
 const updateUserAccount = async user => {
   try {
     return await db("tasttlig_users")
@@ -253,7 +226,7 @@ const sendAdminEmailForHosting = async (user_info) => {
       first_name: user_info.first_name,
       last_name: user_info.last_name,
       email: user_info.email,
-      upgrade_type: "HOST",
+      upgrade_type: "RESTAURANT",
       documents: user_info.documents,
       
       approve_link: application_approve_url,
@@ -320,9 +293,9 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
       let user_role_object = role_manager.createRoleObject(db_user.role);
       user_role_object = role_manager.removeRole(
         user_role_object,
-        "HOST_PENDING"
+        "RESTAURANT_PENDING"
       );
-      user_role_object = role_manager.addRole(user_role_object, "HOST");
+      user_role_object = role_manager.addRole(user_role_object, "RESTAURANT");
       await db("tasttlig_users")
         .where("tasttlig_user_id", db_user.tasttlig_user_id)
         .update("role", role_manager.createRoleString(user_role_object));
@@ -378,11 +351,11 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
       });
     } else {
       // status is Failed
-      // STEP 1: remove the HOST_PENDING role
+      // STEP 1: remove the RESTAURANT_PENDING role
       let user_role_object = role_manager.createRoleObject(db_user.role);
       user_role_object = role_manager.removeRole(
         user_role_object,
-        "HOST_PENDING"
+        "RESTAURANT_PENDING"
       );
       
       await db("tasttlig_users")
@@ -518,7 +491,6 @@ const getUserByPassportIdOrEmail = async passport_id_or_email => {
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
-  upgradeUser,
   upgradeUserResponse,
   updateUserAccount,
   updateUserProfile,

@@ -17,7 +17,7 @@ const createNewExperience = async (
     await db.transaction(async trx => {
       experience_details.status = "INACTIVE";
       let user_role_object = user_role_manager.createRoleObject(db_user.role);
-      if(user_role_object.includes("HOST")){
+      if(user_role_object.includes("RESTAURANT")){
         experience_details.status = "ACTIVE";
       }
       const db_experience = await trx("experiences")
@@ -185,7 +185,7 @@ const updateExperience = async (
   updatedByAdmin) => {
   if(!experience_update_data.status){
     let user_role_object = user_role_manager.createRoleObject(db_user.role);
-    if(user_role_object.includes("HOST") && !updatedByAdmin){
+    if(user_role_object.includes("RESTAURANT") && !updatedByAdmin){
       experience_update_data.status = "ACTIVE";
     } else {
       experience_update_data.status = "INACTIVE";

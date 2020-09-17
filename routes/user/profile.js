@@ -63,6 +63,7 @@ const extractBusinessInfo = (user_details_from_db, requestBody) => {
     state: requestBody.state,
     postal_code: requestBody.postal_code,
     country: requestBody.country,
+    phone_number: requestBody.phone_number,
     business_registration_number: requestBody.registration_number,
     instagram: requestBody.instagram,
     facebook: requestBody.facebook
