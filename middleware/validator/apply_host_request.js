@@ -13,7 +13,6 @@ const apply_host_request = (req, res, next) => {
     'address_line_1',
 
     'host_selection',
-    'host_selection_video',
 
     'food_handler_certificate',
     'food_handler_certificate_date_of_issue',

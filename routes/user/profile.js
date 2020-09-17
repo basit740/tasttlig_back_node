@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const user_role_manager = require("../../services/profile/user_roles_manager");
+const formatPhone = require("../../functions").formatPhone;
 const apply_host_request = require("../../middleware/validator/apply_host_request")
   .apply_host_request;
 
@@ -80,6 +81,7 @@ const extractFile = (requestBody, key, text) => {
   };
 };
 
+
 // /usr/host route handles when a user apply to be a host.
 // whom been applied to be host has to input their business info,
 // documents, bank info. we handle each request in different services.
@@ -116,8 +118,18 @@ router.post(
 
         const response = await authenticate_user_service.createBecomeFoodProviderUser(become_food_provider_user);
         res.send(response);
+      } else {
+        if (req.body.first_name !== db_user.user.first_name ||
+          req.body.last_name !== db_user.user.last_name ||
+          formatPhone(req.body.phone_number) !== db_user.user.phone
+        ) {
+          db_user.user.first_name = req.body.first_name
+          db_user.user.last_name = req.body.last_name
+          db_user.user.phone = formatPhone(req.body.phone_number)
+          await user_profile_service.updateUserAccount(db_user.user);
+        }
       }
-
+      res.status(404)
       // Step 2, get all the data for business
       const business_info = extractBusinessInfo(user_details_from_db, req.body);
       let response = await user_profile_service.insertBusinessForUser(
