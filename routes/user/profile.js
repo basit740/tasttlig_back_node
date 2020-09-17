@@ -4,6 +4,7 @@ const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const token_service = require("../../services/authentication/token");
 const user_profile_service = require("../../services/profile/user_profile");
+const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const user_role_manager = require("../../services/profile/user_roles_manager");
 const apply_host_request = require("../../middleware/validator/apply_host_request")
   .apply_host_request;
@@ -98,7 +99,25 @@ router.post(
         });
       }
 
-      // Step 1, get all the data for business
+      // Step 1, get all the data for personal information
+      let db_user;
+      db_user = await user_profile_service.getUserByPassportIdOrEmail(
+        req.body.email
+      );
+
+      if (!db_user.success) {
+        const become_food_provider_user = {
+          first_name: req.body.first_name,
+          last_name: req.body.last_name,
+          email: req.body.email,
+          phone_number: req.body.phone_number
+        }
+
+        const response = await authenticate_user_service.createBecomeFoodProviderUser(become_food_provider_user);
+        res.send(response);
+      }
+
+      // Step 2, get all the data for business
       const business_info = extractBusinessInfo(user_details_from_db, req.body);
       let response = await user_profile_service.insertBusinessForUser(
         business_info
@@ -107,7 +126,7 @@ router.post(
         res.status(403).json({ success: false, message: response.details });
       }
 
-      // Step 2, get all the data for documents.
+      // Step 3, get all the data for documents.
       // food handler certificate is always required
       const food_handler_certificate = extractFile(req.body, 'food_handler_certificate', 'Food Handler Certificate');
       response = await user_profile_service.insertDocument(
@@ -158,7 +177,7 @@ router.post(
         }
       }
 
-      // Step 3, we need to handle bank information
+      // Step 4, we need to handle bank information
       const banking_info = {
         user_id: user_details_from_db.user.tasttlig_user_id,
         bank_number: req.body.bank_number,
@@ -175,7 +194,7 @@ router.post(
         res.status(403).json({ success: false, message: response.details });
       }
 
-      // STEP 4, link to external website
+      // STEP 5, link to external website
       const external_websites_review = [
         "yelp",
         "google",
@@ -217,7 +236,7 @@ router.post(
         res.status(403).json({ success: false, message: response.details });
       }
 
-      // STEP 5, hosting information, including why I want to host.
+      // STEP 6, hosting information, including why I want to host.
       const application_info = {
         user_id: user_details_from_db.user.tasttlig_user_id,
         video_link: req.body.host_selection_video,
@@ -235,7 +254,7 @@ router.post(
         res.status(403).json({ success: false, message: response.details });
       }
 
-      /* STEP 6, add up to 3 menu items, check to see if they are also going to 
+      /* STEP 7, add up to 3 menu items, check to see if they are also going to 
       be in the festival */
       response = await user_profile_service.insertMenuItem(req.body.menu_list);
 
@@ -303,7 +322,7 @@ router.post(
           res.status(403).json({ success: false, message: e });
         });
 
-      // STEP 7, sending email to user who apply hosting.
+      // STEP 8, sending email to user who apply hosting.
       await user_profile_service
         .sendApplierEmailForHosting(user_details_from_db)
         .catch((e) => {
