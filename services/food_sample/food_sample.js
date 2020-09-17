@@ -25,7 +25,7 @@ const createNewFoodSample = async (
       // food_sample_details.food_ad_code = Math.random().toString(36).substring(2, 4) + Math.random().toString(36).substring(2, 4);
       // let user_role_object = user_role_manager.createRoleObject(db_user.role);
       // if (
-      //   user_role_object.includes("HOST") &&
+      //   user_role_object.includes("RESTAURANT") &&
       //   db_user.is_participating_in_festival
       // ) {
       //   food_sample_details.status = "ACTIVE";
@@ -164,7 +164,7 @@ const updateFoodSample = async (
   if (!food_sample_update_data.status) {
     // let user_role_object = user_role_manager.createRoleObject(db_user.role);
     // if (
-    //   user_role_object.includes("HOST") &&
+    //   user_role_object.includes("RESTAURANT") &&
     //   db_user.is_participating_in_festival &&
     //   !updatedByAdmin
     // ) {

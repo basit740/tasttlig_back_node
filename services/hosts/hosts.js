@@ -9,7 +9,7 @@ const getHostApplications = async () => {
       .select("*")
       .from("tasttlig_users")
       .innerJoin("business_details", "tasttlig_users.tasttlig_user_id", "business_details.user_id")
-      .where("tasttlig_users.role", "like", "%HOST_PENDING%");
+      .where("tasttlig_users.role", "like", "%RESTAURANT_PENDING%");
     return {
       success: true,
       applications
@@ -27,7 +27,7 @@ const getHostApplication = async (userId) => {
       .innerJoin("business_details", "tasttlig_users.tasttlig_user_id", "business_details.user_id")
       .innerJoin("hosting_application", "tasttlig_users.tasttlig_user_id", "hosting_application.user_id")
       .innerJoin("payment_bank", "tasttlig_users.tasttlig_user_id", "payment_bank.user_id")
-      .where("tasttlig_users.role", "like", "%HOST_PENDING%")
+      .where("tasttlig_users.role", "like", "%RESTAURANT_PENDING%")
       .where("tasttlig_users.tasttlig_user_id", "=", userId)
       .first();
 

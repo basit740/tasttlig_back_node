@@ -10,7 +10,7 @@ const deleteInactiveItems = async () => {
     await db.transaction(async trx => {
       let oldApplicationUserIdsQuery = trx.select("user_id")
         .from("applications")
-        .where("status", "REJECTED")
+        .where("status", "DECLINED")
         .where("updated_at", "<", expiryDate);
       
       let foodSampleIds = trx.select("food_sample_id")
