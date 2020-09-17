@@ -193,7 +193,7 @@ const insertExternalReviewLink = async (review) => {
 
 const insertHostingInformation = async (application_info) => {
   try {
-    return await db('hosting_application')
+    return await db('applications')
       .insert(application_info)
       .returning('*')
       .then(value => {
@@ -339,7 +339,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
       if (db_user.is_participating_in_festival) {
         await db("food_samples")
           .where({
-            food_sample_creater_user_id: db_user.tasttlig_user_id,
+            menu_item_creator_user_id: db_user.tasttlig_user_id,
             status: "INACTIVE"
           })
           .update("status", "ACTIVE");
@@ -356,7 +356,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         });
       
       // STEP 5: Update Application table status
-      await db("hosting_application")
+      await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", 'Pending')
         .update("status", 'APPROVED')
@@ -400,7 +400,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         });
       
       // STEP 3: Update Application table status
-      await db("hosting_application")
+      await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", 'Pending')
         .update("status", 'REJECT')
