@@ -50,7 +50,7 @@ const createNewFoodSample = async (
         jwt.sign(
           {
             id: db_food_sample[0].food_sample_id,
-            user_id: db_food_sample[0].menu_item_creator_user_id,
+            user_id: db_food_sample[0].food_sample_creater_user_id,
           },
           process.env.EMAIL_SECRET,
           {
@@ -141,7 +141,7 @@ const getAllUserFoodSamples = async (
 
   if (!requestByAdmin) {
     query = query
-      .having("menu_item_creator_user_id", "=", user_id)
+      .having("food_sample_creater_user_id", "=", user_id)
       .having("food_samples.status", operator, status);
   } else {
     query = query.having("food_samples.status", operator, status);
@@ -183,7 +183,7 @@ const updateFoodSample = async (
       } else {
         return builder.where({
           food_sample_id: food_sample_id,
-          menu_item_creator_user_id: db_user.tasttlig_user_id,
+          food_sample_creater_user_id: db_user.tasttlig_user_id,
         });
       }
     })
@@ -200,7 +200,7 @@ const deleteFoodSample = async (user_id, food_sample_id) => {
   return await db("food_samples")
     .where({
       food_sample_id: food_sample_id,
-      menu_item_creator_user_id: user_id,
+      food_sample_creater_user_id: user_id,
     })
     .del()
     .then(() => {
@@ -239,7 +239,7 @@ const getAllFoodSamples = async (
     )
     .leftJoin(
       "tasttlig_users",
-      "food_samples.menu_item_creator_user_id",
+      "food_samples.food_sample_creater_user_id",
       "tasttlig_users.tasttlig_user_id"
     )
     .leftJoin(
@@ -354,7 +354,7 @@ const updateReviewFoodSample = async (
   return await db("food_samples")
     .where({
       food_sample_id: food_sample_id,
-      menu_item_creator_user_id: food_sample_creator_user_id,
+      food_sample_creater_user_id: food_sample_creator_user_id,
     })
     .update(food_sample_update_data)
     .returning("*")
@@ -418,7 +418,7 @@ const getFoodSampleById = async (id) => {
     .first()
     .leftJoin(
       "tasttlig_users",
-      "food_samples.menu_item_creator_user_id",
+      "food_samples.food_sample_creater_user_id",
       "tasttlig_users.tasttlig_user_id"
     )
     .then((value) => {

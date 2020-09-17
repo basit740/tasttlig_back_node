@@ -40,7 +40,7 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
       createdByAdmin = true;
     }
     const food_sample_details = {
-      menu_item_creator_user_id: db_user.tasttlig_user_id,
+      food_sample_creater_user_id: db_user.tasttlig_user_id,
       title: req.body.title,
       start_date: req.body.start_date,
       end_date: req.body.end_date,

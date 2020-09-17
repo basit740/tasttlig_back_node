@@ -339,7 +339,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
       if (db_user.is_participating_in_festival) {
         await db("food_samples")
           .where({
-            menu_item_creator_user_id: db_user.tasttlig_user_id,
+            food_sample_creater_user_id: db_user.tasttlig_user_id,
             status: "INACTIVE"
           })
           .update("status", "ACTIVE");
