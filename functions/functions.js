@@ -30,8 +30,18 @@ const generateRandomString = (len, seed='tasttlig') => {
   return (rand.toString(36).substring(2, 2 + len/2) + rand2.toString(36).substring(2, 2 + len/2)).toUpperCase();
 };
 
+const formatPhone = (phone) => {
+  if (phone.length === 9) {
+    return `(${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(6)}`
+  }
+  if (phone.length === 10) {
+    return `+${phone.slice(0, 1)} (${phone.slice(1, 4)}) ${phone.slice(4, 7)}-${phone.slice(7)}`
+  }
+}
+
 module.exports = {
   formatDate,
   formatMilitaryToStandardTime,
-  generateRandomString
+  generateRandomString,
+  formatPhone
 };
