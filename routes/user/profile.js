@@ -129,7 +129,6 @@ router.post(
           await user_profile_service.updateUserAccount(db_user.user);
         }
       }
-      res.status(404)
       // Step 2, get all the data for business
       const business_info = extractBusinessInfo(user_details_from_db, req.body);
       let response = await user_profile_service.insertBusinessForUser(
