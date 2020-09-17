@@ -193,7 +193,7 @@ const insertExternalReviewLink = async (review) => {
 
 const insertHostingInformation = async (application_info) => {
   try {
-    return await db('hosting_application')
+    return await db('applications')
       .insert(application_info)
       .returning('*')
       .then(value => {
@@ -334,7 +334,7 @@ const handleAction = async token => {
         });
 
       // STEP 5: Update Application table status
-      await db("hosting_application")
+      await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", 'Pending')
         .update("status", 'APPROVED')
@@ -378,7 +378,7 @@ const handleAction = async token => {
         });
 
       // STEP 3: Update Application table status
-      await db("hosting_application")
+      await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", 'Pending')
         .update("status", 'REJECT')
