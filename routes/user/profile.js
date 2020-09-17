@@ -131,7 +131,7 @@ router.post(
       }
       // Step 2, get all the data for business
       const business_info = extractBusinessInfo(user_details_from_db, req.body);
-      let response = await user_profile_service.insertBusinessForUser(
+      response = await user_profile_service.insertBusinessForUser(
         business_info
       );
       if (!response.success) {
