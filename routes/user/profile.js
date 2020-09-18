@@ -6,7 +6,7 @@ const token_service = require("../../services/authentication/token");
 const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const user_role_manager = require("../../services/profile/user_roles_manager");
-const formatPhone = require("../../functions").formatPhone;
+const { formatPhone } = require("../../functions/functions");
 const apply_host_request = require("../../middleware/validator/apply_host_request")
   .apply_host_request;
 
