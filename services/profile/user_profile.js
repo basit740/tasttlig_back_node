@@ -285,11 +285,16 @@ const handleAction = async token => {
 const approveOrDeclineHostApplication = async (userId, status, declineReason) => {
   try {
     const db_user_row = await getUserById(userId);
+
     if (!db_user_row.success) {
       return { success: false, message: db_user_row.message };
     }
     const db_user = db_user_row.user;
-    if (status === "APPROVED") {
+    
+    // depends on status, we do different things:
+    // if status is approved
+    if (status === 'APPROVED') {
+      // STEP 1: change the role column in tasttlig_user table
       let user_role_object = role_manager.createRoleObject(db_user.role);
       user_role_object = role_manager.removeRole(
         user_role_object,
