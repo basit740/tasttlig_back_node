@@ -32,7 +32,7 @@ const createNewFoodSampleClaim = async (
 
       // Email to user on claiming food sample
       // await sendPendingClaimedEmailToUser(db_user, db_food_sample);
-      // Email Claimed email to user
+      // send Claimed email to user
       await sendClaimedEmailToUser(db_user, db_food_sample, db_food_sample_claim[0]);
       await sendClaimedEmailToProvider(db_user, db_food_sample, db_food_sample_claim[0]);
     });
