@@ -1,22 +1,29 @@
-<div>Hello,<br><br></div>
+<div>Hello {{first_name}},<br><br></div>
 <div>
-    Please present this coupon to claim your {{title}}.<br><br>
+    We are so excited that you booked your reservation to Tasttlig.<br>
+</div>
+<div>
+    Your host at the restaurant is {{host_first_name}}.
+</div>
+<div>
+    Please present this reservation coupon to redeem your tasting sample of {{title}} at<br><br>
 </div>
 <div>
     Address: {{address}}, {{city}}, {{state}} {{postal_code}}<br>
-    Date: {{start_date}} to {{end_date}}<br>
-    Time: {{start_time}} to {{end_time}}<br>
-    Description: {{description}}<br>
-    Frequency: {{frequency}} until {{end_date}}<br><br>
+    Visit this Location between {{start_date}} to {{end_date}}<br>
+    Tasting samples are available: {{frequency}} from {{start_time}} to {{end_time}}<br>
+    Additional Information: {{description}}<br><br>
 </div>
 <div>
-    Ask for {{first_name}} after reaching the restaurant.
-</div>
+    For a better experience, ask for {{host_first_name}} when you arrive at the restaurant.
+</div><br>
 <div>
-    For Restaurant Use Only:<br>
-    Click here to redeem the coupon
-    {{url}}
-</div>
-<div>
-    Code is {{code}}.<br><br>
+    After receiving your food sample, please <a href="{{url}}">click here</a> to complete your visit; Alternatively, ask your host to
+    complete your visit on their system<br>
+    <br>
+    <a style="font-size: 12px;">
+        If above link does not work, copy and paste the following URL in your browser to complete your visit.<br>
+        {{url}}<br>
+    </a><br>
+    Please support the festival by sharing your experience on social media. Use #tasttlig.
 </div>

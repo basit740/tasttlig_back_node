@@ -55,13 +55,6 @@ router.post(
             message: "Email not found for user subscription. Enter new email or buy a festival pass"
           });
         }
-        if (!user_details_from_db.success) {
-          return res.status(403).json({
-            success: false,
-            message: user_details_from_db.message,
-          });
-        }
-        db_user = user_details_from_db.user;
       }
       
       const food_sample_details_from_db = await food_sample_service.getFoodSampleById(

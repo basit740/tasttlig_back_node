@@ -53,7 +53,7 @@ const userCanClaimFoodSample = async (email, food_sample_id) => {
       .where("food_sample_id", food_sample_id);
 
     if (claimIds.length) {
-      if (user == null && claimIds.length >= MAX_CLAIMS) {
+      if (user == null && claimIds.length > MAX_CLAIMS) {
         return {
           success: true,
           canClaim: false,
@@ -151,6 +151,7 @@ const sendClaimedEmailToUser = async (db_user, db_food_sample, db_food_sample_cl
     template: "new_food_sample_claim",
     context: {
       first_name: (db_user.first_name === "NA" ? "" : db_user.first_name),
+      host_first_name: db_food_sample.first_name,
       title: db_food_sample.title,
       address: db_food_sample.address,
       city: db_food_sample.city,
@@ -188,6 +189,7 @@ const sendClaimedEmailToProvider = async (db_user, db_food_sample, db_food_sampl
     subject: `[Tasttlig] Food sample has been reserved - ${db_food_sample.title}`,
     template: "new_food_sample_reserved",
     context: {
+      host_first_name: db_food_sample.first_name,
       first_name:  (db_user.first_name === "NA" ? "" : db_user.first_name),
       last_name:  (db_user.last_name === "NA" ? "" : db_user.last_name),
       email: db_user.email,
