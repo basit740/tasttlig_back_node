@@ -78,7 +78,7 @@ router.post(
       const food_sample_claim_details = {
         food_sample_claim_email: db_user.email,
         food_sample_claim_user_id: db_user.tasttlig_user_id,
-        food_sample_id: db_food_sample.food_sample_id,
+        food_sample_id: db_food_sample.food_sample_id
       };
       
       const response = await food_sample_claim_service.createNewFoodSampleClaim(

@@ -31,7 +31,9 @@ const createNewFoodSampleClaim = async (
       }
 
       // Email to user on claiming food sample
-      await sendPendingClaimedEmailToUser(db_user, db_food_sample);
+      // await sendPendingClaimedEmailToUser(db_user, db_food_sample);
+      // Email Claimed email to user
+      await sendClaimedEmailToUser(db_user, db_food_sample, db_food_sample_claim[0]);
       await sendClaimedEmailToProvider(db_user, db_food_sample, db_food_sample_claim[0]);
     });
     return {success: true, details: "success"};
@@ -86,13 +88,13 @@ const getFoodClaimCount = async (email, food_sample_id) => {
     const count = await query;
     return {success: true, count,};
   } catch (e) {
-    return {success: false, error: err.message};
+    return {success: false, error: e.message};
   }
 }
 
 const confirmFoodSampleClaim = async (token) => {
   try {
-    var payload = jwt.verify(token, process.env.EMAIL_SECRET);
+    let payload = jwt.verify(token, process.env.EMAIL_SECRET);
     await db.transaction(async (trx) => {
       await trx("food_sample_claims")
         .where("food_sample_claim_id", payload.claim_id)
@@ -100,12 +102,12 @@ const confirmFoodSampleClaim = async (token) => {
           status: Food_Sample_Claim_Status.CONFIRMED
         });
 
-      const db_food_sample = await trx("food_samples")
-        .select("food_samples.*")
-        .where("food_sample_id", payload.food_sample_id)
-        .first();
+      // const db_food_sample = await trx("food_samples")
+      //   .select("food_samples.*")
+      //   .where("food_sample_id", payload.food_sample_id)
+      //   .first();
 
-      await sendClaimedEmailToUser(payload.db_user, db_food_sample);
+      // await sendClaimedEmailToUser(payload.db_user, db_food_sample);
     });
     return {success: true};
   } catch (e) {
@@ -113,22 +115,34 @@ const confirmFoodSampleClaim = async (token) => {
   }
 }
 
-const sendPendingClaimedEmailToUser = async (db_user, db_food_sample) => {
-  return Mailer.sendMail({
-    from: process.env.SES_DEFAULT_FROM,
-    to: db_user.email,
-    bcc: ADMIN_EMAIL,
-    subject: `[Tasttlig] You have claimed ${db_food_sample.title}`,
-    template: "new_food_sample_claim_pending",
-    context: {
-      first_name: (db_user.first_name === "NA" ? "" : db_user.first_name),
-      last_name: (db_user.last_name === "NA" ? "" : db_user.last_name),
-      title: db_food_sample.title,
-    },
-  });
-}
+// const sendPendingClaimedEmailToUser = async (db_user, db_food_sample) => {
+//   return Mailer.sendMail({
+//     from: process.env.SES_DEFAULT_FROM,
+//     to: db_user.email,
+//     bcc: ADMIN_EMAIL,
+//     subject: `[Tasttlig] You have claimed ${db_food_sample.title}`,
+//     template: "new_food_sample_claim_pending",
+//     context: {
+//       first_name: (db_user.first_name === "NA" ? "" : db_user.first_name),
+//       last_name: (db_user.last_name === "NA" ? "" : db_user.last_name),
+//       title: db_food_sample.title,
+//     },
+//   });
+// }
 
-const sendClaimedEmailToUser = async (db_user, db_food_sample) => {
+const sendClaimedEmailToUser = async (db_user, db_food_sample, db_food_sample_claim) => {
+  const token = jwt.sign({
+    claim_id: db_food_sample_claim.food_sample_claim_id,
+    food_sample_id: db_food_sample.food_sample_id,
+    db_user: {
+      email:db_user.email,
+      first_name: db_user.first_name,
+      last_name: db_user.last_name
+    }
+  }, process.env.EMAIL_SECRET);
+  
+  const url = `${process.env.SITE_BASE}/confirm-food-sample/${token}`;
+  
   return Mailer.sendMail({
     from: process.env.SES_DEFAULT_FROM,
     to: db_user.email,
@@ -137,7 +151,6 @@ const sendClaimedEmailToUser = async (db_user, db_food_sample) => {
     template: "new_food_sample_claim",
     context: {
       first_name: (db_user.first_name === "NA" ? "" : db_user.first_name),
-      last_name: (db_user.last_name === "NA" ? "" : db_user.last_name),
       title: db_food_sample.title,
       address: db_food_sample.address,
       city: db_food_sample.city,
@@ -147,8 +160,10 @@ const sendClaimedEmailToUser = async (db_user, db_food_sample) => {
       end_date: formatDate(db_food_sample.end_date),
       start_time: formatMilitaryToStandardTime(db_food_sample.start_time),
       end_time: formatMilitaryToStandardTime(db_food_sample.end_time),
+      description: db_food_sample.description,
       frequency: db_food_sample.frequency,
-      code: db_food_sample.food_ad_code
+      code: db_food_sample.food_ad_code,
+      url
     },
   });
 }
