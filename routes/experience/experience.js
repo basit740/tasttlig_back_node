@@ -7,7 +7,7 @@ const user_profile_service = require("../../services/profile/user_profile");
 const user_role_manager = require("../../services/profile/user_roles_manager");
 
 router.post("/experience/add", token_service.authenticateToken, async (req, res) => {
-  if (!req.body.title || !req.body.price || !req.body.category || !req.body.style
+  if (!req.body.title || !req.body.nationality_id || !req.body.price || !req.body.category || !req.body.style
     || !req.body.start_date || !req.body.end_date || !req.body.start_time || !req.body.end_time
     || !req.body.capacity || !req.body.dress_code || !req.body.description || !req.body.address
     || !req.body.city || !req.body.state || !req.body.country || !req.body.postal_code
@@ -42,6 +42,7 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
     const experience_details = {
       experience_creator_user_id: db_user.tasttlig_user_id,
       title: req.body.title,
+      nationality_id: req.body.nationality_id,
       price: req.body.price,
       category: req.body.category,
       style: req.body.style,
