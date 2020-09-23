@@ -91,6 +91,8 @@ const getAllExperience = async (operator, status) => {
   return await db
     .select(
       "experiences.*",
+      "tasttlig_users.phone_number",
+      "tasttlig_users.email",
       db.raw("ARRAY_AGG(experience_images.image_url) as image_urls")
     )
     .from("experiences")
@@ -98,8 +100,14 @@ const getAllExperience = async (operator, status) => {
       "experience_images",
       "experiences.experience_id",
       "experience_images.experience_id"
+    ).leftJoin(
+      "tasttlig_users",
+      "experiences.experience_creator_user_id",
+      "tasttlig_users.tasttlig_user_id"
     )
     .groupBy("experiences.experience_id")
+    .groupBy("tasttlig_users.phone_number")
+    .groupBy("tasttlig_users.email")
     .having("experiences.status", operator, status)
     .then(value => {
       return { success: true, details: value };
