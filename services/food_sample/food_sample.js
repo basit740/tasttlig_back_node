@@ -1,14 +1,12 @@
 "use strict";
 
 const Food_Sample_Claim_Status = require("../../enums/food_sample_claim_status");
-
 const {db, gis} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
-const user_role_manager = require("../profile/user_roles_manager");
 const {generateRandomString} = require("../../functions/functions");
 const jwt = require("jsonwebtoken");
-const geocoder = require("../geocoder");
 const moment = require("moment");
+const {setAddressCoordinates} = require("../geocoder");
 
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const SITE_BASE = process.env.SITE_BASE;
@@ -30,8 +28,8 @@ const createNewFoodSample = async (
       // ) {
       //   food_sample_details.status = "ACTIVE";
       // }
-
-      await setFoodSampleCoordinates(food_sample_details);
+  
+      food_sample_details = await setAddressCoordinates(food_sample_details);
 
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
@@ -431,26 +429,6 @@ const getFoodSampleById = async (id) => {
       return {success: false, message: error};
     });
 };
-
-const setFoodSampleCoordinates = async (details) => {
-  try {
-    const address = [
-      details.address,
-      details.city,
-      details.state,
-      details.country,
-      details.postal_code
-    ].join(",");
-
-    const coordinates = (await geocoder.geocode(address))[0];
-
-    details.latitude = coordinates.latitude;
-    details.longitude = coordinates.longitude;
-    details.coordinates = gis.setSRID(gis.makePoint(coordinates.longitude, coordinates.latitude), 4326);
-  } catch (e) {
-    console.log(e);
-  }
-}
 
 module.exports = {
   createNewFoodSample,

@@ -77,15 +77,38 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
 
 router.get("/experience/all", async (req, res) => {
   try {
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
     const status_operator = "=";
     const experience_status = "ACTIVE";
-    const response = await experience_service.getAllExperience(status_operator, experience_status);
+    const filters = {
+      nationalities: req.query.nationalities,
+      radius: req.query.radius,
+      latitude: req.query.latitude,
+      longitude: req.query.longitude
+    }
+    const response = await experience_service.getAllExperience(status_operator, experience_status, keyword, current_page, filters);
     return res.send(response);
   } catch (err) {
     res.send({
       success: false,
       message: "error",
       response: err.message
+    });
+  }
+});
+
+router.get("/experience/nationalities", async (req, res) => {
+  try {
+    const status_operator = "=";
+    const food_sample_status = "ACTIVE";
+    const response = await experience_service.getDistinctNationalities(status_operator, food_sample_status);
+    return res.send(response);
+  } catch (e) {
+    res.send({
+      success: false,
+      message: "error",
+      response: e.message
     });
   }
 });
