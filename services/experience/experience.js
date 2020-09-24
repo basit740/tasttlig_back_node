@@ -1,9 +1,10 @@
 "use strict";
 
-const {db} = require("../../db/db-config");
+const {db, gis} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const user_role_manager = require("../profile/user_roles_manager");
 const jwt = require("jsonwebtoken");
+const {setAddressCoordinates} = require("../geocoder");
 
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const SITE_BASE = process.env.SITE_BASE;
@@ -15,11 +16,13 @@ const createNewExperience = async (
   createdByAdmin) => {
   try{
     await db.transaction(async trx => {
-      experience_details.status = "INACTIVE";
-      let user_role_object = user_role_manager.createRoleObject(db_user.role);
-      if(user_role_object.includes("HOST")){
-        experience_details.status = "ACTIVE";
-      }
+      // experience_details.status = "INACTIVE";
+      // let user_role_object = user_role_manager.createRoleObject(db_user.role);
+      // if(user_role_object.includes("HOST")){
+      experience_details.status = "ACTIVE";
+      // }
+      experience_details = await setAddressCoordinates(experience_details);
+      
       const db_experience = await trx("experiences")
         .insert(experience_details)
         .returning("*");
@@ -87,10 +90,20 @@ const createNewExperience = async (
   }
 }
 
-const getAllExperience = async (operator, status) => {
-  return await db
+const getAllExperience = async (
+  operator,
+  status,
+  keyword,
+  currentPage,
+  filters
+) => {
+  let query =  db
     .select(
       "experiences.*",
+      "tasttlig_users.phone_number",
+      "tasttlig_users.email",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
       db.raw("ARRAY_AGG(experience_images.image_url) as image_urls")
     )
     .from("experiences")
@@ -98,14 +111,67 @@ const getAllExperience = async (operator, status) => {
       "experience_images",
       "experiences.experience_id",
       "experience_images.experience_id"
+    ).leftJoin(
+      "tasttlig_users",
+      "experiences.experience_creator_user_id",
+      "tasttlig_users.tasttlig_user_id"
+    ).leftJoin(
+      "nationalities",
+      "experiences.nationality_id",
+      "nationalities.id"
     )
     .groupBy("experiences.experience_id")
-    .having("experiences.status", operator, status)
+    .groupBy("tasttlig_users.phone_number")
+    .groupBy("tasttlig_users.email")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code")
+    .having("experiences.status", operator, status);
+  
+  if (filters.nationalities && filters.nationalities.length) {
+    query.whereIn("nationalities.nationality", filters.nationalities);
+  }
+  
+  if (filters.latitude && filters.longitude) {
+    query.select(gis.distance("experiences.coordinates", gis.geography(gis.makePoint(filters.longitude, filters.latitude)))
+      .as("distanceAway"))
+    query.where(gis.dwithin(
+      "experiences.coordinates",
+      gis.geography(gis.makePoint(filters.longitude, filters.latitude)),
+      filters.radius || 100000));
+    query.orderBy("distanceAway", "asc");
+  }
+  
+  if (keyword) {
+    query = db
+      .select("*")
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(main.title) " +
+              "|| to_tsvector(main.description) " +
+              "as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .where(db.raw(`main.search_text @@ plainto_tsquery('${keyword}')`));
+  }
+  
+  query = query.paginate({
+    perPage: 12,
+    isLengthAware: true,
+    currentPage: currentPage
+  });
+  
+  return await query
     .then(value => {
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch(reason => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -241,6 +307,25 @@ const getExperience = async(experience_id) => {
     });
 }
 
+const getDistinctNationalities = async (operator, status) => {
+  return await db("experiences")
+    .where("experiences.status", operator, status)
+    .leftJoin(
+      "nationalities",
+      "experiences.nationality_id",
+      "nationalities.id"
+    )
+    .pluck("nationalities.nationality")
+    .orderBy("nationalities.nationality")
+    .distinct()
+    .then(value => {
+      return {success: true, nationalities: value};
+    })
+    .catch(err => {
+      return {success: false, details: err};
+    });
+};
+
 module.exports = {
   createNewExperience,
   getAllExperience,
@@ -248,5 +333,6 @@ module.exports = {
   deleteExperience,
   updateReviewExperience,
   updateExperience,
-  getExperience
+  getExperience,
+  getDistinctNationalities
 }
