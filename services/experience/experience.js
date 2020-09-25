@@ -151,6 +151,7 @@ const getAllExperience = async (
             db.raw(
               "to_tsvector(main.title) " +
               "|| to_tsvector(main.description) " +
+              "|| to_tsvector(main.nationality) " +
               "as search_text"
             )
           )
