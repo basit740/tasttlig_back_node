@@ -289,6 +289,7 @@ const getAllFoodSamples = async (
               "|| to_tsvector(main.description) " +
               "|| to_tsvector(main.first_name) " +
               "|| to_tsvector(main.last_name) " +
+              "|| to_tsvector(main.nationality) " +
               "as search_text"
             )
           )
