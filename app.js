@@ -21,6 +21,7 @@ const newsletter_router = require("./routes/user/newsletter");
 const admin_user_router = require("./routes/admin/user");
 const nationality_router = require("./routes/nationality/nationality");
 const subscription_router = require("./routes/subscriptions/subscriptions");
+const shopping_cart_router = require("./routes/shopping_cart/shopping_cart");
 
 const app = express();
 let corsOptions = {
@@ -46,6 +47,7 @@ app.use(newsletter_router);
 app.use(admin_user_router);
 app.use("/nationalities", nationality_router);
 app.use(subscription_router);
+app.use("/cart", shopping_cart_router);
 
 // Boot development server
 const port = process.env.PORT || 8000;
