@@ -38,9 +38,7 @@ router.post("/admin/add-user", token_service.authenticateToken, async (req, res)
       message: "Unauthorized Access"
     });
   }
-  
-  if (!req.body.first_name || !req.body.last_name
-    || !req.body.email || !req.body.is_participating_in_festival){
+  if (!req.body.first_name || !req.body.email){
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"

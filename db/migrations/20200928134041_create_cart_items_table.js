@@ -5,8 +5,7 @@ exports.up = function(knex) {
     table.integer("cart_id").notNullable().index()
       .references('cart_id').inTable('carts');
     table.string("status").notNullable();
-    table.string("item_type").notNullable();
-    table.integer("item_id").notNullable();
+    table.integer("experience_id").defaultTo(null);
     table.integer("quantity").notNullable();
     table.string("created_at").notNullable();
     table.string("updated_at").notNullable();
