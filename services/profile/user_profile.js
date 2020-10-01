@@ -258,9 +258,11 @@ const saveDocuments = async (hostDto, trx) => {
       status: "Pending"
     }))
 
-  return trx("documents")
+  await trx("documents")
     .insert(documents)
     .returning("*");
+
+  return documents;
 }
 
 const saveSocialProof = async (hostDto, trx) => {
@@ -665,9 +667,12 @@ const saveHostApplication = async (hostDto, user) => {
       phone_number: hostDto.phone_number
     }
 
-    const response = await authenticate_user_service
+    dbUser = await authenticate_user_service
       .createBecomeFoodProviderUser(become_food_provider_user);
-    return {status: 200, response}
+
+    if(!dbUser.success) {
+      return {success: false}
+    }
   }
 
   hostDto.dbUser = dbUser;
@@ -679,9 +684,10 @@ const saveHostApplication = async (hostDto, user) => {
     await saveBusinessServices(hostDto, trx);
     await saveHostingInformation(hostDto, trx);
     await savePaymentInformation(hostDto, trx);
-    await saveDocuments(hostDto, trx);
     await saveSocialProof(hostDto, trx);
     await saveVenueInformation(hostDto, trx);
+
+    const documents = await saveDocuments(hostDto, trx);
 
     if (hostDto.business_category === "Food") {
       await saveMenuItems(hostDto, trx);
@@ -691,8 +697,23 @@ const saveHostApplication = async (hostDto, user) => {
       await saveSampleLinks(hostDto, trx);
     }
 
+    await sendHostApplicationEmails(dbUser, documents);
+
     return {success: true};
   });
+}
+
+const sendHostApplicationEmails = async (dbUser, documents) => {
+  const applier = {
+    user_id: dbUser.user.tasttlig_user_id,
+    last_name: dbUser.user.last_name,
+    first_name: dbUser.user.first_name,
+    email: dbUser.user.email,
+    documents: documents
+  };
+
+  await sendAdminEmailForHosting(applier)
+  await sendApplierEmailForHosting(dbUser);
 }
 
 const updateHostUser = async (hostDto) => {
