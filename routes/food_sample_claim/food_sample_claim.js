@@ -55,13 +55,6 @@ router.post(
             message: "Email not found for user subscription. Enter new email or buy a festival pass"
           });
         }
-        if (!user_details_from_db.success) {
-          return res.status(403).json({
-            success: false,
-            message: user_details_from_db.message,
-          });
-        }
-        db_user = user_details_from_db.user;
       }
       
       const food_sample_details_from_db = await food_sample_service.getFoodSampleById(
@@ -78,7 +71,7 @@ router.post(
       const food_sample_claim_details = {
         food_sample_claim_email: db_user.email,
         food_sample_claim_user_id: db_user.tasttlig_user_id,
-        food_sample_id: db_food_sample.food_sample_id,
+        food_sample_id: db_food_sample.food_sample_id
       };
       
       const response = await food_sample_claim_service.createNewFoodSampleClaim(
