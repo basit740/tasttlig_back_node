@@ -1,10 +1,13 @@
 "use strict";
 
+const authenticate_user_service = require("../authentication/authenticate_user");
+
 const {db} = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const role_manager = require("./user_roles_manager");
 const geocoder = require("../geocoder");
+const {formatPhone} = require("../../functions/functions");
 
 const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -16,12 +19,12 @@ const getUserById = async id => {
     .first()
     .then(value => {
       if (!value) {
-        return { success: false, message: "No user found." };
+        return {success: false, message: "No user found."};
       }
-      return { success: true, user: value };
+      return {success: true, user: value};
     })
     .catch(error => {
-      return { success: false, message: error };
+      return {success: false, message: error};
     });
 };
 
@@ -36,12 +39,12 @@ const getUserBySubscriptionId = async id => {
     )
     .then(value => {
       if (!value) {
-        return { success: false, message: "No user found." };
+        return {success: false, message: "No user found."};
       }
-      return { success: true, user: value };
+      return {success: true, user: value};
     })
     .catch(error => {
-      return { success: false, message: error };
+      return {success: false, message: error};
     });
 };
 
@@ -62,13 +65,13 @@ const updateUserAccount = async user => {
       })
       .returning("*")
       .then(value => {
-        return { success: true, details: value[0] };
+        return {success: true, details: value[0]};
       })
       .catch(reason => {
-        return { success: false, details: reason };
+        return {success: false, details: reason};
       });
   } catch (err) {
-    return { success: false, message: err };
+    return {success: false, message: err};
   }
 };
 
@@ -90,30 +93,53 @@ const updateUserProfile = async user => {
       })
       .returning("*")
       .then(value => {
-        return { success: true, details: value[0] };
+        return {success: true, details: value[0]};
       })
       .catch(reason => {
-        return { success: false, details: reason };
+        return {success: false, details: reason};
       });
   } catch (err) {
-    return { success: false, message: err };
+    return {success: false, message: err};
   }
 };
 
-const insertBusinessForUser = async (business_info) => {
-  try {
-    return await db('business_details')
-      .insert(business_info)
-      .returning("*")
-      .then(value => {
-        return { success: true, details: value[0] };
-      })
-      .catch(reason => {
-        return { success: false, details: reason };
-      });
-  } catch (err) {
-    return {success: false, message: err}
-  }
+const saveBusinessForUser = async (hostDto, trx) => {
+  const businessInfo = {
+    user_id: hostDto.dbUser.user.tasttlig_user_id,
+    business_category: hostDto.business_category,
+    business_type: hostDto.service_provider,
+    business_name: hostDto.business_name,
+    ethnicity_of_restaurant: hostDto.culture,
+    business_address_1: hostDto.address_line_1,
+    business_address_2: hostDto.address_line_2,
+    city: hostDto.business_city,
+    state: hostDto.state,
+    postal_code: hostDto.postal_code,
+    country: hostDto.country,
+    phone_number: hostDto.phone_number,
+    business_registration_number: hostDto.registration_number,
+    instagram: hostDto.instagram,
+    facebook: hostDto.facebook
+  };
+
+  const response = await trx('business_details')
+    .insert(businessInfo)
+    .returning("*");
+
+  return {success: true, details: response[0]};
+}
+
+const saveBusinessServices = async (hostDto, trx) => {
+  const businessServices = hostDto.services.map(serviceName => ({
+    user_id: hostDto.dbUser.user.tasttlig_user_id,
+    name: serviceName
+  }));
+
+  const response = await trx('business_services')
+    .insert(businessServices)
+    .returning("*");
+
+  return {success: true, details: response[0]};
 }
 
 const insertDocument = async (user, document) => {
@@ -164,38 +190,165 @@ const insertExternalReviewLink = async (review) => {
   }
 }
 
-const insertHostingInformation = async (application_info) => {
-  try {
-    return await db('applications')
-      .insert(application_info)
-      .returning('*')
-      .then(value => {
-        return {success: true, details: value[0]}
-      })
-      .catch(reason => {
-        return {success: false, details: reason}
-      })
-  } catch (err) {
-    return {success: false, details: err}
-  }
+const saveHostingInformation = async (hostDto, trx) => {
+  const hostInfo = {
+    user_id: hostDto.dbUser.user.tasttlig_user_id,
+    video_link: hostDto.host_selection_video,
+    youtube_link: hostDto.youtube_link,
+    reason: hostDto.host_selection,
+    created_at: new Date(),
+    updated_at: new Date(),
+    status: "Pending"
+  };
+
+  return trx('applications')
+    .insert(hostInfo)
+    .returning('*')
 }
 
-const insertMenuItem = async (menu_item_details) => {
-  try {
-    for (let menu_item of menu_item_details) {
-      return await db("menu_items")
-        .insert(menu_item)
-        .returning("*")
-        .then(value => {
-          return {success: true, details: value[0]}
-        })
-        .catch(reason => {
-          return {success: false, details: reason}
-        })
+const savePaymentInformation = async (hostDto, trx) => {
+  let paymentInfo = {
+    payment_type: hostDto.banking,
+    user_id: hostDto.dbUser.user.tasttlig_user_id
+  };
+
+  if (paymentInfo.payment_type === "Bank") {
+    paymentInfo = {
+      ...paymentInfo,
+      bank_number: hostDto.bank_number,
+      account_number: hostDto.account_number,
+      institution_number: hostDto.institution_number,
+      void_cheque: hostDto.void_cheque,
     }
-  } catch (err) {
-    return {success: false, details: err}
+  } else if (paymentInfo.payment_type === "Paypal") {
+    paymentInfo = {
+      ...paymentInfo,
+      paypal_email: hostDto.paypal_email
+    }
+  } else if (paymentInfo.payment_type === "Stripe") {
+    paymentInfo = {
+      ...paymentInfo,
+      stripe_account_number: hostDto.stripe_account
+    }
+  } else {
+    paymentInfo = {
+      ...paymentInfo,
+      etransfer_email: hostDto.online_email
+    }
   }
+
+  return trx('payment_info')
+    .insert(paymentInfo)
+    .returning('*')
+}
+
+const saveDocuments = async (hostDto, trx) => {
+  const documents = [['food_handler_certificate', 'Food Handler Certificate'],
+    ['insurance', 'Insurance'],
+    ['dine_safe_certificate', 'Dine Safe Certificate'],
+    ['health_safety_certificate', 'Health and Safety Certificate'],
+    ['government_id', 'Government ID']]
+    .filter(doc => hostDto[doc[0]] && hostDto[doc[0] + '_date_of_issue'] && hostDto[doc[0] + '_date_of_expired'])
+    .map(doc => ({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      document_type: doc[1],
+      issue_date: new Date(hostDto[doc[0] + '_date_of_issue']),
+      expiry_date: new Date(hostDto[doc[0] + '_date_of_expired']),
+      document_link: hostDto[doc[0]],
+      status: "Pending"
+    }))
+
+  return trx("documents")
+    .insert(documents)
+    .returning("*");
+}
+
+const saveSocialProof = async (hostDto, trx) => {
+  const reviews = ["yelp",
+    "google",
+    "tripadvisor",
+    "instagram",
+    "youtube"
+  ].filter(w => hostDto[`${w}_review`])
+    .map(w => ({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      platform: w,
+      link: hostDto[`${w}_review`]
+    }))
+
+  if (hostDto.media_recognition) {
+    reviews.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      platform: "media recognition",
+      link: hostDto.media_recognition
+    });
+  }
+
+  if (hostDto.personal_review) {
+    reviews.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      platform: "personal",
+      text: hostDto.personal_review
+    });
+  }
+
+  return trx("external_review")
+    .insert(reviews)
+    .returning("*");
+}
+
+const saveMenuItems = async (hostDto, trx) => {
+  const menuItemsList = hostDto.menu_list.map(m => ({
+    image_url: m.menuImage,
+    title: m.menuName,
+    nationality_id: m.menuNationality,
+    start_date: new Date(m.menuStartDate),
+    end_date: new Date(m.menuEndDate),
+    start_time: new Date(m.menuStartTime).toLocaleTimeString(),
+    end_time: new Date(m.menuEndTime).toLocaleTimeString(),
+    price: m.menuPrice,
+    quantity: m.menuQuantity,
+    spice_level: m.menuSpiceLevel,
+    frequency: m.menuFrequency,
+    food_sample_type: m.menuType,
+    description: m.menuDecription,
+    address: m.menuAddressLine1,
+    city: m.menuCity,
+    state: m.menuProvinceTerritory,
+    postal_code: m.menuPostalCode,
+  }));
+  return trx("menu_items")
+    .insert(menuItemsList)
+    .returning("*");
+}
+
+const saveSampleLinks = async (hostDto, trx) => {
+  const sampleLinks = hostDto.sample_links.map(l => ({
+    user_id: hostDto.dbUser.user.tasttlig_user_id,
+    media_link: l
+  }));
+  return trx("entertainment")
+    .insert(sampleLinks)
+    .returning("*");
+}
+
+const saveVenueInformation = async (hostDto, trx) => {
+  const response = await trx("venue")
+    .insert({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      name: hostDto.venue_name,
+      description: hostDto.venue_description
+    })
+    .returning("*");
+
+  const photos = hostDto.venue_photos.map(p => ({
+    venue_id: response[0].venue_id,
+    image_url: p
+  }))
+
+  return trx("venue_images")
+    .insert(photos)
+    .returning("*");
 }
 
 const sendAdminEmailForHosting = async (user_info) => {
@@ -213,10 +366,10 @@ const sendAdminEmailForHosting = async (user_info) => {
     },
     EMAIL_SECRET
   );
-  
+
   const application_approve_url = `${SITE_BASE}/user/application/${document_approve_token}`;
   const application_reject_url = `${SITE_BASE}/user/application/${document_reject_token}`;
-  
+
   await Mailer.sendMail({
     from: process.env.SES_DEFAULT_FROM,
     to: ADMIN_EMAIL,
@@ -228,14 +381,14 @@ const sendAdminEmailForHosting = async (user_info) => {
       email: user_info.email,
       upgrade_type: "RESTAURANT",
       documents: user_info.documents,
-      
+
       approve_link: application_approve_url,
       reject_link: application_reject_url,
     }
   })
 }
 
-const sendApplierEmailForHosting = async(db_user) => {
+const sendApplierEmailForHosting = async (db_user) => {
   // Email to user on submitting the request to upgrade
   await Mailer.sendMail({
     from: process.env.SES_DEFAULT_FROM,
@@ -254,19 +407,19 @@ const upgradeUserResponse = async token => {
     const decrypted_token = jwt.verify(token, EMAIL_SECRET);
     const document_id = decrypted_token.document_id;
     const status = decrypted_token.status;
-    
+
     const db_document = await db("documents")
       .where("document_id", document_id)
       .update("status", status)
       .returning("*")
       .catch(reason => {
-        return { success: false, message: reason };
+        return {success: false, message: reason};
       });
-    
+
     const document_user_id = db_document[0].user_id;
     return approveOrDeclineHostApplication(document_user_id, status)
   } catch (err) {
-    return { success: false, message: err };
+    return {success: false, message: err};
   }
 };
 
@@ -278,7 +431,7 @@ const handleAction = async token => {
     const status = decrypted_token.status;
     return approveOrDeclineHostApplication(user_id, status)
   } catch (err) {
-    return { success: false, message: err };
+    return {success: false, message: err};
   }
 };
 
@@ -287,10 +440,10 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
     const db_user_row = await getUserById(userId);
 
     if (!db_user_row.success) {
-      return { success: false, message: db_user_row.message };
+      return {success: false, message: db_user_row.message};
     }
     const db_user = db_user_row.user;
-    
+
     // depends on status, we do different things:
     // if status is approved
     if (status === 'APPROVED') {
@@ -304,7 +457,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
       await db("tasttlig_users")
         .where("tasttlig_user_id", db_user.tasttlig_user_id)
         .update("role", role_manager.createRoleString(user_role_object));
-      
+
       // STEP 2: Update all Experiences to Active state
       await db("experiences")
         .where({
@@ -312,7 +465,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
           status: "INACTIVE"
         })
         .update("status", "ACTIVE");
-      
+
       // STEP 3: Update all Food Samples to Active state if the user agreed to participate in festival
       if (db_user.is_participating_in_festival) {
         await db("food_samples")
@@ -322,7 +475,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
           })
           .update("status", "ACTIVE");
       }
-      
+
       // STEP 4: Update all documents belongs to this user which is in Pending state become APPROVE
       await db("documents")
         .where("user_id", db_user.tasttlig_user_id)
@@ -330,9 +483,9 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         .update("status", 'APPROVED')
         .returning("*")
         .catch(reason => {
-          return { success: false, message: reason };
+          return {success: false, message: reason};
         });
-      
+
       // STEP 5: Update Application table status
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
@@ -340,9 +493,9 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         .update("status", 'APPROVED')
         .returning("*")
         .catch(reason => {
-          return { success: false, message: reason };
+          return {success: false, message: reason};
         });
-      
+
       // STEP 6: email the user that their application is approved
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
@@ -362,11 +515,11 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         user_role_object,
         "RESTAURANT_PENDING"
       );
-      
+
       await db("tasttlig_users")
         .where("tasttlig_user_id", db_user.tasttlig_user_id)
         .update("role", role_manager.createRoleString(user_role_object));
-      
+
       // STEP 2: Update all documents belongs to this user which is in Pending state become REJECT
       await db("documents")
         .where("user_id", db_user.tasttlig_user_id)
@@ -374,9 +527,9 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         .update("status", 'REJECT')
         .returning("*")
         .catch(reason => {
-          return { success: false, message: reason };
+          return {success: false, message: reason};
         });
-      
+
       // STEP 3: Update Application table status
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
@@ -384,9 +537,9 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         .update("status", 'REJECT')
         .returning("*")
         .catch(reason => {
-          return { success: false, message: reason };
+          return {success: false, message: reason};
         });
-      
+
       // STEP 4: notify user their application is reject
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
@@ -399,10 +552,10 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
           declineReason
         }
       });
-      return { success: true, message: status };
+      return {success: true, message: status};
     }
   } catch (e) {
-    return { success: false, message: e };
+    return {success: false, message: e};
   }
 }
 
@@ -412,12 +565,12 @@ const getUserByEmail = async email => {
     .first()
     .then(value => {
       if (!value) {
-        return { success: false, message: "No user found." };
+        return {success: false, message: "No user found."};
       }
-      return { success: true, user: value };
+      return {success: true, user: value};
     })
     .catch(error => {
-      return { success: false, message: error };
+      return {success: false, message: error};
     });
 };
 
@@ -433,12 +586,12 @@ const getUserByEmailWithSubscription = async email => {
     .where("user_subscriptions.subscription_end_datetime", ">", new Date())
     .then(value => {
       if (!value) {
-        return { success: false, message: "No user found." };
+        return {success: false, message: "No user found."};
       }
-      return { success: true, user: value };
+      return {success: true, user: value};
     })
     .catch(error => {
-      return { success: false, message: error };
+      return {success: false, message: error};
     });
 };
 
@@ -448,12 +601,12 @@ const getUserByPassportId = async passport_id => {
     .first()
     .then(value => {
       if (!value) {
-        return { success: false, message: "No user found." };
+        return {success: false, message: "No user found."};
       }
-      return { success: true, user: value };
+      return {success: true, user: value};
     })
     .catch(error => {
-      return { success: false, message: error };
+      return {success: false, message: error};
     });
 }
 
@@ -464,12 +617,12 @@ const getUserByPassportIdOrEmail = async passport_id_or_email => {
     .first()
     .then(value => {
       if (!value) {
-        return { success: false, message: "No user found." };
+        return {success: false, message: "No user found."};
       }
-      return { success: true, user: value };
+      return {success: true, user: value};
     })
     .catch(error => {
-      return { success: false, message: error };
+      return {success: false, message: error};
     });
 }
 
@@ -493,18 +646,80 @@ const getUserByPassportIdOrEmail = async passport_id_or_email => {
 //   }
 // }
 
+const saveHostApplication = async (hostDto, user) => {
+  let dbUser = null;
+
+  if (user) {
+    dbUser = await getUserById(user.id);
+  }
+
+  if (dbUser == null || !dbUser.success) {
+    dbUser = await getUserByPassportIdOrEmail(hostDto.email);
+  }
+
+  if (dbUser == null || !dbUser.success) {
+    const become_food_provider_user = {
+      first_name: hostDto.first_name,
+      last_name: hostDto.last_name,
+      email: hostDto.email,
+      phone_number: hostDto.phone_number
+    }
+
+    const response = await authenticate_user_service
+      .createBecomeFoodProviderUser(become_food_provider_user);
+    return {status: 200, response}
+  }
+
+  hostDto.dbUser = dbUser;
+
+  await updateHostUser(hostDto);
+
+  return await db.transaction(async trx => {
+    await saveBusinessForUser(hostDto, trx);
+    await saveBusinessServices(hostDto, trx);
+    await saveHostingInformation(hostDto, trx);
+    await savePaymentInformation(hostDto, trx);
+    await saveDocuments(hostDto, trx);
+    await saveSocialProof(hostDto, trx);
+    await saveVenueInformation(hostDto, trx);
+
+    if (hostDto.business_category === "Food") {
+      await saveMenuItems(hostDto, trx);
+    } else if (
+      hostDto.business_category === "Entertainment" ||
+      hostDto.business_category === "MC") {
+      await saveSampleLinks(hostDto, trx);
+    }
+
+    return {success: true};
+  });
+}
+
+const updateHostUser = async (hostDto) => {
+  const dbUser = hostDto.dbUser;
+  if (hostDto.first_name !== dbUser.user.first_name ||
+    hostDto.last_name !== dbUser.user.last_name ||
+    formatPhone(hostDto.phone_number) !== dbUser.user.phone
+  ) {
+    dbUser.user.first_name = hostDto.first_name
+    dbUser.user.last_name = hostDto.last_name
+    dbUser.user.phone = formatPhone(hostDto.phone_number)
+    await updateUserAccount(dbUser.user);
+  }
+}
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
   upgradeUserResponse,
   updateUserAccount,
   updateUserProfile,
-  insertBusinessForUser,
+  insertBusinessForUser: saveBusinessForUser,
   insertDocument,
   insertBankingInfo,
   insertExternalReviewLink,
-  insertHostingInformation,
-  insertMenuItem,
+  insertHostingInformation: saveHostingInformation,
+  insertMenuItem: saveMenuItems,
   getUserByEmail,
   getUserByEmailWithSubscription,
   getUserByPassportId,
@@ -512,5 +727,6 @@ module.exports = {
   sendAdminEmailForHosting,
   sendApplierEmailForHosting,
   handleAction,
-  approveOrDeclineHostApplication
+  approveOrDeclineHostApplication,
+  saveHostApplication
 };

@@ -6,9 +6,7 @@ const token_service = require("../../services/authentication/token");
 const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const user_role_manager = require("../../services/profile/user_roles_manager");
-const { formatPhone } = require("../../functions/functions");
-const apply_host_request = require("../../middleware/validator/apply_host_request")
-  .apply_host_request;
+const {formatPhone} = require("../../functions/functions");
 
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
@@ -81,32 +79,45 @@ const extractFile = (requestBody, key, text) => {
   };
 };
 
+router.post(
+  "/user/host",
+  async (req, res) => {
+
+    try {
+      const hostDto = req.body;
+      const response = await user_profile_service.saveHostApplication(hostDto, req.user);
+
+      if(response.success) {
+        return res.send(response);
+      }
+
+      return res.status(500).send(response);
+    } catch (e) {
+      return res.status(403).json({
+        success: false,
+        message: e
+      });
+    }
+  });
+
 
 // /usr/host route handles when a user apply to be a host.
 // whom been applied to be host has to input their business info,
 // documents, bank info. we handle each request in different services.
 router.post(
-  "/user/host",
+  "/user/_host_",
   token_service.authenticateToken,
-  apply_host_request,
   async (req, res) => {
 
     try {
-      const user_details_from_db = await user_profile_service.getUserById(
-        req.user.id
-      );
-      if (!user_details_from_db.success) {
-        return res.status(403).json({
-          success: false,
-          message: user_details_from_db.message
-        });
-      }
+      let response = null;
+      let db_user = await user_profile_service.getUserById(req.user.id);
 
-      // Step 1, get all the data for personal information
-      let db_user;
-      db_user = await user_profile_service.getUserByPassportIdOrEmail(
-        req.body.email
-      );
+      if (!db_user.success) {
+        db_user = await user_profile_service.getUserByPassportIdOrEmail(
+          req.body.email
+        );
+      }
 
       if (!db_user.success) {
         const become_food_provider_user = {
@@ -116,7 +127,7 @@ router.post(
           phone_number: req.body.phone_number
         }
 
-        const response = await authenticate_user_service.createBecomeFoodProviderUser(become_food_provider_user);
+        response = await authenticate_user_service.createBecomeFoodProviderUser(become_food_provider_user);
         res.send(response);
       } else {
         if (req.body.first_name !== db_user.user.first_name ||
@@ -130,36 +141,35 @@ router.post(
         }
       }
       // Step 2, get all the data for business
-      const business_info = extractBusinessInfo(user_details_from_db, req.body);
-      response = await user_profile_service.insertBusinessForUser(
-        business_info
-      );
+      const business_info = extractBusinessInfo(db_user, req.body);
+      response = await user_profile_service.insertBusinessForUser(business_info);
+
       if (!response.success) {
-        res.status(403).json({ success: false, message: response.details });
+        return res.status(403).json({success: false, message: response.details});
       }
 
       // Step 3, get all the data for documents.
       // food handler certificate is always required
       const food_handler_certificate = extractFile(req.body, 'food_handler_certificate', 'Food Handler Certificate');
       response = await user_profile_service.insertDocument(
-        user_details_from_db,
+        db_user,
         food_handler_certificate
       );
       if (!response.success) {
         console.log(response)
-        res.status(403).json({ success: false, message: response.details });
+        return res.status(403).json({success: false, message: response.details});
       }
-      
+
       // insurance is not always required, but if the user input their insurance
       if (req.body.insurance) {
         const insurance = extractFile(req.body, 'insurance', 'Insurance');
 
         response = await user_profile_service.insertDocument(
-          user_details_from_db,
+          db_user,
           insurance
         );
         if (!response.success) {
-          res.status(403).json({ success: false, message: response.details });
+          return res.status(403).json({success: false, message: response.details});
         }
       }
 
@@ -168,11 +178,11 @@ router.post(
         const health_safety_certificate =
           extractFile(req.body, 'health_safety_certificate', 'Health And Safety Certificate')
         response = await user_profile_service.insertDocument(
-          user_details_from_db,
+          db_user,
           health_safety_certificate
         );
         if (!response.success) {
-          res.status(403).json({ success: false, message: response.details });
+          return res.status(403).json({success: false, message: response.details});
         }
       }
 
@@ -181,17 +191,17 @@ router.post(
         const dine_safe_certificate =
           extractFile(req.body, 'dine_safe_certificate', 'Dine Safe Certificate')
         response = await user_profile_service.insertDocument(
-          user_details_from_db,
+          db_user,
           dine_safe_certificate
         );
         if (!response.success) {
-          res.status(403).json({ success: false, message: response.details });
+          return res.status(403).json({success: false, message: response.details});
         }
       }
 
       // Step 4, we need to handle bank information
       const banking_info = {
-        user_id: user_details_from_db.user.tasttlig_user_id,
+        user_id: db_user.user.tasttlig_user_id,
         bank_number: req.body.bank_number,
         account_number: req.body.account_number,
         institution_number: req.body.institution_number,
@@ -203,7 +213,7 @@ router.post(
         "payment_bank"
       );
       if (!response.success) {
-        res.status(403).json({ success: false, message: response.details });
+        return res.status(403).json({success: false, message: response.details});
       }
 
       // STEP 5, link to external website
@@ -219,7 +229,7 @@ router.post(
         let website = external_websites_review[i];
         if (req.body[website + "_review"]) {
           let review = {
-            user_id: user_details_from_db.user.tasttlig_user_id,
+            user_id: db_user.user.tasttlig_user_id,
             platform: website,
             link: req.body[website + "_review"]
           };
@@ -229,7 +239,7 @@ router.post(
 
       if (req.body.media_recognition) {
         reviews.push({
-          user_id: user_details_from_db.user.tasttlig_user_id,
+          user_id: db_user.user.tasttlig_user_id,
           platform: "media recognition",
           link: req.body.media_recognition
         });
@@ -237,7 +247,7 @@ router.post(
 
       if (req.body.personal_review) {
         reviews.push({
-          user_id: user_details_from_db.user.tasttlig_user_id,
+          user_id: db_user.user.tasttlig_user_id,
           platform: "personal",
           text: req.body.personal_review
         });
@@ -245,12 +255,12 @@ router.post(
 
       response = await user_profile_service.insertExternalReviewLink(reviews);
       if (!response.success) {
-        res.status(403).json({ success: false, message: response.details });
+        return res.status(403).json({success: false, message: response.details});
       }
 
       // STEP 6, hosting information, including why I want to host.
       const application_info = {
-        user_id: user_details_from_db.user.tasttlig_user_id,
+        user_id: db_user.user.tasttlig_user_id,
         video_link: req.body.host_selection_video,
         youtube_link: req.body.youtube_link,
         reason: req.body.host_selection,
@@ -259,11 +269,9 @@ router.post(
         status: "Pending"
       };
 
-      response = await user_profile_service.insertHostingInformation(
-        application_info
-      );
+      response = await user_profile_service.insertHostingInformation(application_info);
       if (!response.success) {
-        res.status(403).json({ success: false, message: response.details });
+        return res.status(403).json({success: false, message: response.details});
       }
 
       /* STEP 7, add up to 3 menu items, check to see if they are also going to 
@@ -280,15 +288,15 @@ router.post(
       // }
 
       if (!response.success) {
-        res.status(403).json({ success: false, message: response.details });
+        return res.status(403).json({success: false, message: response.details});
       }
 
       // STEP 7, sending email to admin for approval
       const applier = {
-        user_id: user_details_from_db.user.tasttlig_user_id,
-        last_name: user_details_from_db.user.last_name,
-        first_name: user_details_from_db.user.first_name,
-        email: user_details_from_db.user.email,
+        user_id: db_user.user.tasttlig_user_id,
+        last_name: db_user.user.last_name,
+        first_name: db_user.user.first_name,
+        email: db_user.user.email,
       };
       let documents = [
         {
@@ -331,18 +339,18 @@ router.post(
       await user_profile_service
         .sendAdminEmailForHosting(applier)
         .catch((e) => {
-          res.status(403).json({ success: false, message: e });
+          res.status(403).json({success: false, message: e});
         });
 
       // STEP 8, sending email to user who apply hosting.
       await user_profile_service
-        .sendApplierEmailForHosting(user_details_from_db)
+        .sendApplierEmailForHosting(db_user)
         .catch((e) => {
-          res.status(403).json({ success: false, message: e });
+          res.status(403).json({success: false, message: e});
         });
     } catch (e) {
       console.log(e)
-      res.status(403).json({ success: false, message: e });
+      return res.status(403).json({success: false, message: e});
     }
 
     res.status(200).send({success: true});
