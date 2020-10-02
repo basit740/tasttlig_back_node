@@ -4,10 +4,11 @@ const authenticate_user_service = require("../authentication/authenticate_user")
 
 const {db} = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const role_manager = require("./user_roles_manager");
 const geocoder = require("../geocoder");
-const {formatPhone} = require("../../functions/functions");
+const {formatPhone, generateRandomString} = require("../../functions/functions");
 
 const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -356,6 +357,47 @@ const sendApplierEmailForHosting = async (db_user) => {
   });
 }
 
+const sendNewUserEmail = async (new_user) => {
+  // Email to new user with login details and password reset link
+  const email = new_user.email;
+  jwt.sign(
+    { email },
+    process.env.EMAIL_SECRET,
+    {
+      expiresIn: "7d"
+    },
+    // Async reset password email
+    async (err, emailToken) => {
+      try {
+        const url = `${SITE_BASE}/forgot-password/${emailToken}/${email}`;
+        await Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
+          to: email,
+          subject: `[Tasttlig] Thank you for your application`,
+          template: "new_application_user_account",
+          context: {
+            first_name: new_user.first_name,
+            last_name: new_user.last_name,
+            email: email,
+            password: new_user.plain_password,
+            url: url
+          }
+        });
+        return {
+          success: true,
+          message: "ok"
+        };
+      } catch (err) {
+        return {
+          success: false,
+          message: "error",
+          response: "Error in sending email"
+        }
+      }
+    }
+  );
+}
+
 const upgradeUserResponse = async token => {
   try {
     const decrypted_token = jwt.verify(token, EMAIL_SECRET);
@@ -602,6 +644,7 @@ const getUserByPassportIdOrEmail = async passport_id_or_email => {
 
 const saveHostApplication = async (hostDto, user) => {
   let dbUser = null;
+  let plain_password = "";
 
   if (user) {
     dbUser = await getUserById(user.id);
@@ -612,23 +655,28 @@ const saveHostApplication = async (hostDto, user) => {
   }
 
   if (dbUser == null || !dbUser.success) {
+    plain_password = generateRandomString(8);
+    const saltRounds = 10;
+    const salt = bcrypt.genSaltSync(saltRounds);
+    const hashedPassword = bcrypt.hashSync(plain_password, salt);
     const become_food_provider_user = {
       first_name: hostDto.first_name,
       last_name: hostDto.last_name,
+      plain_password: plain_password,
+      password: hashedPassword,
       email: hostDto.email,
       phone_number: hostDto.phone_number
     }
-
     dbUser = await authenticate_user_service
       .createBecomeFoodProviderUser(become_food_provider_user);
-
+    
     if(!dbUser.success) {
       return {success: false}
     }
+    
+    await sendNewUserEmail(become_food_provider_user);
   }
-
   hostDto.dbUser = dbUser;
-
   await updateHostUser(hostDto);
 
   return await db.transaction(async trx => {
@@ -693,6 +741,7 @@ module.exports = {
   getUserByPassportIdOrEmail,
   sendAdminEmailForHosting,
   sendApplierEmailForHosting,
+  sendNewUserEmail,
   handleAction,
   approveOrDeclineHostApplication,
   saveHostApplication

@@ -276,7 +276,7 @@ const createBecomeFoodProviderUser = async become_food_provider_user => {
         first_name: become_food_provider_user.first_name,
         last_name: become_food_provider_user.last_name,
         email: become_food_provider_user.email,
-        password: "NA",
+        password: become_food_provider_user.password,
         phone_number: become_food_provider_user.phone_number,
         role: "VISITOR",
         status: "DUMMY",
