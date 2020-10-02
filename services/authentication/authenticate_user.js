@@ -269,6 +269,37 @@ const createDummyUser = async email => {
   }
 }
 
+const createBecomeFoodProviderUser = async become_food_provider_user => {
+  try {
+    return await db("tasttlig_users")
+      .insert({
+        first_name: become_food_provider_user.first_name,
+        last_name: become_food_provider_user.last_name,
+        email: become_food_provider_user.email,
+        password: become_food_provider_user.password,
+        phone_number: become_food_provider_user.phone_number,
+        role: "MEMBER",
+        status: "ACTIVE",
+        passport_id: "M" + generateRandomString(6),
+        created_at_datetime: new Date(),
+        updated_at_datetime: new Date()
+      })
+      .returning("*")
+      .then(value => {
+        return { success: true, user: value[0] };
+      })
+      .catch(reason => {
+        return { success: false, data: reason };
+      });
+  } catch (error){
+    // duplicate key
+    if (error.code === 23505){
+      return createBecomeFoodProviderUser(become_food_provider_user);
+    }
+    return { success: false, data: error.message };
+  }
+}
+
 const findUserByEmail = async email => {
   return await db("tasttlig_users")
     .where({
@@ -297,5 +328,6 @@ module.exports = {
   checkEmail,
   updatePassword,
   createDummyUser,
+  createBecomeFoodProviderUser,
   findUserByEmail
 }
