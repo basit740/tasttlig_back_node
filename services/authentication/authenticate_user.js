@@ -278,8 +278,8 @@ const createBecomeFoodProviderUser = async become_food_provider_user => {
         email: become_food_provider_user.email,
         password: become_food_provider_user.password,
         phone_number: become_food_provider_user.phone_number,
-        role: "VISITOR",
-        status: "DUMMY",
+        role: "MEMBER",
+        status: "ACTIVE",
         passport_id: "M" + generateRandomString(6),
         created_at_datetime: new Date(),
         updated_at_datetime: new Date()
