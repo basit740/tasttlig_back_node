@@ -142,54 +142,6 @@ const saveBusinessServices = async (hostDto, trx) => {
   return {success: true, details: response[0]};
 }
 
-const insertDocument = async (user, document) => {
-  try {
-    return await db('documents')
-      .insert({user_id: user.user.tasttlig_user_id, ...document})
-      .returning("*")
-      .then(value => {
-        return {success: true, details: value[0]}
-      })
-      .catch(reason => {
-        return {success: false, details: reason}
-      })
-  } catch (err) {
-    return {success: false, details: err}
-  }
-}
-
-const insertBankingInfo = async (banking, tableName) => {
-  try {
-    return await db(tableName)
-      .insert(banking)
-      .returning("*")
-      .then(value => {
-        return {success: true, details: value[0]}
-      })
-      .catch(reason => {
-        return {success: false, details: reason}
-      })
-  } catch (err) {
-    return {success: false, details: err}
-  }
-}
-
-const insertExternalReviewLink = async (review) => {
-  try {
-    return await db('external_review')
-      .insert(review)
-      .returning('*')
-      .then(value => {
-        return {success: true, details: value[0]}
-      })
-      .catch(reason => {
-        return {success: false, details: reason}
-      })
-  } catch (err) {
-    return {success: false, details: err}
-  }
-}
-
 const saveHostingInformation = async (hostDto, trx) => {
   const hostInfo = {
     user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -735,12 +687,6 @@ module.exports = {
   upgradeUserResponse,
   updateUserAccount,
   updateUserProfile,
-  insertBusinessForUser: saveBusinessForUser,
-  insertDocument,
-  insertBankingInfo,
-  insertExternalReviewLink,
-  insertHostingInformation: saveHostingInformation,
-  insertMenuItem: saveMenuItems,
   getUserByEmail,
   getUserByEmailWithSubscription,
   getUserByPassportId,
