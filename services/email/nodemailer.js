@@ -31,10 +31,11 @@ if (process.env.NODE_ENV === "production") {
   };
 } else {
   mailConfig = {
-    service: "gmail",
+    host: "smtp.ethereal.email",
+    port: 587,
     auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_PASSWORD
+      user: "keara.block@ethereal.email",
+      pass: "hbGChvzjwgRwWUeewC"
     }
   };
 }
