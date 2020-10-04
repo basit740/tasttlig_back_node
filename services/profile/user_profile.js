@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const role_manager = require("./user_roles_manager");
-const geocoder = require("../geocoder");
+const {setAddressCoordinates} = require("../geocoder");
 const {formatPhone, generateRandomString} = require("../../functions/functions");
 
 const SITE_BASE = process.env.SITE_BASE;
@@ -278,6 +278,9 @@ const saveMenuItems = async (hostDto, trx) => {
     menu_item_creator_user_id: hostDto.dbUser.user.tasttlig_user_id
   }))) {
     const {images, ...menuItem} = m;
+
+    await setAddressCoordinates(menuItem);
+
     const result = await trx("menu_items").insert(menuItem).returning("*");
     await trx("menu_item_images").insert(images.map(i => ({
       menu_item_id: result[0].menu_item_id,
