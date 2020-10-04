@@ -247,8 +247,9 @@ const updateReviewExperience = async (
 const updateExperience = async (
   db_user,
   experience_id,
-  experience_update_data,
+  update_data,
   updatedByAdmin) => {
+  const {images, ...experience_update_data} = update_data;
   if(!experience_update_data.status){
     let user_role_object = user_role_manager.createRoleObject(db_user.role);
     if(user_role_object.includes("RESTAURANT") && !updatedByAdmin){
@@ -257,25 +258,34 @@ const updateExperience = async (
       experience_update_data.status = "INACTIVE";
     }
   }
-  return await db("experiences")
-    .where(builder => {
-      if(updatedByAdmin){
-        return builder.where({
-          experience_id: experience_id
-        })
-      } else {
-        return builder.where({
-          experience_id: experience_id,
-          experience_creator_user_id: db_user.tasttlig_user_id
-        })
-      }
-    })
-    .update(experience_update_data)
-    .then(() => {
-      return {success: true};
-    }).catch(reason => {
-      return {success: false, details:reason};
-    });
+
+  try {
+    await db("experiences")
+      .where(builder => {
+        if(updatedByAdmin){
+          return builder.where({
+            experience_id: experience_id
+          })
+        } else {
+          return builder.where({
+            experience_id: experience_id,
+            experience_creator_user_id: db_user.tasttlig_user_id
+          })
+        }
+      }).update(experience_update_data)
+
+    if(images && images.length) {
+      await db("experience_images").where("experience_id", experience_id).del()
+      await db("experience_images").insert(images.map(m => ({
+        experience_id,
+        image_url: m
+      })))
+    }
+
+    return {success: true};
+  } catch (e) {
+    return {success: false, details:e};
+  }
 }
 
 const deleteExperience = async (user_id, experience_id) => {
