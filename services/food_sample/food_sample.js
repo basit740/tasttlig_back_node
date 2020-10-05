@@ -156,9 +156,14 @@ const getAllUserFoodSamples = async (
 const updateFoodSample = async (
   db_user,
   food_sample_id,
-  food_sample_update_data,
+  update_data,
   updatedByAdmin
 ) => {
+  const {
+    images,
+    ...food_sample_update_data
+  } = update_data;
+
   if (!food_sample_update_data.status) {
     // let user_role_object = user_role_manager.createRoleObject(db_user.role);
     // if (
@@ -172,26 +177,34 @@ const updateFoodSample = async (
     // }
     food_sample_update_data.status = "ACTIVE";
   }
-  return await db("food_samples")
-    .where((builder) => {
-      if (updatedByAdmin) {
-        return builder.where({
-          food_sample_id: food_sample_id,
-        });
-      } else {
-        return builder.where({
-          food_sample_id: food_sample_id,
-          food_sample_creater_user_id: db_user.tasttlig_user_id,
-        });
-      }
-    })
-    .update(food_sample_update_data)
-    .then(() => {
-      return {success: true};
-    })
-    .catch(reason => {
-      return {success: false, details: reason};
-    });
+
+  try {
+    await db("food_samples")
+      .where((builder) => {
+        if (updatedByAdmin) {
+          return builder.where({
+            food_sample_id: food_sample_id,
+          });
+        } else {
+          return builder.where({
+            food_sample_id: food_sample_id,
+            food_sample_creater_user_id: db_user.tasttlig_user_id,
+          });
+        }
+      }).update(food_sample_update_data)
+
+    if(images && images.length) {
+      await db("food_sample_images").where("food_sample_id", food_sample_id).del()
+      await db("food_sample_images").insert(images.map(m => ({
+        food_sample_id,
+        image_url: m
+      })))
+    }
+
+    return {success: true};
+  } catch (e) {
+    return {success: false, details: e};
+  }
 };
 
 const deleteFoodSample = async (user_id, food_sample_id) => {
