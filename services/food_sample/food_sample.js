@@ -110,6 +110,8 @@ const getAllUserFoodSamples = async (
   user_id,
   operator,
   status,
+  keyword,
+  currentPage,
   requestByAdmin
 ) => {
   const startOfDay = moment().startOf('day').format("YYYY-MM-DD HH:mm:ss");
@@ -144,6 +146,33 @@ const getAllUserFoodSamples = async (
   } else {
     query = query.having("food_samples.status", operator, status);
   }
+  
+  if (keyword) {
+    query = db
+      .select("*")
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(main.title) " +
+              "|| to_tsvector(main.description) " +
+              "|| to_tsvector(main.nationality) " +
+              "as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .where(db.raw(`main.search_text @@ plainto_tsquery('${keyword}')`));
+  }
+  
+  query = query.paginate({
+    perPage: 12,
+    isLengthAware: true,
+    currentPage: currentPage
+  });
+  
   return await query
     .then(value => {
       return {success: true, details: value};

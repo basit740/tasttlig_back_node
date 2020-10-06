@@ -175,12 +175,33 @@ const getAllExperience = async (
     });
 };
 
-const getAllUserExperience = async (user_id, operator, status, requestByAdmin) => {
+const getAllUserExperience = async (
+  user_id,
+  operator,
+  status,
+  keyword,
+  currentPage,
+  requestByAdmin
+) => {
   let query = db
-    .select("experiences.*", db.raw('ARRAY_AGG(experience_images.image_url) as image_urls'))
+    .select(
+      "experiences.*",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
+      db.raw('ARRAY_AGG(experience_images.image_url) as image_urls'))
     .from("experiences")
-    .leftJoin("experience_images", "experiences.experience_id", "experience_images.experience_id")
-    .groupBy("experiences.experience_id");
+    .leftJoin(
+      "experience_images",
+      "experiences.experience_id",
+      "experience_images.experience_id"
+    ).leftJoin(
+      "nationalities",
+      "experiences.nationality_id",
+      "nationalities.id"
+    )
+    .groupBy("experiences.experience_id")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code");
   
   if(!requestByAdmin){
     query =  query
@@ -190,6 +211,33 @@ const getAllUserExperience = async (user_id, operator, status, requestByAdmin) =
     query =  query
       .having("experiences.status", operator, status)
   }
+  
+  if (keyword) {
+    query = db
+      .select("*")
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(main.title) " +
+              "|| to_tsvector(main.description) " +
+              "|| to_tsvector(main.nationality) " +
+              "as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .where(db.raw(`main.search_text @@ plainto_tsquery('${keyword}')`));
+  }
+  
+  query = query.paginate({
+    perPage: 12,
+    isLengthAware: true,
+    currentPage: currentPage
+  });
+  
   return await query
     .then(value => {
       return {success: true, details:value};
