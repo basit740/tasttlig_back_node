@@ -134,6 +134,8 @@ router.get("/experience/:experience_id", async (req, res) => {
 
 router.get("/experience/user/all", token_service.authenticateToken, async (req, res) => {
   try{
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
     const status_operator = "!=";
     const experience_status = "ARCHIVED";
     const user_details_from_db = await user_profile_service.getUserById(req.user.id);
@@ -153,6 +155,8 @@ router.get("/experience/user/all", token_service.authenticateToken, async (req, 
       req.user.id,
       status_operator,
       experience_status,
+      keyword,
+      current_page,
       requestByAdmin
     );
     return res.send(response);
@@ -167,6 +171,8 @@ router.get("/experience/user/all", token_service.authenticateToken, async (req, 
 
 router.get("/experience/user/archived", token_service.authenticateToken, async (req, res) => {
   try{
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
     const status_operator = "=";
     const food_sample_status = "ARCHIVED";
     const user_details_from_db = await user_profile_service.getUserById(req.user.id);
@@ -186,6 +192,8 @@ router.get("/experience/user/archived", token_service.authenticateToken, async (
       req.user.id,
       status_operator,
       food_sample_status,
+      keyword,
+      current_page,
       requestByAdmin
     );
     return res.send(response);
