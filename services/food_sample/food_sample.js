@@ -149,22 +149,28 @@ const getAllUserFoodSamples = async (
   
   if (keyword) {
     query = db
-      .select("*")
+      .select(
+        "*",
+        db.raw("CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank", [keyword, keyword])
+      )
       .from(
         db
           .select(
             "main.*",
             db.raw(
-              "to_tsvector(main.title) " +
-              "|| to_tsvector(main.description) " +
-              "|| to_tsvector(main.nationality) " +
-              "as search_text"
+              "to_tsvector(concat_ws(' '," +
+              "main.title, " +
+              "main.description, " +
+              "main.nationality" +
+              ")) as search_text"
             )
           )
           .from(query.as("main"))
           .as("main")
       )
-      .where(db.raw(`main.search_text @@ plainto_tsquery('${keyword}')`));
+      .orderBy("rank", "desc");
   }
   
   query = query.paginate({
@@ -318,27 +324,32 @@ const getAllFoodSamples = async (
   if (food_ad_code) {
     query.where("food_ad_code", "=", food_ad_code);
   }
-
+  
   if (keyword) {
     query = db
-      .select("*")
+      .select(
+        "*",
+        db.raw("CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank", [keyword, keyword])
+      )
       .from(
         db
           .select(
             "main.*",
             db.raw(
-              "to_tsvector(main.title) " +
-              "|| to_tsvector(main.description) " +
-              "|| to_tsvector(main.first_name) " +
-              "|| to_tsvector(main.last_name) " +
-              "|| to_tsvector(main.nationality) " +
-              "as search_text"
+              "to_tsvector(concat_ws(' '," +
+              "main.title, " +
+              "main.description, " +
+              "main.nationality, " +
+              "main.first_name, " +
+              "main.last_name)) as search_text"
             )
           )
           .from(query.as("main"))
           .as("main")
       )
-      .where(db.raw(`main.search_text @@ plainto_tsquery('${keyword}')`));
+      .orderBy("rank", "desc");
   }
 
   query = query.paginate({
