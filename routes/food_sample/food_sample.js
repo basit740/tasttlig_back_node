@@ -9,8 +9,8 @@ const { generateRandomString } = require("../../functions/functions");
 
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
   if (!req.body.title || !req.body.start_date || !req.body.end_date || !req.body.start_time
-    || !req.body.end_time || !req.body.frequency || !req.body.food_sample_type || !req.body.description
-    || !req.body.address || !req.body.city || !req.body.state || !req.body.country || !req.body.postal_code
+    || !req.body.end_time || !req.body.description || !req.body.address
+    || !req.body.city || !req.body.state || !req.body.country || !req.body.postal_code
     || !req.body.nationality_id || !req.body.images || !req.body.quantity) {
     return res.status(403).json({
       success: false,
@@ -53,13 +53,20 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
       country: req.body.country,
       postal_code: req.body.postal_code,
       nationality_id: req.body.nationality_id,
+      sample_size: req.body.sample_size,
+      is_available_on_monday: req.body.is_available_on_monday,
+      is_available_on_tuesday: req.body.is_available_on_tuesday,
+      is_available_on_wednesday: req.body.is_available_on_wednesday,
+      is_available_on_thursday: req.body.is_available_on_thursday,
+      is_available_on_friday: req.body.is_available_on_friday,
+      is_available_on_saturday: req.body.is_available_on_saturday,
+      is_available_on_sunday: req.body.is_available_on_sunday,
       is_vegetarian: req.body.is_vegetarian,
       is_vegan: req.body.is_vegan,
       is_gluten_free: req.body.is_gluten_free,
       is_halal: req.body.is_halal,
       spice_level: req.body.spice_level,
-      frequency: req.body.frequency,
-      food_sample_type: req.body.food_sample_type,
+      // food_sample_type: req.body.food_sample_type,
       price: 2.0,
       quantity: req.body.quantity,
       food_ad_code: generateRandomString(4),
@@ -145,6 +152,8 @@ router.get("/food-sample/:food_sample_id", async (req, res) => {
 
 router.get("/food-sample/user/all", token_service.authenticateToken, async (req, res) => {
   try{
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
     const status_operator = "!=";
     const food_sample_status = "ARCHIVED";
     const user_details_from_db = await user_profile_service.getUserById(req.user.id);
@@ -164,6 +173,8 @@ router.get("/food-sample/user/all", token_service.authenticateToken, async (req,
       req.user.id,
       status_operator,
       food_sample_status,
+      keyword,
+      current_page,
       requestByAdmin
     );
     return res.send(response);
@@ -184,9 +195,17 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
     });
   }
   try{
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
-    const food_sample_response = await food_sample_service.getAllUserFoodSamples(req.params.owner_id, status_operator, food_sample_status);
+    const food_sample_response = await food_sample_service.getAllUserFoodSamples(
+      req.params.owner_id,
+      status_operator,
+      food_sample_status,
+      keyword,
+      current_page,
+    );
     const db_food_samples = food_sample_response.details;
     const user_details_response = await user_profile_service.getUserById(req.params.owner_id);
     if(!user_details_response.success) {
@@ -212,6 +231,8 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
 
 router.get("/food-sample/user/archived", token_service.authenticateToken, async (req, res) => {
   try{
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
     const status_operator = "=";
     const food_sample_status = "ARCHIVED";
     const user_details_from_db = await user_profile_service.getUserById(req.user.id);
@@ -231,6 +252,8 @@ router.get("/food-sample/user/archived", token_service.authenticateToken, async 
       req.user.id,
       status_operator,
       food_sample_status,
+      keyword,
+      current_page,
       requestByAdmin
     );
     return res.send(response);
