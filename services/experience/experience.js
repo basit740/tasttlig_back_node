@@ -175,12 +175,33 @@ const getAllExperience = async (
     });
 };
 
-const getAllUserExperience = async (user_id, operator, status, requestByAdmin) => {
+const getAllUserExperience = async (
+  user_id,
+  operator,
+  status,
+  keyword,
+  currentPage,
+  requestByAdmin
+) => {
   let query = db
-    .select("experiences.*", db.raw('ARRAY_AGG(experience_images.image_url) as image_urls'))
+    .select(
+      "experiences.*",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
+      db.raw('ARRAY_AGG(experience_images.image_url) as image_urls'))
     .from("experiences")
-    .leftJoin("experience_images", "experiences.experience_id", "experience_images.experience_id")
-    .groupBy("experiences.experience_id");
+    .leftJoin(
+      "experience_images",
+      "experiences.experience_id",
+      "experience_images.experience_id"
+    ).leftJoin(
+      "nationalities",
+      "experiences.nationality_id",
+      "nationalities.id"
+    )
+    .groupBy("experiences.experience_id")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code");
   
   if(!requestByAdmin){
     query =  query
@@ -190,6 +211,33 @@ const getAllUserExperience = async (user_id, operator, status, requestByAdmin) =
     query =  query
       .having("experiences.status", operator, status)
   }
+  
+  if (keyword) {
+    query = db
+      .select("*")
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(main.title) " +
+              "|| to_tsvector(main.description) " +
+              "|| to_tsvector(main.nationality) " +
+              "as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .where(db.raw(`main.search_text @@ plainto_tsquery('${keyword}')`));
+  }
+  
+  query = query.paginate({
+    perPage: 12,
+    isLengthAware: true,
+    currentPage: currentPage
+  });
+  
   return await query
     .then(value => {
       return {success: true, details:value};
@@ -247,8 +295,9 @@ const updateReviewExperience = async (
 const updateExperience = async (
   db_user,
   experience_id,
-  experience_update_data,
+  update_data,
   updatedByAdmin) => {
+  const {images, ...experience_update_data} = update_data;
   if(!experience_update_data.status){
     let user_role_object = user_role_manager.createRoleObject(db_user.role);
     if(user_role_object.includes("RESTAURANT") && !updatedByAdmin){
@@ -257,25 +306,34 @@ const updateExperience = async (
       experience_update_data.status = "INACTIVE";
     }
   }
-  return await db("experiences")
-    .where(builder => {
-      if(updatedByAdmin){
-        return builder.where({
-          experience_id: experience_id
-        })
-      } else {
-        return builder.where({
-          experience_id: experience_id,
-          experience_creator_user_id: db_user.tasttlig_user_id
-        })
-      }
-    })
-    .update(experience_update_data)
-    .then(() => {
-      return {success: true};
-    }).catch(reason => {
-      return {success: false, details:reason};
-    });
+
+  try {
+    await db("experiences")
+      .where(builder => {
+        if(updatedByAdmin){
+          return builder.where({
+            experience_id: experience_id
+          })
+        } else {
+          return builder.where({
+            experience_id: experience_id,
+            experience_creator_user_id: db_user.tasttlig_user_id
+          })
+        }
+      }).update(experience_update_data)
+
+    if(images && images.length) {
+      await db("experience_images").where("experience_id", experience_id).del()
+      await db("experience_images").insert(images.map(m => ({
+        experience_id,
+        image_url: m
+      })))
+    }
+
+    return {success: true};
+  } catch (e) {
+    return {success: false, details:e};
+  }
 }
 
 const deleteExperience = async (user_id, experience_id) => {

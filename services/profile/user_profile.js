@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const role_manager = require("./user_roles_manager");
-const geocoder = require("../geocoder");
+const {setAddressCoordinates} = require("../geocoder");
 const {formatPhone, generateRandomString} = require("../../functions/functions");
 
 const SITE_BASE = process.env.SITE_BASE;
@@ -253,8 +253,8 @@ const saveSocialProof = async (hostDto, trx) => {
 }
 
 const saveMenuItems = async (hostDto, trx) => {
-  const menuItemsList = hostDto.menu_list.map(m => ({
-    image_url: m.menuImage,
+  for (const m of hostDto.menu_list.map(m => ({
+    images: m.menuImages,
     title: m.menuName,
     nationality_id: m.menuNationality,
     start_date: new Date(m.menuStartDate),
@@ -266,15 +266,27 @@ const saveMenuItems = async (hostDto, trx) => {
     spice_level: m.menuSpiceLevel,
     frequency: m.menuFrequency,
     food_sample_type: m.menuType,
-    description: m.menuDecription,
+    description: m.menuDescription,
     address: m.menuAddressLine1,
     city: m.menuCity,
     state: m.menuProvinceTerritory,
     postal_code: m.menuPostalCode,
-  }));
-  return trx("menu_items")
-    .insert(menuItemsList)
-    .returning("*");
+    is_vegetarian: m.dietaryRestrictions.includes("vegetarian"),
+    is_vegan: m.dietaryRestrictions.includes("vegan"),
+    is_gluten_free: m.dietaryRestrictions.includes("glutenFree"),
+    is_halal: m.dietaryRestrictions.includes("halal"),
+    menu_item_creator_user_id: hostDto.dbUser.user.tasttlig_user_id
+  }))) {
+    const {images, ...menuItem} = m;
+
+    await setAddressCoordinates(menuItem);
+
+    const result = await trx("menu_items").insert(menuItem).returning("*");
+    await trx("menu_item_images").insert(images.map(i => ({
+      menu_item_id: result[0].menu_item_id,
+      image_url: i
+    })));
+  }
 }
 
 const saveSampleLinks = async (hostDto, trx) => {
