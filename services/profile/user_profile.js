@@ -373,7 +373,7 @@ const sendNewUserEmail = async (new_user) => {
   // Email to new user with login details and password reset link
   const email = new_user.email;
   jwt.sign(
-    { email },
+    {email},
     process.env.EMAIL_SECRET,
     {
       expiresIn: "7d"
@@ -677,22 +677,32 @@ const saveHostApplication = async (hostDto, user) => {
       plain_password: plain_password,
       password: hashedPassword,
       email: hostDto.email,
-      phone_number: hostDto.phone_number
+      phone_number: hostDto.phone_number,
+      user_address_line_1: hostDto.residential_address_line_1,
+      user_address_line_2: hostDto.residential_address_line_2,
+      user_city: hostDto.residential_city,
+      user_state: hostDto.residential_state,
+      user_postal_code: hostDto.residential_postal_code,
     }
     dbUser = await authenticate_user_service
       .createBecomeFoodProviderUser(become_food_provider_user);
-    
-    if(!dbUser.success) {
+
+    if (!dbUser.success) {
       return {success: false}
     }
-    
+
     await sendNewUserEmail(become_food_provider_user);
   }
   hostDto.dbUser = dbUser;
   await updateHostUser(hostDto);
 
   return await db.transaction(async trx => {
-    await saveBusinessForUser(hostDto, trx);
+    const has_business = hostDto.has_business === "yes";
+
+    if (has_business) {
+      await saveBusinessForUser(hostDto, trx);
+    }
+
     await saveBusinessServices(hostDto, trx);
     await saveHostingInformation(hostDto, trx);
     await savePaymentInformation(hostDto, trx);
@@ -701,12 +711,14 @@ const saveHostApplication = async (hostDto, user) => {
 
     const documents = await saveDocuments(hostDto, trx);
 
-    if (hostDto.business_category === "Food") {
-      await saveMenuItems(hostDto, trx);
-    } else if (
-      hostDto.business_category === "Entertainment" ||
-      hostDto.business_category === "MC") {
-      await saveSampleLinks(hostDto, trx);
+    if (has_business) {
+      if (hostDto.business_category === "Food") {
+        await saveMenuItems(hostDto, trx);
+      } else if (
+        hostDto.business_category === "Entertainment" ||
+        hostDto.business_category === "MC") {
+        await saveSampleLinks(hostDto, trx);
+      }
     }
 
     await sendHostApplicationEmails(dbUser, documents);
