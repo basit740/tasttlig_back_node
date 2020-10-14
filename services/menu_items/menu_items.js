@@ -14,17 +14,26 @@ const getAllMenuItems = async (
       "menu_items.*",
       "tasttlig_users.first_name",
       "tasttlig_users.last_name",
+      "business_details.business_name",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
       db.raw("ARRAY_AGG(menu_item_images.image_url) as image_urls"),
     )
     .from("menu_items")
-    .leftJoin("menu_item_images",
+    .leftJoin(
+      "menu_item_images",
       "menu_items.menu_item_id",
-      "menu_item_images.menu_item_id")
-    .leftJoin("tasttlig_users",
+      "menu_item_images.menu_item_id"
+    )
+    .leftJoin(
+      "tasttlig_users",
       "menu_items.menu_item_creator_user_id",
       "tasttlig_users.tasttlig_user_id"
+    )
+    .leftJoin(
+      "business_details",
+      "menu_items.menu_item_creator_user_id",
+      "business_details.user_id"
     )
     .leftJoin("nationalities",
       "menu_items.nationality_id",
@@ -33,6 +42,7 @@ const getAllMenuItems = async (
     .groupBy("menu_items.menu_item_id")
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
+    .groupBy("business_details.business_name")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
     .having("menu_items.status", operator, status);

@@ -101,6 +101,7 @@ const getAllExperience = async (
       "experiences.*",
       "tasttlig_users.phone_number",
       "tasttlig_users.email",
+      "business_details.business_name",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
       db.raw("ARRAY_AGG(experience_images.image_url) as image_urls")
@@ -110,11 +111,18 @@ const getAllExperience = async (
       "experience_images",
       "experiences.experience_id",
       "experience_images.experience_id"
-    ).leftJoin(
+    )
+    .leftJoin(
       "tasttlig_users",
       "experiences.experience_creator_user_id",
       "tasttlig_users.tasttlig_user_id"
-    ).leftJoin(
+    )
+    .leftJoin(
+      "business_details",
+      "experiences.experience_creator_user_id",
+      "business_details.user_id"
+    )
+    .leftJoin(
       "nationalities",
       "experiences.nationality_id",
       "nationalities.id"
@@ -122,6 +130,7 @@ const getAllExperience = async (
     .groupBy("experiences.experience_id")
     .groupBy("tasttlig_users.phone_number")
     .groupBy("tasttlig_users.email")
+    .groupBy("business_details.business_name")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
     .having("experiences.status", operator, status);
@@ -364,10 +373,37 @@ const deleteExperience = async (user_id, experience_id) => {
 
 const getExperience = async(experience_id) => {
   return await db
-    .select("experiences.*", db.raw('ARRAY_AGG(experience_images.image_url) as image_urls'))
+    .select(
+      "experiences.*",
+      "tasttlig_users.first_name",
+      "tasttlig_users.last_name",
+      "tasttlig_users.email",
+      "tasttlig_users.phone_number",
+      "business_details.business_name",
+      db.raw('ARRAY_AGG(experience_images.image_url) as image_urls')
+    )
     .from("experiences")
-    .leftJoin("experience_images", "experiences.experience_id", "experience_images.experience_id")
+    .leftJoin(
+      "experience_images", 
+      "experiences.experience_id", 
+      "experience_images.experience_id"
+    )
+    .leftJoin(
+      "tasttlig_users",
+      "experiences.experience_creator_user_id",
+      "tasttlig_users.tasttlig_user_id"
+    )
+    .leftJoin(
+      "business_details",
+      "experiences.experience_creator_user_id",
+      "business_details.user_id"
+    )
     .groupBy("experiences.experience_id")
+    .groupBy("tasttlig_users.first_name")
+    .groupBy("tasttlig_users.last_name")
+    .groupBy("tasttlig_users.email")
+    .groupBy("tasttlig_users.phone_number")
+    .groupBy("business_details.business_name")
     .having("experiences.experience_id", "=", experience_id)
     .then(value => {
       return {success: true, details:value};
