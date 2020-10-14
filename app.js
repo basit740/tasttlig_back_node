@@ -26,6 +26,7 @@ const hosts_router = require("./routes/hosts/hosts");
 const cron_job_functions = require("./services/cron_job/cron_job_functions")
 const shopping_cart_router = require("./routes/shopping_cart/shopping_cart");
 const menu_items_router = require("./routes/menu_items/menu_items");
+const order_router = require("./routes/user/order");
 
 const app = express();
 let corsOptions = {
@@ -54,6 +55,7 @@ app.use(subscription_router);
 app.use("/hosts", hosts_router);
 app.use("/cart", shopping_cart_router);
 app.use("/menu_items", menu_items_router);
+app.use("/order", order_router);
 
 // Cron Job scripts
 cron.schedule('0 0 1-31 * *', cron_job_functions.deleteInactiveItems);
