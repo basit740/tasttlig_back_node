@@ -3,6 +3,7 @@
 const {db} = require("../../db/db-config");
 const Orders = require("../../models/orders");
 const Experiences = require("../../models/Experiences");
+const point_system_service = require("../profile/points_system");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const moment = require("moment");
@@ -148,6 +149,10 @@ const createOrder = async(order_details, db_order_details) => {
             subscription_start_datetime: new Date(),
             subscription_end_datetime: subscription_end_datetime
           });
+        await point_system_service.addUserPoints(
+          order_details.user_id,
+          (total_amount_before_tax + total_tax) * 100
+        );
       });
       //Email to user on submitting the request to upgrade
       await Mailer.sendMail({
@@ -197,6 +202,10 @@ const createOrder = async(order_details, db_order_details) => {
             payment_type: "CARD",
             payment_vender: "STRIPE"
           });
+        await point_system_service.addUserPoints(
+          order_details.user_id,
+          (total_amount_before_tax + total_tax) * 100
+        );
       });
       //Email to user on success purchase
       await Mailer.sendMail({
@@ -254,6 +263,10 @@ const createOrder = async(order_details, db_order_details) => {
             created_at_datetime: new Date(),
             updated_at_datetime: new Date()
           });
+        await point_system_service.addUserPoints(
+          order_details.user_id,
+          (total_amount_before_tax + total_tax) * 100
+        );
       });
       //Email to user on success purchase
       await Mailer.sendMail({
@@ -322,6 +335,10 @@ const createCartOrder = async(order_details, db_order_details) => {
           payment_type: "CARD",
           payment_vender: "STRIPE"
         });
+      await point_system_service.addUserPoints(
+        order_details.user_id,
+        (total_amount_before_tax + total_tax) * 100
+      );
     });
     
     //Email to user on successful purchase
