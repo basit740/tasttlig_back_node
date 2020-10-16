@@ -1,7 +1,7 @@
 "use strict";
 
 const router = require("express").Router();
-// const token_service = require("../../services/authentication/token");
+const token_service = require("../../services/authentication/token");
 const food_sample_claim_service = require("../../services/food_sample_claim/food_sample_claim");
 const user_profile_service = require("../../services/profile/user_profile");
 const food_sample_service = require("../../services/food_sample/food_sample");
@@ -104,5 +104,21 @@ router.post(
     
     return res.status(response.error ? 500:200).json(response);
   });
+
+router.get(
+  "/food-sample-claim/user/reservations",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const db_food_claims = await food_sample_claim_service.getUserFoodSampleClaims(req.user.id);
+      return res.send(db_food_claims);
+    } catch (e) {
+      res.send({
+        success: false,
+        message: "error",
+        response: e.message
+      });
+    }
+});
 
 module.exports = router;

@@ -5,21 +5,21 @@ const bcrypt = require("bcrypt");
 const token_service = require("../../services/authentication/token");
 const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
+const point_system_service = require("../../services/profile/points_system");
 const user_role_manager = require("../../services/profile/user_roles_manager");
 const {formatPhone} = require("../../functions/functions");
 
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
-  const response = await user_profile_service.getUserBySubscriptionId(
-    req.user.id
-  );
+  const response = await user_profile_service.getUserBySubscriptionId(req.user.id);
   if (!response.success) {
     return res.status(403).json({
       success: false,
       message: response.message
     });
   }
-
+  const points_total = await point_system_service.getUserPoints(response.user.tasttlig_user_id);
+  
   let user = {
     id: response.user.tasttlig_user_id,
     first_name: response.user.first_name,
@@ -42,7 +42,8 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     profile_status: response.user.profile_status,
     subscription_code: response.user.subscription_code,
     verified: response.user.is_email_verified,
-    passport_id: response.user.passport_id
+    passport_id: response.user.passport_id,
+    points: (points_total.data[0].sum ? points_total.data[0].sum : 0)
   };
   res.status(200).json({
     success: true,
