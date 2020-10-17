@@ -87,7 +87,7 @@ router.post(
       const hostDto = req.body;
       const response = await user_profile_service.saveHostApplication(hostDto, req.user);
 
-      if(response.success) {
+      if (response.success) {
         return res.send(response);
       }
 
@@ -171,6 +171,21 @@ router.put("/user/update-profile/:id", async (req, res) => {
     }
   } catch (err) {
     console.log("Update", err);
+  }
+});
+
+router.get("/user/checkEmail/:email", async (req, res) => {
+  try {
+    const result = await user_profile_service.getUserByEmail(req.params.email);
+
+    if (result.success) {
+      const {success, user: {tasttlig_user_id, email}} = result
+      return res.send({success, user: {tasttlig_user_id, email}});
+    } else {
+      return res.send({success: false});
+    }
+  } catch (e) {
+    res.status(500).send({success: false, message: e});
   }
 });
 
