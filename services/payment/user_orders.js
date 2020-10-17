@@ -1,6 +1,9 @@
 "use strict";
 
 const {db} = require("../../db/db-config");
+const Orders = require("../../models/orders");
+const Experiences = require("../../models/Experiences");
+const point_system_service = require("../profile/points_system");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const moment = require("moment");
@@ -146,6 +149,10 @@ const createOrder = async(order_details, db_order_details) => {
             subscription_start_datetime: new Date(),
             subscription_end_datetime: subscription_end_datetime
           });
+        await point_system_service.addUserPoints(
+          order_details.user_id,
+          (total_amount_before_tax + total_tax) * 100
+        );
       });
       //Email to user on submitting the request to upgrade
       await Mailer.sendMail({
@@ -195,6 +202,10 @@ const createOrder = async(order_details, db_order_details) => {
             payment_type: "CARD",
             payment_vender: "STRIPE"
           });
+        await point_system_service.addUserPoints(
+          order_details.user_id,
+          (total_amount_before_tax + total_tax) * 100
+        );
       });
       //Email to user on success purchase
       await Mailer.sendMail({
@@ -252,6 +263,10 @@ const createOrder = async(order_details, db_order_details) => {
             created_at_datetime: new Date(),
             updated_at_datetime: new Date()
           });
+        await point_system_service.addUserPoints(
+          order_details.user_id,
+          (total_amount_before_tax + total_tax) * 100
+        );
       });
       //Email to user on success purchase
       await Mailer.sendMail({
@@ -320,6 +335,10 @@ const createCartOrder = async(order_details, db_order_details) => {
           payment_type: "CARD",
           payment_vender: "STRIPE"
         });
+      await point_system_service.addUserPoints(
+        order_details.user_id,
+        (total_amount_before_tax + total_tax) * 100
+      );
     });
     
     //Email to user on successful purchase
@@ -340,9 +359,78 @@ const createCartOrder = async(order_details, db_order_details) => {
   }
 }
 
+const getAllUserOrders = async (user_id) => {
+  try {
+    // const db_orders = await db("orders")
+    //   .leftJoin(
+    //     "order_items",
+    //     "orders.order_id",
+    //     "order_items.order_id"
+    //   )
+    //   .leftJoin(
+    //     "payments",
+    //     "orders.order_id",
+    //     "payments.order_id"
+    //   )
+    //   .where({
+    //     order_by_user_id: user_id
+    //   })
+    //   .returning("*");
+    const db_orders = await Orders
+      .query()
+      .withGraphFetched('[order_items, payments]')
+      .where('orders.order_by_user_id', user_id)
+      .orderBy('orders.order_datetime', 'desc');
+    let experienceIdList = [];
+    db_orders.map(db_order => {
+      db_order.order_items.map(order_item => {
+        if (order_item.item_type === "experience" && !experienceIdList.includes(order_item.item_id)){
+          experienceIdList.push(order_item.item_id);
+        }
+      });
+    });
+    const db_experiences = await Experiences
+      .query()
+      .withGraphFetched('experience_images')
+      .whereIn('experiences.experience_id', experienceIdList);
+    let orderDetails = [];
+    db_orders.map(db_order => {
+      let updated_order_items = [];
+      let db_order_items = db_order.order_items;
+      db_order_items.map(order_item => {
+        let new_order_item = {};
+        let db_experiences_for_check = db_experiences;
+        db_experiences_for_check.map(experience => {
+          if(order_item.item_id == experience.experience_id){
+            new_order_item = {
+              ...order_item,
+              ...experience
+            };
+          }
+        });
+        if(new_order_item === {}){
+          new_order_item = order_item;
+        }
+        updated_order_items.push(new_order_item);
+      });
+      orderDetails.push({
+        ...db_order,
+        order_items: updated_order_items
+      })
+    });
+    if (!db_orders) {
+      return {success: false, details: "No orders found"};
+    }
+    return {success: true, details: orderDetails};
+  } catch (err) {
+    return {success: false, details: err.message};
+  }
+}
+
 module.exports = {
   getOrderDetails,
   createOrder,
   getCartOrderDetails,
-  createCartOrder
+  createCartOrder,
+  getAllUserOrders
 }

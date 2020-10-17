@@ -200,9 +200,47 @@ const sendClaimedEmailToProvider = async (db_user, db_food_sample, db_food_sampl
   });
 }
 
+const getUserFoodSampleClaims = async(user_id) => {
+  try {
+    const db_food_sample_claim = await db
+      .select(
+        "food_samples.*",
+        "nationalities.nationality",
+        "nationalities.alpha_2_code",
+        db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
+      )
+      .from("food_sample_claims")
+      .leftJoin(
+        "food_samples",
+        "food_sample_claims.food_sample_id",
+        "food_samples.food_sample_id"
+      )
+      .leftJoin(
+        "food_sample_images",
+        "food_samples.food_sample_id",
+        "food_sample_images.food_sample_id"
+      )
+      .leftJoin(
+        "nationalities",
+        "food_samples.nationality_id",
+        "nationalities.id"
+      )
+      .groupBy("food_sample_claims.food_sample_claim_user_id")
+      .groupBy("food_samples.food_sample_id")
+      .groupBy("nationalities.nationality")
+      .groupBy("nationalities.alpha_2_code")
+      .having("food_sample_claim_user_id", "=", user_id);
+    
+    return {success: true, details: db_food_sample_claim};
+  } catch (e) {
+    return {success: false, error: e.message};
+  }
+}
+
 module.exports = {
   createNewFoodSampleClaim,
   getFoodClaimCount,
   userCanClaimFoodSample,
-  confirmFoodSampleClaim
+  confirmFoodSampleClaim,
+  getUserFoodSampleClaims
 };
