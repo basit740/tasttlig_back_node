@@ -9,6 +9,7 @@ const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const role_manager = require("./user_roles_manager");
 const {setAddressCoordinates} = require("../geocoder");
 const {formatPhone, generateRandomString} = require("../../functions/functions");
+const menu_items_service = require("../menu_items/menu_items");
 
 const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -253,40 +254,15 @@ const saveSocialProof = async (hostDto, trx) => {
 }
 
 const saveMenuItems = async (hostDto, trx) => {
-  for (const m of hostDto.menu_list.map(m => ({
-    images: m.menuImages,
-    title: m.menuName,
-    nationality_id: m.menuNationality,
-    start_date: new Date(m.menuStartDate),
-    end_date: new Date(m.menuEndDate),
-    start_time: new Date(m.menuStartTime).toLocaleTimeString(),
-    end_time: new Date(m.menuEndTime).toLocaleTimeString(),
-    price: m.menuPrice,
-    quantity: m.menuQuantity,
-    spice_level: m.menuSpiceLevel,
-    frequency: m.menuFrequency,
-    food_sample_type: m.menuType,
-    description: m.menuDescription,
-    address: m.menuAddressLine1,
-    city: m.menuCity,
-    state: m.menuProvinceTerritory,
-    postal_code: m.menuPostalCode,
-    is_vegetarian: m.dietaryRestrictions.includes("vegetarian"),
-    is_vegan: m.dietaryRestrictions.includes("vegan"),
-    is_gluten_free: m.dietaryRestrictions.includes("glutenFree"),
-    is_halal: m.dietaryRestrictions.includes("halal"),
-    menu_item_creator_user_id: hostDto.dbUser.user.tasttlig_user_id
-  }))) {
-    const {images, ...menuItem} = m;
-
-    await setAddressCoordinates(menuItem);
-
-    const result = await trx("menu_items").insert(menuItem).returning("*");
-    await trx("menu_item_images").insert(images.map(i => ({
-      menu_item_id: result[0].menu_item_id,
-      image_url: i
-    })));
-  }
+  let db_user = hostDto.dbUser.user;
+  await hostDto.menu_list.map(async m => {
+    await menu_items_service.addNewMenuItem(
+      db_user,
+      m,
+      m.menuImages,
+      trx
+    )
+  });
 }
 
 const saveSampleLinks = async (hostDto, trx) => {
