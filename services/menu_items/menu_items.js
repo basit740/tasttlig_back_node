@@ -2,7 +2,7 @@
 
 const {db, gis} = require("../../db/db-config");
 const {setAddressCoordinates} = require("../geocoder");
-const { generateRandomString } = require("../../functions/functions");
+const {generateRandomString} = require("../../functions/functions");
 
 const addNewMenuItem = async (
   db_user,
@@ -10,7 +10,7 @@ const addNewMenuItem = async (
   menu_item_images,
   trx
 ) => {
-  try{
+  try {
     let menuItem = {
       menu_item_creator_user_id: db_user.tasttlig_user_id,
       title: menu_item_details.menuName,
@@ -22,7 +22,7 @@ const addNewMenuItem = async (
       price: menu_item_details.menuPrice,
       quantity: menu_item_details.menuQuantity,
       spice_level: menu_item_details.menuSpiceLevel,
-      description: menu_item_details.menuDecription,
+      description: menu_item_details.menuDescription,
       address: menu_item_details.menuAddressLine1,
       city: menu_item_details.menuCity,
       state: menu_item_details.menuProvinceTerritory,
@@ -49,7 +49,7 @@ const addNewMenuItem = async (
     }));
     await trx("menu_item_images")
       .insert(images);
-    return {success: true, details:"success"};
+    return {success: true, details: "success"};
   } catch (err) {
     if (err.code === 23505) {
       return addNewMenuItem(
@@ -59,7 +59,7 @@ const addNewMenuItem = async (
         trx
       );
     }
-    return {success: false, details:err.message};
+    return {success: false, details: err.message};
   }
 }
 
@@ -111,11 +111,11 @@ const getAllMenuItems = async (
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
     .having("menu_items.status", operator, status);
-  
+
   if (filters.nationalities && filters.nationalities.length) {
     query.whereIn("nationalities.nationality", filters.nationalities);
   }
-  
+
   if (filters.latitude && filters.longitude) {
     query.select(gis.distance("menu_items.coordinates", gis.geography(gis.makePoint(filters.longitude, filters.latitude)))
       .as("distanceAway"))
@@ -125,7 +125,7 @@ const getAllMenuItems = async (
       filters.radius || 100000));
     query.orderBy("distanceAway", "asc");
   }
-  
+
   if (keyword) {
     query = db
       .select(
@@ -153,13 +153,13 @@ const getAllMenuItems = async (
       )
       .orderBy("rank", "desc");
   }
-  
+
   query = query.paginate({
     perPage: 12,
     isLengthAware: true,
     currentPage: currentPage
   })
-  
+
   try {
     const result = await query;
     return {success: true, details: result};

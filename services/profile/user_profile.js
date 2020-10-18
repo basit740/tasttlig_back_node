@@ -144,19 +144,39 @@ const saveBusinessServices = async (hostDto, trx) => {
   return {success: true, details: response[0]};
 }
 
-const saveHostingInformation = async (hostDto, trx) => {
-  const hostInfo = {
-    user_id: hostDto.dbUser.user.tasttlig_user_id,
-    video_link: hostDto.host_selection_video,
-    youtube_link: hostDto.youtube_link,
-    reason: hostDto.host_selection,
-    created_at: new Date(),
-    updated_at: new Date(),
-    status: "Pending"
-  };
+const saveApplicationInformation = async (hostDto, trx) => {
+  const applications = [];
+
+  if (hostDto.is_host === "yes") {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      video_link: hostDto.host_selection_video,
+      youtube_link: hostDto.host_youtube_link,
+      reason: hostDto.host_selection,
+      resume: hostDto.host_selection_resume,
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "host",
+      status: "Pending"
+    })
+  }
+
+  if (hostDto.is_cook === "yes") {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      video_link: hostDto.cook_selection_video,
+      youtube_link: hostDto.cook_youtube_link,
+      reason: hostDto.cook_selection,
+      resume: hostDto.cook_selection_resume,
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "cook",
+      status: "Pending"
+    })
+  }
 
   return trx('applications')
-    .insert(hostInfo)
+    .insert(applications)
     .returning('*')
 }
 
@@ -224,7 +244,8 @@ const saveSocialProof = async (hostDto, trx) => {
     "google",
     "tripadvisor",
     "instagram",
-    "youtube"
+    "youtube",
+    "facebook"
   ].filter(w => hostDto[`${w}_review`])
     .map(w => ({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -278,7 +299,7 @@ const saveSampleLinks = async (hostDto, trx) => {
 const saveVenueInformation = async (hostDto, trx) => {
   const response = await trx("venue")
     .insert({
-      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      creator_user_id: hostDto.dbUser.user.tasttlig_user_id,
       name: hostDto.venue_name,
       description: hostDto.venue_description
     })
@@ -680,10 +701,9 @@ const saveHostApplication = async (hostDto, user) => {
     }
 
     await saveBusinessServices(hostDto, trx);
-    await saveHostingInformation(hostDto, trx);
+    await saveApplicationInformation(hostDto, trx);
     await savePaymentInformation(hostDto, trx);
     await saveSocialProof(hostDto, trx);
-    await saveVenueInformation(hostDto, trx);
 
     const documents = await saveDocuments(hostDto, trx);
 
@@ -694,6 +714,8 @@ const saveHostApplication = async (hostDto, user) => {
         hostDto.business_category === "Entertainment" ||
         hostDto.business_category === "MC") {
         await saveSampleLinks(hostDto, trx);
+      } else if (hostDto.business_category === "Venues") {
+        await saveVenueInformation(hostDto, trx);
       }
     }
 
