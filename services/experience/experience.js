@@ -21,7 +21,7 @@ const createNewExperience = async (
       if(user_role_object.includes("RESTAURANT")){
         experience_details.status = "ACTIVE";
       }
-      experience_details = await setAddressCoordinates(experience_details);
+      experience_details = await setAddressCoordinates(experience_details, true);
       const db_experience = await trx("experiences")
         .insert(experience_details)
         .returning("*");

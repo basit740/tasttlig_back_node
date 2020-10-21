@@ -1,7 +1,7 @@
 "use strict";
 
 const router = require('express').Router();
-const nationality_service = require("../../services/nationality/nationality");
+const nationality_service = require("../../services/helper_functions/nationality");
 
 router.get("/", async (req, res) => {
     try {

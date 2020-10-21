@@ -42,9 +42,9 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
     const experience_details = {
       experience_creator_user_id: db_user.tasttlig_user_id,
       title: req.body.title,
+      type: req.body.experience_type,
       nationality_id: req.body.nationality_id,
       price: req.body.price,
-      category: req.body.category,
       style: req.body.style,
       start_date: req.body.start_date,
       end_date: req.body.end_date,
@@ -57,7 +57,21 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
       city: req.body.city,
       state: req.body.state,
       country: req.body.country,
-      postal_code: req.body.postal_code
+      postal_code: req.body.postal_code,
+      is_food_service_requested: req.body.is_food_service_requested,
+      is_entertainment_service_requested: req.body.is_entertainment_service_requested,
+      is_venue_service_requested: req.body.is_venue_service_requested,
+      is_transport_service_requested: req.body.is_transport_service_requested,
+      food_description: req.body.food_description,
+      game_description: req.body.game_description,
+      entertainment_description: req.body.entertainment_description,
+      feature_description: req.body.feature_description,
+      transport_description: req.body.transport_description,
+      parking_description: req.body.parking_description,
+      accessibility_description: req.body.accessibility_description,
+      environmental_consideration_description: req.body.environmental_consideration_description,
+      value_description: req.body.value_description,
+      other_description: req.body.other_description
     }
     const response = await experience_service.createNewExperience(
       db_user,
