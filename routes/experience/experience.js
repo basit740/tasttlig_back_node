@@ -57,7 +57,7 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
       state: req.body.state,
       country: req.body.country,
       postal_code: req.body.postal_code,
-      is_food_service_requested: req.body.is_food_service_requested,
+      // is_food_service_requested: req.body.is_food_service_requested,
       // is_entertainment_service_requested: req.body.is_entertainment_service_requested,
       // is_venue_service_requested: req.body.is_venue_service_requested,
       // is_transport_service_requested: req.body.is_transport_service_requested,
