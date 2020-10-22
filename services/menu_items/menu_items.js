@@ -1,6 +1,67 @@
 "use strict";
 
 const {db, gis} = require("../../db/db-config");
+const {setAddressCoordinates} = require("../geocoder");
+const {generateRandomString} = require("../../functions/functions");
+
+const addNewMenuItem = async (
+  db_user,
+  menu_item_details,
+  menu_item_images,
+  trx
+) => {
+  try {
+    let menuItem = {
+      menu_item_creator_user_id: db_user.tasttlig_user_id,
+      title: menu_item_details.menuName,
+      nationality_id: menu_item_details.menuNationality,
+      end_time: new Date(menu_item_details.menuEndTime).toLocaleTimeString(),
+      menu_item_code: generateRandomString(4),
+      type: menu_item_details.menuType,
+      size: menu_item_details.menuSize,
+      price: menu_item_details.menuPrice,
+      quantity: menu_item_details.menuQuantity,
+      spice_level: menu_item_details.menuSpiceLevel,
+      description: menu_item_details.menuDescription,
+      address: menu_item_details.menuAddressLine1,
+      city: menu_item_details.menuCity,
+      state: menu_item_details.menuProvinceTerritory,
+      postal_code: menu_item_details.menuPostalCode,
+      is_vegetarian: menu_item_details.dietaryRestrictions.includes("vegetarian"),
+      is_vegan: menu_item_details.dietaryRestrictions.includes("vegan"),
+      is_gluten_free: menu_item_details.dietaryRestrictions.includes("glutenFree"),
+      is_halal: menu_item_details.dietaryRestrictions.includes("halal"),
+      is_available_on_monday: menu_item_details.daysAvailable.includes("available_on_monday"),
+      is_available_on_tuesday: menu_item_details.daysAvailable.includes("available_on_tuesday"),
+      is_available_on_wednesday: menu_item_details.daysAvailable.includes("available_on_wednesday"),
+      is_available_on_thursday: menu_item_details.daysAvailable.includes("available_on_thursday"),
+      is_available_on_friday: menu_item_details.daysAvailable.includes("available_on_friday"),
+      is_available_on_saturday: menu_item_details.daysAvailable.includes("available_on_saturday"),
+      is_available_on_sunday: menu_item_details.daysAvailable.includes("available_on_sunday"),
+    };
+    menuItem = await setAddressCoordinates(menuItem);
+    const db_menu_item = await trx("menu_items")
+      .insert(menuItem)
+      .returning("*");
+    const images = menu_item_images.map(menu_item_image => ({
+      menu_item_id: db_menu_item[0].menu_item_id,
+      image_url: menu_item_image
+    }));
+    await trx("menu_item_images")
+      .insert(images);
+    return {success: true, details: "success"};
+  } catch (err) {
+    if (err.code === 23505) {
+      return addNewMenuItem(
+        db_user,
+        menu_item_details,
+        menu_item_images,
+        trx
+      );
+    }
+    return {success: false, details: err.message};
+  }
+}
 
 const getAllMenuItems = async (
   operator,
@@ -12,6 +73,8 @@ const getAllMenuItems = async (
   let query = db
     .select(
       "menu_items.*",
+      "tasttlig_users.phone_number",
+      "tasttlig_users.email",
       "tasttlig_users.first_name",
       "tasttlig_users.last_name",
       "business_details.business_name",
@@ -42,6 +105,8 @@ const getAllMenuItems = async (
     .groupBy("menu_items.menu_item_id")
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
+    .groupBy("tasttlig_users.phone_number")
+    .groupBy("tasttlig_users.email")
     .groupBy("business_details.business_name")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
@@ -61,33 +126,32 @@ const getAllMenuItems = async (
     query.orderBy("distanceAway", "asc");
   }
 
-  if (filters.startDate) {
-    query.whereRaw(
-      "cast(concat(menu_items.start_date, ' ', menu_items.start_time) as date) >= ?",
-      [filters.startDate]
-    )
-  }
-
   if (keyword) {
     query = db
-      .select("*")
+      .select(
+        "*",
+        db.raw("CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank", [keyword, keyword])
+      )
       .from(
         db
           .select(
             "main.*",
             db.raw(
-              "to_tsvector(main.title) " +
-              "|| to_tsvector(main.description) " +
-              "|| to_tsvector(main.first_name) " +
-              "|| to_tsvector(main.last_name) " +
-              "|| to_tsvector(main.nationality) " +
-              "as search_text"
+              "to_tsvector(concat_ws(' '," +
+              "main.title, " +
+              "main.description, " +
+              "main.first_name, " +
+              "main.last_name, " +
+              "main.nationality" +
+              ")) as search_text"
             )
           )
           .from(query.as("main"))
           .as("main")
       )
-      .where(db.raw(`main.search_text @@ plainto_tsquery('${keyword}')`));
+      .orderBy("rank", "desc");
   }
 
   query = query.paginate({
@@ -123,6 +187,7 @@ const getDistinctNationalities = async (operator, status) => {
 };
 
 module.exports = {
+  addNewMenuItem,
   getAllMenuItems,
   getDistinctNationalities
 }
