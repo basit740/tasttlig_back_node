@@ -7,9 +7,9 @@ const user_profile_service = require("../../services/profile/user_profile");
 const user_role_manager = require("../../services/profile/user_roles_manager");
 
 router.post("/experience/add", token_service.authenticateToken, async (req, res) => {
-  if (!req.body.title || !req.body.nationality_id || !req.body.price || !req.body.category || !req.body.style
+  if (!req.body.title || !req.body.nationality_id || !req.body.price || !req.body.style
     || !req.body.start_date || !req.body.end_date || !req.body.start_time || !req.body.end_time
-    || !req.body.capacity || !req.body.dress_code || !req.body.description || !req.body.address
+    || !req.body.capacity || !req.body.dress_code || !req.body.address
     || !req.body.city || !req.body.state || !req.body.country || !req.body.postal_code
     || !req.body.images) {
     return res.status(403).json({
@@ -27,24 +27,24 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
     }
     let createdByAdmin = false;
     let db_user = user_details_from_db.user;
-    let user_role_object = user_role_manager.createRoleObject(db_user.role);
-    if (user_role_object.includes("ADMIN")){
-      if (!req.body.userEmail) {
-        return res.status(403).json({
-          success: false,
-          message: "Required Parameters are not available in request"
-        });
-      }
-      const host_details_from_db = await user_profile_service.getUserByEmail(req.body.userEmail);
-      db_user = host_details_from_db.user;
-      createdByAdmin = true;
-    }
+    // let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    // if (user_role_object.includes("ADMIN")){
+    //   if (!req.body.userEmail) {
+    //     return res.status(403).json({
+    //       success: false,
+    //       message: "Required Parameters are not available in request"
+    //     });
+    //   }
+    //   const host_details_from_db = await user_profile_service.getUserByEmail(req.body.userEmail);
+    //   db_user = host_details_from_db.user;
+    //   createdByAdmin = true;
+    // }
     const experience_details = {
       experience_creator_user_id: db_user.tasttlig_user_id,
       title: req.body.title,
+      type: req.body.experience_type,
       nationality_id: req.body.nationality_id,
       price: req.body.price,
-      category: req.body.category,
       style: req.body.style,
       start_date: req.body.start_date,
       end_date: req.body.end_date,
@@ -52,12 +52,25 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
       end_time: req.body.end_time,
       capacity: req.body.capacity,
       dress_code: req.body.dress_code,
-      description: req.body.description,
       address: req.body.address,
       city: req.body.city,
       state: req.body.state,
       country: req.body.country,
-      postal_code: req.body.postal_code
+      postal_code: req.body.postal_code,
+      // is_food_service_requested: req.body.is_food_service_requested,
+      // is_entertainment_service_requested: req.body.is_entertainment_service_requested,
+      // is_venue_service_requested: req.body.is_venue_service_requested,
+      // is_transport_service_requested: req.body.is_transport_service_requested,
+      food_description: req.body.food_description,
+      game_description: req.body.game_description,
+      entertainment_description: req.body.entertainment_description,
+      feature_description: req.body.feature_description,
+      transport_description: req.body.transport_description,
+      parking_description: req.body.parking_description,
+      accessibility_description: req.body.accessibility_description,
+      environmental_consideration_description: req.body.environmental_consideration_description,
+      value_description: req.body.value_description,
+      other_description: req.body.other_description
     }
     const response = await experience_service.createNewExperience(
       db_user,

@@ -9,6 +9,7 @@ const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const role_manager = require("./user_roles_manager");
 const {setAddressCoordinates} = require("../geocoder");
 const {formatPhone, generateRandomString} = require("../../functions/functions");
+const menu_items_service = require("../menu_items/menu_items");
 
 const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -143,19 +144,39 @@ const saveBusinessServices = async (hostDto, trx) => {
   return {success: true, details: response[0]};
 }
 
-const saveHostingInformation = async (hostDto, trx) => {
-  const hostInfo = {
-    user_id: hostDto.dbUser.user.tasttlig_user_id,
-    video_link: hostDto.host_selection_video,
-    youtube_link: hostDto.youtube_link,
-    reason: hostDto.host_selection,
-    created_at: new Date(),
-    updated_at: new Date(),
-    status: "Pending"
-  };
+const saveApplicationInformation = async (hostDto, trx) => {
+  const applications = [];
+
+  if (hostDto.is_host === "yes") {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      video_link: hostDto.host_selection_video,
+      youtube_link: hostDto.host_youtube_link,
+      reason: hostDto.host_selection,
+      resume: hostDto.host_selection_resume,
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "host",
+      status: "Pending"
+    })
+  }
+
+  if (hostDto.is_cook === "yes") {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      video_link: hostDto.cook_selection_video,
+      youtube_link: hostDto.cook_youtube_link,
+      reason: hostDto.cook_selection,
+      resume: hostDto.cook_selection_resume,
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "cook",
+      status: "Pending"
+    })
+  }
 
   return trx('applications')
-    .insert(hostInfo)
+    .insert(applications)
     .returning('*')
 }
 
@@ -223,7 +244,8 @@ const saveSocialProof = async (hostDto, trx) => {
     "google",
     "tripadvisor",
     "instagram",
-    "youtube"
+    "youtube",
+    "facebook"
   ].filter(w => hostDto[`${w}_review`])
     .map(w => ({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -253,40 +275,15 @@ const saveSocialProof = async (hostDto, trx) => {
 }
 
 const saveMenuItems = async (hostDto, trx) => {
-  for (const m of hostDto.menu_list.map(m => ({
-    images: m.menuImages,
-    title: m.menuName,
-    nationality_id: m.menuNationality,
-    start_date: new Date(m.menuStartDate),
-    end_date: new Date(m.menuEndDate),
-    start_time: new Date(m.menuStartTime).toLocaleTimeString(),
-    end_time: new Date(m.menuEndTime).toLocaleTimeString(),
-    price: m.menuPrice,
-    quantity: m.menuQuantity,
-    spice_level: m.menuSpiceLevel,
-    frequency: m.menuFrequency,
-    food_sample_type: m.menuType,
-    description: m.menuDescription,
-    address: m.menuAddressLine1,
-    city: m.menuCity,
-    state: m.menuProvinceTerritory,
-    postal_code: m.menuPostalCode,
-    is_vegetarian: m.dietaryRestrictions.includes("vegetarian"),
-    is_vegan: m.dietaryRestrictions.includes("vegan"),
-    is_gluten_free: m.dietaryRestrictions.includes("glutenFree"),
-    is_halal: m.dietaryRestrictions.includes("halal"),
-    menu_item_creator_user_id: hostDto.dbUser.user.tasttlig_user_id
-  }))) {
-    const {images, ...menuItem} = m;
-
-    await setAddressCoordinates(menuItem);
-
-    const result = await trx("menu_items").insert(menuItem).returning("*");
-    await trx("menu_item_images").insert(images.map(i => ({
-      menu_item_id: result[0].menu_item_id,
-      image_url: i
-    })));
-  }
+  let db_user = hostDto.dbUser.user;
+  await hostDto.menu_list.map(async m => {
+    await menu_items_service.addNewMenuItem(
+      db_user,
+      m,
+      m.menuImages,
+      trx
+    )
+  });
 }
 
 const saveSampleLinks = async (hostDto, trx) => {
@@ -302,7 +299,7 @@ const saveSampleLinks = async (hostDto, trx) => {
 const saveVenueInformation = async (hostDto, trx) => {
   const response = await trx("venue")
     .insert({
-      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      creator_user_id: hostDto.dbUser.user.tasttlig_user_id,
       name: hostDto.venue_name,
       description: hostDto.venue_description
     })
@@ -373,7 +370,7 @@ const sendNewUserEmail = async (new_user) => {
   // Email to new user with login details and password reset link
   const email = new_user.email;
   jwt.sign(
-    { email },
+    {email},
     process.env.EMAIL_SECRET,
     {
       expiresIn: "7d"
@@ -677,36 +674,49 @@ const saveHostApplication = async (hostDto, user) => {
       plain_password: plain_password,
       password: hashedPassword,
       email: hostDto.email,
-      phone_number: hostDto.phone_number
+      phone_number: hostDto.phone_number,
+      user_address_line_1: hostDto.residential_address_line_1,
+      user_address_line_2: hostDto.residential_address_line_2,
+      user_city: hostDto.residential_city,
+      user_state: hostDto.residential_state,
+      user_postal_code: hostDto.residential_postal_code,
     }
     dbUser = await authenticate_user_service
       .createBecomeFoodProviderUser(become_food_provider_user);
-    
-    if(!dbUser.success) {
+
+    if (!dbUser.success) {
       return {success: false}
     }
-    
+
     await sendNewUserEmail(become_food_provider_user);
   }
   hostDto.dbUser = dbUser;
   await updateHostUser(hostDto);
 
   return await db.transaction(async trx => {
-    await saveBusinessForUser(hostDto, trx);
+    const has_business = hostDto.has_business === "yes";
+
+    if (has_business) {
+      await saveBusinessForUser(hostDto, trx);
+    }
+
     await saveBusinessServices(hostDto, trx);
-    await saveHostingInformation(hostDto, trx);
+    await saveApplicationInformation(hostDto, trx);
     await savePaymentInformation(hostDto, trx);
     await saveSocialProof(hostDto, trx);
-    await saveVenueInformation(hostDto, trx);
 
     const documents = await saveDocuments(hostDto, trx);
 
-    if (hostDto.business_category === "Food") {
-      await saveMenuItems(hostDto, trx);
-    } else if (
-      hostDto.business_category === "Entertainment" ||
-      hostDto.business_category === "MC") {
-      await saveSampleLinks(hostDto, trx);
+    if (has_business) {
+      if (hostDto.business_category === "Food") {
+        await saveMenuItems(hostDto, trx);
+      } else if (
+        hostDto.business_category === "Entertainment" ||
+        hostDto.business_category === "MC") {
+        await saveSampleLinks(hostDto, trx);
+      } else if (hostDto.business_category === "Venues") {
+        await saveVenueInformation(hostDto, trx);
+      }
     }
 
     await sendHostApplicationEmails(dbUser, documents);
