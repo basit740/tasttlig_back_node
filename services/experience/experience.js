@@ -18,7 +18,7 @@ const createNewExperience = async (
     await db.transaction(async trx => {
       experience_details.status = "INACTIVE";
       let user_role_object = user_role_manager.createRoleObject(db_user.role);
-      if(user_role_object.includes("RESTAURANT")){
+      if(user_role_object.includes("HOST")){
         experience_details.status = "ACTIVE";
       }
       experience_details = await setAddressCoordinates(experience_details, true);
