@@ -92,7 +92,7 @@ authRouter.post("/user/login", async (req, res) => {
         email: response.user.email,
         passport_id: response.user.passport_id,
         phone_number: response.user.phone_number,
-        role: user_role_manager.createRoleObject(response.user.role),
+        role: response.user.role,
         verified: response.user.is_email_verified
       };
       const isPassCorrect = bcrypt.compareSync(req.body.password, response.user.password);

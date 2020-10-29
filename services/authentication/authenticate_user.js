@@ -23,7 +23,6 @@ const userRegister = async (user, sendEmail = true) => {
               email: user.email,
               password: user.password,
               phone_number: user.phone_number,
-              role: "MEMBER",
               status: "ACTIVE",
               passport_id: "M" + generateRandomString(6),
               created_at_datetime: new Date(),
@@ -35,24 +34,36 @@ const userRegister = async (user, sendEmail = true) => {
             new_db_user = trx("tasttlig_users")
               .insert(userData)
               .returning("*");
-          // } else {
-          //   new_db_user = trx("tasttlig_users")
-          //     .where("tasttlig_user_id", value.tasttlig_user_id)
-          //     .update({
-          //       first_name: user.first_name,
-          //       last_name: user.last_name,
-          //       password: user.password,
-          //       phone_number: user.phone_number,
-          //       role: "MEMBER",
-          //       status: "ACTIVE",
-          //       created_at_datetime: new Date(),
-          //       updated_at_datetime: new Date()
-          //     })
-          //     .returning("*");
+            // } else {
+            //   new_db_user = trx("tasttlig_users")
+            //     .where("tasttlig_user_id", value.tasttlig_user_id)
+            //     .update({
+            //       first_name: user.first_name,
+            //       last_name: user.last_name,
+            //       password: user.password,
+            //       phone_number: user.phone_number,
+            //       role: "MEMBER",
+            //       status: "ACTIVE",
+            //       created_at_datetime: new Date(),
+            //       updated_at_datetime: new Date()
+            //     })
+            //     .returning("*");
           }
         });
       return await new_db_user
         .then(value1 => {
+          // get role_code of new role to be added
+          let role_code = trx("roles")
+            .select()
+            .where({
+              role: "MEMBER"
+            }).then(value => {return value[0].role_code});
+          // insert new role for this user
+          trx("user_role_lookup").insert({
+            user_id: value1[0].tasttlig_user_id,
+            role_code: role_code
+          });
+          
           if (sendEmail) {
             jwt.sign({
                 user: value1[0].tasttlig_user_id
@@ -104,8 +115,15 @@ const verifyAccount = async user_id => {
 
 const getUserLogin = async body => {
   if (body.email) {
-    return await db("tasttlig_users")
-      .where("email", body.email)
+    return await db.select(
+      "tasttlig_users.*",
+      db.raw("ARRAY_AGG(roles.role) as role")
+    )
+      .from("tasttlig_users")
+      .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+      .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+      .groupBy("tasttlig_users.tasttlig_user_id")
+      .having("tasttlig_users.email", "=", body.email)
       .first()
       .then(value => {
         if (!value) {
@@ -117,8 +135,15 @@ const getUserLogin = async body => {
         return { success: false, data: reason };
       });
   } else if (body.passport_id) {
-    return await db("tasttlig_users")
-      .where("passport_id", body.passport_id)
+    return await db.select(
+      "tasttlig_users.*",
+      db.raw("ARRAY_AGG(roles.role) as role")
+    )
+      .from("tasttlig_users")
+      .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+      .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+      .groupBy("tasttlig_users.tasttlig_user_id")
+      .having("tasttlig_users.passport_id", "=", body.passport_id)
       .first()
       .then(value => {
         if (!value) {
@@ -248,14 +273,24 @@ const createDummyUser = async email => {
         email: email,
         password: "NA",
         phone_number: "NA",
-        role: "VISITOR",
         status: "DUMMY",
         passport_id: "M" + generateRandomString(6),
         created_at_datetime: new Date(),
         updated_at_datetime: new Date()
       })
       .returning("*")
-      .then(value => {
+      .then(async value => {
+        // get role_code of new role to be added
+        let role_code = await db("roles")
+          .select()
+          .where({
+            role: "VISITOR"
+          }).then(value => {return value[0].role_code});
+        // insert new role for this user
+        db("user_role_lookup").insert({
+          user_id: value[0].tasttlig_user_id,
+          role_code: role_code
+        });
         return {success: true, user: value[0]};
       }).catch(reason => {
         return {success: false, data: reason};
@@ -283,14 +318,24 @@ const createBecomeFoodProviderUser = async become_food_provider_user => {
         user_city: become_food_provider_user.user_city,
         user_state: become_food_provider_user.user_state,
         user_postal_code: become_food_provider_user.user_postal_code,
-        role: "MEMBER",
         status: "ACTIVE",
         passport_id: "M" + generateRandomString(6),
         created_at_datetime: new Date(),
         updated_at_datetime: new Date()
       })
       .returning("*")
-      .then(value => {
+      .then(async value => {
+        // get role_code of new role to be added
+        let role_code = await db("roles")
+          .select()
+          .where({
+            role: "MEMBER"
+          }).then(value => {return value[0].role_code});
+        // insert new role for this user
+        await db("user_role_lookup").insert({
+          user_id: value[0].tasttlig_user_id,
+          role_code: role_code
+        });
         return { success: true, user: value[0] };
       })
       .catch(reason => {
@@ -306,10 +351,16 @@ const createBecomeFoodProviderUser = async become_food_provider_user => {
 }
 
 const findUserByEmail = async email => {
-  return await db("tasttlig_users")
-    .where({
-      email: email
-    })
+  return await db.select(
+    "tasttlig_users.*",
+    "business_details.*",
+    db.raw("ARRAY_AGG(roles.role) as role")
+  )
+    .from("tasttlig_users")
+    .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+    .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .having("tasttlig_users.email","=", email)
     .first()
     .then(value => {
       if(!value){

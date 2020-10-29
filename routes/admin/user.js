@@ -19,7 +19,7 @@ router.post("/admin/add-user", token_service.authenticateToken, async (req, res)
     const adminUserObject = await user_profile_service.getUserById(req.user.id);
     if (adminUserObject && adminUserObject.success) {
       const adminUser = adminUserObject.user;
-      const roles = user_role_manager.createRoleObject(adminUser.role);
+      const roles = adminUser.role;
       if (!roles.includes("ADMIN")) {
         return res.status(401).json({
           success: false,

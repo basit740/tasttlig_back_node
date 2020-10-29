@@ -27,7 +27,7 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
     }
     let createdByAdmin = false;
     let db_user = user_details_from_db.user;
-    // let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    // let user_role_object = db_user.role;
     // if (user_role_object.includes("ADMIN")){
     //   if (!req.body.userEmail) {
     //     return res.status(403).json({
@@ -160,7 +160,7 @@ router.get("/experience/user/all", token_service.authenticateToken, async (req, 
     }
     let requestByAdmin = false;
     let db_user = user_details_from_db.user;
-    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    let user_role_object = db_user.role;
     if (user_role_object.includes("ADMIN")){
       requestByAdmin = true;
     }
@@ -197,7 +197,7 @@ router.get("/experience/user/archived", token_service.authenticateToken, async (
     }
     let requestByAdmin = false;
     let db_user = user_details_from_db.user;
-    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    let user_role_object = db_user.role;
     if (user_role_object.includes("ADMIN")){
       requestByAdmin = true;
     }
@@ -259,7 +259,7 @@ router.put("/experience/update/:experience_id", token_service.authenticateToken,
     }
     let updatedByAdmin = false;
     let db_user = user_details_from_db.user;
-    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    let user_role_object = db_user.role;
     if (user_role_object.includes("ADMIN")){
       updatedByAdmin = true;
     }
