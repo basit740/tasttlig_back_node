@@ -10,6 +10,7 @@ const role_manager = require("./user_roles_manager");
 const {setAddressCoordinates} = require("../geocoder");
 const {formatPhone, generateRandomString} = require("../../functions/functions");
 const menu_items_service = require("../menu_items/menu_items");
+const assets_service = require("../assets/assets")
 
 const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -291,14 +292,27 @@ const saveSocialProof = async (hostDto, trx) => {
 
 const saveMenuItems = async (hostDto, trx) => {
   let db_user = hostDto.dbUser.user;
-  await hostDto.menu_list.map(async m => {
+  await Promise.all(hostDto.menu_list.map(async m => {
     await menu_items_service.addNewMenuItem(
       db_user,
       m,
       m.menuImages,
       trx
     )
-  });
+  }));
+}
+
+const saveAssets = async (hostDto, trx) => {
+  const db_user = hostDto.dbUser.user;
+
+  await Promise.all(hostDto.assets.map(async a => {
+    await assets_service.addAsset(
+      db_user,
+      a,
+      a.images,
+      trx
+    )
+  }));
 }
 
 const saveSampleLinks = async (hostDto, trx) => {
@@ -772,6 +786,9 @@ const saveHostApplication = async (hostDto, user) => {
     if (has_business) {
       if (hostDto.business_category === "Food") {
         await saveMenuItems(hostDto, trx);
+        if (hostDto.service_provider === "Restaurant" && hostDto.has_assets) {
+          await saveAssets(hostDto, trx);
+        }
       } else if (
         hostDto.business_category === "Entertainment" ||
         hostDto.business_category === "MC") {
@@ -780,9 +797,7 @@ const saveHostApplication = async (hostDto, user) => {
         await saveVenueInformation(hostDto, trx);
       }
     }
-    
-    await sendHostApplicationEmails(dbUser, documents);
-    
+    //await sendHostApplicationEmails(dbUser, documents);
     return {success: true};
   });
 }

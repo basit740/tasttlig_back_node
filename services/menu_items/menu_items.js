@@ -38,6 +38,8 @@ const addNewMenuItem = async (
       is_available_on_friday: menu_item_details.daysAvailable.includes("available_on_friday"),
       is_available_on_saturday: menu_item_details.daysAvailable.includes("available_on_saturday"),
       is_available_on_sunday: menu_item_details.daysAvailable.includes("available_on_sunday"),
+      include_in_festival: menu_item_details.include_in_festival,
+      samples_per_day: menu_item_details.samples_per_day
     };
     menuItem = await setAddressCoordinates(menuItem);
     const db_menu_item = await trx("menu_items")
