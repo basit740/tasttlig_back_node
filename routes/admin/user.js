@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const user_profile_service = require("../../services/profile/user_profile");
 const user_role_manager = require("../../services/profile/user_roles_manager");
+const { generateRandomString } = require("../../functions/functions");
 
 // POST user register
 router.post("/admin/add-user", token_service.authenticateToken, async (req, res) => {
@@ -49,7 +50,7 @@ router.post("/admin/add-user", token_service.authenticateToken, async (req, res)
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       email: req.body.email,
-      password: "NA",
+      password: generateRandomString(8),
       phone_number: req.body.phone_number,
       is_participating_in_festival: req.body.is_participating_in_festival
     };
