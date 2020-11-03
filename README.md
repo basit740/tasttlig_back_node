@@ -45,10 +45,13 @@ The purpose of this README.md file is to show how to set up the development envi
 
 ## PostgreSQL Steps for Windows Only (Skip if you Already Have One)
 
-1. Install PostgreSQL from <https://www.postgresql.org/download/>.
-2. Add PostgreSQL in PATH system variable.
-3. Create a new user with name same as Windows username and give appropriate permissions.
-4. Install Windows build tools using: `npm install --global --production windows-build-tools`.
+1. Install Postgres from https://www.postgresql.org/download/
+2. After successful installation open postgres stack builder, it starts automatically after database setup.
+3. Add postgres bin directory in system PATH environment variable.
+4. Select the postgres database from dropdown, click next
+5. Select postgis option under categories -> spatial extensions and complete the setup with default options
+6. right-click on PowerShell and run "as Administrator" and install Windows build tools using: `npm install --global --production windows-build-tools`
+7. Then in powershell run these 2 commands, `SETx PGUSER postgres /M` and `SETx PGPASSWORD postgres_password_set_during_setup /M`
 
 ## Setup Continued
 
