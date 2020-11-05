@@ -11,6 +11,7 @@ const {setAddressCoordinates} = require("../geocoder");
 const {formatPhone, generateRandomString} = require("../../functions/functions");
 const menu_items_service = require("../menu_items/menu_items");
 const assets_service = require("../assets/assets")
+const external_api_service = require("../../services/external_api_service")
 
 const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -736,6 +737,7 @@ const saveHostApplication = async (hostDto, user) => {
       }
     }
 
+    await saveSpecials(hostDto);
     //await sendHostApplicationEmails(dbUser, documents);
 
     return {success: true};
@@ -765,6 +767,27 @@ const updateHostUser = async (hostDto) => {
     dbUser.user.last_name = hostDto.last_name
     dbUser.user.phone = formatPhone(hostDto.phone_number)
     await updateUserAccount(dbUser.user);
+  }
+}
+
+const saveSpecials = async hostDto => {
+  const specials = hostDto.menu_list
+    .filter(m => m.special)
+    .map(m => ({
+      special_id: m.special,
+      special_description: m.menuDescription,
+      special_img_url: m.menuImages[0],
+      address: m.menuAddressLine1,
+      city: m.menuCity,
+      state: m.menuProvinceTerritory,
+      postal_code: m.menuPostalCode,
+    }))
+
+  if (specials && specials.length) {
+    await external_api_service.saveKodidiSpecials({
+      email: hostDto.email,
+      specials
+    });
   }
 }
 
