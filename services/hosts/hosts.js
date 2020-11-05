@@ -6,10 +6,19 @@ const _ = require("lodash");
 const getHostApplications = async () => {
   try {
     const applications = await db
-      .select("*")
+      .select(
+        "tasttlig_users.*",
+        "business_details.*",
+        db.raw("ARRAY_AGG(roles.role) as role")
+      )
       .from("tasttlig_users")
       .innerJoin("business_details", "tasttlig_users.tasttlig_user_id", "business_details.user_id")
-      .where("tasttlig_users.role", "like", "%HOST_PENDING%");
+      .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+      .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+      .groupBy("tasttlig_users.tasttlig_user_id")
+      .groupBy("business_details.business_id")
+      .groupBy("roles.role");
+    
     return {
       success: true,
       applications
@@ -22,12 +31,21 @@ const getHostApplications = async () => {
 const getHostApplication = async (userId) => {
   try {
     let application = await db
-      .select("*")
+      .select(
+        "tasttlig_users.*",
+        "business_details.*",
+        "payment_info.*",
+        db.raw("ARRAY_AGG(roles.role) as role")
+      )
       .from("tasttlig_users")
       .innerJoin("business_details", "tasttlig_users.tasttlig_user_id", "business_details.user_id")
       .innerJoin("payment_info", "tasttlig_users.tasttlig_user_id", "payment_info.user_id")
-      .where("tasttlig_users.role", "like", "%HOST_PENDING%")
-      .where("tasttlig_users.tasttlig_user_id", "=", userId)
+      .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+      .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+      .groupBy("tasttlig_users.tasttlig_user_id")
+      .groupBy("business_details.business_id")
+      .groupBy("payment_info.payment_bank_id")
+      .having("tasttlig_users.tasttlig_user_id", "=", userId)
       .first();
 
     const reviews = await db.select("*")

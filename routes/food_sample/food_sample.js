@@ -27,7 +27,7 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
     }
     let createdByAdmin = false;
     let db_user = user_details_from_db.user;
-    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    let user_role_object = db_user.role;
     if (user_role_object.includes("ADMIN")){
       if (!req.body.userEmail) {
         return res.status(403).json({
@@ -165,7 +165,7 @@ router.get("/food-sample/user/all", token_service.authenticateToken, async (req,
     }
     let requestByAdmin = false;
     let db_user = user_details_from_db.user;
-    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    let user_role_object = db_user.role;
     if (user_role_object.includes("ADMIN")){
       requestByAdmin = true;
     }
@@ -244,7 +244,7 @@ router.get("/food-sample/user/archived", token_service.authenticateToken, async 
     }
     let requestByAdmin = false;
     let db_user = user_details_from_db.user;
-    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    let user_role_object = db_user.role;
     if (user_role_object.includes("ADMIN")){
       requestByAdmin = true;
     }
@@ -306,7 +306,7 @@ router.put("/food-sample/update/:food_sample_id", token_service.authenticateToke
     }
     let updatedByAdmin = false;
     let db_user = user_details_response.user;
-    let user_role_object = user_role_manager.createRoleObject(db_user.role);
+    let user_role_object = db_user.role;
     if (user_role_object.includes("ADMIN")){
       updatedByAdmin = true;
     }
