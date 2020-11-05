@@ -17,8 +17,15 @@ const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const EMAIL_SECRET = process.env.EMAIL_SECRET;
 
 const getUserById = async id => {
-  return await db("tasttlig_users")
-    .where("tasttlig_user_id", id)
+  return await db.select(
+    "tasttlig_users.*",
+    db.raw("ARRAY_AGG(roles.role) as role")
+  )
+    .from("tasttlig_users")
+    .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+    .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .having("tasttlig_users.tasttlig_user_id", "=", id)
     .first()
     .then(value => {
       if (!value) {
@@ -33,13 +40,21 @@ const getUserById = async id => {
 
 const getUserBySubscriptionId = async id => {
   return await db("tasttlig_users")
-    .where("tasttlig_user_id", id)
+    .select(
+      "tasttlig_users.*",
+      "user_subscriptions.*",
+      db.raw("ARRAY_AGG(roles.role) as role")
+    )
     .first()
     .leftJoin(
       "user_subscriptions",
       "tasttlig_users.tasttlig_user_id",
       "user_subscriptions.user_id"
-    )
+    ).leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+    .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .groupBy("user_subscriptions.user_subscription_id")
+    .having("tasttlig_users.tasttlig_user_id", "=", id)
     .then(value => {
       if (!value) {
         return {success: false, message: "No user found."};
@@ -124,11 +139,11 @@ const saveBusinessForUser = async (hostDto, trx) => {
     instagram: hostDto.instagram,
     facebook: hostDto.facebook
   };
-
+  
   const response = await trx('business_details')
     .insert(businessInfo)
     .returning("*");
-
+  
   return {success: true, details: response[0]};
 }
 
@@ -137,17 +152,17 @@ const saveBusinessServices = async (hostDto, trx) => {
     user_id: hostDto.dbUser.user.tasttlig_user_id,
     name: serviceName
   }));
-
+  
   const response = await trx('business_services')
     .insert(businessServices)
     .returning("*");
-
+  
   return {success: true, details: response[0]};
 }
 
 const saveApplicationInformation = async (hostDto, trx) => {
   const applications = [];
-
+  
   if (hostDto.is_host === "yes") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -161,7 +176,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
       status: "Pending"
     })
   }
-
+  
   if (hostDto.is_cook === "yes") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -175,7 +190,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
       status: "Pending"
     })
   }
-
+  
   return trx('applications')
     .insert(applications)
     .returning('*')
@@ -186,7 +201,7 @@ const savePaymentInformation = async (hostDto, trx) => {
     payment_type: hostDto.banking,
     user_id: hostDto.dbUser.user.tasttlig_user_id
   };
-
+  
   if (paymentInfo.payment_type === "Bank") {
     paymentInfo = {
       ...paymentInfo,
@@ -211,7 +226,7 @@ const savePaymentInformation = async (hostDto, trx) => {
       etransfer_email: hostDto.online_email
     }
   }
-
+  
   return trx('payment_info')
     .insert(paymentInfo)
     .returning('*')
@@ -232,11 +247,11 @@ const saveDocuments = async (hostDto, trx) => {
       document_link: hostDto[doc[0]],
       status: "Pending"
     }))
-
+  
   await trx("documents")
     .insert(documents)
     .returning("*");
-
+  
   return documents;
 }
 
@@ -253,7 +268,7 @@ const saveSocialProof = async (hostDto, trx) => {
       platform: w,
       link: hostDto[`${w}_review`]
     }))
-
+  
   if (hostDto.media_recognition) {
     reviews.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -261,7 +276,7 @@ const saveSocialProof = async (hostDto, trx) => {
       link: hostDto.media_recognition
     });
   }
-
+  
   if (hostDto.personal_review) {
     reviews.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -269,7 +284,7 @@ const saveSocialProof = async (hostDto, trx) => {
       text: hostDto.personal_review
     });
   }
-
+  
   return trx("external_review")
     .insert(reviews)
     .returning("*");
@@ -318,12 +333,12 @@ const saveVenueInformation = async (hostDto, trx) => {
       description: hostDto.venue_description
     })
     .returning("*");
-
+  
   const photos = hostDto.venue_photos.map(p => ({
     venue_id: response[0].venue_id,
     image_url: p
   }))
-
+  
   return trx("venue_images")
     .insert(photos)
     .returning("*");
@@ -344,10 +359,10 @@ const sendAdminEmailForHosting = async (user_info) => {
     },
     EMAIL_SECRET
   );
-
+  
   const application_approve_url = `${SITE_BASE}/user/application/${document_approve_token}`;
   const application_reject_url = `${SITE_BASE}/user/application/${document_reject_token}`;
-
+  
   await Mailer.sendMail({
     from: process.env.SES_DEFAULT_FROM,
     to: ADMIN_EMAIL,
@@ -359,7 +374,7 @@ const sendAdminEmailForHosting = async (user_info) => {
       email: user_info.email,
       upgrade_type: "RESTAURANT",
       documents: user_info.documents,
-
+      
       approve_link: application_approve_url,
       reject_link: application_reject_url,
     }
@@ -374,8 +389,8 @@ const sendApplierEmailForHosting = async (db_user) => {
     subject: `[Tasttlig] Thank you for your application`,
     template: "user_upgrade_request",
     context: {
-      first_name: db_user.first_name,
-      last_name: db_user.last_name
+      first_name: db_user.user.first_name,
+      last_name: db_user.user.last_name
     }
   });
 }
@@ -426,7 +441,7 @@ const upgradeUserResponse = async token => {
     const decrypted_token = jwt.verify(token, EMAIL_SECRET);
     const document_id = decrypted_token.document_id;
     const status = decrypted_token.status;
-
+    
     const db_document = await db("documents")
       .where("document_id", document_id)
       .update("status", status)
@@ -434,7 +449,7 @@ const upgradeUserResponse = async token => {
       .catch(reason => {
         return {success: false, message: reason};
       });
-
+    
     const document_user_id = db_document[0].user_id;
     return approveOrDeclineHostApplication(document_user_id, status)
   } catch (err) {
@@ -457,26 +472,40 @@ const handleAction = async token => {
 const approveOrDeclineHostApplication = async (userId, status, declineReason) => {
   try {
     const db_user_row = await getUserById(userId);
-
+    
     if (!db_user_row.success) {
       return {success: false, message: db_user_row.message};
     }
     const db_user = db_user_row.user;
-
+    
     // depends on status, we do different things:
     // if status is approved
     if (status === 'APPROVED') {
       // STEP 1: change the role column in tasttlig_user table
-      let user_role_object = role_manager.createRoleObject(db_user.role);
-      user_role_object = role_manager.removeRole(
-        user_role_object,
-        "RESTAURANT_PENDING"
-      );
-      user_role_object = role_manager.addRole(user_role_object, "RESTAURANT");
-      await db("tasttlig_users")
-        .where("tasttlig_user_id", db_user.tasttlig_user_id)
-        .update("role", role_manager.createRoleString(user_role_object));
-
+      // get role_code of the role to be removed
+      let role_code = await db("roles")
+        .select()
+        .where({
+          role: "HOST_PENDING"
+        }).then(value => {return value[0].role_code});
+      // remove the role for this user
+      await db("user_role_lookup")
+        .where({
+          "user_id": db_user.tasttlig_user_id,
+          role_code: role_code
+        }).del();
+      // get role_code of new role to be added
+      role_code = await db("roles")
+        .select()
+        .where({
+          role: "HOST"
+        }).then(value => {return value[0].role_code});
+      // insert new role for this user
+      await db("user_role_lookup").insert({
+        user_id: db_user.tasttlig_user_id,
+        role_code: role_code
+      });
+      
       // STEP 2: Update all Experiences to Active state
       await db("experiences")
         .where({
@@ -484,7 +513,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
           status: "INACTIVE"
         })
         .update("status", "ACTIVE");
-
+      
       // STEP 3: Update all Food Samples to Active state if the user agreed to participate in festival
       if (db_user.is_participating_in_festival) {
         await db("food_samples")
@@ -494,7 +523,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
           })
           .update("status", "ACTIVE");
       }
-
+      
       // STEP 4: Update all documents belongs to this user which is in Pending state become APPROVE
       await db("documents")
         .where("user_id", db_user.tasttlig_user_id)
@@ -504,7 +533,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         .catch(reason => {
           return {success: false, message: reason};
         });
-
+      
       // STEP 5: Update Application table status
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
@@ -514,7 +543,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         .catch(reason => {
           return {success: false, message: reason};
         });
-
+      
       // STEP 6: email the user that their application is approved
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
@@ -529,16 +558,19 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
     } else {
       // status is Failed
       // STEP 1: remove the RESTAURANT_PENDING role
-      let user_role_object = role_manager.createRoleObject(db_user.role);
-      user_role_object = role_manager.removeRole(
-        user_role_object,
-        "RESTAURANT_PENDING"
-      );
-
-      await db("tasttlig_users")
-        .where("tasttlig_user_id", db_user.tasttlig_user_id)
-        .update("role", role_manager.createRoleString(user_role_object));
-
+      // get role_code of the role to be removed
+      let role_code = await db("roles")
+        .select()
+        .where({
+          role: "RESTAURANT_PENDING"
+        }).then(value => {return value[0].role_code});
+      // remove the role for this user
+      await db("user_role_lookup")
+        .where({
+          "user_id": db_user.tasttlig_user_id,
+          role_code: role_code
+        }).del();
+      
       // STEP 2: Update all documents belongs to this user which is in Pending state become REJECT
       await db("documents")
         .where("user_id", db_user.tasttlig_user_id)
@@ -548,7 +580,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         .catch(reason => {
           return {success: false, message: reason};
         });
-
+      
       // STEP 3: Update Application table status
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
@@ -558,7 +590,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         .catch(reason => {
           return {success: false, message: reason};
         });
-
+      
       // STEP 4: notify user their application is reject
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
@@ -574,13 +606,21 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
       return {success: true, message: status};
     }
   } catch (e) {
+    console.log(e);
     return {success: false, message: e};
   }
 }
 
 const getUserByEmail = async email => {
-  return await db("tasttlig_users")
-    .where("email", email)
+  return await db.select(
+    "tasttlig_users.*",
+    db.raw("ARRAY_AGG(roles.role) as role")
+  )
+    .from("tasttlig_users")
+    .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+    .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .having("tasttlig_users.email", "=", email)
     .first()
     .then(value => {
       if (!value) {
@@ -594,15 +634,23 @@ const getUserByEmail = async email => {
 };
 
 const getUserByEmailWithSubscription = async email => {
-  return await db("tasttlig_users")
-    .where("email", email)
-    .first()
+  return await db.select(
+    "tasttlig_users.*",
+    "user_subscriptions.*",
+    db.raw("ARRAY_AGG(roles.role) as role")
+  )
+    .from("tasttlig_users")
     .leftJoin(
       "user_subscriptions",
       "tasttlig_users.tasttlig_user_id",
       "user_subscriptions.user_id"
     )
-    .where("user_subscriptions.subscription_end_datetime", ">", new Date())
+    .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+    .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .having("tasttlig_users.email","=", email)
+    .having("user_subscriptions.subscription_end_datetime", ">", new Date())
+    .first()
     .then(value => {
       if (!value) {
         return {success: false, message: "No user found."};
@@ -615,8 +663,15 @@ const getUserByEmailWithSubscription = async email => {
 };
 
 const getUserByPassportId = async passport_id => {
-  return await db("tasttlig_users")
-    .where("passport_id", passport_id)
+  return await db.select(
+    "tasttlig_users.*",
+    db.raw("ARRAY_AGG(roles.role) as role")
+  )
+    .from("tasttlig_users")
+    .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+    .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .having("passport_id", "=", passport_id)
     .first()
     .then(value => {
       if (!value) {
@@ -630,9 +685,16 @@ const getUserByPassportId = async passport_id => {
 }
 
 const getUserByPassportIdOrEmail = async passport_id_or_email => {
-  return await db("tasttlig_users")
-    .where("email", passport_id_or_email)
-    .orWhere({passport_id: passport_id_or_email})
+  return await db.select(
+    "tasttlig_users.*",
+    db.raw("ARRAY_AGG(roles.role) as role")
+  )
+    .from("tasttlig_users")
+    .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+    .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .having("tasttlig_users.email", "=", passport_id_or_email)
+    .orHaving("tasttlig_users.passport_id", "=", passport_id_or_email)
     .first()
     .then(value => {
       if (!value) {
@@ -668,15 +730,15 @@ const getUserByPassportIdOrEmail = async passport_id_or_email => {
 const saveHostApplication = async (hostDto, user) => {
   let dbUser = null;
   let plain_password = "";
-
+  
   if (user) {
     dbUser = await getUserById(user.id);
   }
-
+  
   if (dbUser == null || !dbUser.success) {
     dbUser = await getUserByPassportIdOrEmail(hostDto.email);
   }
-
+  
   if (dbUser == null || !dbUser.success) {
     plain_password = generateRandomString(8);
     const saltRounds = 10;
@@ -697,30 +759,30 @@ const saveHostApplication = async (hostDto, user) => {
     }
     dbUser = await authenticate_user_service
       .createBecomeFoodProviderUser(become_food_provider_user);
-
+    
     if (!dbUser.success) {
       return {success: false}
     }
-
+    
     await sendNewUserEmail(become_food_provider_user);
   }
   hostDto.dbUser = dbUser;
   await updateHostUser(hostDto);
-
+  
   return await db.transaction(async trx => {
     const has_business = hostDto.has_business === "yes";
-
+    
     if (has_business) {
       await saveBusinessForUser(hostDto, trx);
     }
-
+    
     await saveBusinessServices(hostDto, trx);
     await saveApplicationInformation(hostDto, trx);
     await savePaymentInformation(hostDto, trx);
     await saveSocialProof(hostDto, trx);
-
+    
     const documents = await saveDocuments(hostDto, trx);
-
+    
     if (has_business) {
       if (hostDto.business_category === "Food") {
         await saveMenuItems(hostDto, trx);
@@ -735,9 +797,7 @@ const saveHostApplication = async (hostDto, user) => {
         await saveVenueInformation(hostDto, trx);
       }
     }
-
     //await sendHostApplicationEmails(dbUser, documents);
-
     return {success: true};
   });
 }
@@ -750,7 +810,7 @@ const sendHostApplicationEmails = async (dbUser, documents) => {
     email: dbUser.user.email,
     documents: documents
   };
-
+  
   await sendAdminEmailForHosting(applier)
   await sendApplierEmailForHosting(dbUser);
 }
