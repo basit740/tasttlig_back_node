@@ -188,7 +188,7 @@ const checkEmail = async email => {
       status: "ACTIVE"
     })
     .first()
-    .then(value => {
+    .then(async value => {
       if(!value){
         return {
           success: false,
@@ -196,39 +196,30 @@ const checkEmail = async email => {
           response: `There is no account for ${email}.`
         }
       }
-      jwt.sign(
-        { email },
-        process.env.EMAIL_SECRET,
-        {
-          expiresIn: "15m"
-        },
-        // Async reset password email
-        async (err, emailToken) => {
-          try {
-            const url = `${SITE_BASE}/forgot-password/${emailToken}/${email}`;
-            await Mailer.sendMail({
-              from: process.env.SES_DEFAULT_FROM,
-              to: email,
-              subject: "[Tasttlig] Reset your password",
-              template: 'password_reset_request',
-              context: {
-                url: url
-              }
-            });
-            return {
-              success: true,
-              message: "ok",
-              response: `Your update password email has been sent to ${email}.`
-            };
-          } catch (err) {
-            return {
-              success: false,
-              message: "error",
-              response:"Error in sending email"
-            }
+      const {email_token} = await auth_server_service.authPasswordResetRequest(email);
+      try {
+        const url = `${SITE_BASE}/forgot-password/${email_token}/${email}`;
+        await Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
+          to: email,
+          subject: "[Tasttlig] Reset your password",
+          template: 'password_reset_request',
+          context: {
+            url: url
           }
+        });
+        return {
+          success: true,
+          message: "ok",
+          response: `Your update password email has been sent to ${email}.`
+        };
+      } catch (err) {
+        return {
+          success: false,
+          message: "error",
+          response:"Error in sending email"
         }
-      );
+      }
     }).catch(reason => {
       return {
         success: false,
@@ -238,37 +229,24 @@ const checkEmail = async email => {
     });
 }
 
-const updatePassword = async (email, password) => {
-  return await db("tasttlig_users")
-    .where("email", email)
-    .update("password", password)
-    .returning("*")
-    .then(value => {
-      jwt.sign(
-        {user: value[0].tasttlig_user_id},
-        process.env.EMAIL_SECRET,
-        {
-          expiresIn: "15m"
-        },
-        // Async password change confirmation email
-        async () => {
-          await Mailer.sendMail({
-            from: process.env.SES_DEFAULT_FROM,
-            to: email,
-            subject: "[Tasttlig] Password changed",
-            template: 'password_reset_success'
-          })
-            .then(value1 => {
-              return {success: true, message: "ok", data: value[0]};
-            })
-            .catch(reason => {
-              return {success: false, message: reason};
-            });
-        }
-      );
-    }).catch(reason => {
-      return {success: false, message: reason};
-    });
+const updatePassword = async (email, password, token) => {
+  const {success, user} = await auth_server_service.authPasswordReset(token, password);
+  if(success){
+    await Mailer.sendMail({
+      from: process.env.SES_DEFAULT_FROM,
+      to: email,
+      subject: "[Tasttlig] Password changed",
+      template: 'password_reset_success'
+    })
+      .then(value1 => {
+        return {success: true, message: "ok"};
+      })
+      .catch(reason => {
+        return {success: false, message: reason};
+      });
+  }else {
+    return {success: false, message: "jwt token error"};
+  }
 }
 
 const createDummyUser = async email => {
@@ -417,7 +395,7 @@ const userMigrationFromAuthServer = async new_user => {
     const db_user = await db("tasttlig_users")
       .insert(userData)
       .returning("*");
-  
+    
     // insert new roles for this user
     new_user.roles.map(async role => {
       await db("user_role_lookup").insert({

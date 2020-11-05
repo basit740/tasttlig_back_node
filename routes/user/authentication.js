@@ -125,7 +125,7 @@ authRouter.post("/user/login", async (req, res) => {
   } catch (err) {
     return res.status(401).json({
       success: false,
-      message: err.message
+      message: "Email/password combination is Invalid"
     });
   }
 });
@@ -167,44 +167,45 @@ authRouter.post("/user/forgot-password", createAccountLimiter, async (req, res) 
 });
 
 // PUT user enter new password
-authRouter.put("/user/update-password/:id", token_service.authForPassUpdate, async (req, res) => {
-    if (!req.body.email || !req.body.password){
-      return res.status(403).json({
-        success: false,
-        message: "Required Parameters are not available in request"
+authRouter.put("/user/update-password/:token", async (req, res) => {
+  if (!req.body.email || !req.body.password || !req.params.token){
+    return res.status(403).json({
+      success: false,
+      message: "Required Parameters are not available in request"
+    });
+  }
+  try {
+    const email = req.body.email;
+    const password = req.body.password;
+    const token = req.params.token;
+    if (email) {
+      const response = await authenticate_user_service.updatePassword(
+        email,
+        password,
+        token
+      );
+      res.send({
+        success: true,
+        message: "ok",
+        response: response
       });
     }
-    try {
-      const email = req.body.email;
-      const pw = req.body.password;
-      const saltRounds = 10;
-      const salt = bcrypt.genSaltSync(saltRounds);
-      const password = bcrypt.hashSync(pw, salt);
-      if (email) {
-        const response = await authenticate_user_service.updatePassword(email, password);
-        res.send({
-          success: true,
-          message: "ok",
-          response: response
-        });
-      }
-    } catch (err) {
-      if(err.message === "jwt expired"){
-        res.send({
-          success: false,
-          message: "error",
-          response: "token is expired"
-        });
-      } else {
-        res.send({
-          success: false,
-          message: "error",
-          response: err.message
-        });
-      }
+  } catch (err) {
+    if(err.message === "jwt expired"){
+      res.send({
+        success: false,
+        message: "error",
+        response: "token is expired"
+      });
+    } else {
+      res.send({
+        success: false,
+        message: "error",
+        response: err.message
+      });
     }
   }
-);
+});
 
 // POST user forgot password
 authRouter.post("/user/create_visitor_account", createAccountLimiter, async (req, res) => {
