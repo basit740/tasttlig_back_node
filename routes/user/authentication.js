@@ -87,7 +87,7 @@ authRouter.post("/user/login", async (req, res) => {
         message: "Invalid password."
       });
     }
-    const response = await user_profile_service.getUserByPassportIdOrEmail(req.body.passport_id_or_email);
+    let response = await user_profile_service.getUserByPassportIdOrEmail(req.body.passport_id_or_email);
     if (!response.success) {
       const new_user = {
         email: user.email,
@@ -99,6 +99,7 @@ authRouter.post("/user/login", async (req, res) => {
       };
       await authenticate_user_service.userMigrationFromAuthServer(new_user);
     }
+    response = await user_profile_service.getUserByPassportIdOrEmail(req.body.passport_id_or_email);
     const jwtUser = {
       id: response.user.tasttlig_user_id,
       auth_user_id: response.user.auth_user_id,

@@ -385,6 +385,9 @@ const findUserByEmail = async email => {
 const userMigrationFromAuthServer = async new_user => {
   try {
     const userData = {
+      first_name: "",
+      last_name: "",
+      phone_number: "",
       email: new_user.email,
       status: "ACTIVE",
       passport_id: new_user.passport_id,
@@ -395,7 +398,22 @@ const userMigrationFromAuthServer = async new_user => {
     const db_user = await db("tasttlig_users")
       .insert(userData)
       .returning("*");
-    
+  
+    await db("roles")
+      .select()
+      .where({
+        role: "MEMBER"
+      }).then(async value => {
+        //insert new role in auth server
+        const {success, user} = await auth_server_service
+          .authAddRole(new_user.auth_user_id, value[0].role_code);
+        // insert new role for this user
+        await db("user_role_lookup").insert({
+          user_id: db_user[0].tasttlig_user_id,
+          role_code: value[0].role_code
+        });
+      });
+  
     // insert new roles for this user
     new_user.roles.map(async role => {
       await db("user_role_lookup").insert({
