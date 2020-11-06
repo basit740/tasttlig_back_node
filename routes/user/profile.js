@@ -26,7 +26,7 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     last_name: response.user.last_name,
     email: response.user.email,
     phone_number: response.user.phone_number,
-    role: user_role_manager.createRoleObject(response.user.role),
+    role: response.user.role,
     profile_image_link: response.user.profile_image_link,
     banner_image_link: response.user.banner_image_link,
     bio: response.user.bio_text,

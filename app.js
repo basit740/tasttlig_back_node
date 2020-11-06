@@ -29,6 +29,7 @@ const menu_items_router = require("./routes/menu_items/menu_items");
 const order_router = require("./routes/user/order");
 const points_router = require("./routes/user/points_system");
 const business_router = require("./routes/helper_routes/businessFinderRoutes");
+const external_api_router = require("./routes/external_api/external_api");
 
 const app = express();
 let corsOptions = {
@@ -37,7 +38,7 @@ let corsOptions = {
 };
 app.use(cors(corsOptions));
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({extended: false}));
 app.use(express.json());
 app.use(logger("combined"));
 app.use(cookieParser());
@@ -60,6 +61,7 @@ app.use("/menu_items", menu_items_router);
 app.use("/order", order_router);
 app.use("/points", points_router);
 app.use("/business", business_router);
+app.use("/external_api/", external_api_router);
 
 // Cron Job scripts
 cron.schedule('0 0 1-31 * *', cron_job_functions.deleteInactiveItems);
