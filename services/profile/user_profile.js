@@ -4,14 +4,12 @@ const authenticate_user_service = require("../authentication/authenticate_user")
 
 const {db} = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
-const role_manager = require("./user_roles_manager");
-const {setAddressCoordinates} = require("../geocoder");
 const {formatPhone, generateRandomString} = require("../../functions/functions");
 const menu_items_service = require("../menu_items/menu_items");
 const assets_service = require("../assets/assets")
-const external_api_service = require("../../services/external_api_service")
+const external_api_service = require("../../services/external_api_service");
+const auth_server_service = require("../../services/authentication/auth_server_service");
 
 const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -399,42 +397,34 @@ const sendApplierEmailForHosting = async (db_user) => {
 const sendNewUserEmail = async (new_user) => {
   // Email to new user with login details and password reset link
   const email = new_user.email;
-  jwt.sign(
-    {email},
-    process.env.EMAIL_SECRET,
-    {
-      expiresIn: "7d"
-    },
-    // Async reset password email
-    async (err, emailToken) => {
-      try {
-        const url = `${SITE_BASE}/forgot-password/${emailToken}/${email}`;
-        await Mailer.sendMail({
-          from: process.env.SES_DEFAULT_FROM,
-          to: email,
-          subject: `[Tasttlig] Thank you for your application`,
-          template: "new_application_user_account",
-          context: {
-            first_name: new_user.first_name,
-            last_name: new_user.last_name,
-            email: email,
-            password: new_user.plain_password,
-            url: url
-          }
-        });
-        return {
-          success: true,
-          message: "ok"
-        };
-      } catch (err) {
-        return {
-          success: false,
-          message: "error",
-          response: "Error in sending email"
-        }
+  const {email_token} = await auth_server_service.authPasswordResetRequest(email);
+  try {
+    const url = `${SITE_BASE}/forgot-password/${email_token}/${email}`;
+    await Mailer.sendMail({
+      from: process.env.SES_DEFAULT_FROM,
+      to: email,
+      subject: "[Tasttlig] Thank you for your application",
+      template: 'new_application_user_account',
+      context: {
+        first_name: new_user.first_name,
+        last_name: new_user.last_name,
+        email: email,
+        password: new_user.password,
+        url: url
       }
+    });
+    return {
+      success: true,
+      message: "ok",
+      response: `Your update password email has been sent to ${email}.`
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message: "error",
+      response:"Error in sending email"
     }
-  );
+  }
 }
 
 const upgradeUserResponse = async token => {
@@ -742,14 +732,10 @@ const saveHostApplication = async (hostDto, user) => {
   
   if (dbUser == null || !dbUser.success) {
     plain_password = generateRandomString(8);
-    const saltRounds = 10;
-    const salt = bcrypt.genSaltSync(saltRounds);
-    const hashedPassword = bcrypt.hashSync(plain_password, salt);
     const become_food_provider_user = {
       first_name: hostDto.first_name,
       last_name: hostDto.last_name,
-      plain_password: plain_password,
-      password: hashedPassword,
+      password: plain_password,
       email: hostDto.email,
       phone_number: hostDto.phone_number,
       user_address_line_1: hostDto.residential_address_line_1,
