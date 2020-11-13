@@ -5,10 +5,9 @@ const authRouter = require("express").Router();
 const token_service = require("../../services/authentication/token");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const user_profile_service = require("../../services/profile/user_profile");
-const user_role_manager = require("../../services/profile/user_roles_manager");
 const auth_server_service = require("../../services/authentication/auth_server_service");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const { generateRandomString } = require("../../functions/functions");
 const rateLimit = require("express-rate-limit");
 
 const createAccountLimiter = rateLimit({
@@ -208,7 +207,6 @@ authRouter.put("/user/update-password/:token", async (req, res) => {
   }
 });
 
-// POST user forgot password
 authRouter.post("/user/create_visitor_account", createAccountLimiter, async (req, res) => {
   if (!req.body.email) {
     return res.status(403).json({
@@ -224,5 +222,45 @@ authRouter.post("/user/create_visitor_account", createAccountLimiter, async (req
     res.send(returning);
   }
 });
+
+authRouter.post("/user/createNewMultiStepUser", createAccountLimiter, async (req, res) => {
+  if (!req.body.first_name || !req.body.last_name
+    || !req.body.email || !req.body.phone_number) {
+    return res.status(403).json({
+      success: false,
+      message: "Required Parameters are not available in request"
+    });
+  }
+  const become_food_provider_user = {
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    email: req.body.email,
+    password: generateRandomString(8),
+    phone_number: req.body.phone_number
+  }
+  const response = await authenticate_user_service.createBecomeFoodProviderUser(become_food_provider_user);
+  res.send(response);
+});
+
+authRouter.put("/user/updateBusinessInfo", createAccountLimiter, async (req, res) => {
+  const has_business = req.body.has_business === "yes";
+  const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+  if(!db_user.success){
+    return res.status(403).json({
+      success: false,
+      message: "User does not exist"
+    });
+  }
+  if (has_business) {
+    const response = await user_profile_service.saveBusinessForUser(req.body, db_user.user.tasttlig_user_id);
+    res.send(response);
+  } else {
+    return res.status(403).json({
+      success: false,
+      message: "Required Parameters are not available in request"
+    });
+  }
+});
+
 
 module.exports = authRouter;
