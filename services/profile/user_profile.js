@@ -208,9 +208,10 @@ const saveApplicationInformation = async (hostDto, trx) => {
     })
   }
   
-  if(!applications){
+  if(applications.length == 0){
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
       created_at: new Date(),
       updated_at: new Date(),
       type: "restaurant",
@@ -221,6 +222,9 @@ const saveApplicationInformation = async (hostDto, trx) => {
   return trx('applications')
     .insert(applications)
     .returning('*')
+    .catch(reason => {
+      console.log(reason);
+    });
 }
 
 const savePaymentInformation = async (db_user, banking_info) => {
