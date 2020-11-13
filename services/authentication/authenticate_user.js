@@ -309,11 +309,11 @@ const createBecomeFoodProviderUser = async become_food_provider_user => {
           last_name: become_food_provider_user.last_name,
           email: become_food_provider_user.email,
           phone_number: become_food_provider_user.phone_number,
-          user_address_line_1: become_food_provider_user.user_address_line_1,
-          user_address_line_2: become_food_provider_user.user_address_line_2,
-          user_city: become_food_provider_user.user_city,
-          user_state: become_food_provider_user.user_state,
-          user_postal_code: become_food_provider_user.user_postal_code,
+          // user_address_line_1: become_food_provider_user.user_address_line_1,
+          // user_address_line_2: become_food_provider_user.user_address_line_2,
+          // user_city: become_food_provider_user.user_city,
+          // user_state: become_food_provider_user.user_state,
+          // user_postal_code: become_food_provider_user.user_postal_code,
           status: "ACTIVE",
           passport_id: user.passport_id,
           auth_user_id: user.id,
@@ -337,6 +337,8 @@ const createBecomeFoodProviderUser = async become_food_provider_user => {
               db("user_role_lookup").insert({
                 user_id: value[0].tasttlig_user_id,
                 role_code: role_code
+              }).then(async () => {
+                await sendNewUserEmail(become_food_provider_user);
               });
             });
           return {success: true, user: value[0]};
@@ -363,9 +365,23 @@ const findUserByEmail = async email => {
     db.raw("ARRAY_AGG(roles.role) as role")
   )
     .from("tasttlig_users")
-    .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
-    .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+    .leftJoin(
+      "user_role_lookup",
+      "tasttlig_users.tasttlig_user_id",
+      "user_role_lookup.user_id"
+    )
+    .leftJoin(
+      "roles",
+      "user_role_lookup.role_code",
+      "roles.role_code"
+    )
+    .leftJoin(
+      "business_details",
+      "tasttlig_users.tasttlig_user_id",
+      "business_details.user_id"
+    )
     .groupBy("tasttlig_users.tasttlig_user_id")
+    .groupBy("business_details.business_id")
     .having("tasttlig_users.email","=", email)
     .first()
     .then(value => {
@@ -423,6 +439,39 @@ const userMigrationFromAuthServer = async new_user => {
     })
   }catch (e) {
     console.log(e);
+  }
+}
+
+const sendNewUserEmail = async (new_user) => {
+  // Email to new user with login details and password reset link
+  const email = new_user.email;
+  const {email_token} = await auth_server_service.authPasswordResetRequest(email);
+  try {
+    const url = `${SITE_BASE}/forgot-password/${email_token}/${email}`;
+    await Mailer.sendMail({
+      from: process.env.SES_DEFAULT_FROM,
+      to: email,
+      subject: "[Tasttlig] Thank you for your application",
+      template: 'new_application_user_account',
+      context: {
+        first_name: new_user.first_name,
+        last_name: new_user.last_name,
+        email: email,
+        password: new_user.password,
+        url: url
+      }
+    });
+    return {
+      success: true,
+      message: "ok",
+      response: `Your update password email has been sent to ${email}.`
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message: "error",
+      response:"Error in sending email"
+    }
   }
 }
 
