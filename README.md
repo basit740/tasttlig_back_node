@@ -2,6 +2,10 @@
 
 The purpose of this README.md file is to show how to set up the development environment on your computer to run the repository.
 
+## Prerequisite
+
+Tasttlig Auth Server (<https://bitbucket.org/tasttlig/tasttlig-auth-server/src/master/>) is already setup on the local machine before beginning this back-end setup.
+
 ## Getting Started
 
 1. Login to bitbucket.org and go to this link <https://bitbucket.org/tasttlig/tasttlig-back-node/src/master/>.
