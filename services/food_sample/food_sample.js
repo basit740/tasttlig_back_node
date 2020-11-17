@@ -320,6 +320,13 @@ const getAllFoodSamples = async (
       [filters.startDate]
     );
   }
+  
+  if (filters.endDate) {
+    query.whereRaw(
+      "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) <= ?",
+      [filters.endDate]
+    );
+  }
 
   if (food_ad_code) {
     query.where("food_ad_code", "=", food_ad_code);

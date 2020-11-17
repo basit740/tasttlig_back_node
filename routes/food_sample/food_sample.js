@@ -91,7 +91,7 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
 router.get("/food-sample/all", async (req, res) => {
   try{
     const current_page = req.query.page || 1;
-    const keyword = req.query.keyword || ""
+    const keyword = req.query.keyword || "";
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
     const food_ad_code = req.query.food_ad_code
@@ -104,7 +104,14 @@ router.get("/food-sample/all", async (req, res) => {
       longitude: req.query.longitude
     }
 
-    const response = await food_sample_service.getAllFoodSamples(status_operator, food_sample_status, keyword, current_page, food_ad_code, filters);
+    const response = await food_sample_service.getAllFoodSamples(
+      status_operator,
+      food_sample_status,
+      keyword,
+      current_page,
+      food_ad_code,
+      filters
+    );
 
     return res.send(response);
   } catch (err) {

@@ -19,7 +19,7 @@ const createAccountLimiter = rateLimit({
 
 // POST user register
 authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
-  if (!req.body.passport_id_or_email || !req.body.password) {
+  if (!req.body.passport_id_or_email || !req.body.password || !req.body.source) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -31,6 +31,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
       last_name: "",
       email: req.body.passport_id_or_email,
       password: req.body.password,
+      source: req.body.source,
       phone_number: ""
     };
     const response = await authenticate_user_service.userRegister(user);
