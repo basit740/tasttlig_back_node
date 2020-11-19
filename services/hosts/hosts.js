@@ -8,16 +8,15 @@ const getHostApplications = async () => {
     const applications = await db
       .select(
         "tasttlig_users.*",
-        "business_details.*",
-        db.raw("ARRAY_AGG(roles.role) as role")
+        "business_details.*"
       )
-      .from("tasttlig_users")
+      .from("applications")
+      .leftJoin("tasttlig_users", "applications.user_id", "tasttlig_users.tasttlig_user_id")
       .innerJoin("business_details", "tasttlig_users.tasttlig_user_id", "business_details.user_id")
-      .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
-      .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+      .groupBy("applications.application_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
       .groupBy("business_details.business_id")
-      .groupBy("roles.role");
+      .having("applications.status", "=", "Pending");
     
     return {
       success: true,
@@ -38,8 +37,8 @@ const getHostApplication = async (userId) => {
         db.raw("ARRAY_AGG(roles.role) as role")
       )
       .from("tasttlig_users")
-      .innerJoin("business_details", "tasttlig_users.tasttlig_user_id", "business_details.user_id")
-      .innerJoin("payment_info", "tasttlig_users.tasttlig_user_id", "payment_info.user_id")
+      .leftJoin("business_details", "tasttlig_users.tasttlig_user_id", "business_details.user_id")
+      .leftJoin("payment_info", "tasttlig_users.tasttlig_user_id", "payment_info.user_id")
       .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
       .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
       .groupBy("tasttlig_users.tasttlig_user_id")
