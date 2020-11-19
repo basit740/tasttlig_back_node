@@ -7,15 +7,12 @@ const getHostApplications = async () => {
   try {
     const applications = await db
       .select(
-        "tasttlig_users.*",
-        "business_details.*"
+        "*"
       )
       .from("applications")
       .leftJoin("tasttlig_users", "applications.user_id", "tasttlig_users.tasttlig_user_id")
-      .innerJoin("business_details", "tasttlig_users.tasttlig_user_id", "business_details.user_id")
       .groupBy("applications.application_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
-      .groupBy("business_details.business_id")
       .having("applications.status", "=", "Pending");
     
     return {

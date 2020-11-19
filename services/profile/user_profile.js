@@ -687,6 +687,10 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         });
       
       let role_name_in_title_case = new_role.charAt(0).toUpperCase() + new_role.slice(1).toLowerCase();
+      let active_item = "Food Samples"
+      if(role_name_in_title_case === "Host"){
+        active_item = "Experiences";
+      }
       
       // STEP 6: email the user that their application is approved
       await Mailer.sendMail({
@@ -697,7 +701,8 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         context: {
           first_name: db_user.first_name,
           last_name: db_user.last_name,
-          role_name: role_name_in_title_case
+          role_name: role_name_in_title_case,
+          active_item: active_item
         }
       });
       return {success: true, message: status};
@@ -892,12 +897,11 @@ const saveHostApplication = async (hostDto, user) => {
   // await updateHostUser(hostDto);
   
   return await db.transaction(async trx => {
-    const has_business = hostDto.has_business === "yes";
-    
     await saveApplicationInformation(hostDto, trx);
-    
-    await saveSpecials(hostDto);
-    
+    if(hostDto.menu_list){
+      await saveSpecials(hostDto);
+    }
+    await sendApplierEmailForHosting(dbUser);
     return {success: true};
   });
 }
