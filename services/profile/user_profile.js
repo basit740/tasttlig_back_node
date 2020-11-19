@@ -179,7 +179,8 @@ const saveBusinessServices = async (db_user, services) => {
 }
 
 const saveApplicationInformation = async (hostDto, trx) => {
-  const applications = [];
+  let applications = [];
+  let role_name = "";
   if (hostDto.is_host === "yes") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -191,22 +192,23 @@ const saveApplicationInformation = async (hostDto, trx) => {
       updated_at: new Date(),
       type: "host",
       status: "Pending"
-    })
+    });
+    role_name = "HOST_PENDING";
   }
-  
-  if (hostDto.is_cook === "yes") {
-    applications.push({
-      user_id: hostDto.dbUser.user.tasttlig_user_id,
-      video_link: hostDto.cook_selection_video,
-      youtube_link: hostDto.cook_youtube_link,
-      reason: hostDto.cook_selection,
-      resume: hostDto.cook_selection_resume,
-      created_at: new Date(),
-      updated_at: new Date(),
-      type: "cook",
-      status: "Pending"
-    })
-  }
+  //
+  // if (hostDto.is_cook === "yes") {
+  //   applications.push({
+  //     user_id: hostDto.dbUser.user.tasttlig_user_id,
+  //     video_link: hostDto.cook_selection_video,
+  //     youtube_link: hostDto.cook_youtube_link,
+  //     reason: hostDto.cook_selection,
+  //     resume: hostDto.cook_selection_resume,
+  //     created_at: new Date(),
+  //     updated_at: new Date(),
+  //     type: "cook",
+  //     status: "Pending"
+  //   })
+  // }
   
   if(applications.length == 0){
     applications.push({
@@ -216,8 +218,21 @@ const saveApplicationInformation = async (hostDto, trx) => {
       updated_at: new Date(),
       type: "restaurant",
       status: "Pending"
-    })
+    });
+    role_name = "RESTAURANT_PENDING";
   }
+  
+  // get role_code of new role to be added
+  const new_role_code = await trx("roles")
+    .select()
+    .where({role: role_name})
+    .then(value => {return value[0].role_code});
+  
+  // insert new role for this user
+  await trx("user_role_lookup").insert({
+    user_id: hostDto.dbUser.user.tasttlig_user_id,
+    role_code: new_role_code
+  });
   
   return trx('applications')
     .insert(applications)
@@ -593,33 +608,44 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
       return {success: false, message: db_user_row.message};
     }
     const db_user = db_user_row.user;
+    console.log(db_user);
+    
+    // get pending role which has been approved
+    let role_pending = "";
+    db_user.role.map(role => {
+      if(role.search("_PENDING") !== -1){
+        role_pending = role;
+      }
+    });
     
     // depends on status, we do different things:
     // if status is approved
     if (status === 'APPROVED') {
-      // STEP 1: change the role column in tasttlig_user table
-      // get role_code of the role to be removed
-      let role_code = await db("roles")
+      
+      // get role_code of old role to be removed
+      const old_role_code = await db("roles")
         .select()
-        .where({
-          role: "HOST_PENDING"
-        }).then(value => {return value[0].role_code});
+        .where({role: role_pending})
+        .then(value => {return value[0].role_code});
+      
       // remove the role for this user
       await db("user_role_lookup")
         .where({
-          "user_id": db_user.tasttlig_user_id,
-          role_code: role_code
+          user_id: db_user.tasttlig_user_id,
+          role_code: old_role_code
         }).del();
+      
       // get role_code of new role to be added
-      role_code = await db("roles")
+      let new_role = role_pending.split("_")[0];
+      const new_role_code = await db("roles")
         .select()
-        .where({
-          role: "HOST"
-        }).then(value => {return value[0].role_code});
+        .where({role: new_role})
+        .then(value => {return value[0].role_code});
+      
       // insert new role for this user
       await db("user_role_lookup").insert({
         user_id: db_user.tasttlig_user_id,
-        role_code: role_code
+        role_code: new_role_code
       });
       
       // STEP 2: Update all Experiences to Active state
@@ -660,17 +686,26 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
           return {success: false, message: reason};
         });
       
+      let role_name_in_title_case = new_role.charAt(0).toUpperCase() + new_role.slice(1).toLowerCase();
+      let active_item = "Food Samples"
+      if(role_name_in_title_case === "Host"){
+        active_item = "Experiences";
+      }
+      
       // STEP 6: email the user that their application is approved
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
         to: db_user.email,
-        subject: `[Tasttlig] Your request for upgradation to Host is accepted`,
+        subject: `[Tasttlig] Your request for upgradation to ${role_name_in_title_case} is accepted`,
         template: "user_upgrade_approve",
         context: {
           first_name: db_user.first_name,
-          last_name: db_user.last_name
+          last_name: db_user.last_name,
+          role_name: role_name_in_title_case,
+          active_item: active_item
         }
       });
+      return {success: true, message: status};
     } else {
       // status is Failed
       // STEP 1: remove the RESTAURANT_PENDING role
@@ -678,7 +713,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
       let role_code = await db("roles")
         .select()
         .where({
-          role: "RESTAURANT_PENDING"
+          role: role_pending
         }).then(value => {return value[0].role_code});
       // remove the role for this user
       await db("user_role_lookup")
@@ -706,12 +741,15 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         .catch(reason => {
           return {success: false, message: reason};
         });
+  
+      let role_name_in_title_case = role_pending.split("_")[0].charAt(0).toUpperCase()
+        + role_pending.split("_")[0].slice(1).toLowerCase();
       
       // STEP 4: notify user their application is reject
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
         to: db_user.email,
-        subject: `[Tasttlig] Your request for upgradation to Host is rejected`,
+        subject: `[Tasttlig] Your request for upgradation to ${role_name_in_title_case} is rejected`,
         template: "user_upgrade_reject",
         context: {
           first_name: db_user.first_name,
@@ -854,63 +892,16 @@ const saveHostApplication = async (hostDto, user) => {
   if (dbUser == null || !dbUser.success) {
     dbUser = await getUserByPassportIdOrEmail(hostDto.email);
   }
-  //
-  // if (dbUser == null || !dbUser.success) {
-  //   plain_password = generateRandomString(8);
-  //   const become_food_provider_user = {
-  //     first_name: hostDto.first_name,
-  //     last_name: hostDto.last_name,
-  //     password: plain_password,
-  //     email: hostDto.email,
-  //     phone_number: hostDto.phone_number,
-  //     user_address_line_1: hostDto.residential_address_line_1,
-  //     user_address_line_2: hostDto.residential_address_line_2,
-  //     user_city: hostDto.residential_city,
-  //     user_state: hostDto.residential_state,
-  //     user_postal_code: hostDto.residential_postal_code,
-  //   }
-  //   dbUser = await authenticate_user_service
-  //     .createBecomeFoodProviderUser(become_food_provider_user);
-  //
-  //   if (!dbUser.success) {
-  //     return {success: false}
-  //   }
-  //
-  //   await sendNewUserEmail(become_food_provider_user);
-  // }
+  
   hostDto.dbUser = dbUser;
   // await updateHostUser(hostDto);
   
   return await db.transaction(async trx => {
-    const has_business = hostDto.has_business === "yes";
-    
-    // if (has_business) {
-    //   await saveBusinessForUser(hostDto, trx);
-    // }
-    
-    // await saveBusinessServices(hostDto, trx);
     await saveApplicationInformation(hostDto, trx);
-    // await savePaymentInformation(hostDto, trx);
-    // await saveSocialProof(hostDto, trx);
-    
-    // const documents = await saveDocuments(hostDto, trx);
-    
-    // if (has_business) {
-    //   if (hostDto.business_category === "Food") {
-    //     await saveMenuItems(hostDto, trx);
-    //     if (hostDto.service_provider === "Restaurant" && hostDto.has_assets) {
-    //       await saveAssets(hostDto, trx);
-    //     }
-    //   } else if (
-    //     hostDto.business_category === "Entertainment" ||
-    //     hostDto.business_category === "MC") {
-    //     await saveSampleLinks(hostDto, trx);
-    //   } else if (hostDto.business_category === "Venues") {
-    //     await saveVenueInformation(hostDto, trx);
-    //   }
-    // }
-    await saveSpecials(hostDto);
-    //await sendHostApplicationEmails(dbUser, documents);
+    if(hostDto.menu_list){
+      await saveSpecials(hostDto);
+    }
+    await sendApplierEmailForHosting(dbUser);
     return {success: true};
   });
 }
