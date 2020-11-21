@@ -205,6 +205,8 @@ const getUserFoodSampleClaims = async(user_id) => {
     const db_food_sample_claim = await db
       .select(
         "food_samples.*",
+        "tasttlig_users.first_name",
+        "tasttlig_users.last_name",
         "nationalities.nationality",
         "nationalities.alpha_2_code",
         db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
@@ -221,16 +223,23 @@ const getUserFoodSampleClaims = async(user_id) => {
         "food_sample_images.food_sample_id"
       )
       .leftJoin(
+        "tasttlig_users",
+        "food_samples.food_sample_creater_user_id",
+        "tasttlig_users.tasttlig_user_id"
+      )
+      .leftJoin(
         "nationalities",
         "food_samples.nationality_id",
         "nationalities.id"
       )
       .groupBy("food_sample_claims.food_sample_claim_user_id")
       .groupBy("food_samples.food_sample_id")
+      .groupBy("tasttlig_users.first_name")
+      .groupBy("tasttlig_users.last_name")
       .groupBy("nationalities.nationality")
       .groupBy("nationalities.alpha_2_code")
       .having("food_sample_claim_user_id", "=", user_id);
-    
+
     return {success: true, details: db_food_sample_claim};
   } catch (e) {
     return {success: false, error: e.message};
