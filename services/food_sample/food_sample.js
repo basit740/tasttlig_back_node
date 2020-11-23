@@ -427,7 +427,7 @@ const updateReviewFoodSample = async (
           context: {
             title: value[0].title,
             review_food_sample_reason:
-            food_sample_update_data.review_experience_reason
+            food_sample_update_data.review_food_sample_reason
           }
         });
       } else {
@@ -439,7 +439,7 @@ const updateReviewFoodSample = async (
           context: {
             title: value[0].title,
             review_food_sample_reason:
-            food_sample_update_data.review_experience_reason
+            food_sample_update_data.review_food_sample_reason
           }
         });
       }

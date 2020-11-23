@@ -7,11 +7,11 @@ const user_profile_service = require("../../services/profile/user_profile");
 const user_role_manager = require("../../services/profile/user_roles_manager");
 
 router.post("/experience/add", token_service.authenticateToken, async (req, res) => {
-  if (!req.body.title || !req.body.nationality_id || !req.body.price || !req.body.style
-    || !req.body.start_date || !req.body.end_date || !req.body.start_time || !req.body.end_time
-    || !req.body.capacity || !req.body.dress_code || !req.body.address
-    || !req.body.city || !req.body.state || !req.body.country || !req.body.postal_code
-    || !req.body.images) {
+  if (!req.body.images || !req.body.title || !req.body.nationality_id || !req.body.price 
+    || !req.body.style || !req.body.start_date || !req.body.end_date || !req.body.start_time 
+    || !req.body.end_time || !req.body.capacity || !req.body.is_restaurant_location 
+    || !req.body.address || !req.body.city || !req.body.state || !req.body.postal_code 
+    || !req.body.country) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -42,7 +42,7 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
     const experience_details = {
       experience_creator_user_id: db_user.tasttlig_user_id,
       title: req.body.title,
-      type: req.body.experience_type,
+      type: req.body.type,
       nationality_id: req.body.nationality_id,
       price: req.body.price,
       style: req.body.style,
@@ -52,6 +52,7 @@ router.post("/experience/add", token_service.authenticateToken, async (req, res)
       end_time: req.body.end_time,
       capacity: req.body.capacity,
       dress_code: req.body.dress_code,
+      is_restaurant_location: req.body.is_restaurant_location,
       address: req.body.address,
       city: req.body.city,
       state: req.body.state,
