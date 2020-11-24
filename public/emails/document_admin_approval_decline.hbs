@@ -7,13 +7,13 @@
 {{#each documents}}
   <div>
       Document Type: {{this.document_type}}<br>
-      Document Link: <a href="{{this.document_link}}">{{this.document_link}}</a><br>
+      Document Link: <a href="{{this.document_link}}" target="_blank" rel="noopener noreferrer">{{this.document_link}}</a><br>
       Date of Issue: {{this.issue_date}}<br>
       Date of Expiry: {{this.expiry_date}}
       <br><br>
   </div>
 {{/each}}
 <div>
-    Approve Link: <a href="{{approve_link}}">Approve</a><br><br>
-    Reject Link: <a href="{{reject_link}}">Reject</a><br><br>
+    Approve Link: <a href="{{approve_link}}" target="_blank" rel="noopener noreferrer">Approve</a><br><br>
+    Reject Link: <a href="{{reject_link}}" target="_blank" rel="noopener noreferrer">Reject</a><br><br>
 </div>
