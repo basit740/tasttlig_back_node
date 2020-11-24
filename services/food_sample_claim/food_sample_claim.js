@@ -142,7 +142,7 @@ const sendClaimedEmailToUser = async (db_user, db_food_sample, db_food_sample_cl
   }, process.env.EMAIL_SECRET);
   
   const url = `${process.env.SITE_BASE}/confirm-food-sample/${token}`;
-  
+
   return Mailer.sendMail({
     from: process.env.SES_DEFAULT_FROM,
     to: db_user.email,
@@ -153,6 +153,7 @@ const sendClaimedEmailToUser = async (db_user, db_food_sample, db_food_sample_cl
       first_name: (db_user.first_name === "NA" ? "" : db_user.first_name),
       host_first_name: db_food_sample.first_name,
       title: db_food_sample.title,
+      business_name: db_food_sample.business_name,
       address: db_food_sample.address,
       city: db_food_sample.city,
       state: db_food_sample.state,
