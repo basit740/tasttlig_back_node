@@ -225,7 +225,7 @@ authRouter.post("/user/create_visitor_account", createAccountLimiter, async (req
 });
 
 authRouter.post("/user/createNewMultiStepUser", createAccountLimiter, async (req, res) => {
-  if (!req.body.first_name || !req.body.last_name || !req.body.email || !req.body.phone_number) {
+  if (!req.body.email) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
