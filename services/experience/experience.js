@@ -166,6 +166,7 @@ const getAllExperience = async (
               "main.title, " +
               "main.description, " +
               "main.nationality" +
+              "main.business_name" +
               ")) as search_text"
             )
           )

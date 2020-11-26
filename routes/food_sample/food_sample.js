@@ -4,7 +4,7 @@ const router = require('express').Router();
 const token_service = require("../../services/authentication/token");
 const food_sample_service = require("../../services/food_sample/food_sample");
 const user_profile_service = require("../../services/profile/user_profile");
-const user_role_manager = require("../../services/profile/user_roles_manager");
+const authentication_service = require("../../services/authentication/authenticate_user");
 const { generateRandomString } = require("../../functions/functions");
 
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
@@ -225,6 +225,43 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
     return res.send({
       success: true,
       owner_user: db_user,
+      food_samples: db_food_samples
+    });
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
+router.get("/food-sample/business/:business_name", async (req, res) => {
+  try{
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
+    const status_operator = "=";
+    const food_sample_status = "ACTIVE";
+    console.log(req.params.business_name);
+    const user = await authentication_service.findUserByBusinessName(req.params.business_name);
+    if(!user.success){
+      res.send({
+        success: false,
+        message: "error",
+        response: "invalid business name"
+      });
+    }
+    const food_sample_response = await food_sample_service.getAllUserFoodSamples(
+      user.user.tasttlig_user_id,
+      status_operator,
+      food_sample_status,
+      keyword,
+      current_page,
+    );
+    const db_food_samples = food_sample_response.details;
+    return res.send({
+      success: true,
+      owner_user: user.user,
       food_samples: db_food_samples
     });
   } catch (err) {

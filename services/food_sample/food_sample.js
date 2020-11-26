@@ -272,6 +272,7 @@ const getAllFoodSamples = async (
       "food_samples.*",
       "tasttlig_users.first_name",
       "tasttlig_users.last_name",
+      "business_details.business_name",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
       db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls"),
@@ -289,6 +290,11 @@ const getAllFoodSamples = async (
       "tasttlig_users.tasttlig_user_id"
     )
     .leftJoin(
+      "business_details",
+      "food_samples.food_sample_creater_user_id",
+      "business_details.user_id"
+    )
+    .leftJoin(
       "nationalities",
       "food_samples.nationality_id",
       "nationalities.id"
@@ -296,6 +302,7 @@ const getAllFoodSamples = async (
     .groupBy("food_samples.food_sample_id")
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
+    .groupBy("business_details.business_name")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
     .having("food_samples.status", operator, status);
@@ -349,6 +356,7 @@ const getAllFoodSamples = async (
               "main.title, " +
               "main.description, " +
               "main.nationality, " +
+              "main.business_name, " +
               "main.first_name, " +
               "main.last_name)) as search_text"
             )

@@ -476,6 +476,46 @@ const sendNewUserEmail = async (new_user) => {
   }
 }
 
+const findUserByBusinessName = async business_name => {
+  return await db.select(
+    "tasttlig_users.*",
+    "business_details.*",
+    db.raw("ARRAY_AGG(roles.role) as role")
+  )
+    .from("tasttlig_users")
+    .leftJoin(
+      "user_role_lookup",
+      "tasttlig_users.tasttlig_user_id",
+      "user_role_lookup.user_id"
+    )
+    .leftJoin(
+      "roles",
+      "user_role_lookup.role_code",
+      "roles.role_code"
+    )
+    .leftJoin(
+      "business_details",
+      "tasttlig_users.tasttlig_user_id",
+      "business_details.user_id"
+    )
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .groupBy("business_details.business_id")
+    .having("business_details.business_name","=", business_name)
+    .first()
+    .then(value => {
+      if(!value){
+        return {
+          success: false,
+          message: "ok",
+          response: `There is no account for ${business_name}.`
+        }
+      }
+      return {success: true, user: value};
+    }).catch(reason => {
+      return {success: false, data: reason};
+    });
+}
+
 module.exports = {
   userRegister,
   verifyAccount,
@@ -486,5 +526,6 @@ module.exports = {
   createDummyUser,
   createBecomeFoodProviderUser,
   findUserByEmail,
-  userMigrationFromAuthServer
+  userMigrationFromAuthServer,
+  findUserByBusinessName
 }
