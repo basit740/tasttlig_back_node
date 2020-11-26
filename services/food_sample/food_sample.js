@@ -488,6 +488,11 @@ const getFoodSampleById = async (id) => {
       "food_samples.food_sample_creater_user_id",
       "tasttlig_users.tasttlig_user_id"
     )
+    .leftJoin(
+      "business_details",
+      "food_samples.food_sample_creater_user_id",
+      "business_details.user_id"
+    )
     .then((value) => {
       if (!value) {
         return {success: false, message: "No food sample found."};

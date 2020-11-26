@@ -19,7 +19,7 @@ const createAccountLimiter = rateLimit({
 
 // POST user register
 authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
-  if (!req.body.passport_id_or_email || !req.body.password || !req.body.source) {
+  if (!req.body.first_name || !req.body.last_name || !req.body.passport_id_or_email || !req.body.password || !req.body.phone_number || !req.body.source) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -27,12 +27,12 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
   }
   try {
     const user = {
-      first_name: "",
-      last_name: "",
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
       email: req.body.passport_id_or_email,
       password: req.body.password,
+      phone_number: req.body.phone_number,
       source: req.body.source,
-      phone_number: ""
     };
     const response = await authenticate_user_service.userRegister(user);
     if (response.success) {
@@ -225,8 +225,7 @@ authRouter.post("/user/create_visitor_account", createAccountLimiter, async (req
 });
 
 authRouter.post("/user/createNewMultiStepUser", createAccountLimiter, async (req, res) => {
-  if (!req.body.first_name || !req.body.last_name
-    || !req.body.email || !req.body.phone_number) {
+  if (!req.body.email) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -244,7 +243,7 @@ authRouter.post("/user/createNewMultiStepUser", createAccountLimiter, async (req
 });
 
 authRouter.put("/user/updateBusinessInfo", createAccountLimiter, async (req, res) => {
-  const has_business = req.body.has_business === "yes";
+  // const has_business = req.body.has_business === "yes";
   const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
   if(!db_user.success){
     return res.status(403).json({
@@ -252,15 +251,15 @@ authRouter.put("/user/updateBusinessInfo", createAccountLimiter, async (req, res
       message: "User does not exist"
     });
   }
-  if (has_business) {
+  // if (has_business) {
     const response = await user_profile_service.saveBusinessForUser(req.body, db_user.user.tasttlig_user_id);
     res.send(response);
-  } else {
-    return res.status(403).json({
-      success: false,
-      message: "Required Parameters are not available in request"
-    });
-  }
+  // } else {
+  //   return res.status(403).json({
+  //     success: false,
+  //     message: "Required Parameters are not available in request"
+  //   });
+  // }
 });
 
 

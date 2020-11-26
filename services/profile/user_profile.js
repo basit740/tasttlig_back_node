@@ -133,7 +133,7 @@ const saveBusinessForUser = async (hostDto, user_id) => {
       state: hostDto.state,
       postal_code: hostDto.postal_code,
       country: hostDto.country,
-      phone_number: hostDto.phone_number,
+      business_phone_number: hostDto.phone_number,
       business_registration_number: hostDto.registration_number,
       instagram: hostDto.instagram,
       facebook: hostDto.facebook
