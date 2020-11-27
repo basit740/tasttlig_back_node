@@ -125,9 +125,22 @@ router.get("/food-sample/all", async (req, res) => {
 
 router.get("/food-sample/nationalities", async (req, res) => {
   try {
+    const keyword = req.query.keyword || "";
+    const selectedNationality = req.query.selectedNationality || [];
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
-    const response = await food_sample_service.getDistinctNationalities(status_operator, food_sample_status);
+    let alreadySelectedNationalityList = [];
+    selectedNationality.map(nationality => {
+      alreadySelectedNationalityList.push(JSON.parse(nationality).value.nationality);
+    });
+    console.log(selectedNationality);
+    console.log(alreadySelectedNationalityList);
+    const response = await food_sample_service.getDistinctNationalities(
+      status_operator,
+      food_sample_status,
+      keyword,
+      alreadySelectedNationalityList
+    );
     return res.send(response);
   } catch (e) {
     res.send({
