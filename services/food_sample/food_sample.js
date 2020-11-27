@@ -272,6 +272,7 @@ const getAllFoodSamples = async (
       "food_samples.*",
       "tasttlig_users.first_name",
       "tasttlig_users.last_name",
+      "business_details.business_name",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
       db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls"),
@@ -289,6 +290,11 @@ const getAllFoodSamples = async (
       "tasttlig_users.tasttlig_user_id"
     )
     .leftJoin(
+      "business_details",
+      "food_samples.food_sample_creater_user_id",
+      "business_details.user_id"
+    )
+    .leftJoin(
       "nationalities",
       "food_samples.nationality_id",
       "nationalities.id"
@@ -296,6 +302,7 @@ const getAllFoodSamples = async (
     .groupBy("food_samples.food_sample_id")
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
+    .groupBy("business_details.business_name")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
     .having("food_samples.status", operator, status);
@@ -349,6 +356,7 @@ const getAllFoodSamples = async (
               "main.title, " +
               "main.description, " +
               "main.nationality, " +
+              "main.business_name, " +
               "main.first_name, " +
               "main.last_name)) as search_text"
             )
@@ -452,17 +460,61 @@ const updateReviewFoodSample = async (
     });
 };
 
-const getDistinctNationalities = async (operator, status) => {
-  return await db("food_samples")
-    .where("food_samples.status", operator, status)
+const getDistinctNationalities = async (
+  operator,
+  status,
+  keyword,
+  alreadySelectedNationalityList
+) => {
+  let query = db
+    .select(
+      "nationalities.nationality"
+    )
+    .from("food_samples")
+    .leftJoin(
+      "food_sample_images",
+      "food_samples.food_sample_id",
+      "food_sample_images.food_sample_id"
+    )
     .leftJoin(
       "nationalities",
       "food_samples.nationality_id",
       "nationalities.id"
     )
-    .pluck("nationalities.nationality")
-    .orderBy("nationalities.nationality")
-    .distinct()
+    .groupBy("food_samples.food_sample_id")
+    .groupBy("nationalities.nationality")
+    .havingNotIn("nationalities.nationality", alreadySelectedNationalityList)
+    .distinct();
+  
+  query = query.having("food_samples.status", operator, status);
+  
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw("CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank", [keyword, keyword])
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+              "main.nationality" +
+              ")) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+  
+  
+  
+  return await query
     .then(value => {
       return {success: true, nationalities: value};
     })
