@@ -36,6 +36,26 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:id",
+  async (req, res) => {
+    if (!req.params.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request."
+      });
+    }
+    try {
+      const response = await menu_item_service.getMenuItem(req.params.id);
+      return res.send(response);
+    } catch (err) {
+      res.send({
+        success: false,
+        message: "error",
+        response: err.message
+      });
+    }
+  })
+
 router.get("/nationalities", async (req, res) => {
   try {
     const status_operator = "=";
