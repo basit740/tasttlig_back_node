@@ -28,9 +28,9 @@ const createNewFoodSample = async (
       // ) {
       //   food_sample_details.status = "ACTIVE";
       // }
-  
+      
       food_sample_details = await setAddressCoordinates(food_sample_details);
-
+      
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
         .returning("*");
@@ -42,7 +42,7 @@ const createNewFoodSample = async (
         image_url: food_sample_image,
       }));
       await trx("food_sample_images").insert(images);
-
+      
       if (createdByAdmin) {
         // Email to confirm the new experience by hosts
         jwt.sign(
@@ -112,7 +112,8 @@ const getAllUserFoodSamples = async (
   status,
   keyword,
   currentPage,
-  requestByAdmin
+  requestByAdmin = false,
+  festival_name = ""
 ) => {
   const startOfDay = moment().startOf('day').format("YYYY-MM-DD HH:mm:ss");
   const endOfDay = moment().endOf('day').format("YYYY-MM-DD HH:mm:ss");
@@ -131,20 +132,30 @@ const getAllUserFoodSamples = async (
       "food_sample_images.food_sample_id"
     )
     .leftJoin(
+      "festivals",
+      "food_samples.festival_id",
+      "festivals.festival_id"
+    )
+    .leftJoin(
       "nationalities",
       "food_samples.nationality_id",
       "nationalities.id"
     )
     .groupBy("food_samples.food_sample_id")
+    .groupBy("festivals.festival_id")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code");
-
+  
   if (!requestByAdmin) {
     query = query
       .having("food_sample_creater_user_id", "=", user_id)
       .having("food_samples.status", operator, status);
   } else {
     query = query.having("food_samples.status", operator, status);
+  }
+  
+  if(festival_name !== ""){
+    query = query.having("festivals.festival_name", "=", festival_name);
   }
   
   if (keyword) {
@@ -188,6 +199,66 @@ const getAllUserFoodSamples = async (
     });
 };
 
+const getAllUserFoodSamplesNotInFestival = async (
+  user_id,
+  operator,
+  status,
+  keyword,
+  currentPage,
+  requestByAdmin,
+  festival_name
+) => {
+  const food_samples_in_festival = await db.select("food_samples.original_food_sample_id")
+    .from("food_samples")
+    .leftJoin(
+      "festivals",
+      "food_samples.festival_id",
+      "festivals.festival_id"
+    )
+    .where("festivals.festival_name", "=", festival_name)
+    .then(db_food_samples => {
+      return db_food_samples.map(db_food_sample => db_food_sample.original_food_sample_id)
+    });
+  let query = db
+    .select(
+      "food_samples.*",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
+      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
+    )
+    .from("food_samples")
+    .leftJoin(
+      "food_sample_images",
+      "food_samples.food_sample_id",
+      "food_sample_images.food_sample_id"
+    )
+    .leftJoin(
+      "nationalities",
+      "food_samples.nationality_id",
+      "nationalities.id"
+    )
+    .groupBy("food_samples.food_sample_id")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code")
+    .havingNotIn("food_samples.original_food_sample_id", food_samples_in_festival);
+  
+  if (!requestByAdmin) {
+    query = query
+      .having("food_sample_creater_user_id", "=", user_id)
+      .having("food_samples.status", operator, status);
+  } else {
+    query = query.having("food_samples.status", operator, status);
+  }
+  
+  return await query
+    .then(value => {
+      return {success: true, details: value};
+    })
+    .catch(reason => {
+      return {success: false, details: reason};
+    });
+};
+
 const updateFoodSample = async (
   db_user,
   food_sample_id,
@@ -198,7 +269,7 @@ const updateFoodSample = async (
     images,
     ...food_sample_update_data
   } = update_data;
-
+  
   if (!food_sample_update_data.status) {
     // let user_role_object = db_user.role;
     // if (
@@ -212,7 +283,7 @@ const updateFoodSample = async (
     // }
     food_sample_update_data.status = "ACTIVE";
   }
-
+  
   try {
     await db("food_samples")
       .where((builder) => {
@@ -227,7 +298,7 @@ const updateFoodSample = async (
           });
         }
       }).update(food_sample_update_data)
-
+    
     if(images && images.length) {
       await db("food_sample_images").where("food_sample_id", food_sample_id).del()
       await db("food_sample_images").insert(images.map(m => ({
@@ -235,7 +306,7 @@ const updateFoodSample = async (
         image_url: m
       })))
     }
-
+    
     return {success: true};
   } catch (e) {
     return {success: false, details: e};
@@ -299,6 +370,11 @@ const getAllFoodSamples = async (
       "food_samples.nationality_id",
       "nationalities.id"
     )
+    .leftJoin(
+      "festivals",
+      "food_samples.festival_id",
+      "festivals.festival_id"
+    )
     .groupBy("food_samples.food_sample_id")
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
@@ -306,11 +382,11 @@ const getAllFoodSamples = async (
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
     .having("food_samples.status", operator, status);
-
+  
   if (filters.nationalities && filters.nationalities.length) {
     query.whereIn("nationalities.nationality", filters.nationalities);
   }
-
+  
   if (filters.latitude && filters.longitude) {
     query.select(gis.distance("food_samples.coordinates", gis.geography(gis.makePoint(filters.longitude, filters.latitude)))
       .as("distanceAway"))
@@ -320,7 +396,7 @@ const getAllFoodSamples = async (
       filters.radius || 100000));
     query.orderBy("distanceAway", "asc");
   }
-
+  
   if (filters.startDate) {
     query.whereRaw(
       "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) >= ?",
@@ -334,9 +410,13 @@ const getAllFoodSamples = async (
       [filters.endDate]
     );
   }
-
+  
   if (food_ad_code) {
     query.where("food_ad_code", "=", food_ad_code);
+  }
+  
+  if(filters.festival_name){
+    query.where("festival_name", "=", filters.festival_name);
   }
   
   if (keyword) {
@@ -366,13 +446,13 @@ const getAllFoodSamples = async (
       )
       .orderBy("rank", "desc");
   }
-
+  
   query = query.paginate({
     perPage: 12,
     isLengthAware: true,
     currentPage: currentPage
   })
-
+  
   return await query
     .then(value => {
       return {success: true, details: value};
@@ -548,6 +628,49 @@ const getFoodSampleById = async (id) => {
     });
 };
 
+const addFoodSampleToFestival = async (
+  food_sample_id,
+  food_sample_creator_user_id,
+  food_sample_creator_user_email,
+  festival_name
+) => {
+  const db_festival = await db("festivals").where("festival_name", festival_name).first();
+  return await db("food_samples")
+    .where("food_samples.food_sample_creater_user_id", food_sample_creator_user_id)
+    .where("food_samples.food_sample_id", food_sample_id)
+    .first()
+    .returning("*")
+    .then((db_food_sample) => {
+      const insertData = {
+        ...db_food_sample,
+        festival_id: db_festival.festival_id,
+        original_food_sample_id: food_sample_id,
+        start_date: db_festival.festival_start_date,
+        end_date: db_festival.festival_start_date
+      };
+      delete insertData.food_sample_id;
+      return db("food_samples")
+        .insert(insertData)
+        .then(() => {
+          Mailer.sendMail({
+            from: process.env.SES_DEFAULT_FROM,
+            to: food_sample_creator_user_email,
+            subject: `[Tasttlig] Food sample "${db_food_sample.title}" is part of festival`,
+            template: "food_sample/new_food_sample_to_festival",
+            context: {
+              title: db_food_sample.title
+            }
+          });
+        })
+    })
+    .then(() => {
+      return {success: true};
+    })
+    .catch(reason => {
+      return {success: false, details: reason};
+    });
+};
+
 module.exports = {
   createNewFoodSample,
   getAllUserFoodSamples,
@@ -557,5 +680,7 @@ module.exports = {
   getFoodSample,
   updateReviewFoodSample,
   getDistinctNationalities,
-  getFoodSampleById
+  getFoodSampleById,
+  addFoodSampleToFestival,
+  getAllUserFoodSamplesNotInFestival
 };
