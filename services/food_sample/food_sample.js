@@ -637,7 +637,6 @@ const addFoodSampleToFestival = async (
 ) => {
   const db_festival = await db("festivals").where("festival_name", festival_name).first();
   const db_food_sample = await db("food_samples")
-    .where("food_samples.food_sample_creater_user_id", food_sample_creator_user_id)
     .where("food_samples.food_sample_id", food_sample_id)
     .first();
   const db_food_sample_images = await db("food_sample_images")
