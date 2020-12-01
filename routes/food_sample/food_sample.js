@@ -223,9 +223,9 @@ router.get("/food-sample/festival/user/all", token_service.authenticateToken, as
     let requestByAdmin = false;
     let db_user = user_details_from_db.user;
     let user_role_object = db_user.role;
-    // if (user_role_object.includes("ADMIN")){
-    //   requestByAdmin = true;
-    // }
+    if (user_role_object.includes("ADMIN")){
+      requestByAdmin = true;
+    }
     const response = await food_sample_service.getAllUserFoodSamplesNotInFestival(
       req.user.id,
       status_operator,
