@@ -19,21 +19,30 @@ const createNewFoodSample = async (
 ) => {
   try {
     await db.transaction(async (trx) => {
-      // food_sample_details.status = "INACTIVE";
-      // food_sample_details.food_ad_code = Math.random().toString(36).substring(2, 4) + Math.random().toString(36).substring(2, 4);
-      // let user_role_object = db_user.role;
-      // if (
-      //   user_role_object.includes("RESTAURANT") &&
-      //   db_user.is_participating_in_festival
-      // ) {
-      //   food_sample_details.status = "ACTIVE";
-      // }
+      food_sample_details.status = "INACTIVE";
+      food_sample_details.food_ad_code = Math.random().toString(36).substring(2, 4) + Math.random().toString(36).substring(2, 4);
+      let user_role_object = db_user.role;
+      if (
+        (user_role_object.includes("RESTAURANT") || user_role_object.includes("ADMIN")) &&
+        db_user.is_participating_in_festival
+      ) {
+        food_sample_details.status = "ACTIVE";
+      }
       
       food_sample_details = await setAddressCoordinates(food_sample_details);
       
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
         .returning("*");
+      
+      await trx("food_samples")
+        .where({
+          food_sample_id: db_food_sample[0].food_sample_id
+        })
+        .update({
+          original_food_sample_id: db_food_sample[0].food_sample_id
+        });
+      
       if (!db_food_sample) {
         return {success: false, details: "Inserting new Food Sample failed"};
       }
