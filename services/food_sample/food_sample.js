@@ -632,36 +632,53 @@ const addFoodSampleToFestival = async (
   food_sample_id,
   food_sample_creator_user_id,
   food_sample_creator_user_email,
-  festival_name
+  festival_name,
+  requestByAdmin
 ) => {
   const db_festival = await db("festivals").where("festival_name", festival_name).first();
-  return await db("food_samples")
+  const db_food_sample = await db("food_samples")
     .where("food_samples.food_sample_creater_user_id", food_sample_creator_user_id)
     .where("food_samples.food_sample_id", food_sample_id)
-    .first()
+    .first();
+  const db_food_sample_images = await db("food_sample_images")
+    .where("food_sample_images.food_sample_id", food_sample_id);
+  
+  const insertData = {
+    ...db_food_sample,
+    festival_id: db_festival.festival_id,
+    original_food_sample_id: food_sample_id,
+    start_date: db_festival.festival_start_date,
+    end_date: db_festival.festival_end_date,
+    food_ad_code: generateRandomString(4)
+  };
+  delete insertData.food_sample_id;
+  
+  return db("food_samples")
+    .insert(insertData)
     .returning("*")
-    .then((db_food_sample) => {
-      const insertData = {
-        ...db_food_sample,
-        festival_id: db_festival.festival_id,
-        original_food_sample_id: food_sample_id,
-        start_date: db_festival.festival_start_date,
-        end_date: db_festival.festival_start_date
-      };
-      delete insertData.food_sample_id;
-      return db("food_samples")
-        .insert(insertData)
-        .then(() => {
-          Mailer.sendMail({
-            from: process.env.SES_DEFAULT_FROM,
-            to: food_sample_creator_user_email,
-            subject: `[Tasttlig] Food sample "${db_food_sample.title}" is part of festival`,
-            template: "food_sample/new_food_sample_to_festival",
-            context: {
-              title: db_food_sample.title
-            }
-          });
+    .then(new_food_sample => {
+      let new_food_sample_images = [];
+      db_food_sample_images.map(new_food_sample_image => {
+        new_food_sample_images.push({
+          food_sample_id: new_food_sample[0].food_sample_id,
+          image_url: new_food_sample_image.image_url
         })
+      });
+      
+      return db("food_sample_images")
+        .insert(new_food_sample_images).then(() => {
+          if(!requestByAdmin) {
+            Mailer.sendMail({
+              from: process.env.SES_DEFAULT_FROM,
+              to: food_sample_creator_user_email,
+              subject: `[Tasttlig] Food sample "${db_food_sample.title}" is part of festival`,
+              template: "food_sample/new_food_sample_to_festival",
+              context: {
+                title: db_food_sample.title
+              }
+            });
+          }
+        });
     })
     .then(() => {
       return {success: true};

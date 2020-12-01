@@ -368,11 +368,25 @@ router.post("/food-sample/add-festival", token_service.authenticateToken, async 
     });
   }
   try {
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
+    if(!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false,
+        message: user_details_from_db.message
+      });
+    }
+    let requestByAdmin = false;
+    let db_user = user_details_from_db.user;
+    let user_role_object = db_user.role;
+    if (user_role_object.includes("ADMIN")){
+      requestByAdmin = true;
+    }
     const response = await food_sample_service.addFoodSampleToFestival(
       req.body.food_sample_id,
       req.user.id,
       req.user.email,
-      req.body.festival_name
+      req.body.festival_name,
+      requestByAdmin
     );
     return res.send(response);
   } catch (err) {
