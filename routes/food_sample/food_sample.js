@@ -101,7 +101,8 @@ router.get("/food-sample/all", async (req, res) => {
       endDate: req.query.endDate,
       radius: req.query.radius,
       latitude: req.query.latitude,
-      longitude: req.query.longitude
+      longitude: req.query.longitude,
+      festival_name: req.query.festival_name
     }
 
     const response = await food_sample_service.getAllFoodSamples(
@@ -133,8 +134,6 @@ router.get("/food-sample/nationalities", async (req, res) => {
     selectedNationality.map(nationality => {
       alreadySelectedNationalityList.push(JSON.parse(nationality).value.nationality);
     });
-    console.log(selectedNationality);
-    console.log(alreadySelectedNationalityList);
     const response = await food_sample_service.getDistinctNationalities(
       status_operator,
       food_sample_status,
@@ -207,6 +206,45 @@ router.get("/food-sample/user/all", token_service.authenticateToken, async (req,
   }
 });
 
+router.get("/food-sample/festival/user/all", token_service.authenticateToken, async (req, res) => {
+  try{
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
+    const festival_name = req.query.festival_name || "";
+    const status_operator = "!=";
+    const food_sample_status = "ARCHIVED";
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
+    if(!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false,
+        message: user_details_from_db.message
+      });
+    }
+    let requestByAdmin = false;
+    let db_user = user_details_from_db.user;
+    let user_role_object = db_user.role;
+    if (user_role_object.includes("ADMIN")){
+      requestByAdmin = true;
+    }
+    const response = await food_sample_service.getAllUserFoodSamplesNotInFestival(
+      req.user.id,
+      status_operator,
+      food_sample_status,
+      keyword,
+      current_page,
+      requestByAdmin,
+      festival_name
+    );
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
 router.get("/food-sample/owner/:owner_id", async (req, res) => {
   if (!req.params.owner_id) {
     return res.status(403).json({
@@ -255,7 +293,6 @@ router.get("/food-sample/business/:business_name", async (req, res) => {
     const keyword = req.query.keyword || "";
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
-    console.log(req.params.business_name);
     const user = await authentication_service.findUserByBusinessName(req.params.business_name);
     if(!user.success){
       res.send({
@@ -311,6 +348,44 @@ router.get("/food-sample/user/archived", token_service.authenticateToken, async 
       food_sample_status,
       keyword,
       current_page,
+      requestByAdmin
+    );
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
+
+router.post("/food-sample/add-festival", token_service.authenticateToken, async (req, res) => {
+  if (!req.body.food_sample_id || !req.body.festival_name) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request."
+    });
+  }
+  try {
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
+    if(!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false,
+        message: user_details_from_db.message
+      });
+    }
+    let requestByAdmin = false;
+    let db_user = user_details_from_db.user;
+    let user_role_object = db_user.role;
+    if (user_role_object.includes("ADMIN")){
+      requestByAdmin = true;
+    }
+    const response = await food_sample_service.addFoodSampleToFestival(
+      req.body.food_sample_id,
+      req.user.id,
+      req.user.email,
+      req.body.festival_name,
       requestByAdmin
     );
     return res.send(response);
