@@ -22,9 +22,9 @@ const createNewFoodSample = async (
       food_sample_details.status = "INACTIVE";
       food_sample_details.food_ad_code = Math.random().toString(36).substring(2, 4) + Math.random().toString(36).substring(2, 4);
       let user_role_object = db_user.role;
-      if (
-        (user_role_object.includes("RESTAURANT") || user_role_object.includes("ADMIN")) &&
-        db_user.is_participating_in_festival
+      if (user_role_object.includes("RESTAURANT") ||
+        user_role_object.includes("RESTAURANT_PENDING") ||
+        createdByAdmin
       ) {
         food_sample_details.status = "ACTIVE";
       }
