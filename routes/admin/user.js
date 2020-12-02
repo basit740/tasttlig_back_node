@@ -54,7 +54,7 @@ router.post("/admin/add-user", token_service.authenticateToken, async (req, res)
       phone_number: req.body.phone_number,
       is_participating_in_festival: req.body.is_participating_in_festival
     };
-    const response = await authenticate_user_service.userRegister(user, false);
+    const response = await authenticate_user_service.userRegister(user, true);
     if (response.success) {
       res.status(200).send(response);
     } else {
