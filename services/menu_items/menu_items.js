@@ -65,6 +65,27 @@ const addNewMenuItem = async (
   }
 }
 
+const getMenuItemsForUser = async (userId, keyword) => {
+  let query = _getBaseMenuItemQuery().where("menu_item_creator_user_id", userId);
+  if (keyword) {
+    query = _applyKeywordSearch(query, keyword);
+  }
+
+  try {
+    const result = await query;
+    return {success: true, menuItems: result};
+  } catch (e) {
+    return {success: false, error: e};
+  }
+}
+
+const getMenuItem = async (menuItemId) => {
+  const result = await _getBaseMenuItemQuery()
+    .where("menu_items.menu_item_id", menuItemId)
+    .first();
+  return {success: true, menuItem: result};
+}
+
 const getAllMenuItems = async (
   operator,
   status,
@@ -72,7 +93,88 @@ const getAllMenuItems = async (
   currentPage,
   filters
 ) => {
-  let query = db
+  let query = _getBaseMenuItemQuery().having("menu_items.status", operator, status);
+
+  if (filters.nationalities && filters.nationalities.length) {
+    query.whereIn("nationalities.nationality", filters.nationalities);
+  }
+
+  if (filters.latitude && filters.longitude) {
+    query.select(gis.distance("menu_items.coordinates", gis.geography(gis.makePoint(filters.longitude, filters.latitude)))
+      .as("distanceAway"))
+    query.where(gis.dwithin(
+      "menu_items.coordinates",
+      gis.geography(gis.makePoint(filters.longitude, filters.latitude)),
+      filters.radius || 100000));
+    query.orderBy("distanceAway", "asc");
+  }
+
+  if (keyword) {
+    query = _applyKeywordSearch(query, keyword);
+  }
+
+  query = query.paginate({
+    perPage: 12,
+    isLengthAware: true,
+    currentPage: currentPage
+  })
+
+  try {
+    const result = await query;
+    return {success: true, details: result};
+  } catch (e) {
+    return {success: false, details: e};
+  }
+}
+
+const getDistinctNationalities = async (operator, status) => {
+  return await db("menu_items")
+    .where("menu_items.status", operator, status)
+    .leftJoin("nationalities",
+      "menu_items.nationality_id",
+      "nationalities.id"
+    )
+    .pluck("nationalities.nationality")
+    .orderBy("nationalities.nationality")
+    .distinct()
+    .then(value => {
+      return {success: true, nationalities: value};
+    })
+    .catch(err => {
+      return {success: false, details: err};
+    });
+};
+
+const _applyKeywordSearch = (query, keyword) => {
+  return db
+    .select(
+      "*",
+      db.raw("CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+        "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+        "END rank", [keyword, keyword])
+    )
+    .from(
+      db
+        .select(
+          "main.*",
+          db.raw(
+            "to_tsvector(concat_ws(' '," +
+            "main.title, " +
+            "main.description, " +
+            "main.first_name, " +
+            "main.last_name, " +
+            "main.nationality" +
+            ")) as search_text"
+          )
+        )
+        .from(query.as("main"))
+        .as("main")
+    )
+    .orderBy("rank", "desc");
+}
+
+const _getBaseMenuItemQuery = () => {
+  return db
     .select(
       "menu_items.*",
       "tasttlig_users.phone_number",
@@ -111,85 +213,13 @@ const getAllMenuItems = async (
     .groupBy("tasttlig_users.email")
     .groupBy("business_details.business_name")
     .groupBy("nationalities.nationality")
-    .groupBy("nationalities.alpha_2_code")
-    .having("menu_items.status", operator, status);
-
-  if (filters.nationalities && filters.nationalities.length) {
-    query.whereIn("nationalities.nationality", filters.nationalities);
-  }
-
-  if (filters.latitude && filters.longitude) {
-    query.select(gis.distance("menu_items.coordinates", gis.geography(gis.makePoint(filters.longitude, filters.latitude)))
-      .as("distanceAway"))
-    query.where(gis.dwithin(
-      "menu_items.coordinates",
-      gis.geography(gis.makePoint(filters.longitude, filters.latitude)),
-      filters.radius || 100000));
-    query.orderBy("distanceAway", "asc");
-  }
-
-  if (keyword) {
-    query = db
-      .select(
-        "*",
-        db.raw("CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-          "END rank", [keyword, keyword])
-      )
-      .from(
-        db
-          .select(
-            "main.*",
-            db.raw(
-              "to_tsvector(concat_ws(' '," +
-              "main.title, " +
-              "main.description, " +
-              "main.first_name, " +
-              "main.last_name, " +
-              "main.nationality" +
-              ")) as search_text"
-            )
-          )
-          .from(query.as("main"))
-          .as("main")
-      )
-      .orderBy("rank", "desc");
-  }
-
-  query = query.paginate({
-    perPage: 12,
-    isLengthAware: true,
-    currentPage: currentPage
-  })
-
-  try {
-    const result = await query;
-    return {success: true, details: result};
-  } catch (e) {
-    return {success: false, details: e};
-  }
+    .groupBy("nationalities.alpha_2_code");
 }
-
-const getDistinctNationalities = async (operator, status) => {
-  return await db("menu_items")
-    .where("menu_items.status", operator, status)
-    .leftJoin("nationalities",
-      "menu_items.nationality_id",
-      "nationalities.id"
-    )
-    .pluck("nationalities.nationality")
-    .orderBy("nationalities.nationality")
-    .distinct()
-    .then(value => {
-      return {success: true, nationalities: value};
-    })
-    .catch(err => {
-      return {success: false, details: err};
-    });
-};
 
 module.exports = {
   addNewMenuItem,
   getAllMenuItems,
-  getDistinctNationalities
+  getDistinctNationalities,
+  getMenuItemsForUser,
+  getMenuItem
 }
