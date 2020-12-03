@@ -35,13 +35,13 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
 
         let user_role_object = db_user.role;
         if (user_role_object.includes("ADMIN")) {
-          if (!req.body.userEmail) {
+          if (!item.userEmail) {
             return res.status(403).json({
               success: false,
               message: "Required Parameters are not available in request"
             });
           }
-          const host_details_from_db = await user_profile_service.getUserByEmail(req.body.userEmail);
+          const host_details_from_db = await user_profile_service.getUserByEmail(item.userEmail);
           db_user = host_details_from_db.user;
           createdByAdmin = true;
         }
@@ -77,7 +77,8 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
           price: 2.0,
           quantity: parseInt(item.quantity),
           food_ad_code: generateRandomString(4),
-          status: "ACTIVE"
+          status: "ACTIVE",
+          festival_id: item.addToFestival ? 2 : null
         }
         const response = await food_sample_service.createNewFoodSample(
           db_user,
