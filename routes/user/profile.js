@@ -203,6 +203,23 @@ router.put("/user/updateMenuItem", async (req, res) => {
   }
 });
 
+router.post("/user/addMenuItems", async (req, res) => {
+  try {
+    const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+    if (!db_user.success) {
+      return res.status(403).json({
+        success: false,
+        message: "User does not exist"
+      });
+    }
+    let menuItems = req.body.menu_list;
+    const response = await user_profile_service.saveMenuItems(db_user.user, menuItems, false);
+    res.send(response);
+  } catch (e) {
+    res.status(500).send({success: false, message: e});
+  }
+});
+
 router.put("/user/updateAssets", async (req, res) => {
   try {
     const db_user = await authenticate_user_service.findUserByEmail(req.body.email);

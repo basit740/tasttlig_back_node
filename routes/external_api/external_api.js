@@ -19,6 +19,7 @@ router.get("/kodidi/specials_list", async (req, res) => {
 router.get("/kodidi/user_specials_list", token_service.authenticateToken, async (req, res) => {
   try {
     const response = await external_api_service.getKodidiUserSpecialsList(req.user.email);
+
     return res.send(response);
   } catch (e) {
     res.send({
