@@ -354,29 +354,31 @@ const saveSocialProof = async (db_user, social_proof) => {
   });
 }
 
-const saveMenuItems = async (db_user, menu_list) => {
+const saveMenuItems = async (db_user, menu_list, update=true) => {
   return await db.transaction(async trx => {
-    await db("menu_items")
-      .select("menu_item_id")
-      .where("menu_item_creator_user_id", db_user.tasttlig_user_id)
-      .then(async menu_item_ids => {
-        let menu_item_id_list = [];
-        menu_item_ids.map(menu_item_id => {
-          menu_item_id_list.push(menu_item_id.menu_item_id);
+    if(update) {
+      await db("menu_items")
+        .select("menu_item_id")
+        .where("menu_item_creator_user_id", db_user.tasttlig_user_id)
+        .then(async menu_item_ids => {
+          let menu_item_id_list = [];
+          menu_item_ids.map(menu_item_id => {
+            menu_item_id_list.push(menu_item_id.menu_item_id);
+          });
+          await db("menu_item_images")
+            .select("menu_item_id")
+            .whereIn("menu_item_id", menu_item_id_list)
+            .del()
+            .then(async () => {
+              await db("menu_items")
+                .whereIn("menu_item_id", menu_item_id_list)
+                .del()
+            })
+        })
+        .catch(err => {
+          console.log(err);
         });
-        await db("menu_item_images")
-          .select("menu_item_id")
-          .whereIn("menu_item_id", menu_item_id_list)
-          .del()
-          .then(async () => {
-            await db("menu_items")
-              .whereIn("menu_item_id", menu_item_id_list)
-              .del()
-          })
-      })
-      .catch(err => {
-        console.log(err);
-      });
+    }
     await Promise.all(menu_list.map(async m => {
       await menu_items_service.addNewMenuItem(
         db_user,
@@ -741,7 +743,7 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         .catch(reason => {
           return {success: false, message: reason};
         });
-  
+      
       let role_name_in_title_case = role_pending.split("_")[0].charAt(0).toUpperCase()
         + role_pending.split("_")[0].slice(1).toLowerCase();
       

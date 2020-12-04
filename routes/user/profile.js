@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const point_system_service = require("../../services/profile/points_system");
+const menu_item_service = require("../../services/menu_items/menu_items")
 
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
@@ -17,7 +18,7 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     });
   }
   const points_total = await point_system_service.getUserPoints(response.user.tasttlig_user_id);
-  
+
   let user = {
     id: response.user.tasttlig_user_id,
     first_name: response.user.first_name,
@@ -186,7 +187,7 @@ router.get("/user/checkEmail/:email", async (req, res) => {
 router.put("/user/updateMenuItem", async (req, res) => {
   try {
     const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
-    if(!db_user.success){
+    if (!db_user.success) {
       return res.status(403).json({
         success: false,
         message: "User does not exist"
@@ -202,10 +203,27 @@ router.put("/user/updateMenuItem", async (req, res) => {
   }
 });
 
+router.post("/user/addMenuItems", async (req, res) => {
+  try {
+    const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+    if (!db_user.success) {
+      return res.status(403).json({
+        success: false,
+        message: "User does not exist"
+      });
+    }
+    let menuItems = req.body.menu_list;
+    const response = await user_profile_service.saveMenuItems(db_user.user, menuItems, false);
+    res.send(response);
+  } catch (e) {
+    res.status(500).send({success: false, message: e});
+  }
+});
+
 router.put("/user/updateAssets", async (req, res) => {
   try {
     const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
-    if(!db_user.success){
+    if (!db_user.success) {
       return res.status(403).json({
         success: false,
         message: "User does not exist"
@@ -224,7 +242,7 @@ router.put("/user/updateAssets", async (req, res) => {
 router.put("/user/updateServices", async (req, res) => {
   try {
     const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
-    if(!db_user.success){
+    if (!db_user.success) {
       return res.status(403).json({
         success: false,
         message: "User does not exist"
@@ -243,7 +261,7 @@ router.put("/user/updateServices", async (req, res) => {
 router.put("/user/updateEntertainersProduct", async (req, res) => {
   try {
     const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
-    if(!db_user.success){
+    if (!db_user.success) {
       return res.status(403).json({
         success: false,
         message: "User does not exist"
@@ -262,7 +280,7 @@ router.put("/user/updateEntertainersProduct", async (req, res) => {
 router.put("/user/updateVenuesProduct", async (req, res) => {
   try {
     const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
-    if(!db_user.success){
+    if (!db_user.success) {
       return res.status(403).json({
         success: false,
         message: "User does not exist"
@@ -283,7 +301,7 @@ router.put("/user/updateVenuesProduct", async (req, res) => {
 router.put("/user/updateDocuments", async (req, res) => {
   try {
     const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
-    if(!db_user.success){
+    if (!db_user.success) {
       return res.status(403).json({
         success: false,
         message: "User does not exist"
@@ -302,7 +320,7 @@ router.put("/user/updateDocuments", async (req, res) => {
 router.put("/user/updateSocialProof", async (req, res) => {
   try {
     const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
-    if(!db_user.success){
+    if (!db_user.success) {
       return res.status(403).json({
         success: false,
         message: "User does not exist"
@@ -321,7 +339,7 @@ router.put("/user/updateSocialProof", async (req, res) => {
 router.put("/user/updatePaymentInfo", async (req, res) => {
   try {
     const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
-    if(!db_user.success){
+    if (!db_user.success) {
       return res.status(403).json({
         success: false,
         message: "User does not exist"
@@ -340,7 +358,7 @@ router.put("/user/updatePaymentInfo", async (req, res) => {
 router.put("/user/updateResidentialAddressInfo", async (req, res) => {
   try {
     const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
-    if(!db_user.success){
+    if (!db_user.success) {
       return res.status(403).json({
         success: false,
         message: "User does not exist"
@@ -361,5 +379,17 @@ router.put("/user/updateResidentialAddressInfo", async (req, res) => {
     res.status(500).send({success: false, message: e});
   }
 });
+
+router.get("/user/menu_items",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const keyword = req.query.keyword || ""
+      const menuItems = await menu_item_service.getMenuItemsForUser(req.user.id, keyword);
+      return res.send(menuItems);
+    } catch (e) {
+      console.log(e)
+    }
+  })
 
 module.exports = router;

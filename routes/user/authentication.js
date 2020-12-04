@@ -81,6 +81,7 @@ authRouter.post("/user/login", async (req, res) => {
   }
   try {
     const {success, user} = await auth_server_service.authLogin(req.body.passport_id_or_email, req.body.password);
+    console.log(user);
     if(!success){
       return res.status(401).json({
         success: false,
