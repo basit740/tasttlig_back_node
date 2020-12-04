@@ -10,7 +10,11 @@ const { generateRandomString } = require("../../functions/functions");
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
   try {
     req.body.map(async (item) => {
-      if (!item.title || !item.sample_size || !item.quantity || !item.addressLine1 || !item.city || !item.provinceTerritory || !item.postal_code || !item.description || !item.images || !item.start_date || !item.end_date || !item.start_time || !item.end_time || !item.daysAvailable || !item.nationality_id) {
+      if (!item.title || !item.sample_size || !item.quantity
+        || !item.addressLine1 || !item.city || !item.provinceTerritory
+        || !item.postal_code || !item.description || !item.images
+        || !item.start_date || !item.end_date || !item.start_time
+        || !item.end_time || !item.daysAvailable || !item.nationality_id) {
         return res.status(403).json({
           success: false,
           message: "Required Parameters are not available in request"
