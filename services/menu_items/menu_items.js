@@ -12,7 +12,14 @@ const addNewMenuItem = async (
   trx
 ) => {
   try {
+    let status = "INACTIVE";
     let user_role_object = db_user.role;
+    
+    if (user_role_object.includes("ADMIN") ||
+      user_role_object.includes("RESTAURANT")){
+      status = "ACTIVE";
+    }
+    
     if (user_role_object.includes("ADMIN")) {
       let db_user_details = await authenticate_user_service.findUserByEmail(menu_item_details.userEmail);
       db_user = db_user_details.user;
@@ -45,8 +52,10 @@ const addNewMenuItem = async (
       is_available_on_saturday: menu_item_details.daysAvailable.includes("available_on_saturday"),
       is_available_on_sunday: menu_item_details.daysAvailable.includes("available_on_sunday"),
       include_in_festival: menu_item_details.include_in_festival,
-      samples_per_day: menu_item_details.samples_per_day
+      samples_per_day: menu_item_details.samples_per_day,
+      status: status
     };
+    
     menuItem = await setAddressCoordinates(menuItem);
     const db_menu_item = await trx("menu_items")
       .insert(menuItem)
@@ -125,6 +134,38 @@ const getAllMenuItems = async (
     currentPage: currentPage
   })
 
+  try {
+    const result = await query;
+    return {success: true, details: result};
+  } catch (e) {
+    return {success: false, details: e};
+  }
+}
+
+const getAllUserMenuItems = async (
+  operator,
+  status,
+  keyword,
+  currentPage,
+  user_id,
+  requestByAdmin = false
+) => {
+  let query = _getBaseMenuItemQuery().having("menu_items.status", operator, status);
+  
+  if(!requestByAdmin){
+    query.having("menu_item_creator_user_id", "=", user_id);
+  }
+  
+  if (keyword) {
+    query = _applyKeywordSearch(query, keyword);
+  }
+  
+  query = query.paginate({
+    perPage: 12,
+    isLengthAware: true,
+    currentPage: currentPage
+  })
+  
   try {
     const result = await query;
     return {success: true, details: result};
@@ -227,5 +268,6 @@ module.exports = {
   getAllMenuItems,
   getDistinctNationalities,
   getMenuItemsForUser,
-  getMenuItem
+  getMenuItem,
+  getAllUserMenuItems
 }
