@@ -1,6 +1,8 @@
 "use strict";
 
 const {db} = require("../../db/db-config");
+const auth_server_service = require("../authentication/auth_server_service");
+const user_profile_service = require("../profile/user_profile");
 
 const getUserPoints = async(user_id) => {
   return db("points_history")
@@ -15,6 +17,8 @@ const getUserPoints = async(user_id) => {
 }
 
 const addUserPoints = async(user_id, points) => {
+  const db_user = await user_profile_service.getUserById(user_id);
+  await auth_server_service.authAddPoints(db_user.user.auth_user_id, points);
   return db("points_history")
     .insert({
       user_id: user_id,

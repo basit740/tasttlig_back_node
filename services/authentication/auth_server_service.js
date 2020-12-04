@@ -98,6 +98,18 @@ async function authRemoveRole(userId, role_code) {
   return response.data
 }
 
+async function authAddPoints(userId, point) {
+  let response = await axios({
+    url: auth_server_url + "/auth/add-point",
+    method: 'post',
+    data: {
+      user_id: userId,
+      point: point,
+    }
+  });
+  return response.data
+}
+
 module.exports = {
   getAuthUserByEmail,
   getAuthUserById,
@@ -106,5 +118,6 @@ module.exports = {
   authPasswordReset,
   authPasswordResetRequest,
   authAddRole,
-  authRemoveRole
+  authRemoveRole,
+  authAddPoints
 }

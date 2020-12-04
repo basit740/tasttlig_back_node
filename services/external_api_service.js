@@ -27,7 +27,21 @@ const saveKodidiSpecials = async (specials) => {
   }
 }
 
+const getKodidiUserSpecialsList = async (user_email) => {
+  try {
+    const url = `${process.env.KODEDE_API_BASE}/tasttlig-api/specials/` + user_email;
+    const response = await axios({
+      method: "get",
+      url: url,
+    });
+    return {success: true, specialsList: response.data.userSpecialsList};
+  } catch (e) {
+    return {success: false, message: e};
+  }
+}
+
 module.exports = {
   getKodidiSpecialsList,
-  saveKodidiSpecials
+  saveKodidiSpecials,
+  getKodidiUserSpecialsList
 };
