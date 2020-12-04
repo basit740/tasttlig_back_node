@@ -19,7 +19,7 @@ const createNewFoodSample = async (
 ) => {
   try {
     await db.transaction(async (trx) => {
-      food_sample_details.status = "INACTIVE";
+      // food_sample_details.status = "INACTIVE";
       food_sample_details.food_ad_code = Math.random().toString(36).substring(2, 4) + Math.random().toString(36).substring(2, 4);
       let user_role_object = db_user.role;
       if (user_role_object.includes("RESTAURANT") ||
@@ -34,7 +34,7 @@ const createNewFoodSample = async (
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
         .returning("*");
-      
+
       await trx("food_samples")
         .where({
           food_sample_id: db_food_sample[0].food_sample_id
