@@ -3,6 +3,7 @@
 const {db, gis} = require("../../db/db-config");
 const {setAddressCoordinates} = require("../geocoder");
 const {generateRandomString} = require("../../functions/functions");
+const authenticate_user_service = require("../../services/authentication/authenticate_user");
 
 const addNewMenuItem = async (
   db_user,
@@ -11,6 +12,11 @@ const addNewMenuItem = async (
   trx
 ) => {
   try {
+    let user_role_object = db_user.role;
+    if (user_role_object.includes("ADMIN")) {
+      let db_user_details = await authenticate_user_service.findUserByEmail(menu_item_details.userEmail);
+      db_user = db_user_details.user;
+    }
     let menuItem = {
       menu_item_creator_user_id: db_user.tasttlig_user_id,
       title: menu_item_details.menuName,

@@ -205,15 +205,16 @@ router.put("/user/updateMenuItem", async (req, res) => {
 
 router.post("/user/addMenuItems", async (req, res) => {
   try {
-    const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
-    if (!db_user.success) {
+    const user_details_from_db = await authenticate_user_service.findUserByEmail(req.body.email);
+    if (!user_details_from_db.success) {
       return res.status(403).json({
         success: false,
         message: "User does not exist"
       });
     }
+    let db_user = user_details_from_db.user;
     let menuItems = req.body.menu_list;
-    const response = await user_profile_service.saveMenuItems(db_user.user, menuItems, false);
+    const response = await user_profile_service.saveMenuItems(db_user, menuItems, false);
     res.send(response);
   } catch (e) {
     res.status(500).send({success: false, message: e});
