@@ -263,5 +263,28 @@ authRouter.put("/user/updateBusinessInfo", createAccountLimiter, async (req, res
   // }
 });
 
+// GET user by email
+authRouter.get("/user/:user_email", async (req, res) => {
+  try {
+    const user = await authenticate_user_service.findUserByEmail(req.params.user_email);
+    if (!user.success) {
+      res.send({
+        success: false,
+        message: user.response,
+      });
+    }
+    return res.send({
+      success: true,
+      message: "",
+      response: user
+    });
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err.message
+    });
+  }
+});
 
 module.exports = authRouter;
