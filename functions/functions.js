@@ -8,6 +8,12 @@ const formatDate = (event) => {
   return standardDate;
 };
 
+// Time formatting helper function
+const formatTime = (event) => {
+  const options = { hour: "2-digit", minute: "2-digit" };
+  return new Date(event).toLocaleTimeString([], options);
+};
+
 // Format military to standard time helper function
 const formatMilitaryToStandardTime = (event) => {
   const militaryHours = parseInt(event.substring(0, 2));
@@ -41,6 +47,7 @@ const formatPhone = (phone) => {
 
 module.exports = {
   formatDate,
+  formatTime,
   formatMilitaryToStandardTime,
   generateRandomString,
   formatPhone
