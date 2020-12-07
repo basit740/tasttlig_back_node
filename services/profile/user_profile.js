@@ -136,7 +136,8 @@ const saveBusinessForUser = async (hostDto, user_id) => {
       business_phone_number: hostDto.phone_number,
       business_registration_number: hostDto.registration_number,
       instagram: hostDto.instagram,
-      facebook: hostDto.facebook
+      facebook: hostDto.facebook,
+      in_current_festival: hostDto.in_current_festival
     };
     
     const checkForUpdate = await trx('business_details')
