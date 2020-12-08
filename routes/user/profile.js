@@ -381,7 +381,7 @@ router.put("/user/updateResidentialAddressInfo", async (req, res) => {
   }
 });
 
-router.get("/user/menu_items",
+router.get("/menu-item/user/all",
   token_service.authenticateToken,
   async (req, res) => {
     try {

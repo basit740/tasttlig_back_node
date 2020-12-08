@@ -5,7 +5,10 @@ const token_service = require("../../services/authentication/token");
 const food_sample_service = require("../../services/food_sample/food_sample");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
-const { generateRandomString } = require("../../functions/functions");
+const { 
+  generateRandomString, 
+  formatTime,
+} = require("../../functions/functions");
 
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
   try {
@@ -55,8 +58,8 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
           title: item.title,
           start_date: item.start_date.substring(0, 10),
           end_date: item.end_date.substring(0, 10),
-          start_time: item.start_time.substring(11, 19),
-          end_time: item.end_time.substring(11, 19),
+          start_time: formatTime(item.start_time),
+          end_time: formatTime(item.end_time),
           description: item.description,
           address,
           city: item.city,
