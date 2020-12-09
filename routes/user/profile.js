@@ -381,15 +381,43 @@ router.put("/user/updateResidentialAddressInfo", async (req, res) => {
   }
 });
 
+// GET user menu items
 router.get("/menu-item/user/all",
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      const keyword = req.query.keyword || ""
-      const menuItems = await menu_item_service.getMenuItemsForUser(req.user.id, keyword);
-      return res.send(menuItems);
-    } catch (e) {
-      console.log(e)
+      const current_page = req.query.page || 1;
+      const keyword = req.query.keyword || "";
+      const status_operator = "=";
+      const menu_item_status = "ACTIVE";
+      const user_details_from_db = await user_profile_service.getUserById(req.user.id);
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message
+        });
+      }
+      let requestByAdmin = false;
+      let db_user = user_details_from_db.user;
+      let user_role_object = db_user.role;
+      if (user_role_object.includes("ADMIN")) {
+        requestByAdmin = true;
+      }
+      const response = await menu_item_service.getAllUserMenuItems(
+        status_operator,
+        menu_item_status,
+        keyword,
+        current_page,
+        req.user.id,
+        requestByAdmin
+      );
+      return res.send(response);
+    } catch (err) {
+      res.send({
+        success: false,
+        message: "error",
+        response: err.message
+      });
     }
   })
 
