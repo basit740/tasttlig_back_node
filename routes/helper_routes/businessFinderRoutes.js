@@ -25,7 +25,6 @@ router.get("/:keyword", async (req, res) => {
 router.get("/festival/restaurants", async (req, res) => {
   try {
     const response = await business_finder_service.getFestivalRestaurants();
-    console.log(response);
     return res.send(response);
   } catch (err) {
     res.send({
