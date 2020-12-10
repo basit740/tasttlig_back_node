@@ -52,6 +52,16 @@ const getTopBusinessSuggestions = async (keyword) => {
     });
 }
 
+const getFestivalRestaurants = async (keyword) => {
+  let query = db
+  .select("*")
+  .from("business_details")
+  .where('in_current_festival', "true");
+
+  return await query;
+}
+
 module.exports = {
-  getTopBusinessSuggestions
+  getTopBusinessSuggestions,
+  getFestivalRestaurants
 }

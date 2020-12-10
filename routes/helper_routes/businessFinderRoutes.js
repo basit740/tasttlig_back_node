@@ -22,4 +22,17 @@ router.get("/:keyword", async (req, res) => {
   }
 })
 
+router.get("/festival/restaurants", async (req, res) => {
+  try {
+    const response = await business_finder_service.getFestivalRestaurants();
+    return res.send(response);
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err
+    });
+  }
+})
+
 module.exports = router;
