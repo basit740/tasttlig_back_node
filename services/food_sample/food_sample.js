@@ -337,6 +337,7 @@ const deleteFoodSample = async (user_id, food_sample_id) => {
     });
 };
 
+// GET all food samples helper function
 const getAllFoodSamples = async (
   operator,
   status,
@@ -345,8 +346,8 @@ const getAllFoodSamples = async (
   food_ad_code,
   filters
 ) => {
-  const startOfDay = moment().startOf('day').format("YYYY-MM-DD HH:mm:ss");
-  const endOfDay = moment().endOf('day').format("YYYY-MM-DD HH:mm:ss");
+  const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
+  const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
   let query = db
     .select(
       "food_samples.*",
@@ -424,7 +425,7 @@ const getAllFoodSamples = async (
     query.where("food_ad_code", "=", food_ad_code);
   }
   
-  if(filters.festival_name){
+  if (filters.festival_name) {
     query.where("festival_name", "=", filters.festival_name);
   }
   
@@ -442,12 +443,16 @@ const getAllFoodSamples = async (
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
+              "main.nationality, " +
               "main.title, " +
               "main.description, " +
-              "main.nationality, " +
               "main.business_name, " +
               "main.first_name, " +
-              "main.last_name)) as search_text"
+              "main.last_name, " +
+              "main.address, " +
+              "main.city, " +
+              "main.state, " +
+              "main.postal_code)) as search_text"
             )
           )
           .from(query.as("main"))

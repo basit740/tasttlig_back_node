@@ -111,8 +111,9 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
   }
 });
 
+// GET all food samples route
 router.get("/food-sample/all", async (req, res) => {
-  try{
+  try {
     const current_page = req.query.page || 1;
     const keyword = req.query.keyword || "";
     const status_operator = "=";
