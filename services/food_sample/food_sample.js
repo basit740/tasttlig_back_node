@@ -435,6 +435,11 @@ const getAllFoodSamples = async (
       .andWhere("food_samples.end_time", "<=", endTime)
   }
 
+  // Filter by quantity
+  if (filters.quantity) {
+    query.where("food_samples.quantity", ">=", filters.quantity);
+  }
+
   if (food_ad_code) {
     query.where("food_ad_code", "=", food_ad_code);
   }
