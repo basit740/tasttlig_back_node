@@ -3,7 +3,7 @@
 const Food_Sample_Claim_Status = require("../../enums/food_sample_claim_status");
 const {db, gis} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
-const {generateRandomString} = require("../../functions/functions");
+const {formatTime, generateRandomString} = require("../../functions/functions");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
 const {setAddressCoordinates} = require("../geocoder");
@@ -348,6 +348,10 @@ const getAllFoodSamples = async (
 ) => {
   const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
   const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
+  let startDate = filters.startDate.substring(0, 10);
+  let endDate = filters.endDate.substring(0, 10);
+  let startTime = formatTime(filters.startDate);
+  let endTime = formatTime(filters.endDate);
   let query = db
     .select(
       "food_samples.*",
@@ -393,10 +397,12 @@ const getAllFoodSamples = async (
     .groupBy("nationalities.alpha_2_code")
     .having("food_samples.status", operator, status);
   
+  // Filter by nationality
   if (filters.nationalities && filters.nationalities.length) {
     query.whereIn("nationalities.nationality", filters.nationalities);
   }
   
+  // Filter by location
   if (filters.latitude && filters.longitude) {
     query.select(gis.distance("food_samples.coordinates", gis.geography(gis.makePoint(filters.longitude, filters.latitude)))
       .as("distanceAway"))
@@ -407,20 +413,28 @@ const getAllFoodSamples = async (
     query.orderBy("distanceAway", "asc");
   }
   
+  // Filter by start date and time
   if (filters.startDate) {
-    query.whereRaw(
-      "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) >= ?",
-      [filters.startDate]
-    );
+    query
+      // .whereRaw(
+      //   "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) >= ?",
+      //   [filters.startDate]
+      // );
+      .where("food_samples.start_date", ">=", startDate)
+      .andWhere("food_samples.start_time", ">=", startTime)
   }
-  
+
+  // Filter by end date and time
   if (filters.endDate) {
-    query.whereRaw(
-      "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) <= ?",
-      [filters.endDate]
-    );
+    query
+      // .whereRaw(
+      //   "cast(concat(food_samples.end_date, ' ', food_samples.end_time) as date) <= ?",
+      //   [filters.endDate]
+      // );
+      .where("food_samples.end_date", "<=", endDate)
+      .andWhere("food_samples.end_time", "<=", endTime)
   }
-  
+
   if (food_ad_code) {
     query.where("food_ad_code", "=", food_ad_code);
   }
