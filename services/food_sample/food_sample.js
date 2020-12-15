@@ -479,9 +479,9 @@ const getAllFoodSamples = async (
       )
       .orderBy("rank", "desc");
   }
-  
+
   query = query.paginate({
-    perPage: 12,
+    // perPage: 12,
     isLengthAware: true,
     currentPage: currentPage
   })
