@@ -13,11 +13,10 @@ const {
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
   try {
     req.body.map(async (item) => {
-      if (!item.title || !item.sample_size || !item.quantity
-        || !item.addressLine1 || !item.city || !item.provinceTerritory
-        || !item.postal_code || !item.description || !item.images
-        || !item.start_date || !item.end_date || !item.start_time
-        || !item.end_time || !item.daysAvailable || !item.nationality_id) {
+      if (!item.title || !item.sample_size || !item.quantity || !item.city 
+        || !item.postal_code || !item.description || !item.images 
+        || !item.start_date || !item.end_date || !item.start_time 
+        || !item.end_time || !item.nationality_id) {
         return res.status(403).json({
           success: false,
           message: "Required Parameters are not available in request"
@@ -58,27 +57,27 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
           title: item.title,
           start_date: item.start_date.substring(0, 10),
           end_date: item.end_date.substring(0, 10),
-          start_time: formatTime(item.start_time),
-          end_time: formatTime(item.end_time),
+          start_time: item.start_time.length === 5 ? item.start_time : formatTime(item.start_time),
+          end_time: item.end_time.length === 5 ? item.end_time : formatTime(item.end_time),
           description: item.description,
-          address,
+          address: item.address ? item.address : address,
           city: item.city,
-          state: item.provinceTerritory,
+          state: item.state ? item.state : item.provinceTerritory,
           country: "Canada",
           postal_code: item.postal_code,
           nationality_id: item.nationality_id,
           sample_size: item.sample_size,
-          is_available_on_monday: item.daysAvailable.includes("available_on_monday"),
-          is_available_on_tuesday: item.daysAvailable.includes("available_on_tuesday"),
-          is_available_on_wednesday: item.daysAvailable.includes("available_on_wednesday"),
-          is_available_on_thursday: item.daysAvailable.includes("available_on_thursday"),
-          is_available_on_friday: item.daysAvailable.includes("available_on_friday"),
-          is_available_on_saturday: item.daysAvailable.includes("available_on_saturday"),
-          is_available_on_sunday: item.daysAvailable.includes("available_on_sunday"),
-          is_vegetarian: item.dietaryRestrictions.includes("vegetarian"),
-          is_vegan: item.dietaryRestrictions.includes("vegan"),
-          is_gluten_free: item.dietaryRestrictions.includes("glutenFree"),
-          is_halal: item.dietaryRestrictions.includes("halal"),
+          is_available_on_monday: item.is_available_on_monday !== undefined ? item.is_available_on_monday : item.daysAvailable.includes("available_on_monday"),
+          is_available_on_tuesday: item.is_available_on_tuesday !== undefined ? item.is_available_on_tuesday : item.daysAvailable.includes("available_on_tuesday"),
+          is_available_on_wednesday: item.is_available_on_wednesday !== undefined ? item.is_available_on_wednesday : item.daysAvailable.includes("available_on_wednesday"),
+          is_available_on_thursday: item.is_available_on_thursday !== undefined ? item.is_available_on_thursday : item.daysAvailable.includes("available_on_thursday"),
+          is_available_on_friday: item.is_available_on_friday !== undefined ? item.is_available_on_friday : item.daysAvailable.includes("available_on_friday"),
+          is_available_on_saturday: item.is_available_on_saturday !== undefined ? item.is_available_on_saturday : item.daysAvailable.includes("available_on_saturday"),
+          is_available_on_sunday: item.is_available_on_sunday !== undefined ? item.is_available_on_sunday : item.daysAvailable.includes("available_on_sunday"),
+          is_vegetarian: item.is_vegetarian !== undefined ? item.is_vegetarian : item.dietaryRestrictions.includes("vegetarian"),
+          is_vegan: item.is_vegan !== undefined ? item.is_vegan : item.dietaryRestrictions.includes("vegan"),
+          is_gluten_free: item.is_gluten_free !== undefined ? item.is_gluten_free : item.dietaryRestrictions.includes("glutenFree"),
+          is_halal: item.is_halal !== undefined ? item.is_halal : item.dietaryRestrictions.includes("halal"),
           spice_level: item.spice_level,
           // food_sample_type: item.food_sample_type,
           price: 2.0,
