@@ -19,7 +19,7 @@ const createAccountLimiter = rateLimit({
 
 // POST user register
 authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
-  if (!req.body.first_name || !req.body.last_name || !req.body.passport_id_or_email || !req.body.password || !req.body.phone_number || !req.body.source) {
+  if (!req.body.passport_id_or_email || !req.body.password || !req.body.source) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
