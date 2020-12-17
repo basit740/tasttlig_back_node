@@ -1,4 +1,5 @@
 "use strict";
+const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
 const router = require('express').Router();
 const token_service = require("../../services/authentication/token");
@@ -191,6 +192,13 @@ router.get("/food-sample/:food_sample_id", async (req, res) => {
     });
   }
 });
+
+router.get("/food-sample/googleMaps/api", (req, res) => {
+  console.log("at /food-sample/")
+  console.log("key", GOOGLE_MAPS_API_KEY);
+  const response = GOOGLE_MAPS_API_KEY; //"AIzaSyAB6dOAJ8luzX6MHseXC-TL76FarWoFqWo";
+  return res.send(response);
+})
 
 router.get("/food-sample/user/all", token_service.authenticateToken, async (req, res) => {
   try{
