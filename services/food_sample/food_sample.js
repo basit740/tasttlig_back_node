@@ -501,6 +501,7 @@ const getFoodSample = async (food_sample_id) => {
       "food_samples.*",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
+      "business_details.business_name",
       db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
     )
     .from("food_samples")
@@ -514,9 +515,16 @@ const getFoodSample = async (food_sample_id) => {
       "food_samples.nationality_id",
       "nationalities.id"
     )
+    .leftJoin(
+      "business_details",
+      "food_samples.food_sample_creater_user_id",
+      "business_details.user_id"
+    )
     .groupBy("food_samples.food_sample_id")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
+    .groupBy("business_details.business_name")
+
     .having("food_samples.food_sample_id", "=", food_sample_id)
     .then(value => {
       return {success: true, details: value};
