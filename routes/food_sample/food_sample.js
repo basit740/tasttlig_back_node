@@ -194,8 +194,6 @@ router.get("/food-sample/:food_sample_id", async (req, res) => {
 });
 
 router.get("/food-sample/googleMaps/api", (req, res) => {
-  console.log("at /food-sample/")
-  console.log("key", GOOGLE_MAPS_API_KEY);
   const response = GOOGLE_MAPS_API_KEY; //"AIzaSyAB6dOAJ8luzX6MHseXC-TL76FarWoFqWo";
   return res.send(response);
 })
