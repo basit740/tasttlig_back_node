@@ -1,5 +1,4 @@
 "use strict";
-const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
 const router = require('express').Router();
 const token_service = require("../../services/authentication/token");
@@ -10,6 +9,8 @@ const {
   generateRandomString, 
   formatTime,
 } = require("../../functions/functions");
+
+const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
   try {
@@ -194,10 +195,11 @@ router.get("/food-sample/:food_sample_id", async (req, res) => {
   }
 });
 
+// GET Google Maps API key
 router.get("/food-sample/googleMaps/api", (req, res) => {
-  const response = GOOGLE_MAPS_API_KEY; //"AIzaSyAB6dOAJ8luzX6MHseXC-TL76FarWoFqWo";
+  const response = GOOGLE_MAPS_API_KEY;
   return res.send(response);
-})
+});
 
 router.get("/food-sample/user/all", token_service.authenticateToken, async (req, res) => {
   try{
