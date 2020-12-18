@@ -30,16 +30,19 @@ const getHostApplication = async (userId) => {
       .select(
         "tasttlig_users.*",
         "business_details.*",
+        "sponsors.*",
         "payment_info.*",
         db.raw("ARRAY_AGG(roles.role) as role")
       )
       .from("tasttlig_users")
       .leftJoin("business_details", "tasttlig_users.tasttlig_user_id", "business_details.user_id")
+      .leftJoin("sponsors", "tasttlig_users.tasttlig_user_id", "sponsors.sponsor_user_id")
       .leftJoin("payment_info", "tasttlig_users.tasttlig_user_id", "payment_info.user_id")
       .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
       .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
       .groupBy("tasttlig_users.tasttlig_user_id")
       .groupBy("business_details.business_id")
+      .groupBy("sponsors.sponsor_id")
       .groupBy("payment_info.payment_bank_id")
       .having("tasttlig_users.tasttlig_user_id", "=", userId)
       .first();
