@@ -246,6 +246,53 @@ const saveApplicationInformation = async (hostDto, trx) => {
       console.log(reason);
     });
 }
+const formatTime = (event) => {
+  const options = { hour: "2-digit", minute: "2-digit" };
+  return new Date(event).toLocaleTimeString([], options);
+};
+
+const saveFoodSamples = async (hostDto,trx) => {
+  let SamplesList = []
+    // loop through food samples added by host
+    for (let i = 0; i < hostDto.foodSampleList.length; i++) {
+      console.log("hello")
+      SamplesList.push({
+        food_sample_creater_user_id: hostDto.dbUser.user.tasttlig_user_id,
+        title: hostDto.foodSampleList[i].title,
+        start_date: hostDto.foodSampleList[i].start_date,
+        start_time: formatTime(hostDto.foodSampleList[i].start_time),
+        end_date: hostDto.foodSampleList[i].end_date,
+        end_time: formatTime(hostDto.foodSampleList[i].end_time),
+        address: hostDto.foodSampleList[i].addressLine1,
+        city: hostDto.foodSampleList[i].city,
+        state: hostDto.foodSampleList[i].provinceTerritory,
+        postal_code: hostDto.foodSampleList[i].postal_code,
+        country: hostDto.foodSampleList[i].country,
+        description: hostDto.foodSampleList[i].description,
+        nationality_id: hostDto.foodSampleList[i].nationality_id,
+        quantity: hostDto.foodSampleList[i].quantity,
+        is_vegetarian: hostDto.foodSampleList[i].dietaryRestrictions.includes("vegetarian"),
+        is_vegan: hostDto.foodSampleList[i].dietaryRestrictions.includes("vegan"),
+        is_gluten_free: hostDto.foodSampleList[i].dietaryRestrictions.includes("gultenFree"),
+        is_halal: hostDto.foodSampleList[i].dietaryRestrictions.includes("halal"),
+        spice_level: hostDto.foodSampleList[i].spice_level,
+        sample_size: hostDto.foodSampleList[i].sample_size,
+        is_available_on_monday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_monday"),
+        is_available_on_tuesday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_tuesday"),
+        is_available_on_wednesday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_wednesday"),
+        is_available_on_thursday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_thursday"),
+        is_available_on_friday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_friday"),
+        is_available_on_saturday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_saturday"),
+        is_available_on_sunday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_sunday"),
+      })
+      //insert food sample
+      await trx("food_samples").
+      insert(SamplesList)
+      .catch(reason => {
+        console.log(reason);
+      })
+    }
+  }
 
 const savePaymentInformation = async (db_user, banking_info) => {
   return await db.transaction(async trx => {
@@ -908,6 +955,9 @@ const saveHostApplication = async (hostDto, user) => {
     if(hostDto.menu_list){
       await saveSpecials(hostDto);
     }
+     if(hostDto.foodSampleList){
+      await saveFoodSamples(hostDto, trx);
+    } 
     await sendApplierEmailForHosting(dbUser);
     return {success: true};
   });
@@ -985,5 +1035,6 @@ module.exports = {
   saveDocuments,
   saveSocialProof,
   savePaymentInformation,
-  saveBusinessServices
+  saveBusinessServices,
+  saveFoodSamples
 };
