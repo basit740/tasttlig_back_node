@@ -123,6 +123,40 @@ const updateUserProfile = async user => {
   }
 };
 
+// Save sponsor information to sponsors table
+const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
+  return await db.transaction(async trx => {
+    const sponsorInfo = {
+      sponsor_user_id,
+      sponsor_name: sponsorDto.business_name,
+      sponsor_address_1: sponsorDto.address_line_1,
+      sponsor_address_2: sponsorDto.address_line_2,
+      sponsor_city: sponsorDto.business_city,
+      sponsor_state: sponsorDto.state,
+      sponsor_postal_code: sponsorDto.postal_code,
+      sponsor_country: sponsorDto.country,
+    };
+    
+    const checkForUpdate = await trx("sponsors")
+      .select("sponsor_id")
+      .where("sponsor_user_id", sponsor_user_id)
+      .first()
+      .returning("*");
+    let response = [];
+    if (checkForUpdate) {
+      response = await trx("sponsors")
+        .where("sponsor_id", checkForUpdate.sponsor_id)
+        .update(sponsorInfo)
+        .returning("*");
+    } else {
+      response = await trx("sponsors")
+        .insert(sponsorInfo)
+        .returning("*");
+    }
+    return {success: true, details: response[0]};
+  });
+}
+
 const saveBusinessForUser = async (hostDto, user_id) => {
   return await db.transaction(async trx => {
     const businessInfo = {
@@ -976,6 +1010,7 @@ module.exports = {
   handleAction,
   approveOrDeclineHostApplication,
   saveHostApplication,
+  saveSponsorForUser,
   saveBusinessForUser,
   saveMenuItems,
   saveAssets,

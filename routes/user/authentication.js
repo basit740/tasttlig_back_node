@@ -243,6 +243,20 @@ authRouter.post("/user/createNewMultiStepUser", createAccountLimiter, async (req
   res.send(response);
 });
 
+// PUT sponsor information
+authRouter.put("/user/updateSponsorInfo", createAccountLimiter, async (req, res) => {
+  const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+  if (!db_user.success) {
+    return res.status(403).json({
+      success: false,
+      message: "User does not exist."
+    });
+  }
+
+  const response = await user_profile_service.saveSponsorForUser(req.body, db_user.user.tasttlig_user_id);
+  res.send(response);
+});
+
 authRouter.put("/user/updateBusinessInfo", createAccountLimiter, async (req, res) => {
   // const has_business = req.body.has_business === "yes";
   const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
