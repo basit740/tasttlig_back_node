@@ -135,6 +135,7 @@ const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
       sponsor_state: sponsorDto.state,
       sponsor_postal_code: sponsorDto.postal_code,
       sponsor_country: sponsorDto.country,
+      sponsor_description: sponsorDto.description,
     };
     
     const checkForUpdate = await trx("sponsors")
@@ -248,8 +249,21 @@ const saveApplicationInformation = async (hostDto, trx) => {
   //     status: "Pending"
   //   })
   // }
+
+  // Save sponsor application to applications table
+  if (applications.length == 0 && hostDto.is_sponsor) {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "sponsor",
+      status: "Pending"
+    });
+    role_name = "SPONSOR_PENDING";
+  }
   
-  if(applications.length == 0){
+  if (applications.length == 0 && hostDto.is_host === "no") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
       reason: "",
@@ -273,7 +287,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
     role_code: new_role_code
   });
   
-  return trx('applications')
+  return trx("applications")
     .insert(applications)
     .returning('*')
     .catch(reason => {
