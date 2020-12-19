@@ -10,6 +10,7 @@ const menu_items_service = require("../menu_items/menu_items");
 const assets_service = require("../assets/assets")
 const external_api_service = require("../../services/external_api_service");
 const auth_server_service = require("../../services/authentication/auth_server_service");
+const {setAddressCoordinates} = require("../geocoder");
 
 const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -299,11 +300,12 @@ const formatTime = (event) => {
   return new Date(event).toLocaleTimeString([], options);
 };
 
-const saveFoodSamples = async (hostDto,trx) => {
-  let SamplesList = []
+const saveFoodSamples = async (hostDto, trx) => {
+  await db.transaction(async (trx) => {
+    let SamplesList = [];
     // loop through food samples added by host
     for (let i = 0; i < hostDto.foodSampleList.length; i++) {
-      console.log("hello")
+      hostDto.foodSampleList[i] = await setAddressCoordinates(hostDto.foodSampleList[i]);
       SamplesList.push({
         food_sample_creater_user_id: hostDto.dbUser.user.tasttlig_user_id,
         title: hostDto.foodSampleList[i].title,
@@ -315,10 +317,10 @@ const saveFoodSamples = async (hostDto,trx) => {
         city: hostDto.foodSampleList[i].city,
         state: hostDto.foodSampleList[i].provinceTerritory,
         postal_code: hostDto.foodSampleList[i].postal_code,
-        country: hostDto.foodSampleList[i].country,
+        country: "Canada",
         description: hostDto.foodSampleList[i].description,
         nationality_id: hostDto.foodSampleList[i].nationality_id,
-        quantity: hostDto.foodSampleList[i].quantity,
+        quantity: parseInt(hostDto.foodSampleList[i].quantity),
         is_vegetarian: hostDto.foodSampleList[i].dietaryRestrictions.includes("vegetarian"),
         is_vegan: hostDto.foodSampleList[i].dietaryRestrictions.includes("vegan"),
         is_gluten_free: hostDto.foodSampleList[i].dietaryRestrictions.includes("gultenFree"),
@@ -332,15 +334,35 @@ const saveFoodSamples = async (hostDto,trx) => {
         is_available_on_friday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_friday"),
         is_available_on_saturday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_saturday"),
         is_available_on_sunday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_sunday"),
+        coordinates: hostDto.foodSampleList[i].coordinates,
+        latitude: hostDto.foodSampleList[i].latitude,
+        longitude: hostDto.foodSampleList[i].longitude,
+        food_ad_code: null,
+        status: "INACTIVE",
+        festival_id: hostDto.foodSampleList[i].addToFestival ? 2 : null
       })
-      //insert food sample
-      await trx("food_samples").
-      insert(SamplesList)
-      .catch(reason => {
-        console.log(reason);
-      })
+
+      // insert food sample
+      let db_food_sample = await trx("food_samples")
+      .insert(SamplesList)
+      .returning("*");
+
+      await trx("food_samples")
+        .where({
+          food_sample_id: db_food_sample[0].food_sample_id
+        })
+        .update({
+          original_food_sample_id: db_food_sample[0].food_sample_id
+        });
+
+      let images = hostDto.foodSampleList[i].images.map((food_sample_image) => ({
+        food_sample_id: db_food_sample[0].food_sample_id,
+        image_url: food_sample_image,
+      }));
+      await trx("food_sample_images").insert(images);
     }
-  }
+  });
+}
 
 const savePaymentInformation = async (db_user, banking_info) => {
   return await db.transaction(async trx => {
