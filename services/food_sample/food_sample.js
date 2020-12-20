@@ -3,7 +3,7 @@
 const Food_Sample_Claim_Status = require("../../enums/food_sample_claim_status");
 const {db, gis} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
-const {generateRandomString} = require("../../functions/functions");
+const {formatTime, generateRandomString} = require("../../functions/functions");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
 const {setAddressCoordinates} = require("../geocoder");
@@ -22,15 +22,14 @@ const createNewFoodSample = async (
       // food_sample_details.status = "INACTIVE";
       food_sample_details.food_ad_code = Math.random().toString(36).substring(2, 4) + Math.random().toString(36).substring(2, 4);
       let user_role_object = db_user.role;
-      if (user_role_object.includes("RESTAURANT") ||
-        user_role_object.includes("RESTAURANT_PENDING") ||
-        createdByAdmin
+
+      if (createdByAdmin || user_role_object.includes("RESTAURANT") ||
+        user_role_object.includes("RESTAURANT_PENDING")
       ) {
         food_sample_details.status = "ACTIVE";
       }
-      
+
       food_sample_details = await setAddressCoordinates(food_sample_details);
-      
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
         .returning("*");
@@ -337,6 +336,7 @@ const deleteFoodSample = async (user_id, food_sample_id) => {
     });
 };
 
+// GET all food samples helper function
 const getAllFoodSamples = async (
   operator,
   status,
@@ -345,8 +345,12 @@ const getAllFoodSamples = async (
   food_ad_code,
   filters
 ) => {
-  const startOfDay = moment().startOf('day').format("YYYY-MM-DD HH:mm:ss");
-  const endOfDay = moment().endOf('day').format("YYYY-MM-DD HH:mm:ss");
+  const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
+  const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
+  let startDate = filters.startDate.substring(0, 10);
+  let endDate = filters.endDate.substring(0, 10);
+  let startTime = formatTime(filters.startDate);
+  let endTime = formatTime(filters.endDate);
   let query = db
     .select(
       "food_samples.*",
@@ -392,10 +396,12 @@ const getAllFoodSamples = async (
     .groupBy("nationalities.alpha_2_code")
     .having("food_samples.status", operator, status);
   
+  // Filter by nationality
   if (filters.nationalities && filters.nationalities.length) {
     query.whereIn("nationalities.nationality", filters.nationalities);
   }
   
+  // Filter by location
   if (filters.latitude && filters.longitude) {
     query.select(gis.distance("food_samples.coordinates", gis.geography(gis.makePoint(filters.longitude, filters.latitude)))
       .as("distanceAway"))
@@ -406,25 +412,38 @@ const getAllFoodSamples = async (
     query.orderBy("distanceAway", "asc");
   }
   
+  // Filter by start date and time
   if (filters.startDate) {
-    query.whereRaw(
-      "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) >= ?",
-      [filters.startDate]
-    );
+    query
+      // .whereRaw(
+      //   "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) >= ?",
+      //   [filters.startDate]
+      // );
+      .where("food_samples.start_date", ">=", startDate)
+      .andWhere("food_samples.start_time", ">=", startTime)
   }
-  
+
+  // Filter by end date and time
   if (filters.endDate) {
-    query.whereRaw(
-      "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) <= ?",
-      [filters.endDate]
-    );
+    query
+      // .whereRaw(
+      //   "cast(concat(food_samples.end_date, ' ', food_samples.end_time) as date) <= ?",
+      //   [filters.endDate]
+      // );
+      .where("food_samples.end_date", "<=", endDate)
+      .andWhere("food_samples.end_time", "<=", endTime)
   }
-  
+
+  // Filter by quantity
+  if (filters.quantity) {
+    query.where("food_samples.quantity", ">=", filters.quantity);
+  }
+
   if (food_ad_code) {
     query.where("food_ad_code", "=", food_ad_code);
   }
   
-  if(filters.festival_name){
+  if (filters.festival_name) {
     query.where("festival_name", "=", filters.festival_name);
   }
   
@@ -442,12 +461,16 @@ const getAllFoodSamples = async (
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
+              "main.nationality, " +
               "main.title, " +
               "main.description, " +
-              "main.nationality, " +
               "main.business_name, " +
               "main.first_name, " +
-              "main.last_name)) as search_text"
+              "main.last_name, " +
+              "main.address, " +
+              "main.city, " +
+              "main.state, " +
+              "main.postal_code)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -455,7 +478,7 @@ const getAllFoodSamples = async (
       )
       .orderBy("rank", "desc");
   }
-  
+
   query = query.paginate({
     perPage: 12,
     isLengthAware: true,
@@ -477,6 +500,7 @@ const getFoodSample = async (food_sample_id) => {
       "food_samples.*",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
+      "business_details.business_name",
       db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
     )
     .from("food_samples")
@@ -490,9 +514,16 @@ const getFoodSample = async (food_sample_id) => {
       "food_samples.nationality_id",
       "nationalities.id"
     )
+    .leftJoin(
+      "business_details",
+      "food_samples.food_sample_creater_user_id",
+      "business_details.user_id"
+    )
     .groupBy("food_samples.food_sample_id")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
+    .groupBy("business_details.business_name")
+
     .having("food_samples.food_sample_id", "=", food_sample_id)
     .then(value => {
       return {success: true, details: value};

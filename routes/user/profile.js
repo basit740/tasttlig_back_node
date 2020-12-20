@@ -143,11 +143,15 @@ router.put("/user/update-profile/:id", async (req, res) => {
   try {
     const user = {
       id: req.params.id,
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      phone_number: req.body.phone_number,
       address_line_1: req.body.address_line_1,
       address_line_2: req.body.address_line_2,
       city: req.body.city,
-      postal_code: req.body.postal_code,
       state: req.body.state,
+      postal_code: req.body.postal_code,
+      country: "Canada",
       address_type: req.body.address_type,
       business_name: req.body.business_name,
       business_type: req.body.business_type,

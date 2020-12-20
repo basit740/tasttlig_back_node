@@ -10,6 +10,7 @@ const menu_items_service = require("../menu_items/menu_items");
 const assets_service = require("../assets/assets")
 const external_api_service = require("../../services/external_api_service");
 const auth_server_service = require("../../services/authentication/auth_server_service");
+const {setAddressCoordinates} = require("../geocoder");
 
 const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -97,11 +98,15 @@ const updateUserProfile = async user => {
       .where("tasttlig_user_id", user.id)
       .first()
       .update({
+        first_name: user.first_name,
+        last_name: user.last_name,
+        phone_number: user.phone_number,
         user_address_line_1: user.address_line_1,
         user_address_line_2: user.address_line_2,
         user_city: user.city,
-        user_postal_code: user.postal_code,
         user_state: user.state,
+        user_postal_code: user.postal_code,
+        country: user.country,
         address_type: user.address_type,
         business_name: user.business_name,
         business_type: user.business_type,
@@ -118,6 +123,41 @@ const updateUserProfile = async user => {
     return {success: false, message: err};
   }
 };
+
+// Save sponsor information to sponsors table
+const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
+  return await db.transaction(async trx => {
+    const sponsorInfo = {
+      sponsor_user_id,
+      sponsor_name: sponsorDto.business_name,
+      sponsor_address_1: sponsorDto.address_line_1,
+      sponsor_address_2: sponsorDto.address_line_2,
+      sponsor_city: sponsorDto.business_city,
+      sponsor_state: sponsorDto.state,
+      sponsor_postal_code: sponsorDto.postal_code,
+      sponsor_country: sponsorDto.country,
+      sponsor_description: sponsorDto.description,
+    };
+    
+    const checkForUpdate = await trx("sponsors")
+      .select("sponsor_id")
+      .where("sponsor_user_id", sponsor_user_id)
+      .first()
+      .returning("*");
+    let response = [];
+    if (checkForUpdate) {
+      response = await trx("sponsors")
+        .where("sponsor_id", checkForUpdate.sponsor_id)
+        .update(sponsorInfo)
+        .returning("*");
+    } else {
+      response = await trx("sponsors")
+        .insert(sponsorInfo)
+        .returning("*");
+    }
+    return {success: true, details: response[0]};
+  });
+}
 
 const saveBusinessForUser = async (hostDto, user_id) => {
   return await db.transaction(async trx => {
@@ -210,8 +250,21 @@ const saveApplicationInformation = async (hostDto, trx) => {
   //     status: "Pending"
   //   })
   // }
+
+  // Save sponsor application to applications table
+  if (applications.length == 0 && hostDto.is_sponsor) {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "sponsor",
+      status: "Pending"
+    });
+    role_name = "SPONSOR_PENDING";
+  }
   
-  if(applications.length == 0){
+  if (applications.length == 0 && hostDto.is_host === "no") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
       reason: "",
@@ -235,12 +288,80 @@ const saveApplicationInformation = async (hostDto, trx) => {
     role_code: new_role_code
   });
   
-  return trx('applications')
+  return trx("applications")
     .insert(applications)
     .returning('*')
     .catch(reason => {
       console.log(reason);
     });
+}
+const formatTime = (event) => {
+  const options = { hour: "2-digit", minute: "2-digit" };
+  return new Date(event).toLocaleTimeString([], options);
+};
+
+const saveFoodSamples = async (hostDto, trx) => {
+  await db.transaction(async (trx) => {
+    let SamplesList = [];
+    // loop through food samples added by host
+    for (let i = 0; i < hostDto.foodSampleList.length; i++) {
+      hostDto.foodSampleList[i] = await setAddressCoordinates(hostDto.foodSampleList[i]);
+      SamplesList.push({
+        food_sample_creater_user_id: hostDto.dbUser.user.tasttlig_user_id,
+        title: hostDto.foodSampleList[i].title,
+        start_date: hostDto.foodSampleList[i].start_date,
+        start_time: formatTime(hostDto.foodSampleList[i].start_time),
+        end_date: hostDto.foodSampleList[i].end_date,
+        end_time: formatTime(hostDto.foodSampleList[i].end_time),
+        address: hostDto.foodSampleList[i].addressLine1,
+        city: hostDto.foodSampleList[i].city,
+        state: hostDto.foodSampleList[i].provinceTerritory,
+        postal_code: hostDto.foodSampleList[i].postal_code,
+        country: "Canada",
+        description: hostDto.foodSampleList[i].description,
+        nationality_id: hostDto.foodSampleList[i].nationality_id,
+        quantity: parseInt(hostDto.foodSampleList[i].quantity),
+        is_vegetarian: hostDto.foodSampleList[i].dietaryRestrictions.includes("vegetarian"),
+        is_vegan: hostDto.foodSampleList[i].dietaryRestrictions.includes("vegan"),
+        is_gluten_free: hostDto.foodSampleList[i].dietaryRestrictions.includes("gultenFree"),
+        is_halal: hostDto.foodSampleList[i].dietaryRestrictions.includes("halal"),
+        spice_level: hostDto.foodSampleList[i].spice_level,
+        sample_size: hostDto.foodSampleList[i].sample_size,
+        is_available_on_monday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_monday"),
+        is_available_on_tuesday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_tuesday"),
+        is_available_on_wednesday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_wednesday"),
+        is_available_on_thursday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_thursday"),
+        is_available_on_friday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_friday"),
+        is_available_on_saturday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_saturday"),
+        is_available_on_sunday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_sunday"),
+        coordinates: hostDto.foodSampleList[i].coordinates,
+        latitude: hostDto.foodSampleList[i].latitude,
+        longitude: hostDto.foodSampleList[i].longitude,
+        food_ad_code: null,
+        status: "ACTIVE",
+        festival_id: hostDto.foodSampleList[i].addToFestival ? 2 : null
+      })
+
+      // insert food sample
+      let db_food_sample = await trx("food_samples")
+      .insert(SamplesList)
+      .returning("*");
+
+      await trx("food_samples")
+        .where({
+          food_sample_id: db_food_sample[0].food_sample_id
+        })
+        .update({
+          original_food_sample_id: db_food_sample[0].food_sample_id
+        });
+
+      let images = hostDto.foodSampleList[i].images.map((food_sample_image) => ({
+        food_sample_id: db_food_sample[0].food_sample_id,
+        image_url: food_sample_image,
+      }));
+      await trx("food_sample_images").insert(images);
+    }
+  });
 }
 
 const savePaymentInformation = async (db_user, banking_info) => {
@@ -904,6 +1025,9 @@ const saveHostApplication = async (hostDto, user) => {
     if(hostDto.menu_list){
       await saveSpecials(hostDto);
     }
+    //  if(hostDto.foodSampleList){
+    //   await saveFoodSamples(hostDto, trx);
+    // } 
     await sendApplierEmailForHosting(dbUser);
     return {success: true};
   });
@@ -972,6 +1096,7 @@ module.exports = {
   handleAction,
   approveOrDeclineHostApplication,
   saveHostApplication,
+  saveSponsorForUser,
   saveBusinessForUser,
   saveMenuItems,
   saveAssets,
@@ -981,5 +1106,6 @@ module.exports = {
   saveDocuments,
   saveSocialProof,
   savePaymentInformation,
-  saveBusinessServices
+  saveBusinessServices,
+  saveFoodSamples
 };

@@ -18,6 +18,7 @@ router.get("/applications", token_service.authenticateToken, async (req, res) =>
   }
 });
 
+// GET all applications by user ID
 router.get("/applications/:userId", token_service.authenticateToken, async (req, res) => {
   try{
     const application = await hosts_service.getHostApplication(req.params.userId);
@@ -30,8 +31,9 @@ router.get("/applications/:userId", token_service.authenticateToken, async (req,
   }
 });
 
+// Approve application from admin
 router.post("/applications/:userId/approve", token_service.authenticateToken, async (req, res) => {
-  try{
+  try {
     const response = await user_profile_service.approveOrDeclineHostApplication(req.params.userId, "APPROVED");
     return res.send(response);
   } catch (err) {
@@ -42,8 +44,9 @@ router.post("/applications/:userId/approve", token_service.authenticateToken, as
   }
 });
 
+// Decline application from admin
 router.post("/applications/:userId/decline", token_service.authenticateToken, async (req, res) => {
-  try{
+  try {
     const response = await user_profile_service.approveOrDeclineHostApplication(
       req.params.userId,
       "DECLINED",

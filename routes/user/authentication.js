@@ -19,7 +19,7 @@ const createAccountLimiter = rateLimit({
 
 // POST user register
 authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
-  if (!req.body.first_name || !req.body.last_name || !req.body.passport_id_or_email || !req.body.password || !req.body.phone_number || !req.body.source) {
+  if (!req.body.passport_id_or_email || !req.body.password || !req.body.source) {
     return res.status(403).json({
       success: false,
       message: "Required Parameters are not available in request"
@@ -240,6 +240,20 @@ authRouter.post("/user/createNewMultiStepUser", createAccountLimiter, async (req
     phone_number: req.body.phone_number
   }
   const response = await authenticate_user_service.createBecomeFoodProviderUser(become_food_provider_user);
+  res.send(response);
+});
+
+// PUT sponsor information
+authRouter.put("/user/updateSponsorInfo", createAccountLimiter, async (req, res) => {
+  const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+  if (!db_user.success) {
+    return res.status(403).json({
+      success: false,
+      message: "User does not exist."
+    });
+  }
+
+  const response = await user_profile_service.saveSponsorForUser(req.body, db_user.user.tasttlig_user_id);
   res.send(response);
 });
 
