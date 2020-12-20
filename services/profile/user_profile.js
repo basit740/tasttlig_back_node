@@ -1025,9 +1025,9 @@ const saveHostApplication = async (hostDto, user) => {
     if(hostDto.menu_list){
       await saveSpecials(hostDto);
     }
-     if(hostDto.foodSampleList){
-      await saveFoodSamples(hostDto, trx);
-    } 
+    //  if(hostDto.foodSampleList){
+    //   await saveFoodSamples(hostDto, trx);
+    // } 
     await sendApplierEmailForHosting(dbUser);
     return {success: true};
   });

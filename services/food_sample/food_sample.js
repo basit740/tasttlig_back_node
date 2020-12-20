@@ -22,15 +22,14 @@ const createNewFoodSample = async (
       // food_sample_details.status = "INACTIVE";
       food_sample_details.food_ad_code = Math.random().toString(36).substring(2, 4) + Math.random().toString(36).substring(2, 4);
       let user_role_object = db_user.role;
-      if (user_role_object.includes("RESTAURANT") ||
-        user_role_object.includes("RESTAURANT_PENDING") ||
-        createdByAdmin
+
+      if (createdByAdmin || user_role_object.includes("RESTAURANT") ||
+        user_role_object.includes("RESTAURANT_PENDING")
       ) {
         food_sample_details.status = "ACTIVE";
       }
-      
+
       food_sample_details = await setAddressCoordinates(food_sample_details);
-      
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
         .returning("*");

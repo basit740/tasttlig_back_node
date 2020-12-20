@@ -112,6 +112,86 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
   }
 });
 
+router.post("/food-samples/add", async (req, res) => {
+  try {
+    req.body.map(async (item) => {
+      if (!item.title || !item.sample_size || !item.quantity || !item.city 
+        || !item.postal_code || !item.description || !item.images 
+        || !item.start_date || !item.end_date || !item.start_time 
+        || !item.end_time || !item.nationality_id) {
+        return res.status(403).json({
+          success: false,
+          message: "Required Parameters are not available in request"
+        });
+      }
+
+      let address = item.addressLine1;
+      if (item.addressLine2 && item.addressLine2.length > 0) {
+        address = `${address}, ${item.addressLine2}`;
+      }
+
+      try {  
+        let dbUser = await user_profile_service.getUserByPassportIdOrEmail(item.email);
+        item.dbUser = dbUser;
+        let createdByAdmin = true;
+        const food_sample_details = {
+          food_sample_creater_user_id: item.dbUser.user.tasttlig_user_id,
+          title: item.title,
+          start_date: item.start_date.substring(0, 10),
+          end_date: item.end_date.substring(0, 10),
+          start_time: item.start_time.length === 5 ? item.start_time : formatTime(item.start_time),
+          end_time: item.end_time.length === 5 ? item.end_time : formatTime(item.end_time),
+          description: item.description,
+          address: item.address ? item.address : address,
+          city: item.city,
+          state: item.state ? item.state : item.provinceTerritory,
+          country: "Canada",
+          postal_code: item.postal_code,
+          nationality_id: item.nationality_id,
+          sample_size: item.sample_size,
+          is_available_on_monday: item.daysAvailable.includes("available_on_monday"),
+          is_available_on_tuesday: item.daysAvailable.includes("available_on_tuesday"),
+          is_available_on_wednesday: item.daysAvailable.includes("available_on_wednesday"),
+          is_available_on_thursday: item.daysAvailable.includes("available_on_thursday"),
+          is_available_on_friday: item.daysAvailable.includes("available_on_friday"),
+          is_available_on_saturday: item.daysAvailable.includes("available_on_saturday"),
+          is_available_on_sunday: item.daysAvailable.includes("available_on_sunday"),
+          is_vegetarian: item.dietaryRestrictions.includes("vegetarian"),
+          is_vegan: item.dietaryRestrictions.includes("vegan"),
+          is_gluten_free: item.dietaryRestrictions.includes("glutenFree"),
+          is_halal: item.dietaryRestrictions.includes("halal"),
+          spice_level: item.spice_level,
+          // food_sample_type: item.food_sample_type,
+          price: 2.0,
+          quantity: parseInt(item.quantity),
+          food_ad_code: generateRandomString(4),
+          status: "ACTIVE",
+          festival_id: item.addToFestival ? 2 : null
+        }
+        const response = await food_sample_service.createNewFoodSample(
+          dbUser,
+          food_sample_details,
+          item.images,
+          createdByAdmin
+        );
+        return res.send(response);
+      } catch (err) {
+        res.send({
+          success: false,
+          message: "error",
+          response: err
+        });
+      }
+    });
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "error",
+      response: err
+    });
+  }
+});
+
 // GET all food samples route
 router.get("/food-sample/all", async (req, res) => {
   try {
