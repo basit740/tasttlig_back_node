@@ -338,7 +338,7 @@ const saveFoodSamples = async (hostDto, trx) => {
         latitude: hostDto.foodSampleList[i].latitude,
         longitude: hostDto.foodSampleList[i].longitude,
         food_ad_code: null,
-        status: "INACTIVE",
+        status: "ACTIVE",
         festival_id: hostDto.foodSampleList[i].addToFestival ? 2 : null
       })
 
