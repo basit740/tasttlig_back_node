@@ -79,6 +79,7 @@ const extractFile = (requestBody, key, text) => {
   };
 };
 
+// POST application from multi-step form
 router.post(
   "/user/host",
   async (req, res) => {
@@ -173,7 +174,8 @@ router.put("/user/update-profile/:id", async (req, res) => {
   }
 });
 
-router.get("/user/checkEmail/:email", async (req, res) => {
+// GET user by email
+router.get("/user/check-email/:email", async (req, res) => {
   try {
     const result = await user_profile_service.getUserByEmail(req.params.email);
 

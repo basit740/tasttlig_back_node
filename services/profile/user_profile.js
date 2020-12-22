@@ -16,6 +16,7 @@ const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const EMAIL_SECRET = process.env.EMAIL_SECRET;
 
+// Get user by ID helper function
 const getUserById = async (id) => {
   return await db
     .select("tasttlig_users.*", db.raw("ARRAY_AGG(roles.role) as role"))
@@ -229,9 +230,11 @@ const saveBusinessServices = async (db_user, services) => {
   });
 };
 
+// Save application information to applications table helper function
 const saveApplicationInformation = async (hostDto, trx) => {
   let applications = [];
   let role_name = "";
+
   if (hostDto.is_host === "yes") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -246,7 +249,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
     role_name = "HOST_PENDING";
   }
-  //
+
   // if (hostDto.is_cook === "yes") {
   //   applications.push({
   //     user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -286,7 +289,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
     role_name = "RESTAURANT_PENDING";
   }
 
-  // get role_code of new role to be added
+  // Get role code of new role to be added
   const new_role_code = await trx("roles")
     .select()
     .where({ role: role_name })
@@ -294,7 +297,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
       return value[0].role_code;
     });
 
-  // insert new role for this user
+  // Insert new role for this user
   await trx("user_role_lookup").insert({
     user_id: hostDto.dbUser.user.tasttlig_user_id,
     role_code: new_role_code,
@@ -307,6 +310,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
       console.log(reason);
     });
 };
+
 const formatTime = (event) => {
   const options = { hour: "2-digit", minute: "2-digit" };
   return new Date(event).toLocaleTimeString([], options);
@@ -1055,9 +1059,9 @@ const getUserByPassportIdOrEmail = async (passport_id_or_email) => {
 //   }
 // }
 
+// Save application from multi-step form to applications table helper function
 const saveHostApplication = async (hostDto, user) => {
   let dbUser = null;
-  let plain_password = "";
 
   if (user) {
     dbUser = await getUserById(user.id);
@@ -1068,17 +1072,16 @@ const saveHostApplication = async (hostDto, user) => {
   }
 
   hostDto.dbUser = dbUser;
-  // await updateHostUser(hostDto);
 
   return await db.transaction(async (trx) => {
     await saveApplicationInformation(hostDto, trx);
+
     if (hostDto.menu_list) {
       await saveSpecials(hostDto);
     }
-    //  if(hostDto.foodSampleList){
-    //   await saveFoodSamples(hostDto, trx);
-    // }
+
     await sendApplierEmailForHosting(dbUser);
+
     return { success: true };
   });
 };
