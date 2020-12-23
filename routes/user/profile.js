@@ -83,7 +83,6 @@ const extractFile = (requestBody, key, text) => {
 router.post(
   "/user/host",
   async (req, res) => {
-
     try {
       const hostDto = req.body;
       const response = await user_profile_service.saveHostApplication(hostDto, req.user);
@@ -93,10 +92,10 @@ router.post(
       }
 
       return res.status(500).send(response);
-    } catch (e) {
+    } catch (error) {
       return res.status(403).json({
         success: false,
-        message: e
+        message: error
       });
     }
   });

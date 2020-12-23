@@ -1,6 +1,7 @@
 "use strict";
 
-const router = require('express').Router();
+// Libraries
+const router = require("express").Router();
 const token_service = require("../../services/authentication/token");
 const food_sample_service = require("../../services/food_sample/food_sample");
 const user_profile_service = require("../../services/profile/user_profile");
@@ -10,8 +11,10 @@ const {
   formatTime,
 } = require("../../functions/functions");
 
+// Environment variables
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
+// POST food sample
 router.post("/food-sample/add", token_service.authenticateToken, async (req, res) => {
   try {
     req.body.map(async (item) => {
@@ -21,7 +24,7 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
         || !item.end_time || !item.nationality_id) {
         return res.status(403).json({
           success: false,
-          message: "Required Parameters are not available in request"
+          message: "Required parameters are not available in request."
         });
       }
 
@@ -32,21 +35,23 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
 
       try {
         const user_details_from_db = await user_profile_service.getUserById(req.user.id);
+
         if (!user_details_from_db.success) {
           return res.status(403).json({
             success: false,
             message: user_details_from_db.message
           });
         }
+
         let createdByAdmin = false;
         let db_user = user_details_from_db.user;
-
         let user_role_object = db_user.role;
+
         if (user_role_object.includes("ADMIN")) {
           if (!item.userEmail) {
             return res.status(403).json({
               success: false,
-              message: "Required Parameters are not available in request"
+              message: "Required parameters are not available in request."
             });
           }
           const host_details_from_db = await user_profile_service.getUserByEmail(item.userEmail);
@@ -88,30 +93,33 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
           status: "ACTIVE",
           festival_id: item.addToFestival ? 2 : null
         }
+
         const response = await food_sample_service.createNewFoodSample(
           db_user,
           food_sample_details,
           item.images,
           createdByAdmin
         );
+
         return res.send(response);
-      } catch (err) {
+      } catch (error) {
         res.send({
           success: false,
-          message: "error",
-          response: err
+          message: "Error.",
+          response: error
         });
       }
     });
-  } catch (err) {
+  } catch (error) {
     res.send({
       success: false,
-      message: "error",
-      response: err
+      message: "Error.",
+      response: error
     });
   }
 });
 
+// POST food samples from Host multi-step form helper function
 router.post("/food-samples/add", async (req, res) => {
   try {
     req.body.map(async (item) => {
@@ -121,7 +129,7 @@ router.post("/food-samples/add", async (req, res) => {
         || !item.end_time || !item.nationality_id) {
         return res.status(403).json({
           success: false,
-          message: "Required Parameters are not available in request"
+          message: "Required parameters are not available in request."
         });
       }
 
@@ -134,6 +142,7 @@ router.post("/food-samples/add", async (req, res) => {
         let dbUser = await user_profile_service.getUserByPassportIdOrEmail(item.email);
         item.dbUser = dbUser;
         let createdByAdmin = true;
+
         const food_sample_details = {
           food_sample_creater_user_id: item.dbUser.user.tasttlig_user_id,
           title: item.title,
@@ -168,26 +177,28 @@ router.post("/food-samples/add", async (req, res) => {
           status: "ACTIVE",
           festival_id: item.addToFestival ? 2 : null
         }
+
         const response = await food_sample_service.createNewFoodSample(
           dbUser,
           food_sample_details,
           item.images,
           createdByAdmin
         );
+
         return res.send(response);
-      } catch (err) {
+      } catch (error) {
         res.send({
           success: false,
-          message: "error",
-          response: err
+          message: "Error.",
+          response: error
         });
       }
     });
-  } catch (err) {
+  } catch (error) {
     res.send({
       success: false,
-      message: "error",
-      response: err
+      message: "Error.",
+      response: error
     });
   }
 });
