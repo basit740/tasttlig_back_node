@@ -1,44 +1,46 @@
 "use strict";
 
-const authenticate_user_service = require("../authentication/authenticate_user");
-
-const {db} = require("../../db/db-config");
+// Libraries
+const { db } = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
-const {formatPhone, generateRandomString} = require("../../functions/functions");
+const { formatPhone } = require("../../functions/functions");
 const menu_items_service = require("../menu_items/menu_items");
-const assets_service = require("../assets/assets")
+const assets_service = require("../assets/assets");
 const external_api_service = require("../../services/external_api_service");
 const auth_server_service = require("../../services/authentication/auth_server_service");
-const {setAddressCoordinates} = require("../geocoder");
 
+// Environment variables
 const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const EMAIL_SECRET = process.env.EMAIL_SECRET;
 
-const getUserById = async id => {
-  return await db.select(
-    "tasttlig_users.*",
-    db.raw("ARRAY_AGG(roles.role) as role")
-  )
+// Get user by ID helper function
+const getUserById = async (id) => {
+  return await db
+    .select("tasttlig_users.*", db.raw("ARRAY_AGG(roles.role) as role"))
     .from("tasttlig_users")
-    .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+    .leftJoin(
+      "user_role_lookup",
+      "tasttlig_users.tasttlig_user_id",
+      "user_role_lookup.user_id"
+    )
     .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
     .groupBy("tasttlig_users.tasttlig_user_id")
     .having("tasttlig_users.tasttlig_user_id", "=", id)
     .first()
-    .then(value => {
+    .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
-    .catch(error => {
-      return {success: false, message: error};
+    .catch((error) => {
+      return { success: false, message: error };
     });
 };
 
-const getUserBySubscriptionId = async id => {
+const getUserBySubscriptionId = async (id) => {
   return await db("tasttlig_users")
     .select(
       "tasttlig_users.*",
@@ -50,23 +52,28 @@ const getUserBySubscriptionId = async id => {
       "user_subscriptions",
       "tasttlig_users.tasttlig_user_id",
       "user_subscriptions.user_id"
-    ).leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+    )
+    .leftJoin(
+      "user_role_lookup",
+      "tasttlig_users.tasttlig_user_id",
+      "user_role_lookup.user_id"
+    )
     .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
     .groupBy("tasttlig_users.tasttlig_user_id")
     .groupBy("user_subscriptions.user_subscription_id")
     .having("tasttlig_users.tasttlig_user_id", "=", id)
-    .then(value => {
+    .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
-    .catch(error => {
-      return {success: false, message: error};
+    .catch((error) => {
+      return { success: false, message: error };
     });
 };
 
-const updateUserAccount = async user => {
+const updateUserAccount = async (user) => {
   try {
     return await db("tasttlig_users")
       .where("tasttlig_user_id", user.id)
@@ -78,21 +85,21 @@ const updateUserAccount = async user => {
         profile_image_link: user.profile_image_link,
         profile_tag_line: user.profile_tag_line,
         bio_text: user.bio_text,
-        banner_image_link: user.banner_image_link
+        banner_image_link: user.banner_image_link,
       })
       .returning("*")
-      .then(value => {
-        return {success: true, details: value[0]};
+      .then((value) => {
+        return { success: true, details: value[0] };
       })
-      .catch(reason => {
-        return {success: false, details: reason};
+      .catch((reason) => {
+        return { success: false, details: reason };
       });
   } catch (err) {
-    return {success: false, message: err};
+    return { success: false, message: err };
   }
 };
 
-const updateUserProfile = async user => {
+const updateUserProfile = async (user) => {
   try {
     return await db("tasttlig_users")
       .where("tasttlig_user_id", user.id)
@@ -110,23 +117,23 @@ const updateUserProfile = async user => {
         address_type: user.address_type,
         business_name: user.business_name,
         business_type: user.business_type,
-        profile_status: user.profile_status
+        profile_status: user.profile_status,
       })
       .returning("*")
-      .then(value => {
-        return {success: true, details: value[0]};
+      .then((value) => {
+        return { success: true, details: value[0] };
       })
-      .catch(reason => {
-        return {success: false, details: reason};
+      .catch((reason) => {
+        return { success: false, details: reason };
       });
   } catch (err) {
-    return {success: false, message: err};
+    return { success: false, message: err };
   }
 };
 
-// Save sponsor information to sponsors table
+// Save sponsor information to sponsors table helper function
 const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
-  return await db.transaction(async trx => {
+  return await db.transaction(async (trx) => {
     const sponsorInfo = {
       sponsor_user_id,
       sponsor_name: sponsorDto.business_name,
@@ -138,31 +145,32 @@ const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
       sponsor_country: sponsorDto.country,
       sponsor_description: sponsorDto.description,
     };
-    
+
     const checkForUpdate = await trx("sponsors")
       .select("sponsor_id")
       .where("sponsor_user_id", sponsor_user_id)
       .first()
       .returning("*");
     let response = [];
+
     if (checkForUpdate) {
       response = await trx("sponsors")
         .where("sponsor_id", checkForUpdate.sponsor_id)
         .update(sponsorInfo)
         .returning("*");
     } else {
-      response = await trx("sponsors")
-        .insert(sponsorInfo)
-        .returning("*");
+      response = await trx("sponsors").insert(sponsorInfo).returning("*");
     }
-    return {success: true, details: response[0]};
-  });
-}
 
+    return { success: true, details: response[0] };
+  });
+};
+
+// Save business information to business details table helper function
 const saveBusinessForUser = async (hostDto, user_id) => {
-  return await db.transaction(async trx => {
+  return await db.transaction(async (trx) => {
     const businessInfo = {
-      user_id: user_id,
+      user_id,
       business_category: hostDto.business_category,
       business_type: hostDto.service_provider,
       business_name: hostDto.business_name,
@@ -177,51 +185,55 @@ const saveBusinessForUser = async (hostDto, user_id) => {
       business_registration_number: hostDto.registration_number,
       instagram: hostDto.instagram,
       facebook: hostDto.facebook,
-      in_current_festival: hostDto.in_current_festival
+      in_current_festival: hostDto.in_current_festival,
     };
-    
-    const checkForUpdate = await trx('business_details')
+
+    const checkForUpdate = await trx("business_details")
       .select("business_id")
       .where("user_id", user_id)
       .first()
       .returning("*");
     let response = [];
-    if(checkForUpdate) {
-      response = await trx('business_details')
+
+    if (checkForUpdate) {
+      response = await trx("business_details")
         .where("business_id", checkForUpdate.business_id)
         .update(businessInfo)
         .returning("*");
     } else {
-      response = await trx('business_details')
+      response = await trx("business_details")
         .insert(businessInfo)
         .returning("*");
     }
-    return {success: true, details: response[0]};
+
+    return { success: true, details: response[0] };
   });
-}
+};
 
 const saveBusinessServices = async (db_user, services) => {
-  return await db.transaction(async trx => {
-    const businessServices = services.map(serviceName => ({
+  return await db.transaction(async (trx) => {
+    const businessServices = services.map((serviceName) => ({
       user_id: db_user.tasttlig_user_id,
-      name: serviceName
+      name: serviceName,
     }));
-    
+
     await trx("business_services")
       .where("user_id", db_user.tasttlig_user_id)
       .del();
-    
-    const response = await trx('business_services')
+
+    const response = await trx("business_services")
       .insert(businessServices)
       .returning("*");
-    
-    return {success: true, details: response[0]};
-  });
-}
 
+    return { success: true, details: response[0] };
+  });
+};
+
+// Save application information to applications table helper function
 const saveApplicationInformation = async (hostDto, trx) => {
   let applications = [];
   let role_name = "";
+
   if (hostDto.is_host === "yes") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -232,11 +244,11 @@ const saveApplicationInformation = async (hostDto, trx) => {
       created_at: new Date(),
       updated_at: new Date(),
       type: "host",
-      status: "Pending"
+      status: "Pending",
     });
     role_name = "HOST_PENDING";
   }
-  //
+
   // if (hostDto.is_cook === "yes") {
   //   applications.push({
   //     user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -259,11 +271,11 @@ const saveApplicationInformation = async (hostDto, trx) => {
       created_at: new Date(),
       updated_at: new Date(),
       type: "sponsor",
-      status: "Pending"
+      status: "Pending",
     });
     role_name = "SPONSOR_PENDING";
   }
-  
+
   if (applications.length == 0 && hostDto.is_host === "no") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -271,106 +283,40 @@ const saveApplicationInformation = async (hostDto, trx) => {
       created_at: new Date(),
       updated_at: new Date(),
       type: "restaurant",
-      status: "Pending"
+      status: "Pending",
     });
     role_name = "RESTAURANT_PENDING";
   }
-  
-  // get role_code of new role to be added
+
+  // Get role code of new role to be added
   const new_role_code = await trx("roles")
     .select()
-    .where({role: role_name})
-    .then(value => {return value[0].role_code});
-  
-  // insert new role for this user
+    .where({ role: role_name })
+    .then((value) => {
+      return value[0].role_code;
+    });
+
+  // Insert new role for this user
   await trx("user_role_lookup").insert({
     user_id: hostDto.dbUser.user.tasttlig_user_id,
-    role_code: new_role_code
+    role_code: new_role_code,
   });
-  
+
   return trx("applications")
     .insert(applications)
-    .returning('*')
-    .catch(reason => {
+    .returning("*")
+    .catch((reason) => {
       console.log(reason);
     });
-}
-const formatTime = (event) => {
-  const options = { hour: "2-digit", minute: "2-digit" };
-  return new Date(event).toLocaleTimeString([], options);
 };
 
-const saveFoodSamples = async (hostDto, trx) => {
-  await db.transaction(async (trx) => {
-    let SamplesList = [];
-    // loop through food samples added by host
-    for (let i = 0; i < hostDto.foodSampleList.length; i++) {
-      hostDto.foodSampleList[i] = await setAddressCoordinates(hostDto.foodSampleList[i]);
-      SamplesList.push({
-        food_sample_creater_user_id: hostDto.dbUser.user.tasttlig_user_id,
-        title: hostDto.foodSampleList[i].title,
-        start_date: hostDto.foodSampleList[i].start_date,
-        start_time: formatTime(hostDto.foodSampleList[i].start_time),
-        end_date: hostDto.foodSampleList[i].end_date,
-        end_time: formatTime(hostDto.foodSampleList[i].end_time),
-        address: hostDto.foodSampleList[i].addressLine1,
-        city: hostDto.foodSampleList[i].city,
-        state: hostDto.foodSampleList[i].provinceTerritory,
-        postal_code: hostDto.foodSampleList[i].postal_code,
-        country: "Canada",
-        description: hostDto.foodSampleList[i].description,
-        nationality_id: hostDto.foodSampleList[i].nationality_id,
-        quantity: parseInt(hostDto.foodSampleList[i].quantity),
-        is_vegetarian: hostDto.foodSampleList[i].dietaryRestrictions.includes("vegetarian"),
-        is_vegan: hostDto.foodSampleList[i].dietaryRestrictions.includes("vegan"),
-        is_gluten_free: hostDto.foodSampleList[i].dietaryRestrictions.includes("gultenFree"),
-        is_halal: hostDto.foodSampleList[i].dietaryRestrictions.includes("halal"),
-        spice_level: hostDto.foodSampleList[i].spice_level,
-        sample_size: hostDto.foodSampleList[i].sample_size,
-        is_available_on_monday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_monday"),
-        is_available_on_tuesday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_tuesday"),
-        is_available_on_wednesday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_wednesday"),
-        is_available_on_thursday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_thursday"),
-        is_available_on_friday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_friday"),
-        is_available_on_saturday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_saturday"),
-        is_available_on_sunday: hostDto.foodSampleList[i].daysAvailable.includes("available_on_sunday"),
-        coordinates: hostDto.foodSampleList[i].coordinates,
-        latitude: hostDto.foodSampleList[i].latitude,
-        longitude: hostDto.foodSampleList[i].longitude,
-        food_ad_code: null,
-        status: "ACTIVE",
-        festival_id: hostDto.foodSampleList[i].addToFestival ? 2 : null
-      })
-
-      // insert food sample
-      let db_food_sample = await trx("food_samples")
-      .insert(SamplesList)
-      .returning("*");
-
-      await trx("food_samples")
-        .where({
-          food_sample_id: db_food_sample[0].food_sample_id
-        })
-        .update({
-          original_food_sample_id: db_food_sample[0].food_sample_id
-        });
-
-      let images = hostDto.foodSampleList[i].images.map((food_sample_image) => ({
-        food_sample_id: db_food_sample[0].food_sample_id,
-        image_url: food_sample_image,
-      }));
-      await trx("food_sample_images").insert(images);
-    }
-  });
-}
-
 const savePaymentInformation = async (db_user, banking_info) => {
-  return await db.transaction(async trx => {
+  return await db.transaction(async (trx) => {
     let paymentInfo = {
       payment_type: banking_info.banking,
-      user_id: db_user.tasttlig_user_id
+      user_id: db_user.tasttlig_user_id,
     };
-    
+
     if (paymentInfo.payment_type === "Bank") {
       paymentInfo = {
         ...paymentInfo,
@@ -378,113 +324,112 @@ const savePaymentInformation = async (db_user, banking_info) => {
         account_number: banking_info.account_number,
         institution_number: banking_info.institution_number,
         void_cheque: banking_info.void_cheque,
-      }
+      };
     } else if (paymentInfo.payment_type === "Paypal") {
       paymentInfo = {
         ...paymentInfo,
-        paypal_email: banking_info.paypal_email
-      }
+        paypal_email: banking_info.paypal_email,
+      };
     } else if (paymentInfo.payment_type === "Stripe") {
       paymentInfo = {
         ...paymentInfo,
-        stripe_account_number: banking_info.stripe_account
-      }
+        stripe_account_number: banking_info.stripe_account,
+      };
     } else {
       paymentInfo = {
         ...paymentInfo,
-        etransfer_email: banking_info.online_email
-      }
+        etransfer_email: banking_info.online_email,
+      };
     }
-    
-    await trx("payment_info")
-      .where("user_id", db_user.tasttlig_user_id)
-      .del();
-    
-    return trx('payment_info')
-      .insert(paymentInfo)
-      .returning('*')
+
+    await trx("payment_info").where("user_id", db_user.tasttlig_user_id).del();
+
+    return trx("payment_info").insert(paymentInfo).returning("*");
   });
-}
+};
 
 const saveDocuments = async (db_user, documents_obj) => {
-  return await db.transaction(async trx => {
-    const documents = [['food_handler_certificate', 'Food Handler Certificate'],
-      ['insurance', 'Insurance'],
-      ['dine_safe_certificate', 'Dine Safe Certificate'],
-      ['health_safety_certificate', 'Health and Safety Certificate'],
-      ['government_id', 'Government ID']]
-      .filter(doc => documents_obj[doc[0]] && documents_obj[doc[0] + '_date_of_issue'] && documents_obj[doc[0] + '_date_of_expired'])
-      .map(doc => ({
+  return await db.transaction(async (trx) => {
+    const documents = [
+      ["food_handler_certificate", "Food Handler Certificate"],
+      ["insurance", "Insurance"],
+      ["dine_safe_certificate", "Dine Safe Certificate"],
+      ["health_safety_certificate", "Health and Safety Certificate"],
+      ["government_id", "Government ID"],
+    ]
+      .filter(
+        (doc) =>
+          documents_obj[doc[0]] &&
+          documents_obj[doc[0] + "_date_of_issue"] &&
+          documents_obj[doc[0] + "_date_of_expired"]
+      )
+      .map((doc) => ({
         user_id: db_user.tasttlig_user_id,
         document_type: doc[1],
-        issue_date: new Date(documents_obj[doc[0] + '_date_of_issue']),
-        expiry_date: new Date(documents_obj[doc[0] + '_date_of_expired']),
+        issue_date: new Date(documents_obj[doc[0] + "_date_of_issue"]),
+        expiry_date: new Date(documents_obj[doc[0] + "_date_of_expired"]),
         document_link: documents_obj[doc[0]],
-        status: "Pending"
-      }))
-    
-    await trx("documents")
-      .where("user_id", db_user.tasttlig_user_id)
-      .del();
-    
-    await trx("documents")
-      .insert(documents)
-      .returning("*");
-    
+        status: "Pending",
+      }));
+
+    await trx("documents").where("user_id", db_user.tasttlig_user_id).del();
+
+    await trx("documents").insert(documents).returning("*");
+
     return documents;
   });
-}
+};
 
 const saveSocialProof = async (db_user, social_proof) => {
-  return await db.transaction(async trx => {
-    const reviews = ["yelp",
+  return await db.transaction(async (trx) => {
+    const reviews = [
+      "yelp",
       "google",
       "tripadvisor",
       "instagram",
       "youtube",
-      "facebook"
-    ].filter(w => social_proof[`${w}_review`])
-      .map(w => ({
+      "facebook",
+    ]
+      .filter((w) => social_proof[`${w}_review`])
+      .map((w) => ({
         user_id: db_user.tasttlig_user_id,
         platform: w,
-        link: social_proof[`${w}_review`]
-      }))
-    
+        link: social_proof[`${w}_review`],
+      }));
+
     if (social_proof.media_recognition) {
       reviews.push({
         user_id: db_user.tasttlig_user_id,
         platform: "media recognition",
-        link: social_proof.media_recognition
+        link: social_proof.media_recognition,
       });
     }
-    
+
     if (social_proof.personal_review) {
       reviews.push({
         user_id: db_user.tasttlig_user_id,
         platform: "personal",
-        text: social_proof.personal_review
+        text: social_proof.personal_review,
       });
     }
-    
+
     await trx("external_review")
       .where("user_id", db_user.tasttlig_user_id)
       .del();
-    
-    return trx("external_review")
-      .insert(reviews)
-      .returning("*");
-  });
-}
 
-const saveMenuItems = async (db_user, menu_list, update=true) => {
-  return await db.transaction(async trx => {
-    if(update) {
+    return trx("external_review").insert(reviews).returning("*");
+  });
+};
+
+const saveMenuItems = async (db_user, menu_list, update = true) => {
+  return await db.transaction(async (trx) => {
+    if (update) {
       await db("menu_items")
         .select("menu_item_id")
         .where("menu_item_creator_user_id", db_user.tasttlig_user_id)
-        .then(async menu_item_ids => {
+        .then(async (menu_item_ids) => {
           let menu_item_id_list = [];
-          menu_item_ids.map(menu_item_id => {
+          menu_item_ids.map((menu_item_id) => {
             menu_item_id_list.push(menu_item_id.menu_item_id);
           });
           await db("menu_item_images")
@@ -494,71 +439,61 @@ const saveMenuItems = async (db_user, menu_list, update=true) => {
             .then(async () => {
               await db("menu_items")
                 .whereIn("menu_item_id", menu_item_id_list)
-                .del()
-            })
+                .del();
+            });
         })
-        .catch(err => {
+        .catch((err) => {
           console.log(err);
         });
     }
-    await Promise.all(menu_list.map(async m => {
-      await menu_items_service.addNewMenuItem(
-        db_user,
-        m,
-        m.menuImages,
-        trx
-      )
-    }));
-    return {success: true};
+    await Promise.all(
+      menu_list.map(async (m) => {
+        await menu_items_service.addNewMenuItem(db_user, m, m.menuImages, trx);
+      })
+    );
+    return { success: true };
   });
-}
+};
 
 const saveAssets = async (db_user, assets) => {
-  return await db.transaction(async trx => {
+  return await db.transaction(async (trx) => {
     await db("assets")
       .select("asset_id")
       .where("user_id", db_user.tasttlig_user_id)
-      .then(async asset_ids => {
+      .then(async (asset_ids) => {
         let asset_id_list = [];
-        asset_ids.map(asset_id => {
+        asset_ids.map((asset_id) => {
           asset_id_list.push(asset_id.asset_id);
         });
         await db("asset_images")
           .whereIn("asset_id", asset_id_list)
           .del()
           .then(async () => {
-            await db("assets")
-              .whereIn("menu_item_id", asset_id_list)
-              .del()
-          })
+            await db("assets").whereIn("menu_item_id", asset_id_list).del();
+          });
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
       });
-    await Promise.all(assets.map(async a => {
-      await assets_service.addAsset(
-        db_user,
-        a,
-        a.images,
-        trx
-      )
-    }));
-    return {success: true};
+    await Promise.all(
+      assets.map(async (a) => {
+        await assets_service.addAsset(db_user, a, a.images, trx);
+      })
+    );
+    return { success: true };
   });
-}
+};
 
 const saveSampleLinks = async (db_user, sample_links) => {
   await db("entertainment")
     .whereIn("creator_user_id", db_user.tasttlig_user_id)
     .del();
-  const sampleLinks = sample_links.map(l => ({
+  const sampleLinks = sample_links.map((l) => ({
     user_id: db_user.tasttlig_user_id,
-    media_link: l
+    media_link: l,
   }));
-  return db("entertainment")
-    .insert(sampleLinks)
-    .returning("*");
-}
+  return db("entertainment").insert(sampleLinks).returning("*");
+};
 
 const saveVenueInformation = async (
   db_user,
@@ -566,66 +501,61 @@ const saveVenueInformation = async (
   venue_description,
   venue_photos
 ) => {
-  return await db.transaction(async trx => {
+  return await db.transaction(async (trx) => {
     await db("venue")
       .select("venue_id")
       .where("creator_user_id", db_user.tasttlig_user_id)
-      .then(async venue_ids => {
+      .then(async (venue_ids) => {
         let venue_id_list = [];
-        venue_ids.map(venue_id => {
+        venue_ids.map((venue_id) => {
           venue_id_list.push(venue_id.venue_id);
         });
         await db("venue_images")
           .whereIn("venue_id", venue_id_list)
           .del()
           .then(async () => {
-            await db("assets")
-              .whereIn("venue_id", venue_id_list)
-              .del()
-          })
+            await db("assets").whereIn("venue_id", venue_id_list).del();
+          });
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
       });
     const response = await trx("venue")
       .insert({
         creator_user_id: db_user.tasttlig_user_id,
         name: venue_name,
-        description: venue_description
+        description: venue_description,
       })
       .returning("*");
-    
-    const photos = venue_photos.map(p => ({
+
+    const photos = venue_photos.map((p) => ({
       venue_id: response[0].venue_id,
-      image_url: p
-    }))
-    
-    return trx("venue_images")
-      .insert(photos)
-      .returning("*");
-    
+      image_url: p,
+    }));
+
+    return trx("venue_images").insert(photos).returning("*");
   });
-}
+};
 
 const sendAdminEmailForHosting = async (user_info) => {
   const document_approve_token = jwt.sign(
     {
       user_id: user_info.user_id,
-      status: "APPROVED"
+      status: "APPROVED",
     },
     EMAIL_SECRET
   );
   const document_reject_token = jwt.sign(
     {
       user_id: user_info.user_id,
-      status: "REJECT"
+      status: "REJECT",
     },
     EMAIL_SECRET
   );
-  
+
   const application_approve_url = `${SITE_BASE}/user/application/${document_approve_token}`;
   const application_reject_url = `${SITE_BASE}/user/application/${document_reject_token}`;
-  
+
   await Mailer.sendMail({
     from: process.env.SES_DEFAULT_FROM,
     to: ADMIN_EMAIL,
@@ -637,15 +567,15 @@ const sendAdminEmailForHosting = async (user_info) => {
       email: user_info.email,
       upgrade_type: "RESTAURANT",
       documents: user_info.documents,
-      
+
       approve_link: application_approve_url,
       reject_link: application_reject_url,
-    }
-  })
-}
+    },
+  });
+};
 
+// Send application confirmation email to user helper function
 const sendApplierEmailForHosting = async (db_user) => {
-  // Email to user on submitting the request to upgrade
   await Mailer.sendMail({
     from: process.env.SES_DEFAULT_FROM,
     to: db_user.user.email,
@@ -653,169 +583,180 @@ const sendApplierEmailForHosting = async (db_user) => {
     template: "user_upgrade_request",
     context: {
       first_name: db_user.user.first_name,
-      last_name: db_user.user.last_name
-    }
+      last_name: db_user.user.last_name,
+    },
   });
-}
+};
 
 const sendNewUserEmail = async (new_user) => {
   // Email to new user with login details and password reset link
   const email = new_user.email;
-  const {email_token} = await auth_server_service.authPasswordResetRequest(email);
+  const { email_token } = await auth_server_service.authPasswordResetRequest(
+    email
+  );
   try {
     const url = `${SITE_BASE}/forgot-password/${email_token}/${email}`;
     await Mailer.sendMail({
       from: process.env.SES_DEFAULT_FROM,
       to: email,
       subject: "[Tasttlig] Thank you for your application",
-      template: 'new_application_user_account',
+      template: "new_application_user_account",
       context: {
         first_name: new_user.first_name,
         last_name: new_user.last_name,
         email: email,
         password: new_user.password,
-        url: url
-      }
+        url: url,
+      },
     });
     return {
       success: true,
       message: "ok",
-      response: `Your update password email has been sent to ${email}.`
+      response: `Your update password email has been sent to ${email}.`,
     };
   } catch (err) {
     return {
       success: false,
       message: "error",
-      response:"Error in sending email"
-    }
+      response: "Error in sending email",
+    };
   }
-}
+};
 
-const upgradeUserResponse = async token => {
+const upgradeUserResponse = async (token) => {
   try {
     const decrypted_token = jwt.verify(token, EMAIL_SECRET);
     const document_id = decrypted_token.document_id;
     const status = decrypted_token.status;
-    
+
     const db_document = await db("documents")
       .where("document_id", document_id)
       .update("status", status)
       .returning("*")
-      .catch(reason => {
-        return {success: false, message: reason};
+      .catch((reason) => {
+        return { success: false, message: reason };
       });
-    
+
     const document_user_id = db_document[0].user_id;
-    return approveOrDeclineHostApplication(document_user_id, status)
+    return approveOrDeclineHostApplication(document_user_id, status);
   } catch (err) {
-    return {success: false, message: err};
+    return { success: false, message: err };
   }
 };
 
 // handleAction is the function that when tasttlig admin click the approve link
-const handleAction = async token => {
+const handleAction = async (token) => {
   try {
     const decrypted_token = jwt.verify(token, EMAIL_SECRET);
     const user_id = decrypted_token.user_id;
     const status = decrypted_token.status;
-    return approveOrDeclineHostApplication(user_id, status)
+    return approveOrDeclineHostApplication(user_id, status);
   } catch (err) {
-    return {success: false, message: err};
+    return { success: false, message: err };
   }
 };
 
-const approveOrDeclineHostApplication = async (userId, status, declineReason) => {
+const approveOrDeclineHostApplication = async (
+  userId,
+  status,
+  declineReason
+) => {
   try {
     const db_user_row = await getUserById(userId);
-    
+
     if (!db_user_row.success) {
-      return {success: false, message: db_user_row.message};
+      return { success: false, message: db_user_row.message };
     }
     const db_user = db_user_row.user;
     console.log(db_user);
-    
+
     // get pending role which has been approved
     let role_pending = "";
-    db_user.role.map(role => {
-      if(role.search("_PENDING") !== -1){
+    db_user.role.map((role) => {
+      if (role.search("_PENDING") !== -1) {
         role_pending = role;
       }
     });
-    
+
     // depends on status, we do different things:
     // if status is approved
-    if (status === 'APPROVED') {
-      
+    if (status === "APPROVED") {
       // get role_code of old role to be removed
       const old_role_code = await db("roles")
         .select()
-        .where({role: role_pending})
-        .then(value => {return value[0].role_code});
-      
+        .where({ role: role_pending })
+        .then((value) => {
+          return value[0].role_code;
+        });
+
       // remove the role for this user
       await db("user_role_lookup")
         .where({
           user_id: db_user.tasttlig_user_id,
-          role_code: old_role_code
-        }).del();
-      
+          role_code: old_role_code,
+        })
+        .del();
+
       // get role_code of new role to be added
       let new_role = role_pending.split("_")[0];
       const new_role_code = await db("roles")
         .select()
-        .where({role: new_role})
-        .then(value => {return value[0].role_code});
-      
+        .where({ role: new_role })
+        .then((value) => {
+          return value[0].role_code;
+        });
+
       // insert new role for this user
       await db("user_role_lookup").insert({
         user_id: db_user.tasttlig_user_id,
-        role_code: new_role_code
+        role_code: new_role_code,
       });
-      
+
       // STEP 2: Update all Experiences to Active state
       await db("experiences")
         .where({
           experience_creator_user_id: db_user.tasttlig_user_id,
-          status: "INACTIVE"
+          status: "INACTIVE",
         })
         .update("status", "ACTIVE");
-      
+
       // STEP 3: Update all Food Samples to Active state if the user agreed to participate in festival
       if (db_user.is_participating_in_festival) {
         await db("food_samples")
           .where({
             food_sample_creater_user_id: db_user.tasttlig_user_id,
-            status: "INACTIVE"
+            status: "INACTIVE",
           })
           .update("status", "ACTIVE");
       }
-      
+
       // STEP 4: Update all documents belongs to this user which is in Pending state become APPROVE
       await db("documents")
         .where("user_id", db_user.tasttlig_user_id)
-        .andWhere("status", 'Pending')
-        .update("status", 'APPROVED')
+        .andWhere("status", "Pending")
+        .update("status", "APPROVED")
         .returning("*")
-        .catch(reason => {
-          return {success: false, message: reason};
+        .catch((reason) => {
+          return { success: false, message: reason };
         });
-      
+
       // STEP 5: Update Application table status
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
-        .andWhere("status", 'Pending')
-        .update("status", 'APPROVED')
+        .andWhere("status", "Pending")
+        .update("status", "APPROVED")
         .returning("*")
-        .catch(reason => {
-          return {success: false, message: reason};
+        .catch((reason) => {
+          return { success: false, message: reason };
         });
-      
-      let role_name_in_title_case = new_role.charAt(0).toUpperCase() + new_role.slice(1).toLowerCase();
-      let active_item = "Food Samples"
-      if(role_name_in_title_case === "Host"){
+
+      let role_name_in_title_case =
+        new_role.charAt(0).toUpperCase() + new_role.slice(1).toLowerCase();
+      let active_item = "Food Samples";
+      if (role_name_in_title_case === "Host") {
         active_item = "Experiences";
       }
-      
+
       // STEP 6: email the user that their application is approved
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
@@ -826,10 +767,10 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
           first_name: db_user.first_name,
           last_name: db_user.last_name,
           role_name: role_name_in_title_case,
-          active_item: active_item
-        }
+          active_item: active_item,
+        },
       });
-      return {success: true, message: status};
+      return { success: true, message: status };
     } else {
       // status is Failed
       // STEP 1: remove the RESTAURANT_PENDING role
@@ -837,38 +778,43 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
       let role_code = await db("roles")
         .select()
         .where({
-          role: role_pending
-        }).then(value => {return value[0].role_code});
+          role: role_pending,
+        })
+        .then((value) => {
+          return value[0].role_code;
+        });
       // remove the role for this user
       await db("user_role_lookup")
         .where({
-          "user_id": db_user.tasttlig_user_id,
-          role_code: role_code
-        }).del();
-      
+          user_id: db_user.tasttlig_user_id,
+          role_code: role_code,
+        })
+        .del();
+
       // STEP 2: Update all documents belongs to this user which is in Pending state become REJECT
       await db("documents")
         .where("user_id", db_user.tasttlig_user_id)
-        .andWhere("status", 'Pending')
-        .update("status", 'REJECT')
+        .andWhere("status", "Pending")
+        .update("status", "REJECT")
         .returning("*")
-        .catch(reason => {
-          return {success: false, message: reason};
+        .catch((reason) => {
+          return { success: false, message: reason };
         });
-      
+
       // STEP 3: Update Application table status
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
-        .andWhere("status", 'Pending')
-        .update("status", 'REJECT')
+        .andWhere("status", "Pending")
+        .update("status", "REJECT")
         .returning("*")
-        .catch(reason => {
-          return {success: false, message: reason};
+        .catch((reason) => {
+          return { success: false, message: reason };
         });
-      
-      let role_name_in_title_case = role_pending.split("_")[0].charAt(0).toUpperCase()
-        + role_pending.split("_")[0].slice(1).toLowerCase();
-      
+
+      let role_name_in_title_case =
+        role_pending.split("_")[0].charAt(0).toUpperCase() +
+        role_pending.split("_")[0].slice(1).toLowerCase();
+
       // STEP 4: notify user their application is reject
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
@@ -878,112 +824,124 @@ const approveOrDeclineHostApplication = async (userId, status, declineReason) =>
         context: {
           first_name: db_user.first_name,
           last_name: db_user.last_name,
-          declineReason
-        }
+          declineReason,
+        },
       });
-      return {success: true, message: status};
+      return { success: true, message: status };
     }
   } catch (e) {
     console.log(e);
-    return {success: false, message: e};
+    return { success: false, message: e };
   }
-}
+};
 
-const getUserByEmail = async email => {
-  return await db.select(
-    "tasttlig_users.*",
-    db.raw("ARRAY_AGG(roles.role) as role")
-  )
+const getUserByEmail = async (email) => {
+  return await db
+    .select("tasttlig_users.*", db.raw("ARRAY_AGG(roles.role) as role"))
     .from("tasttlig_users")
-    .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+    .leftJoin(
+      "user_role_lookup",
+      "tasttlig_users.tasttlig_user_id",
+      "user_role_lookup.user_id"
+    )
     .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
     .groupBy("tasttlig_users.tasttlig_user_id")
     .having("tasttlig_users.email", "=", email)
     .first()
-    .then(value => {
+    .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
-    .catch(error => {
-      return {success: false, message: error};
+    .catch((error) => {
+      return { success: false, message: error };
     });
 };
 
-const getUserByEmailWithSubscription = async email => {
-  return await db.select(
-    "tasttlig_users.*",
-    "user_subscriptions.*",
-    db.raw("ARRAY_AGG(roles.role) as role")
-  )
+const getUserByEmailWithSubscription = async (email) => {
+  return await db
+    .select(
+      "tasttlig_users.*",
+      "user_subscriptions.*",
+      db.raw("ARRAY_AGG(roles.role) as role")
+    )
     .from("tasttlig_users")
     .leftJoin(
       "user_subscriptions",
       "tasttlig_users.tasttlig_user_id",
       "user_subscriptions.user_id"
     )
-    .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+    .leftJoin(
+      "user_role_lookup",
+      "tasttlig_users.tasttlig_user_id",
+      "user_role_lookup.user_id"
+    )
     .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
     .groupBy("tasttlig_users.tasttlig_user_id")
-    .having("tasttlig_users.email","=", email)
+    .having("tasttlig_users.email", "=", email)
     .having("user_subscriptions.subscription_end_datetime", ">", new Date())
     .first()
-    .then(value => {
+    .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
-    .catch(error => {
-      return {success: false, message: error};
+    .catch((error) => {
+      return { success: false, message: error };
     });
 };
 
-const getUserByPassportId = async passport_id => {
-  return await db.select(
-    "tasttlig_users.*",
-    db.raw("ARRAY_AGG(roles.role) as role")
-  )
+const getUserByPassportId = async (passport_id) => {
+  return await db
+    .select("tasttlig_users.*", db.raw("ARRAY_AGG(roles.role) as role"))
     .from("tasttlig_users")
-    .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+    .leftJoin(
+      "user_role_lookup",
+      "tasttlig_users.tasttlig_user_id",
+      "user_role_lookup.user_id"
+    )
     .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
     .groupBy("tasttlig_users.tasttlig_user_id")
     .having("passport_id", "=", passport_id)
     .first()
-    .then(value => {
+    .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
-    .catch(error => {
-      return {success: false, message: error};
+    .catch((error) => {
+      return { success: false, message: error };
     });
-}
+};
 
-const getUserByPassportIdOrEmail = async passport_id_or_email => {
-  return await db.select(
-    "tasttlig_users.*",
-    db.raw("ARRAY_AGG(roles.role) as role")
-  )
+// Get user by Passport ID or email helper function
+const getUserByPassportIdOrEmail = async (passport_id_or_email) => {
+  return await db
+    .select("tasttlig_users.*", db.raw("ARRAY_AGG(roles.role) as role"))
     .from("tasttlig_users")
-    .leftJoin("user_role_lookup", "tasttlig_users.tasttlig_user_id", "user_role_lookup.user_id")
+    .leftJoin(
+      "user_role_lookup",
+      "tasttlig_users.tasttlig_user_id",
+      "user_role_lookup.user_id"
+    )
     .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
     .groupBy("tasttlig_users.tasttlig_user_id")
     .having("tasttlig_users.email", "=", passport_id_or_email)
     .orHaving("tasttlig_users.passport_id", "=", passport_id_or_email)
     .first()
-    .then(value => {
+    .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
-    .catch(error => {
-      return {success: false, message: error};
+    .catch((error) => {
+      return { success: false, message: error };
     });
-}
+};
 
 // const setFoodSampleCoordinates = async (details) => {
 //   try {
@@ -1005,33 +963,32 @@ const getUserByPassportIdOrEmail = async passport_id_or_email => {
 //   }
 // }
 
+// Save application from multi-step form to applications table helper function
 const saveHostApplication = async (hostDto, user) => {
   let dbUser = null;
-  let plain_password = "";
-  
+
   if (user) {
     dbUser = await getUserById(user.id);
   }
-  
+
   if (dbUser == null || !dbUser.success) {
     dbUser = await getUserByPassportIdOrEmail(hostDto.email);
   }
-  
+
   hostDto.dbUser = dbUser;
-  // await updateHostUser(hostDto);
-  
-  return await db.transaction(async trx => {
+
+  return await db.transaction(async (trx) => {
     await saveApplicationInformation(hostDto, trx);
-    if(hostDto.menu_list){
+
+    if (hostDto.menu_list) {
       await saveSpecials(hostDto);
     }
-    //  if(hostDto.foodSampleList){
-    //   await saveFoodSamples(hostDto, trx);
-    // } 
+
     await sendApplierEmailForHosting(dbUser);
-    return {success: true};
+
+    return { success: true };
   });
-}
+};
 
 const sendHostApplicationEmails = async (dbUser, documents) => {
   const applier = {
@@ -1039,30 +996,31 @@ const sendHostApplicationEmails = async (dbUser, documents) => {
     last_name: dbUser.user.last_name,
     first_name: dbUser.user.first_name,
     email: dbUser.user.email,
-    documents: documents
+    documents: documents,
   };
-  
-  await sendAdminEmailForHosting(applier)
+
+  await sendAdminEmailForHosting(applier);
   await sendApplierEmailForHosting(dbUser);
-}
+};
 
 const updateHostUser = async (hostDto) => {
   const dbUser = hostDto.dbUser;
-  if (hostDto.first_name !== dbUser.user.first_name ||
+  if (
+    hostDto.first_name !== dbUser.user.first_name ||
     hostDto.last_name !== dbUser.user.last_name ||
     formatPhone(hostDto.phone_number) !== dbUser.user.phone
   ) {
-    dbUser.user.first_name = hostDto.first_name
-    dbUser.user.last_name = hostDto.last_name
-    dbUser.user.phone = formatPhone(hostDto.phone_number)
+    dbUser.user.first_name = hostDto.first_name;
+    dbUser.user.last_name = hostDto.last_name;
+    dbUser.user.phone = formatPhone(hostDto.phone_number);
     await updateUserAccount(dbUser.user);
   }
-}
+};
 
-const saveSpecials = async hostDto => {
+const saveSpecials = async (hostDto) => {
   const specials = hostDto.menu_list
-    .filter(m => m.special)
-    .map(m => ({
+    .filter((m) => m.special)
+    .map((m) => ({
       special_id: m.special,
       special_description: m.menuDescription,
       special_img_url: m.menuImages[0],
@@ -1070,15 +1028,15 @@ const saveSpecials = async hostDto => {
       city: m.menuCity,
       state: m.menuProvinceTerritory,
       postal_code: m.menuPostalCode,
-    }))
-  
+    }));
+
   if (specials && specials.length) {
     await external_api_service.saveKodidiSpecials({
       email: hostDto.email,
-      specials
+      specials,
     });
   }
-}
+};
 
 module.exports = {
   getUserById,
@@ -1107,5 +1065,4 @@ module.exports = {
   saveSocialProof,
   savePaymentInformation,
   saveBusinessServices,
-  saveFoodSamples
 };

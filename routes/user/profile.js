@@ -79,10 +79,10 @@ const extractFile = (requestBody, key, text) => {
   };
 };
 
+// POST application from multi-step form
 router.post(
   "/user/host",
   async (req, res) => {
-
     try {
       const hostDto = req.body;
       const response = await user_profile_service.saveHostApplication(hostDto, req.user);
@@ -92,10 +92,10 @@ router.post(
       }
 
       return res.status(500).send(response);
-    } catch (e) {
+    } catch (error) {
       return res.status(403).json({
         success: false,
-        message: e
+        message: error
       });
     }
   });
@@ -173,7 +173,8 @@ router.put("/user/update-profile/:id", async (req, res) => {
   }
 });
 
-router.get("/user/checkEmail/:email", async (req, res) => {
+// GET user by email
+router.get("/user/check-email/:email", async (req, res) => {
   try {
     const result = await user_profile_service.getUserByEmail(req.params.email);
 

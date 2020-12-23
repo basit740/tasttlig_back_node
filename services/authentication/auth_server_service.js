@@ -1,123 +1,109 @@
+// Libraries
 const axios = require("axios");
+
+// Environment variables
 const auth_server_url = process.env.AUTH_SERVER;
 
-async function getAuthUserByEmail(email) {
+// Authenticate user sign up helper function
+const authSignup = async (email, password, passport_id = "") => {
   let response = await axios({
-    url: auth_server_url + "/auth/get-user-by-email/" + email,
-    method: 'get',
-    headers: {
-      'access-control-allow-origin': '*'
-    }
-  })
-  return response.data
-}
+    url: `${auth_server_url}/auth/register`,
+    method: "POST",
+    data: {
+      email,
+      password,
+      passport_id,
+    },
+  });
+  return response.data;
+};
 
-async function getAuthUserById(auth_user_id) {
+// Authenticate user login helper function
+const authLogin = async (email, password) => {
   let response = await axios({
-    url: auth_server_url + "/auth/get-user-by-id/" + auth_user_id,
-    method: 'get',
+    url: `${auth_server_url}/auth/login`,
+    method: "POST",
     headers: {
-      'access-control-allow-origin': '*'
-    }
-  })
-  return response.data
-}
-
-async function authLogin(email, password) {
-  let response = await axios({
-    url: auth_server_url + "/auth/login",
-    method: 'post',
-    headers: {
-      'access-control-allow-origin': '*'
+      "access-control-allow-origin": "*",
     },
     data: {
-      email: email,
-      password: password
-    }
-  })
-  return response.data
-}
-
-async function authSignup(email, password, passport_id = "") {
-  let response = await axios({
-    url: auth_server_url + "/auth/register",
-    method: 'post',
-    data: {
-      email: email,
-      password: password,
-      passport_id: passport_id
-    }
-  })
-  return response.data
-}
-
-async function authPasswordReset(token, password) {
-  let response = await axios({
-    url: auth_server_url + "/auth/password-reset",
-    method: 'post',
-    data: {
-      token: token,
-      password: password
-    }
-  })
-  return response.data
-}
-
-async function authPasswordResetRequest(email) {
-  let response = await axios({
-    url: auth_server_url + "/auth/password-reset-req",
-    method: 'post',
-    data: {
-      email: email
-    }
-  })
-  return response.data
-}
-
-async function authAddRole(userId, role_code) {
-  let response = await axios({
-    url: auth_server_url + "/auth/add-role",
-    method: 'post',
-    data: {
-      user_id: userId,
-      role_code: role_code,
-    }
+      email,
+      password,
+    },
   });
-  return response.data
-}
+  return response.data;
+};
 
-async function authRemoveRole(userId, role_code) {
+// Authenticate user password reset request helper function
+const authPasswordResetRequest = async (email) => {
   let response = await axios({
-    url: auth_server_url + "/auth/remove-role",
-    method: 'post',
+    url: `${auth_server_url}/auth/password-reset-req`,
+    method: "POST",
     data: {
-      user_id: userId,
-      role_code: role_code,
-    }
-  })
-  return response.data
-}
-
-async function authAddPoints(userId, point) {
-  let response = await axios({
-    url: auth_server_url + "/auth/add-point",
-    method: 'post',
-    data: {
-      user_id: userId,
-      point: point,
-    }
+      email,
+    },
   });
-  return response.data
-}
+  return response.data;
+};
+
+// Authenticate user password reset helper function
+const authPasswordReset = async (token, password) => {
+  let response = await axios({
+    url: `${auth_server_url}/auth/password-reset`,
+    method: "POST",
+    data: {
+      token,
+      password,
+    },
+  });
+  return response.data;
+};
+
+// Authenticate user role addition helper function
+const authAddRole = async (user_id, role_code) => {
+  let response = await axios({
+    url: `${auth_server_url}/auth/add-role`,
+    method: "POST",
+    data: {
+      user_id,
+      role_code,
+    },
+  });
+  return response.data;
+};
+
+// Authenticate user role removal helper function
+const authRemoveRole = async (user_id, role_code) => {
+  let response = await axios({
+    url: `${auth_server_url}/auth/remove-role`,
+    method: "POST",
+    data: {
+      user_id,
+      role_code,
+    },
+  });
+  return response.data;
+};
+
+// Authenticate add points to user helper function
+const authAddPoints = async (user_id, point) => {
+  let response = await axios({
+    url: `${auth_server_url}/auth/add-point`,
+    method: "POST",
+    data: {
+      user_id,
+      point,
+    },
+  });
+  return response.data;
+};
 
 module.exports = {
-  getAuthUserByEmail,
-  getAuthUserById,
-  authLogin,
   authSignup,
-  authPasswordReset,
+  authLogin,
   authPasswordResetRequest,
+  authPasswordReset,
   authAddRole,
   authRemoveRole,
-  authAddPoints
-}
+  authAddPoints,
+};
