@@ -1,65 +1,72 @@
 "use strict";
 
-const {db} = require("../../db/db-config");
+// Libraries
+const { db } = require("../../db/db-config");
 const Orders = require("../../models/orders");
 const Experiences = require("../../models/Experiences");
 const point_system_service = require("../profile/points_system");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
-const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const moment = require("moment");
 
-const getOrderDetails = async(order_details) => {
-  if (order_details.item_type === "subscription"){
+// Environment variables
+const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
+
+// Get order details helper function
+const getOrderDetails = async (order_details) => {
+  if (
+    order_details.item_type === "plan" ||
+    order_details.item_type === "subscription"
+  ) {
     return await db("subscriptions")
       .where({
         subscription_code: order_details.item_id,
-        status: "ACTIVE"
+        status: "ACTIVE",
       })
       .first()
-      .then(value => {
-        if (!value){
-          return { success: false, message: "No Subscription found." };
+      .then((value) => {
+        if (!value) {
+          return { success: false, message: "No plan found." };
         }
         return { success: true, item: value };
       })
-      .catch(error => {
+      .catch((error) => {
         return { success: false, message: error };
       });
-  } else if (order_details.item_type === "food_sample"){
+  } else if (order_details.item_type === "food_sample") {
     return await db("food_samples")
       .where({
         food_sample_id: order_details.item_id,
-        status: "ACTIVE"
+        status: "ACTIVE",
       })
       .first()
-      .then(value => {
-        if (!value){
-          return { success: false, message: "No Food Sample found." };
+      .then((value) => {
+        if (!value) {
+          return { success: false, message: "No food sample found." };
         }
         return { success: true, item: value };
       })
-      .catch(error => {
+      .catch((error) => {
         return { success: false, message: error };
       });
-  } else if (order_details.item_type === "experience"){
+  } else if (order_details.item_type === "experience") {
     return await db("experiences")
       .where({
         experience_id: order_details.item_id,
-        status: "ACTIVE"
+        status: "ACTIVE",
       })
       .first()
-      .then(value => {
-        if (!value){
+      .then((value) => {
+        if (!value) {
           return { success: false, message: "No experience found." };
         }
         return { success: true, item: value };
       })
-      .catch(error => {
+      .catch((error) => {
         return { success: false, message: error };
       });
   }
-  return { success: false, message: "Item type not supported" };
-}
+  return { success: false, message: "Item type not supported." };
+};
 
 const getCartOrderDetails = async(cartItems) => {
   let experienceIdList = [];
