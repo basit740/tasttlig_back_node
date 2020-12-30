@@ -170,6 +170,20 @@ const createOrder = async (order_details, db_order_details) => {
         //   order_details.user_id,
         //   (total_amount_after_tax) * 100
         // );
+
+        // Get role code of new role to be added
+        const new_role_code = await trx("roles")
+        .select()
+        .where({ role: db_order_details.item.subscription_name })
+        .then((value) => {
+          return value[0].role_code;
+        });
+
+        // Insert new role for this user
+        await trx("user_role_lookup").insert({
+          user_id: order_details.user_id,
+          role_code: new_role_code,
+        });
       });
 
       const membership_plan_name = _.startCase(order_details.item_id);
@@ -424,6 +438,7 @@ const createCartOrder = async(order_details, db_order_details) => {
   }
 }
 
+// Get all user orders helper function
 const getAllUserOrders = async (user_id) => {
   try {
     // const db_orders = await db("orders")
@@ -441,61 +456,74 @@ const getAllUserOrders = async (user_id) => {
     //     order_by_user_id: user_id
     //   })
     //   .returning("*");
-    const db_orders = await Orders
-      .query()
-      .withGraphFetched('[order_items, payments]')
-      .where('orders.order_by_user_id', user_id)
-      .orderBy('orders.order_datetime', 'desc');
+    const db_orders = await Orders.query()
+      .withGraphFetched("[order_items, payments]")
+      .where("orders.order_by_user_id", user_id)
+      .orderBy("orders.order_datetime", "desc");
     let experienceIdList = [];
-    db_orders.map(db_order => {
-      db_order.order_items.map(order_item => {
-        if (order_item.item_type === "experience" && !experienceIdList.includes(order_item.item_id)){
+
+    db_orders.map((db_order) => {
+      db_order.order_items.map((order_item) => {
+        if (
+          order_item.item_type === "experience" &&
+          !experienceIdList.includes(order_item.item_id)
+        ) {
           experienceIdList.push(order_item.item_id);
         }
       });
     });
-    const db_experiences = await Experiences
-      .query()
-      .withGraphFetched('experience_images')
-      .whereIn('experiences.experience_id', experienceIdList);
+
+    const db_experiences = await Experiences.query()
+      .withGraphFetched("experience_images")
+      .whereIn("experiences.experience_id", experienceIdList);
     let orderDetails = [];
-    db_orders.map(db_order => {
+
+    db_orders.map((db_order) => {
       let updated_order_items = [];
       let db_order_items = db_order.order_items;
-      db_order_items.map(order_item => {
+
+      db_order_items.map((order_item) => {
         let new_order_item = {};
         let db_experiences_for_check = db_experiences;
-        db_experiences_for_check.map(experience => {
-          if(order_item.item_id == experience.experience_id){
+
+        db_experiences_for_check.map((experience) => {
+          if (order_item.item_id == experience.experience_id) {
             new_order_item = {
               ...order_item,
-              ...experience
+              ...experience,
             };
           }
         });
-        if(new_order_item === {}){
+
+        if (new_order_item === {}) {
           new_order_item = order_item;
         }
+
         updated_order_items.push(new_order_item);
+
+        if (order_item.item_type !== "plan") {
+          orderDetails.push({
+            ...db_order,
+            order_items: updated_order_items,
+          });
+        }
       });
-      orderDetails.push({
-        ...db_order,
-        order_items: updated_order_items
-      })
     });
+
     if (!db_orders) {
-      return {success: false, details: "No orders found"};
+      return { success: false, details: "No orders found." };
     }
-    return {success: true, details: orderDetails};
-  } catch (err) {
-    return {success: false, details: err.message};
+
+    return { success: true, details: orderDetails };
+  } catch (error) {
+    return { success: false, details: error.message };
   }
-}
+};
 
 module.exports = {
   getOrderDetails,
   createOrder,
   getCartOrderDetails,
   createCartOrder,
-  getAllUserOrders
+  getAllUserOrders,
 }
