@@ -19,7 +19,7 @@ router.post("/food-sample/add", token_service.authenticateToken, async (req, res
   try {
     req.body.map(async (item) => {
       if (!item.title || !item.sample_size || !item.quantity || !item.city 
-        || !item.postal_code || !item.description || !item.images 
+        || !item.description || !item.images 
         || !item.start_date || !item.end_date || !item.start_time 
         || !item.end_time || !item.nationality_id) {
         return res.status(403).json({
