@@ -7,6 +7,7 @@ const Experiences = require("../../models/Experiences");
 const point_system_service = require("../profile/points_system");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const moment = require("moment");
+const _ = require("lodash");
 
 // Environment variables
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -107,205 +108,262 @@ const getCartOrderDetails = async(cartItems) => {
     });
 }
 
-const createOrder = async(order_details, db_order_details) => {
-  if (order_details.item_type === "subscription") {
+// Create order helper function
+const createOrder = async (order_details, db_order_details) => {
+  if (
+    order_details.item_type === "plan" ||
+    order_details.item_type === "subscription"
+  ) {
     try {
-      await db.transaction(async trx => {
+      await db.transaction(async (trx) => {
         const total_amount_before_tax = parseFloat(db_order_details.item.price);
         const total_tax = Math.round(total_amount_before_tax * 13) / 100;
+        const total_amount_after_tax = total_amount_before_tax + total_tax;
         const db_orders = await trx("orders")
           .insert({
             order_by_user_id: order_details.user_id,
             status: "SUCCESS",
-            total_amount_before_tax: total_amount_before_tax,
-            total_tax: total_tax,
-            total_amount_after_tax: total_amount_before_tax + total_tax,
-            order_datetime: new Date()
+            total_amount_before_tax,
+            total_tax,
+            total_amount_after_tax,
+            order_datetime: new Date(),
           })
           .returning("*");
+
         if (!db_orders) {
-          return {success: false, details: "Inserting new Order failed"};
+          return { success: false, details: "Inserting new order failed." };
         }
-        await trx("order_items")
-          .insert({
-            order_id: db_orders[0].order_id,
-            item_id: order_details.item_id,
-            item_type: order_details.item_type,
-            quantity: 1,
-            price_before_tax: total_amount_before_tax
-          });
-        await trx("payments")
-          .insert({
-            order_id: db_orders[0].order_id,
-            payment_reference_number: order_details.payment_id,
-            payment_type: "CARD",
-            payment_vender: "STRIPE"
-          });
+
+        await trx("order_items").insert({
+          order_id: db_orders[0].order_id,
+          item_id: order_details.item_id,
+          item_type: order_details.item_type,
+          quantity: 1,
+          price_before_tax: total_amount_before_tax,
+        });
+
+        await trx("payments").insert({
+          order_id: db_orders[0].order_id,
+          payment_reference_number: order_details.payment_id,
+          payment_type: "CARD",
+          payment_vender: "STRIPE",
+        });
+
         let subscription_end_datetime = null;
-        if(db_order_details.item.validity_in_months){
-          subscription_end_datetime = new Date()
-            .setMonth(new Date().getMonth()
-              + db_order_details.item.validity_in_months)
+
+        if (db_order_details.item.validity_in_months) {
+          subscription_end_datetime = new Date().setMonth(
+            new Date().getMonth() + db_order_details.item.validity_in_months
+          );
         } else {
           subscription_end_datetime = db_order_details.item.date_of_expiry;
         }
-        await trx("user_subscriptions")
-          .insert({
-            subscription_code: db_order_details.item.subscription_code,
-            user_id: order_details.user_id,
-            subscription_start_datetime: new Date(),
-            subscription_end_datetime: subscription_end_datetime
-          });
-        await point_system_service.addUserPoints(
-          order_details.user_id,
-          (total_amount_before_tax + total_tax) * 100
-        );
+
+        await trx("user_subscriptions").insert({
+          subscription_code: db_order_details.item.subscription_code,
+          user_id: order_details.user_id,
+          subscription_start_datetime: new Date(),
+          subscription_end_datetime: subscription_end_datetime,
+        });
+
+        // await point_system_service.addUserPoints(
+        //   order_details.user_id,
+        //   (total_amount_after_tax) * 100
+        // );
       });
-      //Email to user on submitting the request to upgrade
+
+      const membership_plan_name = _.startCase(order_details.item_id);
+
+      // Email to user on submitting the request to upgrade
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
         to: order_details.user_email,
         bcc: ADMIN_EMAIL,
-        subject: "[Tasttlig] Subscription Purchase",
-        template: 'new_subscription_purchase',
+        subject: "[Tasttlig] Membership Plan Purchase",
+        template: "membership_plan_purchase",
         context: {
-          passport_name: "Festival"
-        }
+          membership_plan_name,
+        },
       });
-      return {success: true, details: "success"};
-    } catch (err) {
-      return {success: false, details: err.message};
+
+      return { success: true, details: "Success." };
+    } catch (error) {
+      return { success: false, details: error.message };
     }
   } else if (order_details.item_type === "food_sample") {
     try {
-      await db.transaction(async trx => {
+      await db.transaction(async (trx) => {
         const total_amount_before_tax = parseFloat(db_order_details.item.price);
         const total_tax = Math.round(total_amount_before_tax * 13) / 100;
+        const total_amount_after_tax = total_amount_before_tax + total_tax;
         const db_orders = await trx("orders")
           .insert({
             order_by_user_id: order_details.user_id,
             status: "SUCCESS",
-            total_amount_before_tax: total_amount_before_tax,
-            total_tax: total_tax,
-            total_amount_after_tax: total_amount_before_tax + total_tax,
-            order_datetime: new Date()
+            total_amount_before_tax,
+            total_tax,
+            total_amount_after_tax,
+            order_datetime: new Date(),
           })
           .returning("*");
+
         if (!db_orders) {
-          return {success: false, details: "Inserting new Order failed"};
+          return { success: false, details: "Inserting new order failed." };
         }
-        await trx("order_items")
-          .insert({
-            order_id: db_orders[0].order_id,
-            item_id: order_details.item_id,
-            item_type: order_details.item_type,
-            quantity: 1,
-            price_before_tax: total_amount_before_tax
-          });
-        await trx("payments")
-          .insert({
-            order_id: db_orders[0].order_id,
-            payment_reference_number: order_details.payment_id,
-            payment_type: "CARD",
-            payment_vender: "STRIPE"
-          });
+
+        await trx("order_items").insert({
+          order_id: db_orders[0].order_id,
+          item_id: order_details.item_id,
+          item_type: order_details.item_type,
+          quantity: 1,
+          price_before_tax: total_amount_before_tax,
+        });
+
+        await trx("payments").insert({
+          order_id: db_orders[0].order_id,
+          payment_reference_number: order_details.payment_id,
+          payment_type: "CARD",
+          payment_vender: "STRIPE",
+        });
+
         await point_system_service.addUserPoints(
           order_details.user_id,
-          (total_amount_before_tax + total_tax) * 100
+          total_amount_after_tax * 100
         );
       });
-      //Email to user on success purchase
+
+      // Email to user on successful purchase
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
         to: order_details.user_email,
         bcc: ADMIN_EMAIL,
         subject: "[Tasttlig] Purchase Successful",
-        template: 'new_food_sample_purchase',
+        template: "new_food_sample_purchase",
         context: {
-          title: db_order_details.item.title
-        }
+          title: db_order_details.item.title,
+        },
       });
-      return {success: true, details: "success"};
-    } catch (err) {
-      return {success: false, details: err.message};
+
+      return { success: true, details: "Success." };
+    } catch (error) {
+      return { success: false, details: error.message };
     }
   } else if (order_details.item_type === "experience") {
     try {
-      await db.transaction(async trx => {
+      await db.transaction(async (trx) => {
         const total_amount_before_tax = parseFloat(db_order_details.item.price);
         const total_tax = Math.round(total_amount_before_tax * 13) / 100;
+        const total_amount_after_tax = total_amount_before_tax + total_tax;
         const db_orders = await trx("orders")
           .insert({
             order_by_user_id: order_details.user_id,
             status: "SUCCESS",
-            total_amount_before_tax: total_amount_before_tax,
-            total_tax: total_tax,
-            total_amount_after_tax: total_amount_before_tax + total_tax,
-            order_datetime: new Date()
+            total_amount_before_tax,
+            total_tax,
+            total_amount_after_tax,
+            order_datetime: new Date(),
           })
           .returning("*");
+
         if (!db_orders) {
-          return {success: false, details: "Inserting new Order failed"};
+          return { success: false, details: "Inserting new order failed." };
         }
-        await trx("order_items")
-          .insert({
-            order_id: db_orders[0].order_id,
-            item_id: order_details.item_id,
-            item_type: order_details.item_type,
-            quantity: 1,
-            price_before_tax: total_amount_before_tax
-          });
-        await trx("payments")
-          .insert({
-            order_id: db_orders[0].order_id,
-            payment_reference_number: order_details.payment_id,
-            payment_type: "CARD",
-            payment_vender: "STRIPE"
-          });
-        await trx("experience_guests")
-          .insert({
-            experience_id: db_order_details.item.experience_id,
-            guest_user_id: order_details.user_id,
-            status: "CONFIRMED",
-            created_at_datetime: new Date(),
-            updated_at_datetime: new Date()
-          });
+
+        await trx("order_items").insert({
+          order_id: db_orders[0].order_id,
+          item_id: order_details.item_id,
+          item_type: order_details.item_type,
+          quantity: 1,
+          price_before_tax: total_amount_before_tax,
+        });
+
+        await trx("payments").insert({
+          order_id: db_orders[0].order_id,
+          payment_reference_number: order_details.payment_id,
+          payment_type: "CARD",
+          payment_vender: "STRIPE",
+        });
+
+        await trx("experience_guests").insert({
+          experience_id: db_order_details.item.experience_id,
+          guest_user_id: order_details.user_id,
+          status: "CONFIRMED",
+          created_at_datetime: new Date(),
+          updated_at_datetime: new Date(),
+        });
+
         await point_system_service.addUserPoints(
           order_details.user_id,
-          (total_amount_before_tax + total_tax) * 100
+          total_amount_after_tax * 100
         );
       });
-      //Email to user on success purchase
+
+      // Email to user on successful purchase
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
         to: order_details.user_email,
         bcc: ADMIN_EMAIL,
         subject: "[Tasttlig] Purchase Successful",
-        template: 'experience/new_experience_purchase',
+        template: "experience/new_experience_purchase",
         context: {
           title: db_order_details.item.title,
           passport_id: order_details.user_passport_id,
-          items: [{
-            title: db_order_details.item.title,
-            time: moment(moment(new Date(db_order_details.item.start_date).toISOString().split("T")[0] +
-              "T" + db_order_details.item.start_time + ".000Z").add(new Date().getTimezoneOffset(), "m")).format("MMM Do") + " " +
-              moment(moment(new Date(db_order_details.item.start_date).toISOString().split("T")[0] +
-                "T" + db_order_details.item.start_time + ".000Z").add(new Date().getTimezoneOffset(), "m")).format("hh:mm a") + " - " +
-              moment(moment(new Date(db_order_details.item.start_date).toISOString().split("T")[0] +
-                "T" + db_order_details.item.end_time + ".000Z").add(new Date().getTimezoneOffset(), "m")).format("hh:mm a"),
-            address: db_order_details.item.address + ", " + db_order_details.item.city + ", " + db_order_details.item.state,
-            quantity: 1
-          }]
-        }
+          items: [
+            {
+              title: db_order_details.item.title,
+              time:
+                moment(
+                  moment(
+                    new Date(db_order_details.item.start_date)
+                      .toISOString()
+                      .split("T")[0] +
+                      "T" +
+                      db_order_details.item.start_time +
+                      ".000Z"
+                  ).add(new Date().getTimezoneOffset(), "m")
+                ).format("MMM Do") +
+                " " +
+                moment(
+                  moment(
+                    new Date(db_order_details.item.start_date)
+                      .toISOString()
+                      .split("T")[0] +
+                      "T" +
+                      db_order_details.item.start_time +
+                      ".000Z"
+                  ).add(new Date().getTimezoneOffset(), "m")
+                ).format("hh:mm a") +
+                " - " +
+                moment(
+                  moment(
+                    new Date(db_order_details.item.start_date)
+                      .toISOString()
+                      .split("T")[0] +
+                      "T" +
+                      db_order_details.item.end_time +
+                      ".000Z"
+                  ).add(new Date().getTimezoneOffset(), "m")
+                ).format("hh:mm a"),
+              address:
+                db_order_details.item.address +
+                ", " +
+                db_order_details.item.city +
+                ", " +
+                db_order_details.item.state,
+              quantity: 1,
+            },
+          ],
+        },
       });
-      return {success: true, details: "success"};
-    } catch (err) {
-      return {success: false, details: err.message};
+
+      return { success: true, details: "Success." };
+    } catch (error) {
+      return { success: false, details: error.message };
     }
   } else {
-    return {success: false, details: "Invalid Item Type"};
+    return { success: false, details: "Invalid item type." };
   }
-}
+};
 
 const createCartOrder = async(order_details, db_order_details) => {
   try {
