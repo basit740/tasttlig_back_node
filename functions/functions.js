@@ -24,31 +24,38 @@ const formatMilitaryToStandardTime = (event) => {
   return standardTime;
 };
 
-/* Generate string of 4 random alphanumeric characters for the Food Sample code 
-helper function */
-const generateRandomString = (len, seed='tasttlig') => {
-  seed = parseInt(seed, 36) % 10
-  if (seed === 0) {
-    seed += 1
-  }
-  let rand = (Math.random() * seed) % 1
-  let rand2 = (Math.random() * seed) % 1
-  return (rand.toString(36).substring(2, 2 + len/2) + rand2.toString(36).substring(2, 2 + len/2)).toUpperCase();
-};
-
+// Format phone number helper function
 const formatPhone = (phone) => {
   if (phone.length === 9) {
-    return `(${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(6)}`
+    return `(${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(6)}`;
   }
   if (phone.length === 10) {
-    return `+${phone.slice(0, 1)} (${phone.slice(1, 4)}) ${phone.slice(4, 7)}-${phone.slice(7)}`
+    return `+${phone.slice(0, 1)} (${phone.slice(1, 4)}) ${phone.slice(
+      4,
+      7
+    )}-${phone.slice(7)}`;
   }
-}
+};
+
+/* Generate string of 4 random alphanumeric characters for the Food Sample code 
+helper function */
+const generateRandomString = (len, seed = "tasttlig") => {
+  seed = parseInt(seed, 36) % 10;
+  if (seed === 0) {
+    seed += 1;
+  }
+  let rand = (Math.random() * seed) % 1;
+  let rand2 = (Math.random() * seed) % 1;
+  return (
+    rand.toString(36).substring(2, 2 + len / 2) +
+    rand2.toString(36).substring(2, 2 + len / 2)
+  ).toUpperCase();
+};
 
 module.exports = {
   formatDate,
   formatTime,
   formatMilitaryToStandardTime,
+  formatPhone,
   generateRandomString,
-  formatPhone
 };
