@@ -133,78 +133,111 @@ router.post("/payment/stripe/success", async (req, res) => {
   }
 });
 
+// POST Stripe payment in shopping cart
 router.post("/payment/stripe/cart", async (req, res) => {
   if (!req.body.cartItems || !req.body.email) {
     return res.status(403).json({
       success: false,
-      message: "Required Parameters are not available in request"
+      message: "Required parameters are not available in request.",
     });
   }
-  try{
-    const cartDetails = await user_order_service.getCartOrderDetails(req.body.cartItems);
-    if(!cartDetails.success) {
-      return {success: false, message: "Invalid Order Details"};
+
+  try {
+    const cartDetails = await user_order_service.getCartOrderDetails(
+      req.body.cartItems
+    );
+
+    if (!cartDetails.success) {
+      return { success: false, message: "Invalid Order Details" };
     }
-    let returning = await authenticate_user_service.findUserByEmail(req.body.email);
-    if(!returning.success) {
-      returning = await authenticate_user_service.createDummyUser(req.body.email);
+
+    let returning = await authenticate_user_service.findUserByEmail(
+      req.body.email
+    );
+
+    if (!returning.success) {
+      returning = await authenticate_user_service.createDummyUser(
+        req.body.email
+      );
     }
+
     let db_order_details = {
       item: {
         price: cartDetails.details.price,
-        description: ""
-      }
-    }
-    const response = await stripe_payment_service.paymentIntent(db_order_details);
+        description: "",
+      },
+    };
+
+    const response = await stripe_payment_service.paymentIntent(
+      db_order_details
+    );
+
     return res.send(response);
-  } catch (err) {
+  } catch (error) {
     res.send({
       success: false,
-      message: err.message
+      message: error.message,
     });
   }
 });
 
+// POST successful Stripe payment in shopping cart
 router.post("/payment/stripe/cart/success", async (req, res) => {
-  if (!req.body.cartItems || !req.body.payment_id
-    || (!req.body.email && !req.body.passport_id)) {
+  if (
+    !req.body.cartItems ||
+    !req.body.payment_id ||
+    (!req.body.email && !req.body.passport_id)
+  ) {
     return res.status(403).json({
       success: false,
-      message: "Required Parameters are not available in request"
+      message: "Required parameters are not available in request.",
     });
   }
-  try{
+
+  try {
     let db_user;
-    if(req.body.passport_id){
-      db_user = await user_profile_service.getUserByPassportId(req.body.passport_id);
+
+    if (req.body.passport_id) {
+      db_user = await user_profile_service.getUserByPassportId(
+        req.body.passport_id
+      );
     } else {
       db_user = await authenticate_user_service.findUserByEmail(req.body.email);
     }
+
     const order_details = {
       user_id: db_user.user.tasttlig_user_id,
       user_email: db_user.user.email,
       user_passport_id: db_user.user.passport_id,
       payment_id: req.body.payment_id,
-      cartItems: req.body.cartItems
+      cartItems: req.body.cartItems,
+    };
+
+    const db_order_details = await user_order_service.getCartOrderDetails(
+      req.body.cartItems
+    );
+
+    if (!db_order_details.success) {
+      return { success: false, message: "Invalid order details." };
     }
-    const db_order_details = await user_order_service.getCartOrderDetails(req.body.cartItems);
-    if(!db_order_details.success) {
-      return {success: false, message: "Invalid Order Details"};
-    }
-    
-    const response = await user_order_service.createCartOrder(order_details, db_order_details.details);
-    if(response.success) {
+
+    const response = await user_order_service.createCartOrder(
+      order_details,
+      db_order_details.details
+    );
+
+    if (response.success) {
       return res.send({
         success: true,
-        details: db_order_details.details
+        details: db_order_details.details,
       });
     } else {
       return res.send(response);
     }
-  } catch (err) {
+  } catch (error) {
     res.send({
       success: false,
-      message: err.message
+      message: error.message,
     });
   }
 });

@@ -1,23 +1,29 @@
 "use strict";
 
+// Libraries
 const router = require("express").Router();
-const bcrypt = require("bcrypt");
 const token_service = require("../../services/authentication/token");
 const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const point_system_service = require("../../services/profile/points_system");
-const menu_item_service = require("../../services/menu_items/menu_items")
+const menu_item_service = require("../../services/menu_items/menu_items");
 
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
-  const response = await user_profile_service.getUserBySubscriptionId(req.user.id);
+  const response = await user_profile_service.getUserBySubscriptionId(
+    req.user.id
+  );
+
   if (!response.success) {
     return res.status(403).json({
       success: false,
-      message: response.message
+      message: response.message,
     });
   }
-  const points_total = await point_system_service.getUserPoints(response.user.tasttlig_user_id);
+
+  const points_total = await point_system_service.getUserPoints(
+    response.user.tasttlig_user_id
+  );
 
   let user = {
     id: response.user.tasttlig_user_id,
@@ -42,11 +48,12 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     subscription_code: response.user.subscription_code,
     verified: response.user.is_email_verified,
     passport_id: response.user.passport_id,
-    points: (points_total.data[0].sum ? points_total.data[0].sum : 0)
+    points: points_total.data[0].sum ? points_total.data[0].sum : 0,
   };
+
   res.status(200).json({
     success: true,
-    user: user
+    user,
   });
 });
 
@@ -65,49 +72,52 @@ const extractBusinessInfo = (user_details_from_db, requestBody) => {
     phone_number: requestBody.phone_number,
     business_registration_number: requestBody.registration_number,
     instagram: requestBody.instagram,
-    facebook: requestBody.facebook
+    facebook: requestBody.facebook,
   };
 };
 
 const extractFile = (requestBody, key, text) => {
   return {
     document_type: text,
-    issue_date: new Date(requestBody[key + '_date_of_issue']),
-    expiry_date: new Date(requestBody[key + '_date_of_expired']),
+    issue_date: new Date(requestBody[key + "_date_of_issue"]),
+    expiry_date: new Date(requestBody[key + "_date_of_expired"]),
     document_link: requestBody.food_handler_certificate,
-    status: "Pending"
+    status: "Pending",
   };
 };
 
 // POST application from multi-step form
-router.post(
-  "/user/host",
-  async (req, res) => {
-    try {
-      const hostDto = req.body;
-      const response = await user_profile_service.saveHostApplication(hostDto, req.user);
+router.post("/user/host", async (req, res) => {
+  try {
+    const hostDto = req.body;
+    const response = await user_profile_service.saveHostApplication(
+      hostDto,
+      req.user
+    );
 
-      if (response.success) {
-        return res.send(response);
-      }
-
-      return res.status(500).send(response);
-    } catch (error) {
-      return res.status(403).json({
-        success: false,
-        message: error
-      });
+    if (response.success) {
+      return res.send(response);
     }
-  });
+
+    return res.status(500).send(response);
+  } catch (error) {
+    return res.status(403).json({
+      success: false,
+      message: error,
+    });
+  }
+});
 
 router.get("/user/application/:token", async (req, res) => {
   if (!req.params.token) {
     return res.status(403).json({
       success: false,
-      message: "Required Parameters are not available in request",
+      message: "Required parameters are not available in request.",
     });
   }
+
   const response = await user_profile_service.handleAction(req.params.token);
+
   return res.send(response);
 });
 
@@ -134,8 +144,8 @@ router.put("/user/update-account/:id", async (req, res) => {
         message: "Email already exists.",
       });
     }
-  } catch (err) {
-    console.log("Update", err);
+  } catch (error) {
+    console.log("Update", error);
   }
 });
 
@@ -168,8 +178,8 @@ router.put("/user/update-profile/:id", async (req, res) => {
         message: "Email already exists.",
       });
     }
-  } catch (err) {
-    console.log("Update", err);
+  } catch (error) {
+    console.log("Update", error);
   }
 });
 
@@ -179,197 +189,281 @@ router.get("/user/check-email/:email", async (req, res) => {
     const result = await user_profile_service.getUserByEmail(req.params.email);
 
     if (result.success) {
-      const {success, user: {tasttlig_user_id, email}} = result
-      return res.send({success, user: {tasttlig_user_id, email}});
+      const {
+        success,
+        user: { tasttlig_user_id, email },
+      } = result;
+
+      return res.send({ success, user: { tasttlig_user_id, email } });
     } else {
-      return res.send({success: false});
+      return res.send({ success: false });
     }
-  } catch (e) {
-    res.status(500).send({success: false, message: e});
+  } catch (error) {
+    res.status(500).send({ success: false, message: error });
   }
 });
 
+// PUT menu item from user
 router.put("/user/updateMenuItem", async (req, res) => {
   try {
-    const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+    const db_user = await authenticate_user_service.findUserByEmail(
+      req.body.email
+    );
+
     if (!db_user.success) {
       return res.status(403).json({
         success: false,
-        message: "User does not exist"
+        message: "User does not exist.",
       });
     }
+
     let menuItems = req.body;
     delete menuItems.email;
     menuItems = Object.values(menuItems);
-    const response = await user_profile_service.saveMenuItems(db_user.user, menuItems);
+
+    const response = await user_profile_service.saveMenuItems(
+      db_user.user,
+      menuItems
+    );
+
     res.send(response);
-  } catch (e) {
-    res.status(500).send({success: false, message: e});
+  } catch (error) {
+    res.status(500).send({ success: false, message: error });
   }
 });
 
+// POST menu items from user
 router.post("/user/addMenuItems", async (req, res) => {
   try {
-    const user_details_from_db = await authenticate_user_service.findUserByEmail(req.body.email);
+    const user_details_from_db = await authenticate_user_service.findUserByEmail(
+      req.body.email
+    );
+
     if (!user_details_from_db.success) {
       return res.status(403).json({
         success: false,
-        message: "User does not exist"
+        message: "User does not exist.",
       });
     }
+
     let db_user = user_details_from_db.user;
     let menuItems = req.body.menu_list;
-    const response = await user_profile_service.saveMenuItems(db_user, menuItems, false);
+
+    const response = await user_profile_service.saveMenuItems(
+      db_user,
+      menuItems,
+      false
+    );
+
     res.send(response);
-  } catch (e) {
-    res.status(500).send({success: false, message: e});
+  } catch (error) {
+    res.status(500).send({ success: false, message: error });
   }
 });
 
+// PUT assets from user
 router.put("/user/updateAssets", async (req, res) => {
   try {
-    const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+    const db_user = await authenticate_user_service.findUserByEmail(
+      req.body.email
+    );
+
     if (!db_user.success) {
       return res.status(403).json({
         success: false,
-        message: "User does not exist"
+        message: "User does not exist.",
       });
     }
+
     let assets = req.body;
     delete assets.email;
     assets = Object.values(assets);
-    const response = await user_profile_service.saveAssets(db_user.user, assets);
+
+    const response = await user_profile_service.saveAssets(
+      db_user.user,
+      assets
+    );
+
     res.send(response);
-  } catch (e) {
-    res.status(500).send({success: false, message: e});
+  } catch (error) {
+    res.status(500).send({ success: false, message: error });
   }
 });
 
+// PUT services from user
 router.put("/user/updateServices", async (req, res) => {
   try {
-    const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+    const db_user = await authenticate_user_service.findUserByEmail(
+      req.body.email
+    );
+
     if (!db_user.success) {
       return res.status(403).json({
         success: false,
-        message: "User does not exist"
+        message: "User does not exist.",
       });
     }
+
     let services = req.body;
     delete services.email;
     services = Object.values(services);
-    const response = await user_profile_service.saveBusinessServices(db_user.user, services);
+
+    const response = await user_profile_service.saveBusinessServices(
+      db_user.user,
+      services
+    );
+
     res.send(response);
-  } catch (e) {
-    res.status(500).send({success: false, message: e});
+  } catch (error) {
+    res.status(500).send({ success: false, message: error });
   }
 });
 
+// PUT entertainers from user
 router.put("/user/updateEntertainersProduct", async (req, res) => {
   try {
-    const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+    const db_user = await authenticate_user_service.findUserByEmail(
+      req.body.email
+    );
+
     if (!db_user.success) {
       return res.status(403).json({
         success: false,
-        message: "User does not exist"
+        message: "User does not exist.",
       });
     }
+
     let sample_links = req.body;
     delete sample_links.email;
     sample_links = Object.values(sample_links);
-    const response = await user_profile_service.saveSampleLinks(db_user.user, sample_links);
+
+    const response = await user_profile_service.saveSampleLinks(
+      db_user.user,
+      sample_links
+    );
+
     res.send(response);
-  } catch (e) {
-    res.status(500).send({success: false, message: e});
+  } catch (error) {
+    res.status(500).send({ success: false, message: error });
   }
 });
 
+// PUT venues from user
 router.put("/user/updateVenuesProduct", async (req, res) => {
   try {
-    const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+    const db_user = await authenticate_user_service.findUserByEmail(
+      req.body.email
+    );
+
     if (!db_user.success) {
       return res.status(403).json({
         success: false,
-        message: "User does not exist"
+        message: "User does not exist.",
       });
     }
+
     const response = await user_profile_service.saveVenueInformation(
       db_user.user,
       req.body.venue_name,
       req.body.venue_description,
       req.body.venue_photos
     );
+
     res.send(response);
-  } catch (e) {
-    res.status(500).send({success: false, message: e});
+  } catch (error) {
+    res.status(500).send({ success: false, message: error });
   }
 });
 
+// PUT documents from user
 router.put("/user/updateDocuments", async (req, res) => {
   try {
-    const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+    const db_user = await authenticate_user_service.findUserByEmail(
+      req.body.email
+    );
+
     if (!db_user.success) {
       return res.status(403).json({
         success: false,
-        message: "User does not exist"
+        message: "User does not exist.",
       });
     }
+
     const response = await user_profile_service.saveDocuments(
       db_user.user,
       req.body
     );
+
     res.send(response);
-  } catch (e) {
-    res.status(500).send({success: false, message: e});
+  } catch (error) {
+    res.status(500).send({ success: false, message: error });
   }
 });
 
+// PUT social proof from user
 router.put("/user/updateSocialProof", async (req, res) => {
   try {
-    const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+    const db_user = await authenticate_user_service.findUserByEmail(
+      req.body.email
+    );
+
     if (!db_user.success) {
       return res.status(403).json({
         success: false,
-        message: "User does not exist"
+        message: "User does not exist.",
       });
     }
+
     const response = await user_profile_service.saveSocialProof(
       db_user.user,
       req.body
     );
+
     res.send(response);
-  } catch (e) {
-    res.status(500).send({success: false, message: e});
+  } catch (error) {
+    res.status(500).send({ success: false, message: error });
   }
 });
 
+// PUT payment information from user
 router.put("/user/updatePaymentInfo", async (req, res) => {
   try {
-    const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+    const db_user = await authenticate_user_service.findUserByEmail(
+      req.body.email
+    );
+
     if (!db_user.success) {
       return res.status(403).json({
         success: false,
-        message: "User does not exist"
+        message: "User does not exist.",
       });
     }
+
     const response = await user_profile_service.savePaymentInformation(
       db_user.user,
       req.body
     );
+
     res.send(response);
-  } catch (e) {
-    res.status(500).send({success: false, message: e});
+  } catch (error) {
+    res.status(500).send({ success: false, message: error });
   }
 });
 
+// PUT residential information from user
 router.put("/user/updateResidentialAddressInfo", async (req, res) => {
   try {
-    const db_user = await authenticate_user_service.findUserByEmail(req.body.email);
+    const db_user = await authenticate_user_service.findUserByEmail(
+      req.body.email
+    );
+
     if (!db_user.success) {
       return res.status(403).json({
         success: false,
-        message: "User does not exist"
+        message: "User does not exist.",
       });
     }
+
     let user = {
       ...db_user.user,
       id: db_user.user.tasttlig_user_id,
@@ -377,17 +471,20 @@ router.put("/user/updateResidentialAddressInfo", async (req, res) => {
       address_line_2: req.body.residential_address_line_2,
       city: req.body.residential_city,
       postal_code: req.body.residential_postal_code,
-      state: req.body.residential_state
-    }
+      state: req.body.residential_state,
+    };
+
     const response = await user_profile_service.updateUserProfile(user);
+
     res.send(response);
-  } catch (e) {
-    res.status(500).send({success: false, message: e});
+  } catch (error) {
+    res.status(500).send({ success: false, message: error });
   }
 });
 
 // GET user menu items
-router.get("/menu-item/user/all",
+router.get(
+  "/menu-item/user/all",
   token_service.authenticateToken,
   async (req, res) => {
     try {
@@ -395,19 +492,26 @@ router.get("/menu-item/user/all",
       const keyword = req.query.keyword || "";
       const status_operator = "=";
       const menu_item_status = "ACTIVE";
-      const user_details_from_db = await user_profile_service.getUserById(req.user.id);
+
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
+
       if (!user_details_from_db.success) {
         return res.status(403).json({
           success: false,
-          message: user_details_from_db.message
+          message: user_details_from_db.message,
         });
       }
+
       let requestByAdmin = false;
       let db_user = user_details_from_db.user;
       let user_role_object = db_user.role;
+
       if (user_role_object.includes("ADMIN")) {
         requestByAdmin = true;
       }
+
       const response = await menu_item_service.getAllUserMenuItems(
         status_operator,
         menu_item_status,
@@ -416,14 +520,16 @@ router.get("/menu-item/user/all",
         req.user.id,
         requestByAdmin
       );
+
       return res.send(response);
-    } catch (err) {
+    } catch (error) {
       res.send({
         success: false,
-        message: "error",
-        response: err.message
+        message: "Error.",
+        response: error.message,
       });
     }
-  })
+  }
+);
 
 module.exports = router;
