@@ -1,16 +1,17 @@
 "use strict";
 
-const aws = require('aws-sdk');
+// Libraries
+const aws = require("aws-sdk");
 const s3UploaderRouter = require("express").Router();
 const aws_region = process.env.AWS_DEFAULT_REGION;
 
 aws.config.update({
   region: aws_region,
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
-const S3_BUCKET = process.env.S3_BUCKET
+const S3_BUCKET = process.env.S3_BUCKET;
 
 s3UploaderRouter.post("/s3_signed_url", async (req, res) => {
   const s3 = new aws.S3();
@@ -23,17 +24,18 @@ s3UploaderRouter.post("/s3_signed_url", async (req, res) => {
     Key: fileName,
     Expires: 500,
     ContentType: fileType,
-    ACL: 'public-read'
+    ACL: "public-read",
   };
 
-  s3.getSignedUrlPromise('putObject', params)
-    .then(function(url) {
+  s3.getSignedUrlPromise("putObject", params)
+    .then(function (url) {
       const data = {
         signedRequest: url,
-        url: `https://s3.${aws_region}.amazonaws.com/${S3_BUCKET}/${fileName}`
+        url: `https://s3.${aws_region}.amazonaws.com/${S3_BUCKET}/${fileName}`,
       };
-      res.json({ success: true, ...data});
-    }).catch(err => res.json({ success: false, error: err }));
+      res.json({ success: true, ...data });
+    })
+    .catch((error) => res.json({ success: false, error }));
 });
 
 module.exports = s3UploaderRouter;
