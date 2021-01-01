@@ -40,6 +40,7 @@ const getUserById = async (id) => {
     });
 };
 
+// Get user by subscription ID helper function
 const getUserBySubscriptionId = async (id) => {
   return await db("tasttlig_users")
     .select(
@@ -73,6 +74,7 @@ const getUserBySubscriptionId = async (id) => {
     });
 };
 
+// Update user account helper function
 const updateUserAccount = async (user) => {
   try {
     return await db("tasttlig_users")
@@ -94,11 +96,12 @@ const updateUserAccount = async (user) => {
       .catch((reason) => {
         return { success: false, details: reason };
       });
-  } catch (err) {
-    return { success: false, message: err };
+  } catch (error) {
+    return { success: false, message: error };
   }
 };
 
+// Update user profile helper function
 const updateUserProfile = async (user) => {
   try {
     return await db("tasttlig_users")
@@ -126,8 +129,8 @@ const updateUserProfile = async (user) => {
       .catch((reason) => {
         return { success: false, details: reason };
       });
-  } catch (err) {
-    return { success: false, message: err };
+  } catch (error) {
+    return { success: false, message: error };
   }
 };
 
@@ -210,6 +213,7 @@ const saveBusinessForUser = async (hostDto, user_id) => {
   });
 };
 
+// Save business services helper function
 const saveBusinessServices = async (db_user, services) => {
   return await db.transaction(async (trx) => {
     const businessServices = services.map((serviceName) => ({
@@ -310,6 +314,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
 };
 
+// Save payment information helper function
 const savePaymentInformation = async (db_user, banking_info) => {
   return await db.transaction(async (trx) => {
     let paymentInfo = {
@@ -348,6 +353,7 @@ const savePaymentInformation = async (db_user, banking_info) => {
   });
 };
 
+// Save documents helper function
 const saveDocuments = async (db_user, documents_obj) => {
   return await db.transaction(async (trx) => {
     const documents = [
@@ -380,6 +386,7 @@ const saveDocuments = async (db_user, documents_obj) => {
   });
 };
 
+// Save social proof helper function
 const saveSocialProof = async (db_user, social_proof) => {
   return await db.transaction(async (trx) => {
     const reviews = [
@@ -421,6 +428,7 @@ const saveSocialProof = async (db_user, social_proof) => {
   });
 };
 
+// Save menu items helper function
 const saveMenuItems = async (db_user, menu_list, update = true) => {
   return await db.transaction(async (trx) => {
     if (update) {
@@ -446,15 +454,18 @@ const saveMenuItems = async (db_user, menu_list, update = true) => {
           console.log(err);
         });
     }
+
     await Promise.all(
       menu_list.map(async (m) => {
         await menu_items_service.addNewMenuItem(db_user, m, m.menuImages, trx);
       })
     );
+
     return { success: true };
   });
 };
 
+// Save assets helper function
 const saveAssets = async (db_user, assets) => {
   return await db.transaction(async (trx) => {
     await db("assets")
@@ -475,26 +486,32 @@ const saveAssets = async (db_user, assets) => {
       .catch((err) => {
         console.log(err);
       });
+
     await Promise.all(
       assets.map(async (a) => {
         await assets_service.addAsset(db_user, a, a.images, trx);
       })
     );
+
     return { success: true };
   });
 };
 
+// Save entertainment helper function
 const saveSampleLinks = async (db_user, sample_links) => {
   await db("entertainment")
     .whereIn("creator_user_id", db_user.tasttlig_user_id)
     .del();
+
   const sampleLinks = sample_links.map((l) => ({
     user_id: db_user.tasttlig_user_id,
     media_link: l,
   }));
+
   return db("entertainment").insert(sampleLinks).returning("*");
 };
 
+// Save venue information helper function
 const saveVenueInformation = async (
   db_user,
   venue_name,
@@ -520,6 +537,7 @@ const saveVenueInformation = async (
       .catch((err) => {
         console.log(err);
       });
+
     const response = await trx("venue")
       .insert({
         creator_user_id: db_user.tasttlig_user_id,
@@ -537,6 +555,7 @@ const saveVenueInformation = async (
   });
 };
 
+// Send application approved or rejected email from admin helper function
 const sendAdminEmailForHosting = async (user_info) => {
   const document_approve_token = jwt.sign(
     {
@@ -567,7 +586,6 @@ const sendAdminEmailForHosting = async (user_info) => {
       email: user_info.email,
       upgrade_type: "RESTAURANT",
       documents: user_info.documents,
-
       approve_link: application_approve_url,
       reject_link: application_reject_url,
     },
@@ -588,14 +606,16 @@ const sendApplierEmailForHosting = async (db_user) => {
   });
 };
 
+// Email to new user with login details and password reset link helper function
 const sendNewUserEmail = async (new_user) => {
-  // Email to new user with login details and password reset link
   const email = new_user.email;
   const { email_token } = await auth_server_service.authPasswordResetRequest(
     email
   );
+
   try {
     const url = `${SITE_BASE}/forgot-password/${email_token}/${email}`;
+
     await Mailer.sendMail({
       from: process.env.SES_DEFAULT_FROM,
       to: email,
@@ -604,21 +624,22 @@ const sendNewUserEmail = async (new_user) => {
       context: {
         first_name: new_user.first_name,
         last_name: new_user.last_name,
-        email: email,
+        email,
         password: new_user.password,
-        url: url,
+        url,
       },
     });
+
     return {
       success: true,
-      message: "ok",
+      message: "Success.",
       response: `Your update password email has been sent to ${email}.`,
     };
-  } catch (err) {
+  } catch (error) {
     return {
       success: false,
-      message: "error",
-      response: "Error in sending email",
+      message: "Error.",
+      response: "Error in sending email.",
     };
   }
 };
@@ -638,21 +659,23 @@ const upgradeUserResponse = async (token) => {
       });
 
     const document_user_id = db_document[0].user_id;
+
     return approveOrDeclineHostApplication(document_user_id, status);
-  } catch (err) {
-    return { success: false, message: err };
+  } catch (error) {
+    return { success: false, message: error };
   }
 };
 
-// handleAction is the function that when tasttlig admin click the approve link
+// handleAction is the function when admin clicks the approve link
 const handleAction = async (token) => {
   try {
     const decrypted_token = jwt.verify(token, EMAIL_SECRET);
     const user_id = decrypted_token.user_id;
     const status = decrypted_token.status;
+
     return approveOrDeclineHostApplication(user_id, status);
-  } catch (err) {
-    return { success: false, message: err };
+  } catch (error) {
+    return { success: false, message: error };
   }
 };
 
@@ -667,10 +690,10 @@ const approveOrDeclineHostApplication = async (
     if (!db_user_row.success) {
       return { success: false, message: db_user_row.message };
     }
-    const db_user = db_user_row.user;
-    console.log(db_user);
 
-    // get pending role which has been approved
+    const db_user = db_user_row.user;
+
+    // Get pending role which has been approved
     let role_pending = "";
     db_user.role.map((role) => {
       if (role.search("_PENDING") !== -1) {
@@ -678,10 +701,10 @@ const approveOrDeclineHostApplication = async (
       }
     });
 
-    // depends on status, we do different things:
-    // if status is approved
+    // Depends on status, we do different things:
+    // If status is approved
     if (status === "APPROVED") {
-      // get role_code of old role to be removed
+      // Get role code of old role to be removed
       const old_role_code = await db("roles")
         .select()
         .where({ role: role_pending })
@@ -689,7 +712,7 @@ const approveOrDeclineHostApplication = async (
           return value[0].role_code;
         });
 
-      // remove the role for this user
+      // Remove the role for this user
       await db("user_role_lookup")
         .where({
           user_id: db_user.tasttlig_user_id,
@@ -697,7 +720,7 @@ const approveOrDeclineHostApplication = async (
         })
         .del();
 
-      // get role_code of new role to be added
+      // Get role code of new role to be added
       let new_role = role_pending.split("_")[0];
       const new_role_code = await db("roles")
         .select()
@@ -706,7 +729,7 @@ const approveOrDeclineHostApplication = async (
           return value[0].role_code;
         });
 
-      // insert new role for this user
+      // Insert new role for this user
       await db("user_role_lookup").insert({
         user_id: db_user.tasttlig_user_id,
         role_code: new_role_code,
@@ -730,7 +753,7 @@ const approveOrDeclineHostApplication = async (
           .update("status", "ACTIVE");
       }
 
-      // STEP 4: Update all documents belongs to this user which is in Pending state become APPROVE
+      // STEP 4: Update all documents belongs to this user which is in Pending state become APPROVED
       await db("documents")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
@@ -740,7 +763,7 @@ const approveOrDeclineHostApplication = async (
           return { success: false, message: reason };
         });
 
-      // STEP 5: Update Application table status
+      // STEP 5: Update applications table status
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
@@ -757,7 +780,7 @@ const approveOrDeclineHostApplication = async (
         active_item = "Experiences";
       }
 
-      // STEP 6: email the user that their application is approved
+      // STEP 6: Email the user that their application is approved
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
         to: db_user.email,
@@ -770,11 +793,12 @@ const approveOrDeclineHostApplication = async (
           active_item: active_item,
         },
       });
+
       return { success: true, message: status };
     } else {
-      // status is Failed
+      // Status is failed
       // STEP 1: remove the RESTAURANT_PENDING role
-      // get role_code of the role to be removed
+      // Get role code of the role to be removed
       let role_code = await db("roles")
         .select()
         .where({
@@ -783,7 +807,8 @@ const approveOrDeclineHostApplication = async (
         .then((value) => {
           return value[0].role_code;
         });
-      // remove the role for this user
+
+      // Remove the role for this user
       await db("user_role_lookup")
         .where({
           user_id: db_user.tasttlig_user_id,
@@ -801,7 +826,7 @@ const approveOrDeclineHostApplication = async (
           return { success: false, message: reason };
         });
 
-      // STEP 3: Update Application table status
+      // STEP 3: Update applications table status
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
@@ -815,7 +840,7 @@ const approveOrDeclineHostApplication = async (
         role_pending.split("_")[0].charAt(0).toUpperCase() +
         role_pending.split("_")[0].slice(1).toLowerCase();
 
-      // STEP 4: notify user their application is reject
+      // STEP 4: Notify user their application is rejected
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
         to: db_user.email,
@@ -827,14 +852,15 @@ const approveOrDeclineHostApplication = async (
           declineReason,
         },
       });
+
       return { success: true, message: status };
     }
-  } catch (e) {
-    console.log(e);
-    return { success: false, message: e };
+  } catch (error) {
+    return { success: false, message: error };
   }
 };
 
+// Get user by email helper function
 const getUserByEmail = async (email) => {
   return await db
     .select("tasttlig_users.*", db.raw("ARRAY_AGG(roles.role) as role"))
@@ -859,6 +885,7 @@ const getUserByEmail = async (email) => {
     });
 };
 
+// Get user by email with subscription helper function
 const getUserByEmailWithSubscription = async (email) => {
   return await db
     .select(
@@ -893,6 +920,7 @@ const getUserByEmailWithSubscription = async (email) => {
     });
 };
 
+// Get user by Passport ID helper function
 const getUserByPassportId = async (passport_id) => {
   return await db
     .select("tasttlig_users.*", db.raw("ARRAY_AGG(roles.role) as role"))
@@ -958,8 +986,8 @@ const getUserByPassportIdOrEmail = async (passport_id_or_email) => {
 //     details.latitude = coordinates.latitude;
 //     details.longitude = coordinates.longitude;
 //     details.coordinates = gis.setSRID(gis.makePoint(coordinates.longitude, coordinates.latitude), 4326);
-//   } catch (e) {
-//     console.log(e);
+//   } catch (error) {
+//     console.log(error);
 //   }
 // }
 
@@ -1017,6 +1045,7 @@ const updateHostUser = async (hostDto) => {
   }
 };
 
+// Save Kodidi specials helper function
 const saveSpecials = async (hostDto) => {
   const specials = hostDto.menu_list
     .filter((m) => m.special)

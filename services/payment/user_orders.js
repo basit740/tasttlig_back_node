@@ -66,47 +66,80 @@ const getOrderDetails = async (order_details) => {
         return { success: false, message: error };
       });
   }
+
   return { success: false, message: "Item type not supported." };
 };
 
-const getCartOrderDetails = async(cartItems) => {
+// Get shopping cart order details helper function
+const getCartOrderDetails = async (cartItems) => {
   let experienceIdList = [];
   let CartItemDetails = [];
-  cartItems.map(item => {
+
+  cartItems.map((item) => {
     experienceIdList.push(item.itemId);
   });
+
   return await db
     .select("*")
     .from("experiences")
     .whereIn("experiences.experience_id", experienceIdList)
-    .then(value => {
+    .then((value) => {
       let totalPrice = 0;
-      value.map(item => {
+
+      value.map((item) => {
         let itemPrice = 0;
-        cartItems.map(cartItem => {
-          if(cartItem.itemId == item.experience_id){
+
+        cartItems.map((cartItem) => {
+          if (cartItem.itemId == item.experience_id) {
             CartItemDetails.push({
               title: item.title,
-              time: moment(moment(new Date(item.start_date).toISOString().split("T")[0] +
-                "T" + item.start_time + ".000Z").add(new Date().getTimezoneOffset(), "m")).format("MMM Do") + " " +
-                moment(moment(new Date(item.start_date).toISOString().split("T")[0] +
-                  "T" + item.start_time + ".000Z").add(new Date().getTimezoneOffset(), "m")).format("hh:mm a") + " - " +
-                moment(moment(new Date(item.start_date).toISOString().split("T")[0] +
-                  "T" + item.end_time + ".000Z").add(new Date().getTimezoneOffset(), "m")).format("hh:mm a"),
+              time:
+                moment(
+                  moment(
+                    new Date(item.start_date).toISOString().split("T")[0] +
+                      "T" +
+                      item.start_time +
+                      ".000Z"
+                  ).add(new Date().getTimezoneOffset(), "m")
+                ).format("MMM Do") +
+                " " +
+                moment(
+                  moment(
+                    new Date(item.start_date).toISOString().split("T")[0] +
+                      "T" +
+                      item.start_time +
+                      ".000Z"
+                  ).add(new Date().getTimezoneOffset(), "m")
+                ).format("hh:mm a") +
+                " - " +
+                moment(
+                  moment(
+                    new Date(item.start_date).toISOString().split("T")[0] +
+                      "T" +
+                      item.end_time +
+                      ".000Z"
+                  ).add(new Date().getTimezoneOffset(), "m")
+                ).format("hh:mm a"),
               address: item.address + ", " + item.city + ", " + item.state,
-              quantity: cartItem.quantity
+              quantity: cartItem.quantity,
             });
+
             itemPrice = parseFloat(item.price) * parseFloat(cartItem.quantity);
           }
         });
+
         totalPrice = totalPrice + itemPrice;
       });
-      return {success: true, details:{cartItemDetails: CartItemDetails, price: totalPrice}};
+
+      return {
+        success: true,
+        details: { cartItemDetails: CartItemDetails, price: totalPrice },
+      };
     })
-    .catch(reason => {
-      return {success: false, details:reason};
+    .catch((reason) => {
+      return { success: false, details: reason };
     });
-}
+};
 
 // Create order helper function
 const createOrder = async (order_details, db_order_details) => {
@@ -168,16 +201,16 @@ const createOrder = async (order_details, db_order_details) => {
 
         // await point_system_service.addUserPoints(
         //   order_details.user_id,
-        //   (total_amount_after_tax) * 100
+        //   total_amount_after_tax * 100
         // );
 
         // Get role code of new role to be added
         const new_role_code = await trx("roles")
-        .select()
-        .where({ role: db_order_details.item.subscription_name })
-        .then((value) => {
-          return value[0].role_code;
-        });
+          .select()
+          .where({ role: db_order_details.item.subscription_name })
+          .then((value) => {
+            return value[0].role_code;
+          });
 
         // Insert new role for this user
         await trx("user_role_lookup").insert({
@@ -379,64 +412,69 @@ const createOrder = async (order_details, db_order_details) => {
   }
 };
 
-const createCartOrder = async(order_details, db_order_details) => {
+// Create shopping cart order helper function
+const createCartOrder = async (order_details, db_order_details) => {
   try {
-    await db.transaction(async trx => {
+    await db.transaction(async (trx) => {
       const total_amount_before_tax = parseFloat(db_order_details.price);
       const total_tax = Math.round(total_amount_before_tax * 13) / 100;
+      const total_amount_after_tax = total_amount_before_tax + total_tax;
       const db_orders = await trx("orders")
         .insert({
           order_by_user_id: order_details.user_id,
           status: "SUCCESS",
-          total_amount_before_tax: total_amount_before_tax,
-          total_tax: total_tax,
-          total_amount_after_tax: total_amount_before_tax + total_tax,
-          order_datetime: new Date()
+          total_amount_before_tax,
+          total_tax,
+          total_amount_after_tax,
+          order_datetime: new Date(),
         })
         .returning("*");
+
       if (!db_orders) {
-        return {success: false, details: "Inserting new Order failed"};
+        return { success: false, details: "Inserting new order failed." };
       }
-      const orderItems = order_details.cartItems.map(item => ({
+
+      const orderItems = order_details.cartItems.map((item) => ({
         order_id: db_orders[0].order_id,
         item_id: item.itemId,
         item_type: "experience",
         quantity: item.quantity,
-        price_before_tax: item.price
+        price_before_tax: item.price,
       }));
-      await trx("order_items")
-        .insert(orderItems);
-      
-      await trx("payments")
-        .insert({
-          order_id: db_orders[0].order_id,
-          payment_reference_number: order_details.payment_id,
-          payment_type: "CARD",
-          payment_vender: "STRIPE"
-        });
+
+      await trx("order_items").insert(orderItems);
+
+      await trx("payments").insert({
+        order_id: db_orders[0].order_id,
+        payment_reference_number: order_details.payment_id,
+        payment_type: "CARD",
+        payment_vender: "STRIPE",
+      });
+
       await point_system_service.addUserPoints(
         order_details.user_id,
-        (total_amount_before_tax + total_tax) * 100
+        total_amount_after_tax * 100
       );
     });
-    
-    //Email to user on successful purchase
+
+    // Email to user on successful purchase
     await Mailer.sendMail({
       from: process.env.SES_DEFAULT_FROM,
       to: order_details.user_email,
       bcc: ADMIN_EMAIL,
       subject: "[Tasttlig] Purchase Successful",
-      template: 'experience/new_experience_purchase',
+      template: "experience/new_experience_purchase",
       context: {
         passport_id: order_details.user_passport_id,
-        items: db_order_details.cartItemDetails
-      }
+        items: db_order_details.cartItemDetails,
+      },
     });
-    return {success: true, details: "success"};
-  } catch (err) {
-    return {success: false, details: err.message};
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
   }
-}
+};
 
 // Get all user orders helper function
 const getAllUserOrders = async (user_id) => {
@@ -526,4 +564,4 @@ module.exports = {
   getCartOrderDetails,
   createCartOrder,
   getAllUserOrders,
-}
+};
