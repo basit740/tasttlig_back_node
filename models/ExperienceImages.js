@@ -1,28 +1,29 @@
-const { Model } = require('objection');
+// Libraries
+const { Model } = require("objection");
 
 class ExperienceImages extends Model {
   // Table name is the only required property.
   static get tableName() {
-    return 'experience_images';
+    return "experience_images";
   }
-  
+
   static get idColumn() {
-    return 'experience_image_id';
+    return "experience_image_id";
   }
-  
+
   // This object defines the relations to other models.
   static get relationMappings() {
-    const Experiences = require('./Experiences');
-    
+    const Experiences = require("./Experiences");
+
     return {
       experiences: {
         relation: Model.BelongsToOneRelation,
         modelClass: Experiences,
         join: {
-          from: 'experience_images.experience_id',
-          to: 'experiences.experience_id'
-        }
-      }
+          from: "experience_images.experience_id",
+          to: "experiences.experience_id",
+        },
+      },
     };
   }
 }

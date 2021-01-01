@@ -419,6 +419,7 @@ const createBecomeFoodProviderUser = async (become_food_provider_user) => {
     if (error.code === 23505) {
       return createBecomeFoodProviderUser(become_food_provider_user);
     }
+
     return { success: false, data: error.message };
   }
 };

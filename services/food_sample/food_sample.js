@@ -130,6 +130,7 @@ const createNewFoodSample = async (
   }
 };
 
+// Get all user food samples helper function
 const getAllUserFoodSamples = async (
   user_id,
   operator,
@@ -225,6 +226,7 @@ const getAllUserFoodSamples = async (
     });
 };
 
+// Get all user food samples not in festival helper function
 const getAllUserFoodSamplesNotInFestival = async (
   user_id,
   operator,
@@ -287,6 +289,7 @@ const getAllUserFoodSamplesNotInFestival = async (
     });
 };
 
+// Update food sample helper function
 const updateFoodSample = async (
   db_user,
   food_sample_id,
@@ -338,11 +341,12 @@ const updateFoodSample = async (
     }
 
     return { success: true };
-  } catch (e) {
-    return { success: false, details: e };
+  } catch (error) {
+    return { success: false, details: error };
   }
 };
 
+// Delete food sample helper function
 const deleteFoodSample = async (user_id, food_sample_id) => {
   return await db("food_samples")
     .where({
@@ -358,7 +362,7 @@ const deleteFoodSample = async (user_id, food_sample_id) => {
     });
 };
 
-// GET all food samples helper function
+// Get all food samples helper function
 const getAllFoodSamples = async (
   operator,
   status,
@@ -417,12 +421,10 @@ const getAllFoodSamples = async (
     .groupBy("nationalities.alpha_2_code")
     .having("food_samples.status", operator, status);
 
-  // Filter by nationality
   if (filters.nationalities && filters.nationalities.length) {
     query.whereIn("nationalities.nationality", filters.nationalities);
   }
 
-  // Filter by location
   if (filters.latitude && filters.longitude) {
     query.select(
       gis
@@ -442,7 +444,6 @@ const getAllFoodSamples = async (
     query.orderBy("distanceAway", "asc");
   }
 
-  // Filter by start date and time
   if (filters.startDate) {
     query
       // .whereRaw(
@@ -453,7 +454,6 @@ const getAllFoodSamples = async (
       .andWhere("food_samples.start_time", ">=", startTime);
   }
 
-  // Filter by end date and time
   if (filters.endDate) {
     query
       // .whereRaw(
@@ -464,7 +464,6 @@ const getAllFoodSamples = async (
       .andWhere("food_samples.end_time", "<=", endTime);
   }
 
-  // Filter by quantity
   if (filters.quantity) {
     query.where("food_samples.quantity", ">=", filters.quantity);
   }
@@ -527,6 +526,7 @@ const getAllFoodSamples = async (
     });
 };
 
+// Get food sample helper function
 const getFoodSample = async (food_sample_id) => {
   return await db
     .select(
@@ -566,6 +566,7 @@ const getFoodSample = async (food_sample_id) => {
     });
 };
 
+// Submit food sample review from admin helper function
 const updateReviewFoodSample = async (
   food_sample_id,
   food_sample_creator_user_id,
@@ -613,6 +614,7 @@ const updateReviewFoodSample = async (
     });
 };
 
+// Get food sample nationalities helper function
 const getDistinctNationalities = async (
   operator,
   status,
@@ -675,6 +677,7 @@ const getDistinctNationalities = async (
     });
 };
 
+// Get food sample by ID helper function
 const getFoodSampleById = async (id) => {
   return await db("food_samples")
     .where("food_sample_id", id)
@@ -700,6 +703,7 @@ const getFoodSampleById = async (id) => {
     });
 };
 
+// Add food sample to festival helper function
 const addFoodSampleToFestival = async (
   food_sample_id,
   food_sample_creator_user_id,

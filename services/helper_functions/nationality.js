@@ -1,7 +1,9 @@
 "use strict";
 
+// Libraries
 const { db } = require("../../db/db-config");
 
+// Get all nationalities helper function
 const getAll = async () => {
   return await db
     .select("*")

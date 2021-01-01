@@ -56,7 +56,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
         message: "Email already exists.",
       });
     }
-  } catch (err) {
+  } catch (error) {
     return res.status(401).json({
       success: false,
       message: "Email already exists.",
