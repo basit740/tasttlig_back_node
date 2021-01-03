@@ -79,13 +79,30 @@ Tasttlig Auth Server (<https://bitbucket.org/tasttlig/tasttlig-auth-server/src/m
 18. Turn on less secure app access on your Gmail account at <https://myaccount.google.com/lesssecureapps>.
 19. Allow access for display unlock captcha (allow access to your Google account) on your Gmail account at <https://accounts.google.com/DisplayUnlockCaptcha>.
 20. Add your Gmail username and password to the `.env` file.
-21. Create a new Stripe account at <https://dashboard.stripe.com/register> (skip this step if you already have one).
-22. Sign in to your Stripe account at <https://dashboard.stripe.com/login>.
-23. Go to API keys at <https://dashboard.stripe.com/test/apikeys>.
-24. Click on `Reveal test key token` and copy and paste the Secret key to the `.env` file.
-25. Create a new MapQuest Developer account at <https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register> (skip this step if you already have one).
-26. Click on `Create a New Key`.
-27. Type "Tasttlig" for `App Name*` and click on `Create App`.
-28. Copy and paste the MapQuest Developer Consumer Key to the `.env` file.
-29. Start the development server: `npm run devStart`.
-30. Go to <http://localhost:8000> in your browser (you will see `Cannot GET /`).
+21. Go to Google Cloud at <https://cloud.google.com/>.
+22. Click on `Get started for free`.
+23. Add a check mark on Terms of Service and click on `CONTINUE`.
+24. Select `Individual` as Account type and fill in the information.
+25. Click on `START MY FREE TRIAL`.
+26. Click on `GOT IT`.
+27. Click on `BILLING`.
+28. Click on `LINK A BILLING ACCOUNT`.
+29. Select your billing account and click on `SET ACCOUNT`.
+30. Go to Directions API at <https://console.developers.google.com/apis/library/directions-backend.googleapis.com>.
+31. Click on `ENABLE`.
+32. Go to Maps JavaScript API at <https://console.cloud.google.com/marketplace/product/google/maps-backend.googleapis.com>.
+33. Click on `ENABLE`.
+34. Click on `Credentials`.
+35. Click on `Credentials in APIs & Services`.
+36. Click on `+ CREATE CREDENTIALS` and then click on `API key`.
+37. Copy and paste the Google Maps API Key to the `.env` file.
+38. Create a new Stripe account at <https://dashboard.stripe.com/register> (skip this step if you already have one).
+39. Sign in to your Stripe account at <https://dashboard.stripe.com/login>.
+40. Go to API keys at <https://dashboard.stripe.com/test/apikeys>.
+41. Click on `Reveal test key token` and copy and paste the Secret key to the `.env` file.
+42. Create a new MapQuest Developer account at <https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register> (skip this step if you already have one).
+43. Click on `Create a New Key`.
+44. Type "Tasttlig" for `App Name*` and click on `Create App`.
+45. Copy and paste the MapQuest Developer Consumer Key to the `.env` file.
+46. Start the development server: `npm run devStart`.
+47. Go to <http://localhost:8000> in your browser (you will see `Cannot GET /`).
