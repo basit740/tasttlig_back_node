@@ -3,12 +3,14 @@
 // Add role helper function
 const addRole = (currentRole, newRole) => {
   currentRole.push(newRole);
+
   return currentRole;
 };
 
 // Remove role helper function
 const removeRole = (currentRole, deleteRole) => {
   currentRole.splice(currentRole.indexOf(deleteRole), 1);
+
   return currentRole;
 };
 

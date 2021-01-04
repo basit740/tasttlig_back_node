@@ -79,8 +79,8 @@ const extractBusinessInfo = (user_details_from_db, requestBody) => {
 const extractFile = (requestBody, key, text) => {
   return {
     document_type: text,
-    issue_date: new Date(requestBody[key + "_date_of_issue"]),
-    expiry_date: new Date(requestBody[key + "_date_of_expired"]),
+    issue_date: new Date(requestBody[`${key}_date_of_issue`]),
+    expiry_date: new Date(requestBody[`${key}_date_of_expired`]),
     document_link: requestBody.food_handler_certificate,
     status: "Pending",
   };

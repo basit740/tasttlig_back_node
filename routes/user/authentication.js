@@ -76,6 +76,7 @@ authRouter.get("/user/confirmation/:token", async (req, res) => {
   try {
     const user_id = jwt.verify(req.params.token, process.env.EMAIL_SECRET).user;
     const response = await authenticate_user_service.verifyAccount(user_id);
+
     res.send(response);
   } catch (error) {
     return res.status(401).json({
@@ -120,6 +121,7 @@ authRouter.post("/user/login", async (req, res) => {
         updated_at_datetime: user.updated_at,
         roles: user.roles,
       };
+
       await authenticate_user_service.userMigrationFromAuthServer(new_user);
     }
 
@@ -138,6 +140,7 @@ authRouter.post("/user/login", async (req, res) => {
     };
     const access_token = token_service.generateAccessToken(jwtUser);
     const refresh_token = token_service.generateRefreshToken(jwtUser);
+
     await token_service.storeToken(
       refresh_token,
       response.user.tasttlig_user_id
@@ -176,6 +179,7 @@ authRouter.delete(
       const returning = await authenticate_user_service.getUserLogOut(
         req.user.id
       );
+
       res.send({
         success: true,
         message: "Logged out.",
@@ -206,6 +210,7 @@ authRouter.post(
     const returning = await authenticate_user_service.checkEmail(
       req.body.email
     );
+
     res.send(returning);
   }
 );
@@ -274,6 +279,7 @@ authRouter.post(
       const response = await authenticate_user_service.createDummyUser(
         req.body.email
       );
+
       res.send(response);
     } else {
       res.send(returning);
@@ -306,6 +312,7 @@ authRouter.post(
     const response = await authenticate_user_service.createBecomeFoodProviderUser(
       become_food_provider_user
     );
+
     res.send(response);
   }
 );
@@ -330,6 +337,7 @@ authRouter.put(
       req.body,
       db_user.user.tasttlig_user_id
     );
+
     res.send(response);
   }
 );
@@ -354,6 +362,7 @@ authRouter.put(
       req.body,
       db_user.user.tasttlig_user_id
     );
+
     res.send(response);
   }
 );

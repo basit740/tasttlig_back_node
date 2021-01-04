@@ -148,7 +148,7 @@ router.post("/payment/stripe/cart", async (req, res) => {
     );
 
     if (!cartDetails.success) {
-      return { success: false, message: "Invalid Order Details" };
+      return { success: false, message: "Invalid order details." };
     }
 
     let returning = await authenticate_user_service.findUserByEmail(

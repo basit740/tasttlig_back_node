@@ -79,6 +79,7 @@ const createNewFoodSample = async (
           async (err, emailToken) => {
             try {
               const url = `${SITE_BASE}/review-food-sample/${db_food_sample[0].food_sample_id}/${emailToken}`;
+
               await Mailer.sendMail({
                 from: process.env.SES_DEFAULT_FROM,
                 to: db_user.email,
@@ -118,6 +119,7 @@ const createNewFoodSample = async (
     // Duplicate key
     if (error.code === 23505) {
       food_sample_details.food_ad_code = generateRandomString(4);
+
       return createNewFoodSample(
         db_user,
         food_sample_details,
@@ -317,11 +319,11 @@ const updateFoodSample = async (
       .where((builder) => {
         if (updatedByAdmin) {
           return builder.where({
-            food_sample_id: food_sample_id,
+            food_sample_id,
           });
         } else {
           return builder.where({
-            food_sample_id: food_sample_id,
+            food_sample_id,
             food_sample_creater_user_id: db_user.tasttlig_user_id,
           });
         }
@@ -332,10 +334,11 @@ const updateFoodSample = async (
       await db("food_sample_images")
         .where("food_sample_id", food_sample_id)
         .del();
+
       await db("food_sample_images").insert(
-        images.map((m) => ({
+        images.map((image_url) => ({
           food_sample_id,
-          image_url: m,
+          image_url,
         }))
       );
     }
@@ -347,11 +350,14 @@ const updateFoodSample = async (
 };
 
 // Delete food sample helper function
-const deleteFoodSample = async (user_id, food_sample_id) => {
+const deleteFoodSample = async (
+  food_sample_id,
+  food_sample_creater_user_id
+) => {
   return await db("food_samples")
     .where({
-      food_sample_id: food_sample_id,
-      food_sample_creater_user_id: user_id,
+      food_sample_id,
+      food_sample_creater_user_id,
     })
     .del()
     .then(() => {
@@ -556,7 +562,6 @@ const getFoodSample = async (food_sample_id) => {
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
     .groupBy("business_details.business_name")
-
     .having("food_samples.food_sample_id", "=", food_sample_id)
     .then((value) => {
       return { success: true, details: value };
@@ -569,13 +574,13 @@ const getFoodSample = async (food_sample_id) => {
 // Submit food sample review from admin helper function
 const updateReviewFoodSample = async (
   food_sample_id,
-  food_sample_creator_user_id,
+  food_sample_creater_user_id,
   food_sample_update_data
 ) => {
   return await db("food_samples")
     .where({
-      food_sample_id: food_sample_id,
-      food_sample_creater_user_id: food_sample_creator_user_id,
+      food_sample_id,
+      food_sample_creater_user_id,
     })
     .update(food_sample_update_data)
     .returning("*")
@@ -672,8 +677,8 @@ const getDistinctNationalities = async (
     .then((value) => {
       return { success: true, nationalities: value };
     })
-    .catch((err) => {
-      return { success: false, details: err };
+    .catch((error) => {
+      return { success: false, details: error };
     });
 };
 
@@ -696,6 +701,7 @@ const getFoodSampleById = async (id) => {
       if (!value) {
         return { success: false, message: "No food sample found." };
       }
+
       return { success: true, food_sample: value };
     })
     .catch((error) => {
@@ -737,6 +743,7 @@ const addFoodSampleToFestival = async (
     .returning("*")
     .then((new_food_sample) => {
       let new_food_sample_images = [];
+
       db_food_sample_images.map((new_food_sample_image) => {
         new_food_sample_images.push({
           food_sample_id: new_food_sample[0].food_sample_id,

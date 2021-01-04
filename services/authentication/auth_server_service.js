@@ -15,6 +15,7 @@ const authSignup = async (email, password, passport_id = "") => {
       passport_id,
     },
   });
+
   return response.data;
 };
 
@@ -31,6 +32,7 @@ const authLogin = async (email, password) => {
       password,
     },
   });
+
   return response.data;
 };
 
@@ -43,6 +45,7 @@ const authPasswordResetRequest = async (email) => {
       email,
     },
   });
+
   return response.data;
 };
 
@@ -56,6 +59,7 @@ const authPasswordReset = async (token, password) => {
       password,
     },
   });
+
   return response.data;
 };
 
@@ -69,6 +73,7 @@ const authAddRole = async (user_id, role_code) => {
       role_code,
     },
   });
+
   return response.data;
 };
 
@@ -82,6 +87,7 @@ const authRemoveRole = async (user_id, role_code) => {
       role_code,
     },
   });
+
   return response.data;
 };
 
@@ -95,6 +101,7 @@ const authAddPoints = async (user_id, point) => {
       point,
     },
   });
+
   return response.data;
 };
 
