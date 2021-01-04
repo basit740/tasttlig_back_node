@@ -21,6 +21,7 @@ router.post("/tasttlig-newsletters", async (req, res) => {
     const response = await authenticate_user_service.createDummyUser(
       req.body.email
     );
+
     res.send(response);
   } else {
     res.send(returning);

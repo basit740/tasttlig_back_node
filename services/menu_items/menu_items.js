@@ -28,6 +28,7 @@ const addNewMenuItem = async (
       let db_user_details = await authenticate_user_service.findUserByEmail(
         menu_item_details.userEmail
       );
+
       db_user = db_user_details.user;
     }
 

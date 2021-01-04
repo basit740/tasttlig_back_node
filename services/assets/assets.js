@@ -20,6 +20,7 @@ const addAsset = async (db_user, assetDetails, images, trx) => {
     }
 
     const a = await trx("assets").insert(asset).returning("*");
+
     await trx("asset_images").insert(
       images.map((i) => ({
         image_url: i,

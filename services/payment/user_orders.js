@@ -28,6 +28,7 @@ const getOrderDetails = async (order_details) => {
         if (!value) {
           return { success: false, message: "No plan found." };
         }
+
         return { success: true, item: value };
       })
       .catch((error) => {
@@ -44,6 +45,7 @@ const getOrderDetails = async (order_details) => {
         if (!value) {
           return { success: false, message: "No food sample found." };
         }
+
         return { success: true, item: value };
       })
       .catch((error) => {
@@ -60,6 +62,7 @@ const getOrderDetails = async (order_details) => {
         if (!value) {
           return { success: false, message: "No experience found." };
         }
+
         return { success: true, item: value };
       })
       .catch((error) => {

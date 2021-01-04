@@ -28,7 +28,7 @@ const apply_host_request = (req, res, next) => {
     if (!req.body[field]) {
       res.status(403).json({
         success: false,
-        message: "Missing " + field,
+        message: `Missing ${field}`,
       });
     }
   });

@@ -19,7 +19,7 @@ if (process.env.NODE_ENV === "production") {
     }),
   };
 } else if (process.env.NODE_ENV === "staging") {
-  // Use ethereal mail in testing environment
+  // Use Ethereal mail in testing environment
   // https://ethereal.email/
   mailConfig = {
     host: "smtp.ethereal.email",
@@ -51,7 +51,7 @@ let options = {
 };
 
 let nodemailer_transporter = nodemailer.createTransport(mailConfig);
-// Attach the plugin to the nodemailer transporter
+// Attach the plug-in to the Nodemailer transporter
 nodemailer_transporter.use("compile", hbs(options));
 
 module.exports = {

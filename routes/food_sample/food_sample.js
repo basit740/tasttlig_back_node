@@ -201,6 +201,7 @@ router.post("/food-samples/add", async (req, res) => {
       }
 
       let address = item.addressLine1;
+
       if (item.addressLine2 && item.addressLine2.length > 0) {
         address = `${address}, ${item.addressLine2}`;
       }

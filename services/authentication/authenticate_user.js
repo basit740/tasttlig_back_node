@@ -76,6 +76,7 @@ const userRegister = async (new_user, sendEmail = true) => {
               },
               async (err, emailToken) => {
                 const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
+
                 await Mailer.sendMail({
                   from: process.env.SES_DEFAULT_FROM,
                   to: new_user.email,
@@ -90,6 +91,7 @@ const userRegister = async (new_user, sendEmail = true) => {
               }
             );
           }
+
           return { success: true, data: value1[0] };
         });
       });
@@ -138,6 +140,7 @@ const getUserLogin = async (body) => {
         if (!value) {
           return { success: false, message: "User not found." };
         }
+
         return { success: true, user: value };
       })
       .catch((reason) => {
@@ -160,6 +163,7 @@ const getUserLogin = async (body) => {
         if (!value) {
           return { success: false, message: "User not found." };
         }
+
         return { success: true, user: value };
       })
       .catch((reason) => {
@@ -180,6 +184,7 @@ const getUserLogOut = async (user_id) => {
           message: "User logged out, refresh token deleted.",
         };
       }
+
       return { success: false, data: "Refresh token not found." };
     })
     .catch((reason) => {
@@ -309,6 +314,7 @@ const createDummyUser = async (email) => {
               role_code,
             });
           });
+
           return { success: true, user: value[0] };
         })
         .catch((reason) => {
@@ -406,6 +412,7 @@ const createBecomeFoodProviderUser = async (become_food_provider_user) => {
                 await sendNewUserEmail(become_food_provider_user);
               });
           });
+
           return { success: true, user: value[0] };
         })
         .catch((reason) => {
@@ -456,6 +463,7 @@ const findUserByEmail = async (email) => {
           response: `There is no account for ${email}.`,
         };
       }
+
       return { success: true, user: value };
     })
     .catch((reason) => {
@@ -495,6 +503,7 @@ const findUserByBusinessName = async (business_name) => {
           response: `There is no account for ${business_name}.`,
         };
       }
+
       return { success: true, user: value };
     })
     .catch((reason) => {
@@ -516,6 +525,7 @@ const userMigrationFromAuthServer = async (new_user) => {
       created_at_datetime: new_user.created_at_datetime,
       updated_at_datetime: new_user.updated_at_datetime,
     };
+
     const db_user = await db("tasttlig_users").insert(userData).returning("*");
 
     await db("roles")

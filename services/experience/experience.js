@@ -45,6 +45,7 @@ const createNewExperience = async (
       }));
 
       await trx("experience_images").insert(images);
+
       if (createdByAdmin) {
         // Email to confirm the new experience by hosts
         jwt.sign(
@@ -59,6 +60,7 @@ const createNewExperience = async (
           async (err, emailToken) => {
             try {
               const url = `${SITE_BASE}/review-experience/${db_experience[0].experience_id}/${emailToken}`;
+
               await Mailer.sendMail({
                 from: process.env.SES_DEFAULT_FROM,
                 to: db_user.email,
@@ -299,8 +301,8 @@ const updateReviewExperience = async (
 ) => {
   return await db("experiences")
     .where({
-      experience_id: experience_id,
-      experience_creator_user_id: experience_creator_user_id,
+      experience_id,
+      experience_creator_user_id,
     })
     .update(experience_update_data)
     .returning("*")
@@ -363,11 +365,11 @@ const updateExperience = async (
       .where((builder) => {
         if (updatedByAdmin) {
           return builder.where({
-            experience_id: experience_id,
+            experience_id,
           });
         } else {
           return builder.where({
-            experience_id: experience_id,
+            experience_id,
             experience_creator_user_id: db_user.tasttlig_user_id,
           });
         }
@@ -376,10 +378,11 @@ const updateExperience = async (
 
     if (images && images.length) {
       await db("experience_images").where("experience_id", experience_id).del();
+
       await db("experience_images").insert(
-        images.map((m) => ({
+        images.map((image_url) => ({
           experience_id,
-          image_url: m,
+          image_url,
         }))
       );
     }
@@ -391,11 +394,11 @@ const updateExperience = async (
 };
 
 // Delete experience helper function
-const deleteExperience = async (user_id, experience_id) => {
+const deleteExperience = async (experience_id, experience_creator_user_id) => {
   return await db("experiences")
     .where({
-      experience_id: experience_id,
-      experience_creator_user_id: user_id,
+      experience_id,
+      experience_creator_user_id,
     })
     .del()
     .then(() => {

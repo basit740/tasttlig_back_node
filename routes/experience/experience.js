@@ -56,7 +56,7 @@ router.post(
       //   if (!req.body.userEmail) {
       //     return res.status(403).json({
       //       success: false,
-      //       message: "Required Parameters are not available in request"
+      //       message: "Required parameters are not available in request."
       //     });
       //   }
       //   const host_details_from_db = await user_profile_service.getUserByEmail(req.body.userEmail);
@@ -402,7 +402,7 @@ router.put(
     if (!req.params.experience_id || !req.body.experience_update_data) {
       return res.status(403).json({
         success: false,
-        message: "Required Parameters are not available in request",
+        message: "Required parameters are not available in request.",
       });
     }
 

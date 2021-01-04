@@ -33,6 +33,7 @@ const getUserById = async (id) => {
       if (!value) {
         return { success: false, message: "No user found." };
       }
+
       return { success: true, user: value };
     })
     .catch((error) => {
@@ -67,6 +68,7 @@ const getUserBySubscriptionId = async (id) => {
       if (!value) {
         return { success: false, message: "No user found." };
       }
+
       return { success: true, user: value };
     })
     .catch((error) => {
@@ -366,14 +368,14 @@ const saveDocuments = async (db_user, documents_obj) => {
       .filter(
         (doc) =>
           documents_obj[doc[0]] &&
-          documents_obj[doc[0] + "_date_of_issue"] &&
-          documents_obj[doc[0] + "_date_of_expired"]
+          documents_obj[`${doc[0]}_date_of_issue`] &&
+          documents_obj[`${doc[0]}_date_of_expired`]
       )
       .map((doc) => ({
         user_id: db_user.tasttlig_user_id,
         document_type: doc[1],
-        issue_date: new Date(documents_obj[doc[0] + "_date_of_issue"]),
-        expiry_date: new Date(documents_obj[doc[0] + "_date_of_expired"]),
+        issue_date: new Date(documents_obj[`${doc[0]}_date_of_issue`]),
+        expiry_date: new Date(documents_obj[`${doc[0]}_date_of_expired`]),
         document_link: documents_obj[doc[0]],
         status: "Pending",
       }));
@@ -437,9 +439,11 @@ const saveMenuItems = async (db_user, menu_list, update = true) => {
         .where("menu_item_creator_user_id", db_user.tasttlig_user_id)
         .then(async (menu_item_ids) => {
           let menu_item_id_list = [];
+
           menu_item_ids.map((menu_item_id) => {
             menu_item_id_list.push(menu_item_id.menu_item_id);
           });
+
           await db("menu_item_images")
             .select("menu_item_id")
             .whereIn("menu_item_id", menu_item_id_list)
@@ -450,8 +454,8 @@ const saveMenuItems = async (db_user, menu_list, update = true) => {
                 .del();
             });
         })
-        .catch((err) => {
-          console.log(err);
+        .catch((error) => {
+          console.log(error);
         });
     }
 
@@ -473,9 +477,11 @@ const saveAssets = async (db_user, assets) => {
       .where("user_id", db_user.tasttlig_user_id)
       .then(async (asset_ids) => {
         let asset_id_list = [];
+
         asset_ids.map((asset_id) => {
           asset_id_list.push(asset_id.asset_id);
         });
+
         await db("asset_images")
           .whereIn("asset_id", asset_id_list)
           .del()
@@ -483,8 +489,8 @@ const saveAssets = async (db_user, assets) => {
             await db("assets").whereIn("menu_item_id", asset_id_list).del();
           });
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((error) => {
+        console.log(error);
       });
 
     await Promise.all(
@@ -503,9 +509,9 @@ const saveSampleLinks = async (db_user, sample_links) => {
     .whereIn("creator_user_id", db_user.tasttlig_user_id)
     .del();
 
-  const sampleLinks = sample_links.map((l) => ({
+  const sampleLinks = sample_links.map((sample_link) => ({
     user_id: db_user.tasttlig_user_id,
-    media_link: l,
+    media_link: sample_link,
   }));
 
   return db("entertainment").insert(sampleLinks).returning("*");
@@ -524,9 +530,11 @@ const saveVenueInformation = async (
       .where("creator_user_id", db_user.tasttlig_user_id)
       .then(async (venue_ids) => {
         let venue_id_list = [];
+
         venue_ids.map((venue_id) => {
           venue_id_list.push(venue_id.venue_id);
         });
+
         await db("venue_images")
           .whereIn("venue_id", venue_id_list)
           .del()
@@ -534,8 +542,8 @@ const saveVenueInformation = async (
             await db("assets").whereIn("venue_id", venue_id_list).del();
           });
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((error) => {
+        console.log(error);
       });
 
     const response = await trx("venue")
@@ -546,9 +554,9 @@ const saveVenueInformation = async (
       })
       .returning("*");
 
-    const photos = venue_photos.map((p) => ({
+    const photos = venue_photos.map((venue_photo) => ({
       venue_id: response[0].venue_id,
-      image_url: p,
+      image_url: venue_photo,
     }));
 
     return trx("venue_images").insert(photos).returning("*");
@@ -776,6 +784,7 @@ const approveOrDeclineHostApplication = async (
       let role_name_in_title_case =
         new_role.charAt(0).toUpperCase() + new_role.slice(1).toLowerCase();
       let active_item = "Food Samples";
+
       if (role_name_in_title_case === "Host") {
         active_item = "Experiences";
       }
@@ -878,6 +887,7 @@ const getUserByEmail = async (email) => {
       if (!value) {
         return { success: false, message: "No user found." };
       }
+
       return { success: true, user: value };
     })
     .catch((error) => {
@@ -913,6 +923,7 @@ const getUserByEmailWithSubscription = async (email) => {
       if (!value) {
         return { success: false, message: "No user found." };
       }
+
       return { success: true, user: value };
     })
     .catch((error) => {
@@ -938,6 +949,7 @@ const getUserByPassportId = async (passport_id) => {
       if (!value) {
         return { success: false, message: "No user found." };
       }
+
       return { success: true, user: value };
     })
     .catch((error) => {
@@ -964,6 +976,7 @@ const getUserByPassportIdOrEmail = async (passport_id_or_email) => {
       if (!value) {
         return { success: false, message: "No user found." };
       }
+
       return { success: true, user: value };
     })
     .catch((error) => {
@@ -1028,11 +1041,13 @@ const sendHostApplicationEmails = async (dbUser, documents) => {
   };
 
   await sendAdminEmailForHosting(applier);
+
   await sendApplierEmailForHosting(dbUser);
 };
 
 const updateHostUser = async (hostDto) => {
   const dbUser = hostDto.dbUser;
+
   if (
     hostDto.first_name !== dbUser.user.first_name ||
     hostDto.last_name !== dbUser.user.last_name ||
