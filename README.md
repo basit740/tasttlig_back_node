@@ -61,7 +61,7 @@ Tasttlig Auth Server (<https://bitbucket.org/tasttlig/tasttlig-auth-server/src/m
 
 1. Go to Terminal (for Mac) or Command Line (for Windows).
 2. Install dependencies: `npm ci`.
-3. Create the database: `createdb tasttlig_back_node_development`.
+3. Create the database: `createdb tasttlig_back_node_development`. If error occurs, then use command: `Set-ExecutionPolicy RemoteSigned`, and then `createdb tasttlig_back_node_development` (for Windows).
 4. Enter PSQL: `psql`.
 5. Go to the tasttlig_back_node_development database: `\c tasttlig_back_node_development`.
 6. Add PostGIS: `CREATE EXTENSION postgis;`.
