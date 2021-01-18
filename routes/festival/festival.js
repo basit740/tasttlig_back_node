@@ -8,4 +8,10 @@ router.get("/get-festivals", async (req, res) => {
   return res.send(festivals);
 });
 
+router.post("/festival/add", async (req, res) => {
+  const newFestival = await festival_service.createNewFestival(req.body);
+  console.log(req.body);
+  return res.send(newFestival);
+})
+
 module.exports = router;
