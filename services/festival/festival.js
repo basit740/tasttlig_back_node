@@ -135,8 +135,50 @@ const createNewFestival = async (
     return { success: false, details: error.message };
   }
 };
+// add sponsor to festival database
+const sponsorToFestival = async (festival_business_sponsor) => {
+  try {
+    await db.transaction (async (trx) => {
+      const db_sponsor_festival = await trx("festivals")
+      .where({festival_id})
+      .update( {
+        festival_business_sponsor
+      })
+      .returning("*");
+      if (!db_sponsor_festival) {
+        return { success: false, details: "Inserting new sponsor failed." };
+      }
+    })
+    //console.log(db_sponsor_festival);
+    return {success: true, details: "Success."}
+  } catch (error) {
+    return {success: false, details: error.message};
+  }
+}
+// add host to festival database
+const hostToFestival = async (festival_restaurant_host_id) => {
+  try {
+    await db.transaction (async (trx) => {
+      const db_host = await trx("festivals")
+      .where({festival_id})
+      .update( {
+        festival_restaurant_host_id,
+      })
+      .returning("*");
+      if (!db_host) {
+        return { success: false, details: "Inserting new host failed." };
+      }
+    })
+    //console.log(db_sponsor_festival);
+    return {success: true, details: "Success."}
+  } catch (error) {
+    return {success: false, details: error.message};
+  }
+}
 
 module.exports = {
   getAllFestivals,
   createNewFestival,
+  sponsorToFestival,
+  hostToFestival
 };

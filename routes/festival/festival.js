@@ -122,4 +122,41 @@ router.post(
   }
 );
 
+//POST Sponsor to festival
+router.post("/sponsor-festival", async(req, res) => {
+  try {
+    const festival_business_sponsor = req.body.festival_business_sponsor_id;
+    const festival_id = req.body.festival_id;
+    const response = await festival_service.sponsorToFestival(
+      festival_business_sponsor, 
+      festival_id
+      )
+    return res.send(response)
+  } catch(error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error,
+    })
+  }
+})
+router.post("/host-festival", async(req, res) => {
+  try {
+    const festival_restaurant_host_id = req.body.festival_restaurant_host_id;
+    const festival_id = req.body.festival_id;
+    const response = await festival_service.hostToFestival(
+      festival_restaurant_host_id,
+      festival_id
+      );
+
+    return res.send(response)
+  } catch(error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error,
+    })
+  }
+})
+
 module.exports = router;
