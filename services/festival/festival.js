@@ -3,11 +3,105 @@
 // Libraries
 const { db } = require("../../db/db-config");
 
-const getAllFestivals = async () => {
-  let query = db.select("*").from("festivals");
-  return await query.then((value) => {
-    return { success: true, details: value };
+// Get all festivals helper function
+const getAllFestivals = async (currentPage, keyword, filters) => {
+  let startDate = filters.startDate.substring(0, 10);
+  let startTime = formatTime(filters.startTime);
+  let query = db
+    .select(
+      "festivals.*",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("festivals")
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    );
+
+  if (filters.nationalities && filters.nationalities.length) {
+    query.whereIn("nationalities.nationality", filters.nationalities);
+  }
+
+  if (filters.startDate) {
+    query.where("festivals.festival_start_date", ">=", startDate);
+  }
+
+  if (filters.startTime) {
+    query.where("festivals.festival_start_time", ">=", startTime);
+  }
+
+  if (filters.cityLocation) {
+    query.where("festivals.festival_city", "=", filters.cityLocation);
+  }
+
+  if (filters.latitude && filters.longitude) {
+    query.select(
+      gis
+        .distance(
+          "food_samples.coordinates",
+          gis.geography(gis.makePoint(filters.longitude, filters.latitude))
+        )
+        .as("distanceAway")
+    );
+    query.where(
+      gis.dwithin(
+        "food_samples.coordinates",
+        gis.geography(gis.makePoint(filters.longitude, filters.latitude)),
+        filters.radius || 100000
+      )
+    );
+    query.orderBy("distanceAway", "asc");
+  }
+
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                "main.nationality, " +
+                "main.title, " +
+                "main.description, " +
+                "main.business_name, " +
+                "main.first_name, " +
+                "main.last_name, " +
+                "main.address, " +
+                "main.city, " +
+                "main.state, " +
+                "main.postal_code)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+
+  query = query.paginate({
+    perPage: 12,
+    isLengthAware: true,
+    currentPage: currentPage,
   });
+
+  return await query
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
 };
 
 /* Save new festival to festivals and festival images tables helper 

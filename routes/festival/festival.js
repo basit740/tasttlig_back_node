@@ -6,9 +6,36 @@ const token_service = require("../../services/authentication/token");
 const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
 
-router.get("/get-festivals", async (req, res) => {
-  const festivals = await festival_service.getAllFestivals();
-  return res.send(festivals);
+// GET all festivals
+router.get("/festival/all", async (req, res) => {
+  try {
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
+
+    const filters = {
+      nationalities: req.query.nationalities,
+      startDate: req.query.startDate,
+      startTime: req.query.startTime,
+      cityLocation: req.query.cityLocation,
+      radius: req.query.radius,
+      latitude: req.query.latitude,
+      longitude: req.query.longitude,
+    };
+
+    const response = await festival_service.getAllFestivals(
+      current_page,
+      keyword,
+      filters
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
 });
 
 // POST festival
