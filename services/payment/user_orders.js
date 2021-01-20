@@ -68,6 +68,21 @@ const getOrderDetails = async (order_details) => {
       .catch((error) => {
         return { success: false, message: error };
       });
+  } else if (order_details.item_type === "festival") {
+    return await db("festivals")
+    .where({
+      festival_id: order_details.item_id
+    })
+    .first()
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No festival found" };
+      }
+      return { success: true, item: value };
+    })
+    .catch ((error) => {
+      return { success: false, message: error};
+     });
   }
 
   return { success: false, message: "Item type not supported." };
