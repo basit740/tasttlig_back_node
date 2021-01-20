@@ -2,6 +2,7 @@
 
 // Libraries
 const { db } = require("../../db/db-config");
+const { formatTime } = require("../../functions/functions");
 
 // Get all festivals helper function
 const getAllFestivals = async (currentPage, keyword, filters) => {
@@ -17,7 +18,9 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
       "festival_images",
       "festivals.festival_id",
       "festival_images.festival_id"
-    );
+    )
+    .where("festivals.festival_id", ">", 3)
+    .groupBy("festivals.festival_id");
 
   if (filters.nationalities && filters.nationalities.length) {
     query.whereIn("nationalities.nationality", filters.nationalities);
@@ -33,25 +36,6 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
 
   if (filters.cityLocation) {
     query.where("festivals.festival_city", "=", filters.cityLocation);
-  }
-
-  if (filters.latitude && filters.longitude) {
-    query.select(
-      gis
-        .distance(
-          "food_samples.coordinates",
-          gis.geography(gis.makePoint(filters.longitude, filters.latitude))
-        )
-        .as("distanceAway")
-    );
-    query.where(
-      gis.dwithin(
-        "food_samples.coordinates",
-        gis.geography(gis.makePoint(filters.longitude, filters.latitude)),
-        filters.radius || 100000
-      )
-    );
-    query.orderBy("distanceAway", "asc");
   }
 
   if (keyword) {
@@ -72,15 +56,11 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
             db.raw(
               "to_tsvector(concat_ws(' '," +
                 "main.nationality, " +
-                "main.title, " +
-                "main.description, " +
-                "main.business_name, " +
-                "main.first_name, " +
-                "main.last_name, " +
-                "main.address, " +
-                "main.city, " +
-                "main.state, " +
-                "main.postal_code)) as search_text"
+                "main.festival_name, " +
+                "main.festival_type, " +
+                "main.festival_price, " +
+                "main.festival_city, " +
+                "main.description)) as search_text"
             )
           )
           .from(query.as("main"))
