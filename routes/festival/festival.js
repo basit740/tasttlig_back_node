@@ -88,14 +88,17 @@ router.post(
         }
 
         const festival_details = {
+          festival_user_admin_id: [req.user.id],
           festival_name,
           festival_type,
-          festival_price: parseInt(festival_price),
+          festival_price,
           festival_city,
           festival_start_date: festival_start_date.substring(0, 10),
           festival_end_date: festival_end_date.substring(0, 10),
           festival_start_time,
           festival_end_time,
+          festival_created_at_datetime: new Date(),
+          festival_updated_at_datetime: new Date(),
         };
 
         const response = await festival_service.createNewFestival(
