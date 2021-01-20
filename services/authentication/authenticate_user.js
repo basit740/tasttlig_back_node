@@ -449,10 +449,10 @@ const findUserByEmail = async (email) => {
     .leftJoin(
       "business_details",
       "tasttlig_users.tasttlig_user_id",
-      "business_details.user_id"
+      "business_details.business_details_user_id"
     )
     .groupBy("tasttlig_users.tasttlig_user_id")
-    .groupBy("business_details.business_id")
+    .groupBy("business_details.business_details_id")
     .having("tasttlig_users.email", "=", email)
     .first()
     .then((value) => {

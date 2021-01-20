@@ -120,11 +120,11 @@ const createNewFestival = async (
       if (!db_festival) {
         return { success: false, details: "Inserting new festival failed." };
       }
-
+      console.log(db_festival);
       const images = festival_images.map((festival_image_url) => ({
         festival_id: db_festival[0].festival_id,
         festival_image_url,
-        festival_image_description,
+        //festival_image_description
       }));
 
       await trx("festival_images").insert(images);
@@ -136,13 +136,13 @@ const createNewFestival = async (
   }
 };
 // add sponsor to festival database
-const sponsorToFestival = async (festival_business_sponsor) => {
+const sponsorToFestival = async (festival_business_sponsor_id, festival_id) => {
   try {
     await db.transaction (async (trx) => {
       const db_sponsor_festival = await trx("festivals")
       .where({festival_id})
       .update( {
-        festival_business_sponsor
+        festival_business_sponsor_id 
       })
       .returning("*");
       if (!db_sponsor_festival) {
@@ -156,19 +156,18 @@ const sponsorToFestival = async (festival_business_sponsor) => {
   }
 }
 // add host to festival database
-const hostToFestival = async (festival_restaurant_host_id) => {
+const hostToFestival = async (festival_id, festival_restaurant_host_id) => {
   try {
-    await db.transaction (async (trx) => {
-      const db_host = await trx("festivals")
+    const db_host = await db("festivals")
       .where({festival_id})
-      .update( {
+      .update({
         festival_restaurant_host_id,
       })
-      .returning("*");
+      .returning("*")
+      console.log(db_host);
       if (!db_host) {
         return { success: false, details: "Inserting new host failed." };
       }
-    })
     //console.log(db_sponsor_festival);
     return {success: true, details: "Success."}
   } catch (error) {

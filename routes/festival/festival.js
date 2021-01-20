@@ -45,6 +45,7 @@ router.post(
   async (req, res) => {
     const {
       images,
+      festival_user_admin_id,
       festival_name,
       festival_type,
       festival_price,
@@ -55,7 +56,6 @@ router.post(
       festival_end_time,
       festival_image_description,
     } = req.body;
-
     try {
       if (
         !images ||
@@ -67,7 +67,8 @@ router.post(
         !festival_end_date ||
         !festival_start_time ||
         !festival_end_time ||
-        !festival_image_description
+        !festival_image_description||
+        !festival_user_admin_id
       ) {
         return res.status(403).json({
           success: false,
@@ -86,8 +87,9 @@ router.post(
             message: user_details_from_db.message,
           });
         }
-
+        console.log(req.user)
         const festival_details = {
+          festival_user_admin_id: [req.user.id],
           festival_name,
           festival_type,
           festival_price: parseInt(festival_price),
@@ -96,8 +98,11 @@ router.post(
           festival_end_date: festival_end_date.substring(0, 10),
           festival_start_time,
           festival_end_time,
+          festival_created_at_datetime: new Date(),
+          festival_updated_at_datetime: new Date()
         };
-
+        console.log(festival_details)
+        console.log(festival_image_description)
         const response = await festival_service.createNewFestival(
           festival_details,
           images,
@@ -125,10 +130,11 @@ router.post(
 //POST Sponsor to festival
 router.post("/sponsor-festival", async(req, res) => {
   try {
-    const festival_business_sponsor = req.body.festival_business_sponsor_id;
+    console.log(req.user);
+    const festival_business_sponsor_id = [req.body.festival_business_sponsor_id];
     const festival_id = req.body.festival_id;
     const response = await festival_service.sponsorToFestival(
-      festival_business_sponsor, 
+      festival_business_sponsor_id, 
       festival_id
       )
     return res.send(response)
@@ -142,11 +148,11 @@ router.post("/sponsor-festival", async(req, res) => {
 })
 router.post("/host-festival", async(req, res) => {
   try {
-    const festival_restaurant_host_id = req.body.festival_restaurant_host_id;
+    const festival_restaurant_host_id = [req.body.festival_restaurant_host_id];
     const festival_id = req.body.festival_id;
     const response = await festival_service.hostToFestival(
-      festival_restaurant_host_id,
-      festival_id
+      festival_id,
+      festival_restaurant_host_id
       );
 
     return res.send(response)
