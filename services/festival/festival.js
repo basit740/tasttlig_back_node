@@ -86,11 +86,7 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
 
 /* Save new festival to festivals and festival images tables helper 
 function */
-const createNewFestival = async (
-  festival_details,
-  festival_images,
-  festival_image_description
-) => {
+const createNewFestival = async (festival_details, festival_images) => {
   try {
     await db.transaction(async (trx) => {
       const db_festival = await trx("festivals")
@@ -104,7 +100,6 @@ const createNewFestival = async (
       const images = festival_images.map((festival_image_url) => ({
         festival_id: db_festival[0].festival_id,
         festival_image_url,
-        festival_image_description,
       }));
 
       await trx("festival_images").insert(images);

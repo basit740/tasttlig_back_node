@@ -53,7 +53,7 @@ router.post(
       festival_end_date,
       festival_start_time,
       festival_end_time,
-      festival_image_description,
+      festival_description,
     } = req.body;
 
     try {
@@ -67,7 +67,7 @@ router.post(
         !festival_end_date ||
         !festival_start_time ||
         !festival_end_time ||
-        !festival_image_description
+        !festival_description
       ) {
         return res.status(403).json({
           success: false,
@@ -97,14 +97,14 @@ router.post(
           festival_end_date: festival_end_date.substring(0, 10),
           festival_start_time,
           festival_end_time,
+          festival_description,
           festival_created_at_datetime: new Date(),
           festival_updated_at_datetime: new Date(),
         };
 
         const response = await festival_service.createNewFestival(
           festival_details,
-          images,
-          festival_image_description
+          images
         );
 
         return res.send(response);
