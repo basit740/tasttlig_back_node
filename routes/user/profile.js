@@ -39,7 +39,7 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     address_line_1: response.user.user_address_line_1,
     address_line_2: response.user.user_address_line_2,
     city: response.user.user_city,
-    postal_code: response.user.user_postal_code,
+    postal_code: response.user.user_zip_postal_code,
     state: response.user.user_state,
     address_type: response.user.address_type,
     business_name: response.user.business_name,
