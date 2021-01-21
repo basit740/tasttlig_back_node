@@ -110,6 +110,30 @@ const createNewFestival = async (festival_details, festival_images) => {
     return { success: false, details: error.message };
   }
 };
+
+// Add host ID to festivals table helper function
+const hostToFestival = async (festival_id, festival_restaurant_host_id) => {
+  try {
+    const db_host = await db("festivals")
+      .where({ festival_id })
+      .update({
+        festival_restaurant_host_id: db.raw(
+          "array_append(festival_restaurant_host_id, ?)",
+          [festival_restaurant_host_id]
+        ),
+      })
+      .returning("*");
+
+    if (!db_host) {
+      return { success: false, details: "Inserting new host failed." };
+    }
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
+
 // add sponsor to festival database
 const sponsorToFestival = async (festival_business_sponsor_id, festival_id) => {
   try {
@@ -130,29 +154,10 @@ const sponsorToFestival = async (festival_business_sponsor_id, festival_id) => {
     return { success: false, details: error.message };
   }
 };
-// add host to festival database
-const hostToFestival = async (festival_id, festival_restaurant_host_id) => {
-  try {
-    const db_host = await db("festivals")
-      .where({ festival_id })
-      .update({
-        festival_restaurant_host_id,
-      })
-      .returning("*");
-    console.log(db_host);
-    if (!db_host) {
-      return { success: false, details: "Inserting new host failed." };
-    }
-    //console.log(db_sponsor_festival);
-    return { success: true, details: "Success." };
-  } catch (error) {
-    return { success: false, details: error.message };
-  }
-};
 
 module.exports = {
   getAllFestivals,
   createNewFestival,
-  sponsorToFestival,
   hostToFestival,
+  sponsorToFestival,
 };
