@@ -304,7 +304,7 @@ const _getBaseMenuItemQuery = () => {
     .leftJoin(
       "business_details",
       "menu_items.menu_item_creator_user_id",
-      "business_details.user_id"
+      "business_details.business_details_user_id"
     )
     .leftJoin("nationalities", "menu_items.nationality_id", "nationalities.id")
     .groupBy("menu_items.menu_item_id")

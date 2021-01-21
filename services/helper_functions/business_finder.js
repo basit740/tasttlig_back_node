@@ -30,7 +30,7 @@ const getTopBusinessSuggestions = async (keyword) => {
                 "main.city, " +
                 "main.state, " +
                 "main.country, " +
-                "main.postal_code" +
+                "main.zip_postal_code" +
                 ")) as search_text"
             )
           )

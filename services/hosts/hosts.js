@@ -43,7 +43,7 @@ const getHostApplication = async (userId) => {
       .leftJoin(
         "business_details",
         "tasttlig_users.tasttlig_user_id",
-        "business_details.user_id"
+        "business_details.business_details_user_id"
       )
       .leftJoin(
         "sponsors",
@@ -62,7 +62,7 @@ const getHostApplication = async (userId) => {
       )
       .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
       .groupBy("tasttlig_users.tasttlig_user_id")
-      .groupBy("business_details.business_id")
+      .groupBy("business_details.business_details_id")
       .groupBy("sponsors.sponsor_id")
       .groupBy("payment_info.payment_bank_id")
       .having("tasttlig_users.tasttlig_user_id", "=", userId)

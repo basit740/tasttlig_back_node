@@ -70,19 +70,20 @@ const getOrderDetails = async (order_details) => {
       });
   } else if (order_details.item_type === "festival") {
     return await db("festivals")
-    .where({
-      festival_id: order_details.item_id
-    })
-    .first()
-    .then((value) => {
-      if (!value) {
-        return { success: false, message: "No festival found" };
-      }
-      return { success: true, item: value };
-    })
-    .catch ((error) => {
-      return { success: false, message: error};
-     });
+      .where({
+        festival_id: order_details.item_id,
+      })
+      .first()
+      .then((value) => {
+        if (!value) {
+          return { success: false, message: "No festival found." };
+        }
+
+        return { success: true, item: value };
+      })
+      .catch((error) => {
+        return { success: false, message: error };
+      });
   }
 
   return { success: false, message: "Item type not supported." };
@@ -428,7 +429,9 @@ const createOrder = async (order_details, db_order_details) => {
   } else if (order_details.item_type === "festival") {
     try {
       await db.transaction(async (trx) => {
-        const total_amount_before_tax = parseFloat(db_order_details.item.festival_price);
+        const total_amount_before_tax = parseFloat(
+          db_order_details.item.festival_price
+        );
         const total_tax = Math.round(total_amount_before_tax * 13) / 100;
         const total_amount_after_tax = total_amount_before_tax + total_tax;
         const db_orders = await trx("orders")
@@ -464,32 +467,46 @@ const createOrder = async (order_details, db_order_details) => {
           order_details.user_id,
           total_amount_after_tax * 100
         );
+
+        const db_guest = await trx("festivals")
+          .where({ festival_id: order_details.item_id })
+          .update({
+            festival_user_guest_id: trx.raw(
+              "array_append(festival_user_guest_id, ?)",
+              [order_details.user_id]
+            ),
+          })
+          .returning("*");
+
+        if (!db_guest) {
+          return { success: false, details: "Inserting new host failed." };
+        }
       });
+
       // Email to user on successful purchase
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
         to: order_details.user_email,
         bcc: ADMIN_EMAIL,
-        subject: "[Tasttlig] Purchase Successful",
-        template: "experience/new_experience_purchase",
+        subject: "[Tasttlig] Festival Purchase Successful",
+        template: "festival/attend_festival",
         context: {
           title: db_order_details.item.festival_name,
-          passport_id: order_details.user_passport_id,
           items: [
             {
               title: db_order_details.item.festival_name,
-              time:
+              address: db_order_details.item.festival_city,
+              day: moment(
                 moment(
-                  moment(
-                    new Date(db_order_details.item.festival_start_date)
-                      .toISOString()
-                      .split("T")[0] +
-                      "T" +
-                      db_order_details.item.festival_start_time +
-                      ".000Z"
-                  ).add(new Date().getTimezoneOffset(), "m")
-                ).format("MMM Do") +
-                " " +
+                  new Date(db_order_details.item.festival_start_date)
+                    .toISOString()
+                    .split("T")[0] +
+                    "T" +
+                    db_order_details.item.festival_start_time +
+                    ".000Z"
+                ).add(new Date().getTimezoneOffset(), "m")
+              ).format("MMM Do YYYY"),
+              time:
                 moment(
                   moment(
                     new Date(db_order_details.item.festival_start_date)
@@ -511,8 +528,6 @@ const createOrder = async (order_details, db_order_details) => {
                       ".000Z"
                   ).add(new Date().getTimezoneOffset(), "m")
                 ).format("hh:mm a"),
-              address:
-                db_order_details.item.festival_city,
               quantity: 1,
             },
           ],

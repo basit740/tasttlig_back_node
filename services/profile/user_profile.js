@@ -117,8 +117,8 @@ const updateUserProfile = async (user) => {
         user_address_line_2: user.address_line_2,
         user_city: user.city,
         user_state: user.state,
-        user_postal_code: user.postal_code,
-        country: user.country,
+        user_zip_postal_code: user.postal_code,
+        user_country: user.country,
         address_type: user.address_type,
         business_name: user.business_name,
         business_type: user.business_type,
@@ -175,7 +175,7 @@ const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
 const saveBusinessForUser = async (hostDto, user_id) => {
   return await db.transaction(async (trx) => {
     const businessInfo = {
-      user_id,
+      business_details_user_id: user_id,
       business_category: hostDto.business_category,
       business_type: hostDto.service_provider,
       business_name: hostDto.business_name,
@@ -184,25 +184,27 @@ const saveBusinessForUser = async (hostDto, user_id) => {
       business_address_2: hostDto.address_line_2,
       city: hostDto.business_city,
       state: hostDto.state,
-      postal_code: hostDto.postal_code,
+      zip_postal_code: hostDto.postal_code,
       country: hostDto.country,
       business_phone_number: hostDto.phone_number,
       business_registration_number: hostDto.registration_number,
       instagram: hostDto.instagram,
       facebook: hostDto.facebook,
       in_current_festival: hostDto.in_current_festival,
+      business_details_created_at_datetime: new Date(),
+      business_details_updated_at_datetime: new Date(),
     };
 
     const checkForUpdate = await trx("business_details")
-      .select("business_id")
-      .where("user_id", user_id)
+      .select("business_details_id")
+      .where("business_details_user_id", user_id)
       .first()
       .returning("*");
     let response = [];
 
     if (checkForUpdate) {
       response = await trx("business_details")
-        .where("business_id", checkForUpdate.business_id)
+        .where("business_details_id", checkForUpdate.business_details_id)
         .update(businessInfo)
         .returning("*");
     } else {
