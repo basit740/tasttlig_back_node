@@ -87,7 +87,6 @@ router.post(
             message: user_details_from_db.message,
           });
         }
-        console.log(req.user)
         const festival_details = {
           festival_user_admin_id: [req.user.id],
           festival_name,
@@ -101,8 +100,6 @@ router.post(
           festival_created_at_datetime: new Date(),
           festival_updated_at_datetime: new Date()
         };
-        console.log(festival_details)
-        console.log(festival_image_description)
         const response = await festival_service.createNewFestival(
           festival_details,
           images,
@@ -130,7 +127,6 @@ router.post(
 //POST Sponsor to festival
 router.post("/sponsor-festival", async(req, res) => {
   try {
-    console.log(req.user);
     const festival_business_sponsor_id = [req.body.festival_business_sponsor_id];
     const festival_id = req.body.festival_id;
     const response = await festival_service.sponsorToFestival(

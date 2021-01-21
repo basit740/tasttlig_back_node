@@ -91,8 +91,6 @@ router.post("/payment/stripe/success", async (req, res) => {
     const db_order_details = await user_order_service.getOrderDetails(
       order_details
     );
-    console.log("hello")
-      console.log(db_order_details)
     if (!db_order_details.success) {
       return { success: false, message: "Invalid order details." };
     }
@@ -100,7 +98,6 @@ router.post("/payment/stripe/success", async (req, res) => {
       order_details,
       db_order_details
     );
-      console.log(response)
     if (req.body.item_type === "food_sample") {
       const food_sample_claim_details = {
         food_sample_claim_email: db_user.user.email,

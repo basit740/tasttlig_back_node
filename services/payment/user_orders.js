@@ -431,7 +431,6 @@ const createOrder = async (order_details, db_order_details) => {
         const total_amount_before_tax = parseFloat(db_order_details.item.festival_price);
         const total_tax = Math.round(total_amount_before_tax * 13) / 100;
         const total_amount_after_tax = total_amount_before_tax + total_tax;
-        console.log(order_details)
         const db_orders = await trx("orders")
           .insert({
             order_by_user_id: order_details.user_id,
@@ -442,7 +441,6 @@ const createOrder = async (order_details, db_order_details) => {
             order_datetime: new Date(),
           })
           .returning("*");
-          console.log("hello")
         if (!db_orders) {
           return { success: false, details: "Inserting new order failed." };
         }
