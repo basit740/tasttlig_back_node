@@ -55,7 +55,6 @@ router.post(
       festival_end_time,
       festival_description,
     } = req.body;
-
     try {
       if (
         !images ||
@@ -86,7 +85,7 @@ router.post(
             message: user_details_from_db.message,
           });
         }
-
+        console.log(req.user)
         const festival_details = {
           festival_user_admin_id: [req.user.id],
           festival_name,
@@ -124,5 +123,43 @@ router.post(
     }
   }
 );
+
+//POST Sponsor to festival
+router.post("/sponsor-festival", async(req, res) => {
+  try {
+    console.log(req.user);
+    const festival_business_sponsor_id = [req.body.festival_business_sponsor_id];
+    const festival_id = req.body.festival_id;
+    const response = await festival_service.sponsorToFestival(
+      festival_business_sponsor_id, 
+      festival_id
+      )
+    return res.send(response)
+  } catch(error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error,
+    })
+  }
+})
+router.post("/host-festival", async(req, res) => {
+  try {
+    const festival_restaurant_host_id = [req.body.festival_restaurant_host_id];
+    const festival_id = req.body.festival_id;
+    const response = await festival_service.hostToFestival(
+      festival_id,
+      festival_restaurant_host_id
+      );
+
+    return res.send(response)
+  } catch(error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error,
+    })
+  }
+})
 
 module.exports = router;

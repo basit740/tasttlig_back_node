@@ -68,6 +68,21 @@ const getOrderDetails = async (order_details) => {
       .catch((error) => {
         return { success: false, message: error };
       });
+  } else if (order_details.item_type === "festival") {
+    return await db("festivals")
+    .where({
+      festival_id: order_details.item_id
+    })
+    .first()
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No festival found" };
+      }
+      return { success: true, item: value };
+    })
+    .catch ((error) => {
+      return { success: false, message: error};
+     });
   }
 
   return { success: false, message: "Item type not supported." };
@@ -400,6 +415,106 @@ const createOrder = async (order_details, db_order_details) => {
                 db_order_details.item.city +
                 ", " +
                 db_order_details.item.state,
+              quantity: 1,
+            },
+          ],
+        },
+      });
+
+      return { success: true, details: "Success." };
+    } catch (error) {
+      return { success: false, details: error.message };
+    }
+  } else if (order_details.item_type === "festival") {
+    try {
+      await db.transaction(async (trx) => {
+        const total_amount_before_tax = parseFloat(db_order_details.item.festival_price);
+        const total_tax = Math.round(total_amount_before_tax * 13) / 100;
+        const total_amount_after_tax = total_amount_before_tax + total_tax;
+        console.log(order_details)
+        const db_orders = await trx("orders")
+          .insert({
+            order_by_user_id: order_details.user_id,
+            status: "SUCCESS",
+            total_amount_before_tax,
+            total_tax,
+            total_amount_after_tax,
+            order_datetime: new Date(),
+          })
+          .returning("*");
+          console.log("hello")
+        if (!db_orders) {
+          return { success: false, details: "Inserting new order failed." };
+        }
+
+        await trx("order_items").insert({
+          order_id: db_orders[0].order_id,
+          item_id: order_details.item_id,
+          item_type: order_details.item_type,
+          quantity: 1,
+          price_before_tax: total_amount_before_tax,
+        });
+
+        await trx("payments").insert({
+          order_id: db_orders[0].order_id,
+          payment_reference_number: order_details.payment_id,
+          payment_type: "CARD",
+          payment_vender: "STRIPE",
+        });
+
+        await point_system_service.addUserPoints(
+          order_details.user_id,
+          total_amount_after_tax * 100
+        );
+      });
+      // Email to user on successful purchase
+      await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: order_details.user_email,
+        bcc: ADMIN_EMAIL,
+        subject: "[Tasttlig] Purchase Successful",
+        template: "experience/new_experience_purchase",
+        context: {
+          title: db_order_details.item.festival_name,
+          passport_id: order_details.user_passport_id,
+          items: [
+            {
+              title: db_order_details.item.festival_name,
+              time:
+                moment(
+                  moment(
+                    new Date(db_order_details.item.festival_start_date)
+                      .toISOString()
+                      .split("T")[0] +
+                      "T" +
+                      db_order_details.item.festival_start_time +
+                      ".000Z"
+                  ).add(new Date().getTimezoneOffset(), "m")
+                ).format("MMM Do") +
+                " " +
+                moment(
+                  moment(
+                    new Date(db_order_details.item.festival_start_date)
+                      .toISOString()
+                      .split("T")[0] +
+                      "T" +
+                      db_order_details.item.festival_start_time +
+                      ".000Z"
+                  ).add(new Date().getTimezoneOffset(), "m")
+                ).format("hh:mm a") +
+                " - " +
+                moment(
+                  moment(
+                    new Date(db_order_details.item.festival_start_date)
+                      .toISOString()
+                      .split("T")[0] +
+                      "T" +
+                      db_order_details.item.festival_end_time +
+                      ".000Z"
+                  ).add(new Date().getTimezoneOffset(), "m")
+                ).format("hh:mm a"),
+              address:
+                db_order_details.item.festival_city,
               quantity: 1,
             },
           ],
