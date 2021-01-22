@@ -15,7 +15,7 @@ router.get("/festival/all", async (req, res) => {
     const filters = {
       nationalities: req.query.nationalities,
       startDate: req.query.startDate,
-      startTime: req.query.startTime,
+      startTime: new Date(req.query.startTime).getTime(),
       cityLocation: req.query.cityLocation,
       radius: req.query.radius,
       latitude: req.query.latitude,
