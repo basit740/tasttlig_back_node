@@ -444,7 +444,6 @@ const createOrder = async (order_details, db_order_details) => {
             order_datetime: new Date(),
           })
           .returning("*");
-
         if (!db_orders) {
           return { success: false, details: "Inserting new order failed." };
         }
