@@ -135,7 +135,7 @@ const getAllExperience = async (
     .leftJoin(
       "business_details",
       "experiences.experience_creator_user_id",
-      "business_details.user_id"
+      "business_details.business_details_user_id"
     )
     .leftJoin("nationalities", "experiences.nationality_id", "nationalities.id")
     .groupBy("experiences.experience_id")
@@ -435,7 +435,7 @@ const getExperience = async (experience_id) => {
     .leftJoin(
       "business_details",
       "experiences.experience_creator_user_id",
-      "business_details.user_id"
+      "business_details.business_details_user_id"
     )
     .groupBy("experiences.experience_id")
     .groupBy("tasttlig_users.first_name")

@@ -411,7 +411,7 @@ const getAllFoodSamples = async (
     .leftJoin(
       "business_details",
       "food_samples.food_sample_creater_user_id",
-      "business_details.user_id"
+      "business_details.business_details_user_id"
     )
     .leftJoin(
       "nationalities",
@@ -556,7 +556,7 @@ const getFoodSample = async (food_sample_id) => {
     .leftJoin(
       "business_details",
       "food_samples.food_sample_creater_user_id",
-      "business_details.user_id"
+      "business_details.business_details_user_id"
     )
     .groupBy("food_samples.food_sample_id")
     .groupBy("nationalities.nationality")
@@ -695,7 +695,7 @@ const getFoodSampleById = async (id) => {
     .leftJoin(
       "business_details",
       "food_samples.food_sample_creater_user_id",
-      "business_details.user_id"
+      "business_details.business_details_user_id"
     )
     .then((value) => {
       if (!value) {

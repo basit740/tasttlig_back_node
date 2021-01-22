@@ -8,7 +8,7 @@ class BusinessDetails extends Model {
   }
 
   static get idColumn() {
-    return "business_id";
+    return "business_details_id";
   }
 }
 
