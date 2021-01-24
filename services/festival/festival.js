@@ -115,18 +115,20 @@ const createNewFestival = async (festival_details, festival_images) => {
 const hostToFestival = async (festival_id, festival_restaurant_host_id) => {
   try {
     await db.transaction(async (trx) => {
-      const db_host = await trx("festivals")
-        .where({ festival_id })
-        .update({
-          festival_restaurant_host_id: trx.raw(
-            "array_append(festival_restaurant_host_id, ?)",
-            [festival_restaurant_host_id]
-          ),
-        })
-        .returning("*");
+      for (let item of festival_id) {
+        const db_host = await trx("festivals")
+          .where({ festival_id: item })
+          .update({
+            festival_restaurant_host_id: trx.raw(
+              "array_append(festival_restaurant_host_id, ?)",
+              [festival_restaurant_host_id]
+            ),
+          })
+          .returning("*");
 
-      if (!db_host) {
-        return { success: false, details: "Inserting new host failed." };
+        if (!db_host) {
+          return { success: false, details: "Inserting new host failed." };
+        }
       }
     });
 
