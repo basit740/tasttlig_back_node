@@ -12,16 +12,17 @@ router.post(
   "/products/add",
   token_service.authenticateToken,
   async (req, res) => {
+    console.log(req.body);
     if (
-      !req.body.productName ||
-      !req.body.nationality_id ||
-      !req.body.productPrice ||
-      !req.body.productQuantity ||
-      !req.body.productSize ||
-      !req.body.productExpiryDate ||
-      !req.body.productExpiryTime ||
-      !req.body.productDescription ||
-      !req.body.images
+      !req.body.product_name ||
+      !req.body.product_made_in_nationality_id ||
+      !req.body.product_price ||
+      !req.body.product_quantity ||
+      !req.body.product_size ||
+      !req.body.product_expiry_date ||
+      !req.body.product_expiry_time ||
+      !req.body.product_description ||
+      !req.body.product_images
       ) 
       {
       return res.status(403).json({
@@ -29,12 +30,10 @@ router.post(
         message: "Required parameters are not available in request.",
       });
     }
-
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
       );
-
       if (!user_details_from_db.success) {
         return res.status(403).json({
           success: false,
@@ -44,7 +43,7 @@ router.post(
 
       let createdByAdmin = false;
       let db_user = user_details_from_db.user;
-
+      console.log(db_user)
       // let user_role_object = db_user.role;
       // if (user_role_object.includes("ADMIN")){
       //   if (!req.body.userEmail) {
@@ -59,23 +58,21 @@ router.post(
       // }
 
       const product_information = {
-        product_business_id: db_user.business_details_user_id,
-        product_name: req.body.productName,
-        product_made_in_nationality_id: req.body.nationality_id,
-        product_price: req.body.productPrice,
-        product_quantity: req.body.productQuantity,
-        product_size: req.body.productSize,
-        product_expiry_date: req.body.productExpiryDate,
-        product_expiry_time: req.body.productExpiryTime,
-        product_description: req.body.productDescription,
-               
-        
+        product_business_id: db_user.business_id,
+        product_name: req.body.product_name,
+        product_made_in_nationality_id: req.body.product_made_in_nationality_id,
+        product_price: req.body.product_price,
+        product_quantity: req.body.product_quantity,
+        product_size: req.body.product_size,
+        product_expiry_date: req.body.product_expiry_date,
+        product_expiry_time: req.body.product_expiry_time,
+        product_description: req.body.product_description,
       };
-
-      const response = await experience_service.createNewProduct(
+      console.log(product_information)
+      const response = await products_service.createNewProduct(
         db_user,
         product_information,
-        req.body.images,
+        req.body.product_images,
         createdByAdmin
       );
 
