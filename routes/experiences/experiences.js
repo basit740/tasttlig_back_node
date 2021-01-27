@@ -3,25 +3,26 @@
 // Libraries
 const router = require("express").Router();
 const token_service = require("../../services/authentication/token");
-const products_service = require("../../services/experiences/experiences");
+const experiences_service = require("../../services/experiences/experiences");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
 
-// POST products
+// POST experiences
 router.post(
   "/experiences/add",
   token_service.authenticateToken,
   async (req, res) => {
+    console.log(req.body);
     if (
-      !req.body.experienceName ||
-      !req.body.nationality_id ||
-      !req.body.experiencePrice ||
-      !req.body.experienceCapacity ||
-      !req.body.experienceScope ||
-      !req.body.experienceDescription ||
-      !req.body.experienceeDays ||
-      !req.body.experienceHours ||
-      !req.body.images
+      !req.body.experience_name ||
+      !req.body.experience_nationality_id ||
+      !req.body.experience_price ||
+      !req.body.experience_capacity ||
+      !req.body.experience_size_scope ||
+/*       !req.body.experience_expiry_date ||
+      !req.body.experience_expiry_time || */
+      !req.body.experience_description ||
+      !req.body.experience_images
       ) 
       {
       return res.status(403).json({
@@ -29,12 +30,10 @@ router.post(
         message: "Required parameters are not available in request.",
       });
     }
-
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
       );
-
       if (!user_details_from_db.success) {
         return res.status(403).json({
           success: false,
@@ -44,38 +43,24 @@ router.post(
 
       let createdByAdmin = false;
       let db_user = user_details_from_db.user;
+      console.log(db_user)
 
-      // let user_role_object = db_user.role;
-      // if (user_role_object.includes("ADMIN")){
-      //   if (!req.body.userEmail) {
-      //     return res.status(403).json({
-      //       success: false,
-      //       message: "Required parameters are not available in request."
-      //     });
-      //   }
-      //   const host_details_from_db = await user_profile_service.getUserByEmail(req.body.userEmail);
-      //   db_user = host_details_from_db.user;
-      //   createdByAdmin = true;
-      // }
-
-      const exp_information = {
-        experience_business_id: db_user.business_details_user_id,
-        experience_name: req.body.experienceName,
-        experience_nationality_id: req.body.nationality_id,
-        experience_price: req.body.experiencePrice,
-        experience_capacity: req.body.experienceCapacity,
-        experience_size_scope: req.body.experienceScope,
-        experience_description: req.body.experienceDescription,
-        experience_days: req.body.experienceDays,
-        experience_hours: req.body.experienceHours,
-               
-        
+      const experience_information = {
+        experience_business_id: db_user.business_id,
+        experience_name: req.body.experience_name,
+        experience_nationality_id: req.body.experience_nationality_id,
+        experience_price: req.body.experience_price,
+        experience_capacity: req.body.experience_capacity,
+        experience_size_scope: req.body.experience_size_scope,
+/*         experience_expiry_date: req.body.experience_expiry_date,
+        experience_expiry_time: req.body.experience_expiry_time, */
+        experience_description: req.body.experience_description,
       };
-
-      const response = await experiences_service.createNewExp(
+      //console.log(experience_information)
+      const response = await experiences_service.createNewExperience(
         db_user,
-        exp_information,
-        req.body.images,
+        experience_information,
+        req.body.experience_images,
         createdByAdmin
       );
 
@@ -104,7 +89,7 @@ router.get("/experiences/all", async (req, res) => {
       longitude: req.query.longitude,
     };
 
-    const response = await experience_service.getAllExperience(
+    const response = await experience_service.getAllexperiences(
       status_operator,
       experience_status,
       keyword,
