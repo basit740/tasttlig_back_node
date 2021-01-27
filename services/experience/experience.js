@@ -228,7 +228,7 @@ const getAllUserExperience = async (
       "experiences.*",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
-      db.raw("ARRAY_AGG(experience_images.image_url) as image_urls")
+      db.raw("ARRAY_AGG(experience_images.experience_image_url) as image_urls")
     )
     .from("experiences")
     .leftJoin(
@@ -236,17 +236,16 @@ const getAllUserExperience = async (
       "experiences.experience_id",
       "experience_images.experience_id"
     )
-    .leftJoin("nationalities", "experiences.nationality_id", "nationalities.id")
+    .leftJoin("nationalities", "experiences.experience_nationality_id", "nationalities.id")
     .groupBy("experiences.experience_id")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code");
 
   if (!requestByAdmin) {
     query = query
-      .having("experience_creator_user_id", "=", user_id)
-      .having("experiences.status", operator, status);
+      .having("experiences.experience_status", operator, status);
   } else {
-    query = query.having("experiences.status", operator, status);
+    query = query.having("experiences.experience_status", operator, status);
   }
 
   if (keyword) {
@@ -266,8 +265,8 @@ const getAllUserExperience = async (
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.title, " +
-                "main.description, " +
+                "main.experience_name, " +
+                "main.experience_description, " +
                 "main.nationality" +
                 ")) as search_text"
             )
