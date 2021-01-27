@@ -1,7 +1,7 @@
 "use strict";
 
 // Libraries
-const { db} = require("../../db/db-config");
+const { db } = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const jwt = require("jsonwebtoken");
 const { setAddressCoordinates } = require("../geocoder");
@@ -21,9 +21,6 @@ const createNewExperience = async (
     await db.transaction(async (trx) => {
       let user_role_object = db_user.role;
       console.log(experience_information);
-
-      experience_information.experience_status = "INACTIVE";
-
       if (user_role_object.includes("HOST")) {
         experience_information.experience_status = "ACTIVE";
       }
@@ -33,14 +30,14 @@ const createNewExperience = async (
       if (!db_experience) {
         return { success: false, details: "Inserting new experience failed." };
       }
-      console.log(experience_images)
+      console.log(experience_images);
       const images = experience_images.map((experience_image) => ({
         experience_id: db_experience[0].experience_id,
         experience_image_url: experience_image,
       }));
 
       await trx("experience_images").insert(images);
-      console.log("hello")
+      console.log("hello");
       if (createdByAdmin) {
         // Email to review the food sample from the owner
         jwt.sign(
@@ -80,7 +77,7 @@ const createNewExperience = async (
           from: process.env.SES_DEFAULT_FROM,
           to: db_user.email,
           bcc: ADMIN_EMAIL,
-          subject: `[Tasttlig] New experience Created`,
+          subject: `[Tasttlig] New Experience Created`,
           template: "new_food_sample",
           context: {
             title: experience_information.experience_name,
@@ -97,5 +94,5 @@ const createNewExperience = async (
 };
 
 module.exports = {
-  createNewExperience
+  createNewExperience,
 };

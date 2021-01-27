@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const products_service = require("../../services/products/products");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
+const { generateRandomString } = require("../../functions/functions");
 
 // POST products
 router.post(
@@ -23,8 +24,7 @@ router.post(
       !req.body.product_expiry_time ||
       !req.body.product_description ||
       !req.body.product_images
-      ) 
-      {
+    ) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
@@ -43,7 +43,7 @@ router.post(
 
       let createdByAdmin = false;
       let db_user = user_details_from_db.user;
-      console.log(db_user)
+      console.log(db_user);
       // let user_role_object = db_user.role;
       // if (user_role_object.includes("ADMIN")){
       //   if (!req.body.userEmail) {
@@ -67,15 +67,19 @@ router.post(
         product_expiry_date: req.body.product_expiry_date,
         product_expiry_time: req.body.product_expiry_time,
         product_description: req.body.product_description,
+        product_code: generateRandomString(4),
+        product_status: "ACTIVE",
+        product_created_at_datetime: new Date(),
+        product_updated_at_datetime: new Date(),
       };
-      console.log(product_information)
+      console.log(product_information);
       const response = await products_service.createNewProduct(
         db_user,
         product_information,
         req.body.product_images,
         createdByAdmin
       );
-
+      console.log("Response is", response);
       return res.send(response);
     } catch (error) {
       res.send({
@@ -118,7 +122,5 @@ router.get("/products/all", async (req, res) => {
     });
   }
 });
-
-
 
 module.exports = router;

@@ -1,7 +1,7 @@
 "use strict";
 
 // Libraries
-const { db} = require("../../db/db-config");
+const { db } = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const jwt = require("jsonwebtoken");
 const { setAddressCoordinates } = require("../geocoder");
@@ -30,14 +30,14 @@ const createNewService = async (
       if (!db_service) {
         return { success: false, details: "Inserting new experience failed." };
       }
-      console.log(service_images)
+      console.log(service_images);
       const images = service_images.map((service_image) => ({
         service_id: db_service[0].service_id,
         service_image_url: service_image,
       }));
 
       await trx("service_images").insert(images);
-      console.log("hello")
+      console.log("hello");
       if (createdByAdmin) {
         // Email to review the food sample from the owner
         jwt.sign(
@@ -77,7 +77,7 @@ const createNewService = async (
           from: process.env.SES_DEFAULT_FROM,
           to: db_user.email,
           bcc: ADMIN_EMAIL,
-          subject: `[Tasttlig] New service Created`,
+          subject: `[Tasttlig] New Service Created`,
           template: "new_food_sample",
           context: {
             title: service_information.service_name,
@@ -94,5 +94,5 @@ const createNewService = async (
 };
 
 module.exports = {
-  createNewService
+  createNewService,
 };

@@ -1,7 +1,7 @@
 "use strict";
 
 // Libraries
-const { db} = require("../../db/db-config");
+const { db } = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const jwt = require("jsonwebtoken");
 const { setAddressCoordinates } = require("../geocoder");
@@ -30,14 +30,14 @@ const createNewProduct = async (
       if (!db_product) {
         return { success: false, details: "Inserting new experience failed." };
       }
-      console.log(product_images)
+      console.log(product_images);
       const images = product_images.map((product_image) => ({
         product_id: db_product[0].product_id,
         product_image_url: product_image,
       }));
 
       await trx("product_images").insert(images);
-      console.log("hello")
+      console.log("hello");
       if (createdByAdmin) {
         // Email to review the food sample from the owner
         jwt.sign(
@@ -94,5 +94,5 @@ const createNewProduct = async (
 };
 
 module.exports = {
-  createNewProduct
+  createNewProduct,
 };

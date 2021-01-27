@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const experiences_service = require("../../services/experiences/experiences");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
+const { generateRandomString } = require("../../functions/functions");
 
 // POST experiences
 router.post(
@@ -19,12 +20,11 @@ router.post(
       !req.body.experience_price ||
       !req.body.experience_capacity ||
       !req.body.experience_size_scope ||
-/*       !req.body.experience_expiry_date ||
+      /*       !req.body.experience_expiry_date ||
       !req.body.experience_expiry_time || */
       !req.body.experience_description ||
       !req.body.experience_images
-      ) 
-      {
+    ) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
@@ -43,7 +43,7 @@ router.post(
 
       let createdByAdmin = false;
       let db_user = user_details_from_db.user;
-      console.log(db_user)
+      console.log(db_user);
 
       const experience_information = {
         experience_business_id: db_user.business_id,
@@ -52,9 +52,13 @@ router.post(
         experience_price: req.body.experience_price,
         experience_capacity: req.body.experience_capacity,
         experience_size_scope: req.body.experience_size_scope,
-/*         experience_expiry_date: req.body.experience_expiry_date,
+        /*         experience_expiry_date: req.body.experience_expiry_date,
         experience_expiry_time: req.body.experience_expiry_time, */
         experience_description: req.body.experience_description,
+        experience_code: generateRandomString(4),
+        experience_status: "ACTIVE",
+        experience_created_at_datetime: new Date(),
+        experience_updated_at_datetime: new Date(),
       };
       //console.log(experience_information)
       const response = await experiences_service.createNewExperience(
@@ -106,7 +110,5 @@ router.get("/experiences/all", async (req, res) => {
     });
   }
 });
-
-
 
 module.exports = router;

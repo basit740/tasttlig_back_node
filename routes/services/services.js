@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const services_service = require("../../services/services/services");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
+const { generateRandomString } = require("../../functions/functions");
 
 // POST services
 router.post(
@@ -55,6 +56,10 @@ router.post(
         //service_expiry_date: req.body.service_expiry_date,
         //service_expiry_time: req.body.service_expiry_time,
         service_description: req.body.service_description,
+        service_code: generateRandomString(4),
+        service_status: "ACTIVE",
+        service_created_at_datetime: new Date(),
+        service_updated_at_datetime: new Date(),
       };
       console.log(service_information)
       const response = await services_service.createNewService(
