@@ -13,7 +13,6 @@ router.post(
   "/services/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log(req.body);
     if (
       !req.body.service_name ||
       !req.body.service_nationality_id ||
@@ -23,17 +22,18 @@ router.post(
       !req.body.service_description ||
       !req.body.service_images ||
       !req.body.service_festival_id
-      ) 
-      {
+    ) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
       });
     }
+
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
       );
+
       if (!user_details_from_db.success) {
         return res.status(403).json({
           success: false,
@@ -41,12 +41,32 @@ router.post(
         });
       }
 
-      let createdByAdmin = false;
-      let db_user = user_details_from_db.user;
-      console.log(db_user)
+      let createdByAdmin = true;
+
+      const business_details_from_db = await authentication_service.getUserByBusinessDetails(
+        req.user.id
+      );
+
+      if (
+        user_details_from_db.user.role.includes("RESTAURANT") ||
+        user_details_from_db.user.role.includes("RESTAURANT_PENDING")
+      ) {
+        if (!business_details_from_db.success) {
+          return res.status(403).json({
+            success: false,
+            message: business_details_from_db.message,
+          });
+        }
+
+        createdByAdmin = false;
+      }
+
+      let db_business_details = business_details_from_db.business_details;
 
       const service_information = {
-        service_business_id: db_user.business_id,
+        service_business_id: createdByAdmin
+          ? null
+          : db_business_details.business_details_id,
         service_name: req.body.service_name,
         service_nationality_id: req.body.service_nationality_id,
         service_price: req.body.service_price,
@@ -59,12 +79,11 @@ router.post(
         service_created_at_datetime: new Date(),
         service_updated_at_datetime: new Date(),
       };
-      console.log(service_information)
+
       const response = await services_service.createNewService(
-        db_user,
+        user_details_from_db,
         service_information,
-        req.body.service_images,
-        createdByAdmin
+        req.body.service_images
       );
 
       return res.send(response);

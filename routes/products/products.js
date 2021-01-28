@@ -13,7 +13,6 @@ router.post(
   "/products/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log(req.body);
     if (
       !req.body.product_name ||
       !req.body.product_made_in_nationality_id ||
@@ -31,10 +30,12 @@ router.post(
         message: "Required parameters are not available in request.",
       });
     }
+
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
       );
+
       if (!user_details_from_db.success) {
         return res.status(403).json({
           success: false,
@@ -42,24 +43,32 @@ router.post(
         });
       }
 
-      let createdByAdmin = false;
-      let db_user = user_details_from_db.user;
-      console.log(db_user);
-      // let user_role_object = db_user.role;
-      // if (user_role_object.includes("ADMIN")){
-      //   if (!req.body.userEmail) {
-      //     return res.status(403).json({
-      //       success: false,
-      //       message: "Required parameters are not available in request."
-      //     });
-      //   }
-      //   const host_details_from_db = await user_profile_service.getUserByEmail(req.body.userEmail);
-      //   db_user = host_details_from_db.user;
-      //   createdByAdmin = true;
-      // }
+      let createdByAdmin = true;
+
+      const business_details_from_db = await authentication_service.getUserByBusinessDetails(
+        req.user.id
+      );
+
+      if (
+        user_details_from_db.user.role.includes("RESTAURANT") ||
+        user_details_from_db.user.role.includes("RESTAURANT_PENDING")
+      ) {
+        if (!business_details_from_db.success) {
+          return res.status(403).json({
+            success: false,
+            message: business_details_from_db.message,
+          });
+        }
+
+        createdByAdmin = false;
+      }
+
+      let db_business_details = business_details_from_db.business_details;
 
       const product_information = {
-        product_business_id: db_user.business_id,
+        product_business_id: createdByAdmin
+          ? null
+          : db_business_details.business_details_id,
         product_name: req.body.product_name,
         product_made_in_nationality_id: req.body.product_made_in_nationality_id,
         product_price: req.body.product_price,
@@ -74,14 +83,13 @@ router.post(
         product_created_at_datetime: new Date(),
         product_updated_at_datetime: new Date(),
       };
-      console.log(product_information);
+
       const response = await products_service.createNewProduct(
-        db_user,
+        user_details_from_db,
         product_information,
-        req.body.product_images,
-        createdByAdmin
+        req.body.product_images
       );
-      console.log("Response is", response);
+
       return res.send(response);
     } catch (error) {
       res.send({

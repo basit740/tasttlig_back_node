@@ -511,6 +511,30 @@ const findUserByBusinessName = async (business_name) => {
     });
 };
 
+// Get business details from user helper function
+const getUserByBusinessDetails = async (user_id) => {
+  return await db
+    .select("business_details.*")
+    .from("business_details")
+    .groupBy("business_details.business_details_id")
+    .having("business_details.business_details_user_id", "=", user_id)
+    .first()
+    .then((value) => {
+      if (!value) {
+        return {
+          success: false,
+          message: "Error.",
+          response: "Business details not found for this user.",
+        };
+      }
+
+      return { success: true, business_details: value };
+    })
+    .catch((reason) => {
+      return { success: false, data: reason };
+    });
+};
+
 // Get user login information from auth server helper function
 const userMigrationFromAuthServer = async (new_user) => {
   try {
@@ -570,5 +594,6 @@ module.exports = {
   createBecomeFoodProviderUser,
   findUserByEmail,
   findUserByBusinessName,
+  getUserByBusinessDetails,
   userMigrationFromAuthServer,
 };

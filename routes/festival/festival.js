@@ -42,7 +42,7 @@ router.get("/festival/all", async (req, res) => {
 router.get("/festival-list", async (req, res) => {
   try {
     const response = await festival_service.getFestivalList();
-    console.log(response);
+
     return res.send(response);
   } catch (error) {
     res.send({
