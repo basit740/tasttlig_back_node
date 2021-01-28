@@ -20,10 +20,9 @@ router.post(
       !req.body.service_price ||
       !req.body.service_capacity ||
       !req.body.service_size_scope ||
-     // !req.body.service_expiry_date ||
-     // !req.body.service_expiry_time ||
       !req.body.service_description ||
-      !req.body.service_images
+      !req.body.service_images ||
+      !req.body.service_festival_id
       ) 
       {
       return res.status(403).json({
@@ -53,9 +52,8 @@ router.post(
         service_price: req.body.service_price,
         service_capacity: req.body.service_capacity,
         service_size_scope: req.body.service_size_scope,
-        //service_expiry_date: req.body.service_expiry_date,
-        //service_expiry_time: req.body.service_expiry_time,
         service_description: req.body.service_description,
+        service_festival_id: req.body.service_festival_id,
         service_code: generateRandomString(4),
         service_status: "ACTIVE",
         service_created_at_datetime: new Date(),

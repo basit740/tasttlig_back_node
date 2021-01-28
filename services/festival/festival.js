@@ -84,6 +84,21 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
     });
 };
 
+// Get festival list helper function
+const getFestivalList = async () => {
+  return await db
+    .select("festivals.*")
+    .from("festivals")
+    .where("festivals.festival_id", ">", 3)
+    .groupBy("festivals.festival_id")
+    .then((value) => {
+      return { success: true, festival_list: value };
+    })
+    .catch((reason) => {
+      return { success: false, data: reason };
+    });
+};
+
 /* Save new festival to festivals and festival images tables helper 
 function */
 const createNewFestival = async (festival_details, festival_images) => {
@@ -138,7 +153,7 @@ const hostToFestival = async (festival_id, festival_restaurant_host_id) => {
   }
 };
 
-// add sponsor to festival database
+// Add sponsor to festivals table helper function
 const sponsorToFestival = async (festival_id, festival_business_sponsor_id) => {
   try {
     await db.transaction(async (trx) => {
@@ -165,6 +180,7 @@ const sponsorToFestival = async (festival_id, festival_business_sponsor_id) => {
 
 module.exports = {
   getAllFestivals,
+  getFestivalList,
   createNewFestival,
   hostToFestival,
   sponsorToFestival,

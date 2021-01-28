@@ -20,10 +20,9 @@ router.post(
       !req.body.experience_price ||
       !req.body.experience_capacity ||
       !req.body.experience_size_scope ||
-      /*       !req.body.experience_expiry_date ||
-      !req.body.experience_expiry_time || */
       !req.body.experience_description ||
-      !req.body.experience_images
+      !req.body.experience_images ||
+      !req.body.experience_festival_id
     ) {
       return res.status(403).json({
         success: false,
@@ -52,9 +51,8 @@ router.post(
         experience_price: req.body.experience_price,
         experience_capacity: req.body.experience_capacity,
         experience_size_scope: req.body.experience_size_scope,
-        /*         experience_expiry_date: req.body.experience_expiry_date,
-        experience_expiry_time: req.body.experience_expiry_time, */
         experience_description: req.body.experience_description,
+        experience_festival_id: req.body.experience_festival_id,
         experience_code: generateRandomString(4),
         experience_status: "ACTIVE",
         experience_created_at_datetime: new Date(),
