@@ -97,6 +97,30 @@ router.post(
   }
 );
 
+// GET experiences in specific festival
+router.get("/experiences/festival/:festival_id", async (req, res) => {
+  if (!req.params.festival_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await experiences_service.getExperiencesInFestival(
+      req.params.festival_id
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 // GET all experiences
 router.get("/experiences/all", async (req, res) => {
   try {

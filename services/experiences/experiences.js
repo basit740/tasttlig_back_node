@@ -50,6 +50,35 @@ const createNewExperience = async (
   }
 };
 
+// Get experiences in festival helper function
+const getExperiencesInFestival = async (festival_id) => {
+  return await db
+    .select(
+      "experiences.*",
+      db.raw("ARRAY_AGG(experience_images.experience_image_url) as image_urls")
+    )
+    .from("experiences")
+    .leftJoin(
+      "experience_images",
+      "experiences.experience_id",
+      "experience_images.experience_id"
+    )
+    .leftJoin(
+      "festivals",
+      "experiences.experience_festival_id",
+      "festivals.festival_id"
+    )
+    .groupBy("experiences.experience_id")
+    .having("experiences.experience_festival_id", "=", festival_id)
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
 module.exports = {
   createNewExperience,
+  getExperiencesInFestival,
 };

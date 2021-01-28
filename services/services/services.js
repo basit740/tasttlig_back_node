@@ -50,6 +50,35 @@ const createNewService = async (
   }
 };
 
+// Get services in festival helper function
+const getServicesInFestival = async (festival_id) => {
+  return await db
+    .select(
+      "services.*",
+      db.raw("ARRAY_AGG(service_images.service_image_url) as image_urls")
+    )
+    .from("services")
+    .leftJoin(
+      "service_images",
+      "services.service_id",
+      "service_images.service_id"
+    )
+    .leftJoin(
+      "festivals",
+      "services.service_festival_id",
+      "festivals.festival_id"
+    )
+    .groupBy("services.service_id")
+    .having("services.service_festival_id", "=", festival_id)
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
 module.exports = {
   createNewService,
+  getServicesInFestival,
 };

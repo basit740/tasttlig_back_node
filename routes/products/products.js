@@ -101,6 +101,30 @@ router.post(
   }
 );
 
+// GET products in specific festival
+router.get("/products/festival/:festival_id", async (req, res) => {
+  if (!req.params.festival_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await products_service.getProductsInFestival(
+      req.params.festival_id
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 // GET all products
 router.get("/products/all", async (req, res) => {
   try {

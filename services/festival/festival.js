@@ -178,7 +178,8 @@ const sponsorToFestival = async (festival_id, festival_business_sponsor_id) => {
   }
 };
 
-const getFestival = async (festival_id) => {
+// Get festival details helper function
+const getFestivalDetails = async (festival_id) => {
   return await db
     .select(
       "festivals.*",
@@ -213,6 +214,7 @@ const getFestival = async (festival_id) => {
       return { success: false, details: reason };
     });
 };
+
 const getFestivalRestaurants = async (host_id, festival_id) => {
   let productQuery = db
     .select(
@@ -252,6 +254,6 @@ module.exports = {
   createNewFestival,
   hostToFestival,
   sponsorToFestival,
-  getFestival,
+  getFestivalDetails,
   getFestivalRestaurants,
 };

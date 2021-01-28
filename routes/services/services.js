@@ -97,4 +97,28 @@ router.post(
   }
 );
 
+// GET services in specific festival
+router.get("/services/festival/:festival_id", async (req, res) => {
+  if (!req.params.festival_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await services_service.getServicesInFestival(
+      req.params.festival_id
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 module.exports = router;

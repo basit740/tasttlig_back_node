@@ -50,6 +50,35 @@ const createNewProduct = async (
   }
 };
 
+// Get products in festival helper function
+const getProductsInFestival = async (festival_id) => {
+  return await db
+    .select(
+      "products.*",
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
+    )
+    .from("products")
+    .leftJoin(
+      "product_images",
+      "products.product_id",
+      "product_images.product_id"
+    )
+    .leftJoin(
+      "festivals",
+      "products.product_festival_id",
+      "festivals.festival_id"
+    )
+    .groupBy("products.product_id")
+    .having("products.product_festival_id", "=", festival_id)
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
 module.exports = {
   createNewProduct,
+  getProductsInFestival,
 };

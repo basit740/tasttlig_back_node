@@ -53,6 +53,30 @@ router.get("/festival-list", async (req, res) => {
   }
 });
 
+// GET specific festival details
+router.get("/festival/:festival_id", async (req, res) => {
+  if (!req.params.festival_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await festival_service.getFestivalDetails(
+      req.params.festival_id
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 // POST festival
 router.post(
   "/festival/add",
@@ -210,29 +234,6 @@ router.post(
   }
 );
 
-//GET specific festival details
-router.get("/festival/:festival_id", async (req, res) => {
-  if (!req.params.festival_id) {
-    return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
-    });
-  }
-
-  try {
-    const response = await festival_service.getFestival(
-      req.params.festival_id
-    );
-
-    return res.send(response);
-  } catch (error) {
-    res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
-    });
-  }
-});
 // GET festival restaurants
 router.get("/festival/restaurant/all", async (req, res) => {
   console.log(req.query)
