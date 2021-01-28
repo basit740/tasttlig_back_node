@@ -178,10 +178,80 @@ const sponsorToFestival = async (festival_id, festival_business_sponsor_id) => {
   }
 };
 
+const getFestival = async (festival_id) => {
+  return await db
+    .select(
+      "festivals.*",
+      "business_details.business_name",
+      "sponsors.sponsor_name",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("festivals")
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    )
+    .leftJoin(
+      "business_details",
+      "festivals.festival_user_admin_id[0]",
+      "business_details.business_details_user_id"
+    )
+    .leftJoin(
+      "sponsors",
+      "festivals.festival_business_sponsor_id[0]",
+      "sponsors.sponsor_id"
+    )
+    .groupBy("festivals.festival_id")
+    .groupBy("business_details.business_name")
+    .groupBy("sponsors.sponsor_name")
+    .having("festivals.festival_id", "=", festival_id)
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+const getFestivalRestaurants = async (host_id, festival_id) => {
+  let productQuery = db
+    .select(
+      "products.*",
+      "business_details.*"
+     /*  db.raw("ARRAY_AGG(business_details_images.business_details_image_url) as image_urls") */
+    )
+    .from("products")
+    .leftJoin(
+      "business_details",
+      "products.product_business_id",
+      "business_details.business_details_id"
+    )
+    .leftJoin(
+      "product_images",
+      "products.product_id",
+      "product_images.product_id"
+    )
+    .groupBy("business_details.business_details_id")
+    .groupBy("products.product_name")
+    .having("products.product_business_id", "=", host_id[0])
+
+    return await productQuery
+    .then((value) => {
+      console.log(value)
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log(reason)
+      return { success: false, details: reason };
+    });
+};
+
 module.exports = {
   getAllFestivals,
   getFestivalList,
   createNewFestival,
   hostToFestival,
   sponsorToFestival,
+  getFestival,
+  getFestivalRestaurants,
 };
