@@ -125,27 +125,44 @@ router.get("/products/festival/:festival_id", async (req, res) => {
   }
 });
 
-// GET all products
-router.get("/products/all", async (req, res) => {
-  try {
-    const current_page = req.query.page || 1;
-    const keyword = req.query.keyword || "";
-    const status_operator = "=";
-    const product_status = "ACTIVE";
-    const filters = {
-      nationalities: req.query.nationalities,
-      radius: req.query.radius,
-      latitude: req.query.latitude,
-      longitude: req.query.longitude,
-    };
+// POST claim product in specific festival
+router.post("/claim-product", async (req, res) => {
+  const { product_claim_user, product_id } = req.body;
 
-    const response = await product_service.getAllProducts(
-      status_operator,
-      product_status,
-      keyword,
-      current_page,
-      filters
+  if (!product_claim_user || !product_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    let db_user;
+    let db_product;
+
+    db_user = await user_profile_service.getUserByPassportIdOrEmail(
+      product_claim_user
     );
+
+    if (!db_user.success) {
+      return res.status(403).json({
+        success: false,
+        message: db_user.message,
+      });
+    }
+
+    db_user = db_user.user;
+
+    db_product = await products_service.findProduct(product_id);
+
+    if (!db_product.success) {
+      return res.status(403).json({
+        success: false,
+        message: db_product.message,
+      });
+    }
+
+    const response = await products_service.claimProduct(db_user, product_id);
 
     return res.send(response);
   } catch (error) {

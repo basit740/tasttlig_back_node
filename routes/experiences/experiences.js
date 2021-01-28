@@ -121,26 +121,46 @@ router.get("/experiences/festival/:festival_id", async (req, res) => {
   }
 });
 
-// GET all experiences
-router.get("/experiences/all", async (req, res) => {
-  try {
-    const current_page = req.query.page || 1;
-    const keyword = req.query.keyword || "";
-    const status_operator = "=";
-    const experience_status = "ACTIVE";
-    const filters = {
-      nationalities: req.query.nationalities,
-      radius: req.query.radius,
-      latitude: req.query.latitude,
-      longitude: req.query.longitude,
-    };
+// POST claim experience in specific festival
+router.post("/claim-experience", async (req, res) => {
+  const { experience_claim_user, experience_id } = req.body;
 
-    const response = await experience_service.getAllexperiences(
-      status_operator,
-      experience_status,
-      keyword,
-      current_page,
-      filters
+  if (!experience_claim_user || !experience_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    let db_user;
+    let db_experience;
+
+    db_user = await user_profile_service.getUserByPassportIdOrEmail(
+      experience_claim_user
+    );
+
+    if (!db_user.success) {
+      return res.status(403).json({
+        success: false,
+        message: db_user.message,
+      });
+    }
+
+    db_user = db_user.user;
+
+    db_experience = await experiences_service.findExperience(experience_id);
+
+    if (!db_experience.success) {
+      return res.status(403).json({
+        success: false,
+        message: db_experience.message,
+      });
+    }
+
+    const response = await experiences_service.claimExperience(
+      db_user,
+      experience_id
     );
 
     return res.send(response);

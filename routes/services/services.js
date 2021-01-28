@@ -121,4 +121,53 @@ router.get("/services/festival/:festival_id", async (req, res) => {
   }
 });
 
+// POST claim service in specific festival
+router.post("/claim-service", async (req, res) => {
+  const { service_claim_user, service_id } = req.body;
+
+  if (!service_claim_user || !service_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    let db_user;
+    let db_service;
+
+    db_user = await user_profile_service.getUserByPassportIdOrEmail(
+      service_claim_user
+    );
+
+    if (!db_user.success) {
+      return res.status(403).json({
+        success: false,
+        message: db_user.message,
+      });
+    }
+
+    db_user = db_user.user;
+
+    db_service = await services_service.findService(service_id);
+
+    if (!db_service.success) {
+      return res.status(403).json({
+        success: false,
+        message: db_service.message,
+      });
+    }
+
+    const response = await services_service.claimService(db_user, service_id);
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 module.exports = router;

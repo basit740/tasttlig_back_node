@@ -95,7 +95,52 @@ const getExperiencesInFestival = async (festival_id) => {
     });
 };
 
+// Find experience helper function
+const findExperience = async (experience_id) => {
+  return await db
+    .select("experiences.*")
+    .from("experiences")
+    .where("experiences.experience_id", "=", experience_id)
+    .first()
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
+// Claim experience helper function
+const claimExperience = async (db_user, experience_id) => {
+  try {
+    await db.transaction(async (trx) => {
+      const db_experience = await trx("experiences")
+        .where({ experience_id })
+        .update({
+          experience_user_guest_id: trx.raw(
+            "array_append(experience_user_guest_id, ?)",
+            [db_user.tasttlig_user_id]
+          ),
+        })
+        .returning("*");
+
+      if (!db_experience) {
+        return {
+          success: false,
+          details: "Inserting new experience guest failed.",
+        };
+      }
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
+
 module.exports = {
   createNewExperience,
   getExperiencesInFestival,
+  findExperience,
+  claimExperience,
 };
