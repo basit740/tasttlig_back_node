@@ -55,6 +55,12 @@ const getExperiencesInFestival = async (festival_id) => {
   return await db
     .select(
       "experiences.*",
+      "business_details.business_name",
+      "business_details.business_address_1",
+      "business_details.business_address_2",
+      "business_details.city",
+      "business_details.state",
+      "business_details.zip_postal_code",
       db.raw("ARRAY_AGG(experience_images.experience_image_url) as image_urls")
     )
     .from("experiences")
@@ -68,7 +74,18 @@ const getExperiencesInFestival = async (festival_id) => {
       "experiences.experience_festival_id",
       "festivals.festival_id"
     )
+    .leftJoin(
+      "business_details",
+      "experiences.experience_business_id",
+      "business_details.business_details_id"
+    )
     .groupBy("experiences.experience_id")
+    .groupBy("business_details.business_name")
+    .groupBy("business_details.business_address_1")
+    .groupBy("business_details.business_address_2")
+    .groupBy("business_details.city")
+    .groupBy("business_details.state")
+    .groupBy("business_details.zip_postal_code")
     .having("experiences.experience_festival_id", "=", festival_id)
     .then((value) => {
       return { success: true, details: value };

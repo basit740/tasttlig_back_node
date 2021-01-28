@@ -55,6 +55,12 @@ const getProductsInFestival = async (festival_id) => {
   return await db
     .select(
       "products.*",
+      "business_details.business_name",
+      "business_details.business_address_1",
+      "business_details.business_address_2",
+      "business_details.city",
+      "business_details.state",
+      "business_details.zip_postal_code",
       db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
     )
     .from("products")
@@ -68,7 +74,18 @@ const getProductsInFestival = async (festival_id) => {
       "products.product_festival_id",
       "festivals.festival_id"
     )
+    .leftJoin(
+      "business_details",
+      "products.product_business_id",
+      "business_details.business_details_id"
+    )
     .groupBy("products.product_id")
+    .groupBy("business_details.business_name")
+    .groupBy("business_details.business_address_1")
+    .groupBy("business_details.business_address_2")
+    .groupBy("business_details.city")
+    .groupBy("business_details.state")
+    .groupBy("business_details.zip_postal_code")
     .having("products.product_festival_id", "=", festival_id)
     .then((value) => {
       return { success: true, details: value };
