@@ -77,6 +77,108 @@ router.get("/festival/:festival_id", async (req, res) => {
   }
 });
 
+// GET attendants in specific festival
+router.get("/attendants/festival/:festival_id", async (req, res) => {
+  if (!req.params.festival_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const attendants = [];
+
+    const response = await festival_service.getFestivalDetails(
+      req.params.festival_id
+    );
+
+    for (let item of response.details[0].festival_user_guest_id) {
+      const list = await user_profile_service.getUserById(item);
+
+      if (list.user) {
+        attendants.push(list.user);
+      }
+    }
+
+    return res.send(attendants);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// GET hosts in specific festival
+router.get("/hosts/festival/:festival_id", async (req, res) => {
+  if (!req.params.festival_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const hosts = [];
+
+    const response = await festival_service.getFestivalDetails(
+      req.params.festival_id
+    );
+
+    for (let item of response.details[0].festival_restaurant_host_id) {
+      const list = await user_profile_service.getUserById(item);
+
+      if (list.user) {
+        hosts.push(list.user);
+      }
+    }
+
+    return res.send(hosts);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// GET sponsors in specific festival
+router.get("/sponsors/festival/:festival_id", async (req, res) => {
+  if (!req.params.festival_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const sponsors = [];
+
+    const response = await festival_service.getFestivalDetails(
+      req.params.festival_id
+    );
+
+    for (let item of response.details[0].festival_business_sponsor_id) {
+      const list = await user_profile_service.getUserById(item);
+
+      if (list.user) {
+        sponsors.push(list.user);
+      }
+    }
+
+    return res.send(sponsors);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 // POST festival
 router.post(
   "/festival/add",
@@ -236,7 +338,7 @@ router.post(
 
 // GET festival restaurants
 router.get("/festival/restaurant/all", async (req, res) => {
-  console.log(req.query)
+  console.log(req.query);
   if (!req.query.host_id) {
     return res.status(403).json({
       success: false,
@@ -246,7 +348,8 @@ router.get("/festival/restaurant/all", async (req, res) => {
 
   try {
     const response = await festival_service.getFestivalRestaurants(
-      req.query.host_id, req.query.festival_id
+      req.query.host_id,
+      req.query.festival_id
     );
 
     return res.send(response);
