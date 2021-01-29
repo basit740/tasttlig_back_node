@@ -348,118 +348,6 @@ const createOrder = async (order_details, db_order_details) => {
     } catch (error) {
       return { success: false, details: error.message };
     }
-  } else if (order_details.item_type === "experience") {
-    try {
-      await db.transaction(async (trx) => {
-        const total_amount_before_tax = parseFloat(db_order_details.item.price);
-        const total_tax = Math.round(total_amount_before_tax * 13) / 100;
-        const total_amount_after_tax = total_amount_before_tax + total_tax;
-        const db_orders = await trx("orders")
-          .insert({
-            order_by_user_id: order_details.user_id,
-            status: "SUCCESS",
-            total_amount_before_tax,
-            total_tax,
-            total_amount_after_tax,
-            order_datetime: new Date(),
-          })
-          .returning("*");
-
-        if (!db_orders) {
-          return { success: false, details: "Inserting new order failed." };
-        }
-
-        await trx("order_items").insert({
-          order_id: db_orders[0].order_id,
-          item_id: order_details.item_id,
-          item_type: order_details.item_type,
-          quantity: 1,
-          price_before_tax: total_amount_before_tax,
-        });
-
-        await trx("payments").insert({
-          order_id: db_orders[0].order_id,
-          payment_reference_number: order_details.payment_id,
-          payment_type: "CARD",
-          payment_vender: "STRIPE",
-        });
-
-        await trx("experience_guests").insert({
-          experience_id: db_order_details.item.experience_id,
-          guest_user_id: order_details.user_id,
-          status: "CONFIRMED",
-          created_at_datetime: new Date(),
-          updated_at_datetime: new Date(),
-        });
-
-        await point_system_service.addUserPoints(
-          order_details.user_id,
-          total_amount_after_tax * 100
-        );
-      });
-
-      // Email to user on successful purchase
-      await Mailer.sendMail({
-        from: process.env.SES_DEFAULT_FROM,
-        to: order_details.user_email,
-        bcc: ADMIN_EMAIL,
-        subject: "[Tasttlig] Purchase Successful",
-        template: "experience/new_experience_purchase",
-        context: {
-          title: db_order_details.item.title,
-          passport_id: order_details.user_passport_id,
-          items: [
-            {
-              title: db_order_details.item.title,
-              time:
-                moment(
-                  moment(
-                    new Date(db_order_details.item.start_date)
-                      .toISOString()
-                      .split("T")[0] +
-                      "T" +
-                      db_order_details.item.start_time +
-                      ".000Z"
-                  ).add(new Date().getTimezoneOffset(), "m")
-                ).format("MMM Do") +
-                " " +
-                moment(
-                  moment(
-                    new Date(db_order_details.item.start_date)
-                      .toISOString()
-                      .split("T")[0] +
-                      "T" +
-                      db_order_details.item.start_time +
-                      ".000Z"
-                  ).add(new Date().getTimezoneOffset(), "m")
-                ).format("hh:mm a") +
-                " - " +
-                moment(
-                  moment(
-                    new Date(db_order_details.item.start_date)
-                      .toISOString()
-                      .split("T")[0] +
-                      "T" +
-                      db_order_details.item.end_time +
-                      ".000Z"
-                  ).add(new Date().getTimezoneOffset(), "m")
-                ).format("hh:mm a"),
-              address:
-                db_order_details.item.address +
-                ", " +
-                db_order_details.item.city +
-                ", " +
-                db_order_details.item.state,
-              quantity: 1,
-            },
-          ],
-        },
-      });
-
-      return { success: true, details: "Success." };
-    } catch (error) {
-      return { success: false, details: error.message };
-    }
   } else if (order_details.item_type === "festival") {
     try {
       await db.transaction(async (trx) => {
@@ -567,6 +455,186 @@ const createOrder = async (order_details, db_order_details) => {
             },
           ],
         },
+      });
+
+      return { success: true, details: "Success." };
+    } catch (error) {
+      return { success: false, details: error.message };
+    }
+  } else if (order_details.item_type === "product") {
+    try {
+      await db.transaction(async (trx) => {
+        const total_amount_before_tax = parseFloat(
+          db_order_details.item.product_price
+        );
+        const total_tax = Math.round(total_amount_before_tax * 13) / 100;
+        const total_amount_after_tax = total_amount_before_tax + total_tax;
+        const db_orders = await trx("orders")
+          .insert({
+            order_by_user_id: order_details.user_id,
+            status: "SUCCESS",
+            total_amount_before_tax,
+            total_tax,
+            total_amount_after_tax,
+            order_datetime: new Date(),
+          })
+          .returning("*");
+
+        if (!db_orders) {
+          return { success: false, details: "Inserting new order failed." };
+        }
+
+        await trx("order_items").insert({
+          order_id: db_orders[0].order_id,
+          item_id: order_details.item_id,
+          item_type: order_details.item_type,
+          quantity: 1,
+          price_before_tax: total_amount_before_tax,
+        });
+
+        await trx("payments").insert({
+          order_id: db_orders[0].order_id,
+          payment_reference_number: order_details.payment_id,
+          payment_type: "CARD",
+          payment_vender: "STRIPE",
+        });
+
+        const db_guest = await trx("products")
+          .where({ product_id: order_details.item_id })
+          .update({
+            product_user_guest_id: trx.raw(
+              "array_append(product_user_guest_id, ?)",
+              [order_details.user_id]
+            ),
+          })
+          .returning("*");
+
+        if (!db_guest) {
+          return {
+            success: false,
+            details: "Inserting new product guest failed.",
+          };
+        }
+      });
+
+      return { success: true, details: "Success." };
+    } catch (error) {
+      return { success: false, details: error.message };
+    }
+  } else if (order_details.item_type === "service") {
+    try {
+      await db.transaction(async (trx) => {
+        const total_amount_before_tax = parseFloat(
+          db_order_details.item.service_price
+        );
+        const total_tax = Math.round(total_amount_before_tax * 13) / 100;
+        const total_amount_after_tax = total_amount_before_tax + total_tax;
+        const db_orders = await trx("orders")
+          .insert({
+            order_by_user_id: order_details.user_id,
+            status: "SUCCESS",
+            total_amount_before_tax,
+            total_tax,
+            total_amount_after_tax,
+            order_datetime: new Date(),
+          })
+          .returning("*");
+
+        if (!db_orders) {
+          return { success: false, details: "Inserting new order failed." };
+        }
+
+        await trx("order_items").insert({
+          order_id: db_orders[0].order_id,
+          item_id: order_details.item_id,
+          item_type: order_details.item_type,
+          quantity: 1,
+          price_before_tax: total_amount_before_tax,
+        });
+
+        await trx("payments").insert({
+          order_id: db_orders[0].order_id,
+          payment_reference_number: order_details.payment_id,
+          payment_type: "CARD",
+          payment_vender: "STRIPE",
+        });
+
+        const db_guest = await trx("services")
+          .where({ service_id: order_details.item_id })
+          .update({
+            service_user_guest_id: trx.raw(
+              "array_append(service_user_guest_id, ?)",
+              [order_details.user_id]
+            ),
+          })
+          .returning("*");
+
+        if (!db_guest) {
+          return {
+            success: false,
+            details: "Inserting new service guest failed.",
+          };
+        }
+      });
+
+      return { success: true, details: "Success." };
+    } catch (error) {
+      return { success: false, details: error.message };
+    }
+  } else if (order_details.item_type === "experience") {
+    try {
+      await db.transaction(async (trx) => {
+        const total_amount_before_tax = parseFloat(
+          db_order_details.item.experience_price
+        );
+        const total_tax = Math.round(total_amount_before_tax * 13) / 100;
+        const total_amount_after_tax = total_amount_before_tax + total_tax;
+        const db_orders = await trx("orders")
+          .insert({
+            order_by_user_id: order_details.user_id,
+            status: "SUCCESS",
+            total_amount_before_tax,
+            total_tax,
+            total_amount_after_tax,
+            order_datetime: new Date(),
+          })
+          .returning("*");
+
+        if (!db_orders) {
+          return { success: false, details: "Inserting new order failed." };
+        }
+
+        await trx("order_items").insert({
+          order_id: db_orders[0].order_id,
+          item_id: order_details.item_id,
+          item_type: order_details.item_type,
+          quantity: 1,
+          price_before_tax: total_amount_before_tax,
+        });
+
+        await trx("payments").insert({
+          order_id: db_orders[0].order_id,
+          payment_reference_number: order_details.payment_id,
+          payment_type: "CARD",
+          payment_vender: "STRIPE",
+        });
+
+        const db_guest = await trx("experiences")
+          .where({ experience_id: order_details.item_id })
+          .update({
+            experience_user_guest_id: trx.raw(
+              "array_append(experience_user_guest_id, ?)",
+              [order_details.user_id]
+            ),
+          })
+          .returning("*");
+
+        if (!db_guest) {
+          return {
+            success: false,
+            details: "Inserting new experience guest failed.",
+          };
+        }
       });
 
       return { success: true, details: "Success." };
