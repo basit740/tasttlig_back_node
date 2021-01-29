@@ -51,23 +51,6 @@ const getOrderDetails = async (order_details) => {
       .catch((error) => {
         return { success: false, message: error };
       });
-  } else if (order_details.item_type === "experience") {
-    return await db("experiences")
-      .where({
-        experience_id: order_details.item_id,
-        status: "ACTIVE",
-      })
-      .first()
-      .then((value) => {
-        if (!value) {
-          return { success: false, message: "No experience found." };
-        }
-
-        return { success: true, item: value };
-      })
-      .catch((error) => {
-        return { success: false, message: error };
-      });
   } else if (order_details.item_type === "festival") {
     return await db("festivals")
       .where({
@@ -77,6 +60,57 @@ const getOrderDetails = async (order_details) => {
       .then((value) => {
         if (!value) {
           return { success: false, message: "No festival found." };
+        }
+
+        return { success: true, item: value };
+      })
+      .catch((error) => {
+        return { success: false, message: error };
+      });
+  } else if (order_details.item_type === "product") {
+    return await db("products")
+      .where({
+        product_id: order_details.item_id,
+        product_status: "ACTIVE",
+      })
+      .first()
+      .then((value) => {
+        if (!value) {
+          return { success: false, message: "No product found." };
+        }
+
+        return { success: true, item: value };
+      })
+      .catch((error) => {
+        return { success: false, message: error };
+      });
+  } else if (order_details.item_type === "service") {
+    return await db("services")
+      .where({
+        service_id: order_details.item_id,
+        service_status: "ACTIVE",
+      })
+      .first()
+      .then((value) => {
+        if (!value) {
+          return { success: false, message: "No service found." };
+        }
+
+        return { success: true, item: value };
+      })
+      .catch((error) => {
+        return { success: false, message: error };
+      });
+  } else if (order_details.item_type === "experience") {
+    return await db("experiences")
+      .where({
+        experience_id: order_details.item_id,
+        experience_status: "ACTIVE",
+      })
+      .first()
+      .then((value) => {
+        if (!value) {
+          return { success: false, message: "No experience found." };
         }
 
         return { success: true, item: value };

@@ -14,6 +14,12 @@ const paymentIntent = async (order_details) => {
 
     if (order_details.item.festival_price) {
       total_amount_before_tax = parseFloat(order_details.item.festival_price);
+    } else if (order_details.item.product_price) {
+      total_amount_before_tax = parseFloat(order_details.item.product_price);
+    } else if (order_details.item.service_price) {
+      total_amount_before_tax = parseFloat(order_details.item.service_price);
+    } else if (order_details.item.experience_price) {
+      total_amount_before_tax = parseFloat(order_details.item.experience_price);
     } else {
       total_amount_before_tax = parseFloat(order_details.item.price);
     }
