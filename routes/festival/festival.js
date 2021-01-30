@@ -338,7 +338,6 @@ router.post(
 
 // GET festival restaurants
 router.get("/festival/restaurant/all", async (req, res) => {
-  console.log(req.query);
   if (!req.query.host_id) {
     return res.status(403).json({
       success: false,
