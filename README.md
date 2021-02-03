@@ -57,6 +57,15 @@ Tasttlig Auth Server (<https://bitbucket.org/tasttlig/tasttlig-auth-server/src/m
 6. Right-click on PowerShell and run "as Administrator" and install Windows build tools using: `npm install --global --production windows-build-tools`.
 7. Then, in PowerShell, run these 2 commands, `SETx PGUSER postgres /M` and `SETx PGPASSWORD postgres_password_set_during_setup /M`.
 
+## PostgreSQL Steps for Linux Only (Skip if you Already Have One)
+
+1. Use the Update command on your terminal: `sudo apt update`
+2. Install postgreSQL by using the following command in the terminal: `sudo apt install postgresql postgresql-contrib`.
+3. To find out the version of postgreSQL you are using (for next step), use the following command: `postgres --version`
+4. Install PostGIS: `sudo apt install postgis postgresql-<postgres version>-postgis-3`.
+5. Switch to postgres user: `sudo -i -u postgres`.
+6. Create PostgreSQL user: `createdb <USER>`.
+
 ## Setup Continued
 
 1. Go to Terminal (for Mac) or Command Line (for Windows).
