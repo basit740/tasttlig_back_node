@@ -1,9 +1,9 @@
 
 
 exports.up = function(knex) {
-    return knex.schema.createTable("passport", table => {
+    return knex.schema.alterTable("passport", table => {
       
-      table.increments("id");
+      
       table.string("passport_id").unsigned().primary();
       
       table.specificType("country_id", 'INT[]');
@@ -13,7 +13,12 @@ exports.up = function(knex) {
   };
   
   exports.down = function(knex) {
-    return knex.schema.dropTable("passport");
+    return knex.schema.alterTable("passport", table =>{
+     
+        table.dropColumn("passport_id");
+        table.dropColumn("country_id");
+    }
+    );
   };
   
 
