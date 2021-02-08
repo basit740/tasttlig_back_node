@@ -127,16 +127,16 @@ const createNewFestival = async (festival_details, festival_images) => {
 };
 
 // Add host ID to festivals table helper function
-const hostToFestival = async (festival_id, festival_restaurant_host_id) => {
+const hostToFestival = async (festival_id, festival_vendor_id) => {
   try {
     await db.transaction(async (trx) => {
       for (let item of festival_id) {
         const db_host = await trx("festivals")
           .where({ festival_id: item })
           .update({
-            festival_restaurant_host_id: trx.raw(
-              "array_append(festival_restaurant_host_id, ?)",
-              [festival_restaurant_host_id]
+            festival_vendor_id: trx.raw(
+              "array_append(festival_vendor_id, ?)",
+              [festival_vendor_id]
             ),
           })
           .returning("*");
@@ -146,9 +146,9 @@ const hostToFestival = async (festival_id, festival_restaurant_host_id) => {
         }
       }
     });
-
     return { success: true, details: "Success." };
   } catch (error) {
+    console.log(error);
     return { success: false, details: error.message };
   }
 };
