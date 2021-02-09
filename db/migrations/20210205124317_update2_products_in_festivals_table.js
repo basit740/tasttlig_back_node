@@ -12,7 +12,7 @@ exports.up = function(knex) {
     return knex.schema.table("products", tableBuilder => {
         
         
-        tableBuilder.dropColumn("product_festival_id");
+        tableBuilder.integer("product_festival_id");
         
         
     });
