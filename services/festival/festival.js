@@ -183,9 +183,8 @@ const getFestivalDetails = async (festival_id) => {
   return await db
     .select(
       "festivals.*",
-      "b1.business_name",
-      "b2.business_name",
-      //"sponsors.sponsor_name",
+      "b1.business_name AS business",
+      "b2.business_name AS sponsor",
       db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
     )
     .from("festivals")
@@ -196,12 +195,12 @@ const getFestivalDetails = async (festival_id) => {
     )
     .leftJoin(
       "business_details AS b1",
-      "festivals.festival_user_admin_id[0]",
+      "festivals.festival_user_admin_id[1]",
       "b1.business_details_user_id"
     )
     .leftJoin(
       "sponsors",
-      "festivals.festival_business_sponsor_id[0]",
+      "festivals.festival_business_sponsor_id[1]",
       "sponsors.sponsor_id"
     )
     .leftJoin(
@@ -214,13 +213,11 @@ const getFestivalDetails = async (festival_id) => {
     .groupBy("b2.business_name")
     .having("festivals.festival_id", "=", festival_id)
     .then((value) => {
-      console.log(value);
       return {
         success: true, details: value
       };
     })
     .catch((reason) => {
-      console.log(reason);
       return { success: false, details: reason };
     });
 };
