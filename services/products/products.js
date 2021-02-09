@@ -52,6 +52,7 @@ const createNewProduct = async (
 
 // Get products in festival helper function
 const getProductsInFestival = async (festival_id) => {
+    
   return await db
     .select(
       "products.*",
@@ -69,11 +70,11 @@ const getProductsInFestival = async (festival_id) => {
       "products.product_id",
       "product_images.product_id"
     )
-    .leftJoin(
+      .leftJoin(
       "festivals",
-      "products.product_festival_id",
+      "products.product_festivals_id[0]",
       "festivals.festival_id"
-    )
+    )  
     .leftJoin(
       "business_details",
       "products.product_business_id",
@@ -86,7 +87,7 @@ const getProductsInFestival = async (festival_id) => {
     .groupBy("business_details.city")
     .groupBy("business_details.state")
     .groupBy("business_details.zip_postal_code")
-    .having("products.product_festival_id", "=", festival_id)
+    .having("products.product_festivals_id[1]", "=", Number(festival_id))
     .then((value) => {
       return { success: true, details: value };
     })

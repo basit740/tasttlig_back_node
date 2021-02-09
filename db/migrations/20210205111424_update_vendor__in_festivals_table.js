@@ -6,6 +6,6 @@ exports.up = function(knex) {
   
   exports.down = function(knex) {
     return knex.schema.table("festivals", tableBuilder => {
-        table.specificType("festival_restaurant_host_id", 'INT[]');
+        tableBuilder.specificType("festival_restaurant_host_id", 'INT[]');
     })
   };

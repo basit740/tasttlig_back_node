@@ -13,6 +13,7 @@ router.post(
   "/products/add",
   token_service.authenticateToken,
   async (req, res) => {
+    console.log(req.body);
     if (
       !req.body.product_name ||
       !req.body.product_made_in_nationality_id ||
@@ -64,7 +65,6 @@ router.post(
       }
 
       let db_business_details = business_details_from_db.business_details;
-
       const product_information = {
         product_business_id: createdByAdmin
           ? null
@@ -77,7 +77,7 @@ router.post(
         product_expiry_date: req.body.product_expiry_date,
         product_expiry_time: req.body.product_expiry_time,
         product_description: req.body.product_description,
-        product_festival_id: req.body.product_festival_id,
+        product_festivals_id: [req.body.product_festival_id],
         product_code: generateRandomString(4),
         product_status: "ACTIVE",
         product_created_at_datetime: new Date(),

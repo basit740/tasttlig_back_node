@@ -127,7 +127,7 @@ router.get("/hosts/festival/:festival_id", async (req, res) => {
       req.params.festival_id
     );
 
-    for (let item of response.details[0].festival_restaurant_host_id) {
+    for (let item of response.details[0].festival_vendor_id) {
       const list = await user_profile_service.getUserById(item);
 
       if (list.user) {
