@@ -34,7 +34,28 @@ const getOrderDetails = async (order_details) => {
       .catch((error) => {
         return { success: false, message: error };
       });
-  } else if (order_details.item_type === "food_sample") {
+  } 
+  // get all active subscriptions by item_type
+  else if (
+    order_details.item_type &&
+    order_details.item_id === "all"
+  ) {
+    return await db("subscriptions")
+      .where({
+        subscription_type: order_details.item_type,
+        status: "ACTIVE",
+      })
+      .then((value) => {
+        if (!value) {
+          return { success: false, message: "No plans found." };
+        }
+
+        return { success: true, item: value };
+      })
+      .catch((error) => {
+        return { success: false, message: error };
+      });
+  }else if (order_details.item_type === "food_sample") {
     return await db("food_samples")
       .where({
         food_sample_id: order_details.item_id,
