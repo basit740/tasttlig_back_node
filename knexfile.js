@@ -1,9 +1,15 @@
-
 module.exports = {
   development: {
     client: "pg",
+    // connection: {
+    //   database: "tasttlig_back_node_development"
+    // },
     connection: {
-      database: "tasttlig_back_node_development"
+      host: process.env.DB_HOSTNAME,
+      database: process.env.DB_NAME,
+      user: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      port: process.env.DB_PORT
     },
     migrations: {
       directory: "./db/migrations"
