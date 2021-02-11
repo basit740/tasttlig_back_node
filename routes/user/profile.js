@@ -107,6 +107,27 @@ router.post("/user/host", async (req, res) => {
     });
   }
 });
+router.post("/user/vendor", async (req, res) => {
+  console.log(req.body);
+  try {
+    const hostDto = req.body;
+    const response = await user_profile_service.saveHostApplication(
+      hostDto,
+      req.user
+    );
+
+    if (response.success) {
+      return res.send(response);
+    }
+
+    return res.status(500).send(response);
+  } catch (error) {
+    return res.status(403).json({
+      success: false,
+      message: error,
+    });
+  }
+});
 
 router.get("/user/application/:token", async (req, res) => {
   if (!req.params.token) {

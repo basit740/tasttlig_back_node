@@ -22,17 +22,17 @@ router.post(
     try {
       req.body.map(async (item) => {
         if (
-          !item.title ||
-          !item.sample_size ||
-          !item.quantity ||
-          !item.city ||
+          !item.product_name ||
+          !item.product_size ||
+          !item.product_quantity ||
+          //!item.city ||
           !item.description ||
           !item.images ||
-          !item.start_date ||
-          !item.end_date ||
-          !item.start_time ||
-          !item.end_time ||
-          !item.nationality_id
+          !item.product_expiry_date ||
+          //!item.end_date ||
+          !item.product_expiry_time ||
+          //!item.end_time ||
+          !item.product_made_in_nationality_id
         ) {
           return res.status(403).json({
             success: false,
@@ -40,10 +40,10 @@ router.post(
           });
         }
 
-        let address = item.addressLine1;
+        /* let address = item.addressLine1;
         if (item.addressLine2 && item.addressLine2.length > 0) {
           address = `${address}, ${item.addressLine2}`;
-        }
+        } */
 
         try {
           const user_details_from_db = await user_profile_service.getUserById(
