@@ -14,24 +14,27 @@ const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
 // Get order details helper function
 const getOrderDetails = async (order_details) => {
-  
-  const sponsorshipPackagesAdapter = () =>{
-    if(order_details.item_type === "package" &&
-    order_details.item_id === "all")
-    return true;
+  const sponsorshipPackagesAdapter = () => {
+    if (
+      order_details.item_type === "package" &&
+      order_details.item_id === "all"
+    )
+      return true;
     else return false;
   };
 
-  const sponsorshipPackagePaymentAdapter = () =>{
-    if(order_details.item_type === "package" &&
-    order_details.item_id !== "all")
-    return true;
+  const sponsorshipPackagePaymentAdapter = () => {
+    if (
+      order_details.item_type === "package" &&
+      order_details.item_id !== "all"
+    )
+      return true;
     else return false;
   };
 
   if (
     order_details.item_type === "plan" ||
-    order_details.item_type === "subscription"||
+    order_details.item_type === "subscription" ||
     sponsorshipPackagePaymentAdapter()
   ) {
     return await db("subscriptions")
@@ -50,7 +53,7 @@ const getOrderDetails = async (order_details) => {
       .catch((error) => {
         return { success: false, message: error };
       });
-  } 
+  }
   // get all active subscriptions by item_type
   else if (sponsorshipPackagesAdapter()) {
     return await db("subscriptions")
@@ -68,7 +71,7 @@ const getOrderDetails = async (order_details) => {
       .catch((error) => {
         return { success: false, message: error };
       });
-  }else if (order_details.item_type === "food_sample") {
+  } else if (order_details.item_type === "food_sample") {
     return await db("food_samples")
       .where({
         food_sample_id: order_details.item_id,
@@ -326,9 +329,7 @@ const createOrder = async (order_details, db_order_details) => {
     }
   }
   //package db operations
-  if (
-    order_details.item_type === "package"
-  ) {
+  if (order_details.item_type === "package") {
     try {
       await db.transaction(async (trx) => {
         const total_amount_before_tax = parseFloat(db_order_details.item.price);
@@ -384,7 +385,7 @@ const createOrder = async (order_details, db_order_details) => {
         // await point_system_service.addUserPoints(
         //   order_details.user_id,
         //   total_amount_after_tax * 100
-        // );        
+        // );
       });
 
       const package_plan_name = _.startCase(order_details.item_id);
@@ -405,8 +406,7 @@ const createOrder = async (order_details, db_order_details) => {
     } catch (error) {
       return { success: false, details: error.message };
     }
-  }
-  else if (order_details.item_type === "food_sample") {
+  } else if (order_details.item_type === "food_sample") {
     try {
       await db.transaction(async (trx) => {
         const total_amount_before_tax = parseFloat(db_order_details.item.price);
