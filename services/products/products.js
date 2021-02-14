@@ -52,7 +52,7 @@ const createNewProduct = async (
 
 // Get products in festival helper function
 const getProductsInFestival = async (festival_id) => {
-    
+
   return await db
     .select(
       "products.*",
@@ -70,11 +70,11 @@ const getProductsInFestival = async (festival_id) => {
       "products.product_id",
       "product_images.product_id"
     )
-      .leftJoin(
+    .leftJoin(
       "festivals",
       "products.product_festivals_id[0]",
       "festivals.festival_id"
-    )  
+    )
     .leftJoin(
       "business_details",
       "products.product_business_id",
@@ -95,6 +95,48 @@ const getProductsInFestival = async (festival_id) => {
       return { success: false, details: reason };
     });
 };
+const getProductsFromUser = async (user_id) => {
+
+  return await db
+    .select(
+      "products.*",
+      "business_details.business_name",
+      "business_details.business_address_1",
+      "business_details.business_address_2",
+      "business_details.city",
+      "business_details.state",
+      "business_details.zip_postal_code",
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
+    )
+    .from("products")
+    .leftJoin(
+      "product_images",
+      "products.product_id",
+      "product_images.product_id"
+    )
+    .leftJoin(
+      "business_details",
+      "products.product_business_id",
+      "business_details.business_details_id"
+    )
+    .groupBy("products.product_id")
+    .groupBy("business_details.business_name")
+    .groupBy("business_details.business_address_1")
+    .groupBy("business_details.business_address_2")
+    .groupBy("business_details.city")
+    .groupBy("business_details.state")
+    .groupBy("business_details.zip_postal_code")
+    .groupBy("business_details.business_details_user_id")
+    .having("business_details.business_details_user_id", "=", Number(user_id))
+    .then((value) => {
+      console.log(value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log(reason);
+      return { success: false, details: reason };
+    });
+};
 
 // Find product helper function
 const findProduct = async (product_id) => {
@@ -109,6 +151,33 @@ const findProduct = async (product_id) => {
     .catch((reason) => {
       return { success: false, details: reason };
     });
+};
+// Find product helper function
+const addProductToFestival = async (festival_id, product_id) => {
+  try {
+    await db.transaction(async (trx) => {
+      const db_product = await trx("products")
+        .where({ product_id })
+        .update({
+          product_festivals_id: trx.raw(
+            "array_append(product_festivals_id, ?)",
+            [festival_id]
+          )
+        })
+        .returning("*");
+
+      if (!db_product) {
+        return {
+          success: false,
+          details: "Inserting new product guest failed.",
+        };
+      }
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
 };
 
 // Claim product helper function
@@ -142,6 +211,8 @@ const claimProduct = async (db_user, product_id) => {
 module.exports = {
   createNewProduct,
   getProductsInFestival,
+  getProductsFromUser,
   findProduct,
+  addProductToFestival,
   claimProduct,
 };

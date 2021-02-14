@@ -11,7 +11,6 @@ const stripe = new Stripe(keySecret);
 const paymentIntent = async (order_details) => {
   try {
     let total_amount_before_tax = 0;
-
     if (order_details.item.festival_price) {
       total_amount_before_tax = parseFloat(order_details.item.festival_price);
     } else if (order_details.item.product_price) {

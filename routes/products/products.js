@@ -92,7 +92,7 @@ router.post(
           product_expiry_date: product.product_expiry_date,
           product_expiry_time: product.product_expiry_time,
           product_description: product.product_description,
-          product_festivals_id: [product.product_festival_id],
+          product_festivals_id: null,
           product_code: generateRandomString(4),
           product_status: "ACTIVE",
           product_created_at_datetime: new Date(),
@@ -124,6 +124,79 @@ router.post(
     }
   }
 );
+// POST products
+router.post(
+  "/products/festival/:festivalId",
+  token_service.authenticateToken,
+  async (req, res) => {
+    console.log(req.body);
+    if (!req.body.festivalId) { 
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      })
+    ;
+    }
+
+    try {
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
+
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message,
+        });
+      }
+
+      let createdByAdmin = true;
+
+      const business_details_from_db = await authentication_service.getUserByBusinessDetails(
+        req.user.id
+      );
+
+      if (
+        user_details_from_db.user.role.includes("VENDOR") ||
+        user_details_from_db.user.role.includes("VENDOR_PENDING")
+      ) {
+        if (!business_details_from_db.success) {
+          return res.status(403).json({
+            success: false,
+            message: business_details_from_db.message,
+          });
+        }
+
+        createdByAdmin = false;
+      }
+
+      let db_business_details = business_details_from_db.business_details;
+      let result= ""
+         const response = await products_service.addProductToFestival(
+          req.body.festivalId,
+          req.body.productId
+        );
+        console.log(response);
+          if (response.success) {
+            result = response
+          } else {
+            return res.send({
+              success: false,
+              message: "Error."
+          })
+      }
+      console.log("new response", result);
+      return res.send(result);
+    } catch (error) {
+      console.log(error);
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
 
 // GET products in specific festival
 router.get("/products/festival/:festival_id", async (req, res) => {
@@ -137,6 +210,29 @@ router.get("/products/festival/:festival_id", async (req, res) => {
   try {
     const response = await products_service.getProductsInFestival(
       req.params.festival_id
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+// GET products in specific festival
+router.get("/products/user/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await products_service.getProductsFromUser(
+      req.params.user_id
     );
 
     return res.send(response);
