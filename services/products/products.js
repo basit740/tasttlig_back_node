@@ -156,6 +156,7 @@ const findProduct = async (product_id) => {
 const addProductToFestival = async (festival_id, product_id) => {
   try {
     await db.transaction(async (trx) => {
+
       const db_product = await trx("products")
         .where({ product_id })
         .update({
@@ -165,7 +166,7 @@ const addProductToFestival = async (festival_id, product_id) => {
           )
         })
         .returning("*");
-
+  
       if (!db_product) {
         return {
           success: false,
@@ -176,6 +177,7 @@ const addProductToFestival = async (festival_id, product_id) => {
 
     return { success: true, details: "Success." };
   } catch (error) {
+    console.log(error);
     return { success: false, details: error.message };
   }
 };

@@ -80,6 +80,12 @@ router.post(
       let db_business_details = business_details_from_db.business_details;
       let result= ""
       for (let product of req.body) {
+        let productInFestival
+        if (product.festivalId) {
+          productInFestival = product.festivalId;
+        } else {
+          productInFestival = null;
+        }
         const product_information = {
           product_business_id: createdByAdmin
             ? null
@@ -92,7 +98,7 @@ router.post(
           product_expiry_date: product.product_expiry_date,
           product_expiry_time: product.product_expiry_time,
           product_description: product.product_description,
-          product_festivals_id: null,
+          product_festivals_id: [productInFestival],
           product_code: generateRandomString(4),
           product_status: "ACTIVE",
           product_created_at_datetime: new Date(),
