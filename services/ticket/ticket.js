@@ -10,7 +10,6 @@ const getAllTickets = async (userId, currentPage) => {
   // let startDate = filters.startDate.substring(0, 10);
   // let startTime = formatTime(filters.startTime);
   const userIdInt = Number(userId);
-  console.log("Type of ", typeof userIdInt)
   let query = db
     .select(
       "ticket_details.*",
@@ -97,6 +96,7 @@ const getTicketDetails = async (ticket_id) => {
       "festivals.festival_start_date",
       "festivals.festival_end_date",
       "festivals.festival_price",
+      "festivals.festival_type",
       db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
     )
     .from("ticket_details")
@@ -118,6 +118,7 @@ const getTicketDetails = async (ticket_id) => {
     .groupBy("ticket_details.ticket_id")
     .groupBy("tasttlig_users.tasttlig_user_id")
     .groupBy("festivals.festival_id")
+    .groupBy( "festivals.festival_type")
     .having("ticket_details.ticket_id", "=", ticket_id)
     .then((value) => {
       return { success: true, details: value };
