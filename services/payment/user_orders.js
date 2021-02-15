@@ -388,7 +388,7 @@ const createOrder = async (order_details, db_order_details) => {
         // );
       });
 
-      const package_plan_name = _.startCase(order_details.item_id);
+      const package_plan_name = _.startCase(db_order_details.item.subscription_name);
 
       // Email to user on submitting the request to upgrade
       await Mailer.sendMail({
@@ -396,7 +396,7 @@ const createOrder = async (order_details, db_order_details) => {
         to: order_details.user_email,
         bcc: ADMIN_EMAIL,
         subject: "[Tasttlig] Package Purchase",
-        template: "membership_plan_purchase",
+        template: "package_purchase",
         context: {
           package_plan_name,
         },
