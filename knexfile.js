@@ -3,24 +3,24 @@ module.exports = {
     client: "pg",
     connection: {
       database: "tasttlig_back_node_development",
-      user: "sher",
-      password: "sher"
+      user: "davidlinardi",
+      password: "",
     },
     migrations: {
-      directory: "./db/migrations"
+      directory: "./db/migrations",
     },
-    useNullAsDefault: true
+    useNullAsDefault: true,
   },
 
   staging: {
     client: "pg",
     connection: {
-      database: "tasttlig_back_node_staging"
+      database: "tasttlig_back_node_staging",
     },
     migrations: {
-      directory: "./db/migrations"
+      directory: "./db/migrations",
     },
-    useNullAsDefault: true
+    useNullAsDefault: true,
   },
 
   production: {
@@ -30,12 +30,12 @@ module.exports = {
       database: process.env.DB_NAME,
       user: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
-      port: process.env.DB_PORT
+      port: process.env.DB_PORT,
     },
     migrations: {
-      directory: "./db/migrations"
+      directory: "./db/migrations",
     },
-    useNullAsDefault: true
+    useNullAsDefault: true,
   },
 
   test: {
@@ -43,7 +43,7 @@ module.exports = {
     connection: ":memory:",
     useNullAsDefault: true,
     migrations: {
-      directory: "./db/migrations"
-    }
-  }
+      directory: "./db/migrations",
+    },
+  },
 };
