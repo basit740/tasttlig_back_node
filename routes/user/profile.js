@@ -183,6 +183,31 @@ router.put("/user/update-profile/:id", async (req, res) => {
   }
 });
 
+// // update user preferences
+// router.put("/user/update-preferences/:id", async (req, res) => {
+//   try {
+
+//     const user = {
+//       id: req.params.id,
+//       user_preference: req.body.user_preference
+//     }
+//     const response = await user_profile_service.updateUserPreferences(user)
+
+//     console.log("update preferences log")
+//     if (response.success) {
+//       res.status(200).send(response);
+//     } else {
+//       return res.status(401).json({
+//         success: false,
+//         message: "Failed to update preferences",
+//       });
+//     }
+
+//   } catch (error) {
+//     console.log("Update", error);
+//   }
+// });
+
 // GET user by email
 router.get("/user/check-email/:email", async (req, res) => {
   try {
