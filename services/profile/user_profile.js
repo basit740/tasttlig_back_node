@@ -136,6 +136,27 @@ const updateUserProfile = async (user) => {
   }
 };
 
+// // Update user preferences
+// const updateUserPreferences = async (user) => {
+//   try {
+//     return await db("tasttlig_users")
+//       .where("tasttlig_user_id", user.id)
+//       .first()
+//       .update({
+//         user_preference: user.user_preference,
+//       })
+//       .returning("*")
+//       .then((value) => {
+//         return { success: true, details: value[0] };
+//       })
+//       .catch((reason) => {
+//         return { success: false, details: reason };
+//       });
+//   } catch (error) {
+//     return { success: false, message: error };
+//   }
+// }
+
 // Save sponsor information to sponsors table helper function
 const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
   return await db.transaction(async (trx) => {
@@ -1090,6 +1111,7 @@ module.exports = {
   upgradeUserResponse,
   updateUserAccount,
   updateUserProfile,
+  // updateUserPreferences,
   getUserByEmail,
   getUserByEmailWithSubscription,
   getUserByPassportId,
