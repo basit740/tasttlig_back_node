@@ -1059,7 +1059,7 @@ const createPreferences = async (preference_details) => {
   console.log("preferences from services", preference_details)
   try {
     await db.transaction(async (trx) => {
-      const db_preference = await trx("passport")
+      const db_preference = await trx("PassPort")
         .insert(preference_details)
         .returning("*");
 
