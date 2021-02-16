@@ -1054,6 +1054,27 @@ const saveHostApplication = async (hostDto, user) => {
   });
 };
 
+//create passport preferences helper function
+const createPreferences = async (preference_details) => {
+  console.log("preferences from services", preference_details)
+  try {
+    await db.transaction(async (trx) => {
+      const db_preference = await trx("passport")
+        .insert(preference_details)
+        .returning("*");
+
+      if (!db_preference) {
+        return { success: false, details: "Inserting new preference failed." };
+      }
+
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
+
 const sendHostApplicationEmails = async (dbUser, documents) => {
   const applier = {
     user_id: dbUser.user.tasttlig_user_id,
@@ -1133,4 +1154,5 @@ module.exports = {
   saveSocialProof,
   savePaymentInformation,
   saveBusinessServices,
+  createPreferences
 };

@@ -71,7 +71,6 @@ router.post(
   "/ticket/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("post ticket:", req)
     const {
      
       booking_confirmation_id,
