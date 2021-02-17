@@ -71,7 +71,6 @@ router.post(
   "/ticket/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("post ticket:", req);
     const {
       ticket_booking_confirmation_id,
       ticket_user_id,
@@ -80,7 +79,6 @@ router.post(
       stripe_receipt_id,
       attend_status,
     } = req.body;
-
     try {
       if (
         !ticket_booking_confirmation_id ||

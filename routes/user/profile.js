@@ -108,6 +108,67 @@ router.post("/user/host", async (req, res) => {
   }
 });
 
+// POST application from multi-step form
+router.post("/complete-profile/preference/:id", token_service.authenticateToken, async (req, res) => {
+
+  
+
+    const {preferred_country_cuisine, food_preferences, food_allergies } = req.body;
+    try {
+      if (
+        !food_preferences ||
+        !food_allergies ||
+        !preferred_country_cuisine 
+        
+      ) {
+        return res.status(403).json({
+          success: false,
+          message: "Required parameters are not available in request.",
+        });
+      }
+
+      try {
+        const user_details_from_db = await user_profile_service.getUserById(
+          req.user.id
+          );
+          
+          if (!user_details_from_db.success) {
+            return res.status(403).json({
+              success: false,
+              message: user_details_from_db.message,
+            });
+          }
+          
+          const preference_details = {
+            food_preferences,
+            food_allergies,
+            preferred_country_cuisine
+          };
+          
+        const response = await user_profile_service.createPreferences(
+          preference_details
+        );
+          console.log("response from preferences:", response)
+        return res.send(response);
+      } catch (error) {
+        res.send({
+          success: false,
+          message: "Error.",
+          response: error,
+        });
+      }
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+});
+
+
+
+
 router.get("/user/application/:token", async (req, res) => {
   if (!req.params.token) {
     return res.status(403).json({
