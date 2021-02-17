@@ -183,30 +183,102 @@ router.put("/user/update-profile/:id", async (req, res) => {
   }
 });
 
-// // update user preferences
-// router.put("/user/update-preferences/:id", async (req, res) => {
-//   try {
+// get nationalities for user
 
-//     const user = {
-//       id: req.params.id,
-//       user_preference: req.body.user_preference
-//     }
-//     const response = await user_profile_service.updateUserPreferences(user)
+router.get("/user/nationalities" , async (req, res) => {
+   
+ try {
+  const keyword = req.query.keyword || "";
+  const response = await user_profile_service.getNationalities(keyword);
+    if (response.success) {
+      res.status(200).send(response);
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: "Email already exists.",
+      });
+    }
 
-//     console.log("update preferences log")
-//     if (response.success) {
-//       res.status(200).send(response);
-//     } else {
-//       return res.status(401).json({
-//         success: false,
-//         message: "Failed to update preferences",
-//       });
-//     }
+ } catch (error) {
+  console.log("Update", error);
+ }
+});
 
-//   } catch (error) {
-//     console.log("Update", error);
-//   }
-// });
+// // update user info for passport
+// 
+router.put("/user/user-info/:id", token_service.authenticateToken, async (req, res) => {
+
+  console.log("here")
+  console.log(req.body);
+
+  const {user_age, user_occupation, user_marital_status, user_country, user_city, 
+    user_zip_code, user_street_name, user_street_number, user_apartment_number, user_gender} = req.body;
+    console.log(user_age);
+  try {
+    if (
+      !user_age ||
+      !user_occupation ||
+      !user_marital_status||
+      // !user_country ||
+      !user_city ||
+      !user_zip_code ||
+      !user_street_name ||
+      !user_street_number || 
+      !user_gender
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+
+    // console.log(req)
+
+    try {
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+        );
+        
+        if (!user_details_from_db.success) {
+          return res.status(403).json({
+            success: false,
+            message: user_details_from_db.message,
+          });
+        }
+        
+        const user_info = {
+          user_age, user_occupation, 
+          user_marital_status, 
+          user_country, user_city, 
+          user_zip_code, 
+          user_street_name, 
+          user_street_number, 
+          user_apartment_number
+        };
+
+        user_info["id"] = req.user.id;
+        
+        console.log("body from front-end:", user_info)
+      const response = await user_profile_service.createUserInfo(
+        user_info
+      );
+        console.log("response from preferences:", response)
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error,
+    });
+  }
+});
 
 // GET user by email
 router.get("/user/check-email/:email", async (req, res) => {

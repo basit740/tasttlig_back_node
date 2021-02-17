@@ -17,8 +17,7 @@ exports.up = function(knex) {
       table.decimal("ticket_price");
       table.specificType("food_sample_cuisines_claimed", 'VARCHAR[]'); 
       table.specificType("food_sample_cuisines_redeemed", 'VARCHAR[]');
-      table.integer("food_samples_claimed");
-      table.integer("food_samples_redeemed");      
+            
       
     });
   };
