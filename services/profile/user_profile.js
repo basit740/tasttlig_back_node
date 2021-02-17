@@ -136,26 +136,52 @@ const updateUserProfile = async (user) => {
   }
 };
 
-// // Update user preferences
-// const updateUserPreferences = async (user) => {
-//   try {
-//     return await db("tasttlig_users")
-//       .where("tasttlig_user_id", user.id)
-//       .first()
-//       .update({
-//         user_preference: user.user_preference,
-//       })
-//       .returning("*")
-//       .then((value) => {
-//         return { success: true, details: value[0] };
-//       })
-//       .catch((reason) => {
-//         return { success: false, details: reason };
-//       });
-//   } catch (error) {
-//     return { success: false, message: error };
-//   }
-// }
+// Update user profile helper function
+const createUserInfo = async (user) => {
+  try {
+    return await db("tasttlig_users")
+      .where("tasttlig_user_id", user.id)
+      .first()
+      .update({
+        age: user["user_age"],
+        sex: user["user_gender"],
+        occupation: user["user_occupation"],
+        marital_status: user["user_marital_status"],
+        user_country: user["user_country"],
+        user_city: user["user_city"],
+        user_zip_postal_code: user["user_zip_code"],
+        street_name: user["user_street_name"],
+        street_number: user["user_street_number"],
+        apartment_no: user["user_apartment_number"],
+      })
+      .returning("*")
+      .then((value) => {
+        return { success: true, details: value[0] };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  } catch (error) {
+    return { success: false, message: error };
+  }
+};
+
+const getNationalities = async (keyword) => {
+  try {
+    return await db("nationalities")
+      .select("nationality")
+      .having("nationality", "LIKE", keyword + "%")
+      .returning("*")
+      .then((value) => {
+        return { success: true, details: value[0] };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  } catch (error) {
+    return { success: false, message: error };
+  }
+};
 
 // Save sponsor information to sponsors table helper function
 const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
@@ -717,13 +743,13 @@ const approveOrDeclineHostApplication = async (
 ) => {
   try {
     const db_user_row = await getUserById(userId);
-    
+
     if (!db_user_row.success) {
       return { success: false, message: db_user_row.message };
     }
-    
+
     const db_user = db_user_row.user;
-    
+
     // Get pending role which has been approved
     let role_pending = "";
     db_user.role.map((role) => {
@@ -731,7 +757,7 @@ const approveOrDeclineHostApplication = async (
         role_pending = role;
       }
     });
-    
+
     // Depends on status, we do different things:
     // If status is approved
     if (status === "APPROVED") {
@@ -1065,7 +1091,6 @@ const createPreferences = async (preference_details) => {
       if (!db_preference) {
         return { success: false, details: "Inserting new preference failed." };
       }
-
     });
 
     return { success: true, details: "Success." };
@@ -1131,7 +1156,7 @@ module.exports = {
   upgradeUserResponse,
   updateUserAccount,
   updateUserProfile,
-  // updateUserPreferences,
+  createUserInfo,
   getUserByEmail,
   getUserByEmailWithSubscription,
   getUserByPassportId,
@@ -1153,5 +1178,5 @@ module.exports = {
   saveSocialProof,
   savePaymentInformation,
   saveBusinessServices,
-  createPreferences
+  getNationalities,
 };
