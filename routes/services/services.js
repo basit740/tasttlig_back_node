@@ -21,7 +21,8 @@ router.post(
       !req.body.service_size_scope ||
       !req.body.service_description ||
       !req.body.service_images ||
-      !req.body.service_festival_id
+      !req.body.service_festival_id ||
+      !req.body.service_creator_type
     ) {
       return res.status(403).json({
         success: false,
@@ -78,6 +79,8 @@ router.post(
         service_status: "ACTIVE",
         service_created_at_datetime: new Date(),
         service_updated_at_datetime: new Date(),
+        service_creator_type: req.body.service_creator_type,
+        service_user_id: req.user.id,
       };
 
       const response = await services_service.createNewService(

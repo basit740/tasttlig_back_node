@@ -24,7 +24,8 @@ router.post(
       !req.body.product_expiry_time ||
       !req.body.product_description ||
       !req.body.product_images ||
-      !req.body.product_festival_id
+      !req.body.product_festival_id ||
+      !req.body.product_creator_type
     ) {
       return res.status(403).json({
         success: false,
@@ -82,6 +83,8 @@ router.post(
         product_status: "ACTIVE",
         product_created_at_datetime: new Date(),
         product_updated_at_datetime: new Date(),
+        product_creator_type: req.body.product_creator_type,
+        product_user_id: req.user.id,
       };
 
       const response = await products_service.createNewProduct(
