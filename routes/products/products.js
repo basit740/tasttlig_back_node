@@ -11,44 +11,46 @@ const { generateRandomString } = require("../../functions/functions");
 // POST products
 router.post(
   "/products/add",
-  token_service.authenticateToken,
+  //token_service.authenticateToken,
   async (req, res) => {
-    console.log(req.body);
+    console.log("body", req.body);
+    console.log("user", req.query);
+    let body;
+    if (req.body[0]) {
+      body = req.body[0];
+    } else {
+      body = req.body;
+    }
     if (
-      (!req.body[0].product_name ||
-      !req.body[0].product_made_in_nationality_id ||
-      !req.body[0].product_price ||
-      !req.body[0].product_quantity ||
-      !req.body[0].product_size ||
-      !req.body[0].product_expiry_date ||
-      !req.body[0].product_expiry_time ||
-      !req.body[0].product_description ||
-      !req.body[0].product_images)
+      !body.product_name ||
+      !body.product_made_in_nationality_id ||
+      !body.product_price ||
+      !body.product_quantity ||
+      !body.product_size ||
+      !body.product_expiry_date ||
+      !body.product_expiry_time ||
+      !body.product_description ||
+      !body.product_images
       //||
      // !req.body.product_festival_id
     ) {
-      if ((
-        !req.body.product_name ||
-          !req.body.product_made_in_nationality_id ||
-          !req.body.product_price ||
-          !req.body.product_quantity ||
-          !req.body.product_size ||
-          !req.body.product_expiry_date ||
-          !req.body.product_expiry_time ||
-          !req.body.product_description ||
-          !req.body.product_images)
-      ) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
       })
-    };
     }
 
     try {
-      const user_details_from_db = await user_profile_service.getUserById(
-        req.user.id
-      );
+      let user_details_from_db;
+      if (req.user) {
+         user_details_from_db = await user_profile_service.getUserById(
+          req.user.id
+        );
+      } else {
+         user_details_from_db = await user_profile_service.getUserByEmail(req.query.email)
+      }
+
+      console.log("user details from db", user_details_from_db);
 
       if (!user_details_from_db.success) {
         return res.status(403).json({
@@ -58,10 +60,15 @@ router.post(
       }
 
       let createdByAdmin = true;
-
-      const business_details_from_db = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
+      let business_details_from_db;
+      if (req.user) {
+         business_details_from_db = await authentication_service.getUserByBusinessDetails(
+          req.user.id)
+      } else {
+        business_details_from_db = await authentication_service.getUserByBusinessDetails(
+          user_details_from_db.user.tasttlig_user_id)
+      }
+      ;
 
       if (
         user_details_from_db.user.role.includes("VENDOR") ||
@@ -79,6 +86,7 @@ router.post(
 
       let db_business_details = business_details_from_db.business_details;
       let result= ""
+      
       for (let product of req.body) {
         let productInFestival
         if (product.festivalId) {
@@ -121,13 +129,16 @@ router.post(
       }
       console.log("new response", result);
       return res.send(result);
+
     } catch (error) {
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",
         response: error,
       });
-    }
+    
+  }
   }
 );
 // POST products
