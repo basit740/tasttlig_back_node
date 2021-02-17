@@ -95,6 +95,49 @@ const getServicesInFestival = async (festival_id) => {
     });
 };
 
+//get all service by user id
+const getServicesFromUser = async (user_id) => {
+  return await db
+    .select(
+      "services.*",
+      "business_details.business_name",
+      "business_details.business_address_1",
+      "business_details.business_address_2",
+      "business_details.city",
+      "business_details.state",
+      "business_details.zip_postal_code",
+      db.raw("ARRAY_AGG(service_images.service_image_url) as image_urls")
+    )
+    .from("services")
+    .leftJoin(
+      "service_images",
+      "services.service_id",
+      "service_images.service_id"
+    )
+    .leftJoin(
+      "business_details",
+      "services.service_business_id",
+      "business_details.business_details_id"
+    )
+    .groupBy("services.service_id")
+    .groupBy("business_details.business_name")
+    .groupBy("business_details.business_address_1")
+    .groupBy("business_details.business_address_2")
+    .groupBy("business_details.city")
+    .groupBy("business_details.state")
+    .groupBy("business_details.zip_postal_code")
+    .groupBy("business_details.business_details_user_id")
+    .having("business_details.business_details_user_id", "=", Number(user_id))
+    .then((value) => {
+      console.log('services user services',value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log(reason);
+      return { success: false, details: reason };
+    });
+};
+
 // Find service helper function
 const findService = async (service_id) => {
   return await db
@@ -141,6 +184,7 @@ const claimService = async (db_user, service_id) => {
 module.exports = {
   createNewService,
   getServicesInFestival,
+  getServicesFromUser,
   findService,
   claimService,
 };

@@ -21,7 +21,7 @@ router.post(
       !req.body.service_size_scope ||
       !req.body.service_description ||
       !req.body.service_images ||
-      !req.body.service_festival_id ||
+      //!req.body.service_festival_id ||
       !req.body.service_creator_type
     ) {
       return res.status(403).json({
@@ -74,7 +74,9 @@ router.post(
         service_capacity: req.body.service_capacity,
         service_size_scope: req.body.service_size_scope,
         service_description: req.body.service_description,
-        service_festival_id: req.body.service_festival_id,
+        service_festival_id: req.body.service_festival_id
+        ?[req.body.service_festival_id]
+        : null,
         service_code: generateRandomString(4),
         service_status: "ACTIVE",
         service_created_at_datetime: new Date(),
@@ -114,6 +116,28 @@ router.get("/services/festival/:festival_id", async (req, res) => {
       req.params.festival_id
     );
 
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+//Get services from user
+router.get("/services/user/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    const response = await services_service.getServicesFromUser(
+      req.params.user_id
+    );console.log('services/user res',res.body);
     return res.send(response);
   } catch (error) {
     res.send({

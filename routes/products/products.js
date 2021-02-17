@@ -24,7 +24,7 @@ router.post(
       !req.body.product_expiry_time ||
       !req.body.product_description ||
       !req.body.product_images ||
-      !req.body.product_festival_id ||
+      //!req.body.product_festival_id ||
       !req.body.product_creator_type
     ) {
       return res.status(403).json({
@@ -78,7 +78,9 @@ router.post(
         product_expiry_date: req.body.product_expiry_date,
         product_expiry_time: req.body.product_expiry_time,
         product_description: req.body.product_description,
-        product_festivals_id: [req.body.product_festival_id],
+        product_festivals_id: req.body.product_festival_id
+        ?[req.body.product_festival_id]
+        : null,
         product_code: generateRandomString(4),
         product_status: "ACTIVE",
         product_created_at_datetime: new Date(),
@@ -118,6 +120,28 @@ router.get("/products/festival/:festival_id", async (req, res) => {
       req.params.festival_id
     );
 
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// GET products from user
+router.get("/products/user/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    const response = await products_service.getProductsFromUser(
+      req.params.user_id
+    );
     return res.send(response);
   } catch (error) {
     res.send({
