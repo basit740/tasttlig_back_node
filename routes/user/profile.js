@@ -145,7 +145,6 @@ router.post("/complete-profile/preference/:id", token_service.authenticateToken,
             preferred_country_cuisine
           };
           
-          console.log("body from front-end:", preference_details)
         const response = await user_profile_service.createPreferences(
           preference_details
         );

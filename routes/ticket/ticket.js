@@ -73,7 +73,7 @@ router.post(
   async (req, res) => {
     const {
      
-      booking_confirmation_id,
+      ticket_booking_confirmation_id,
       ticket_user_id,
       ticket_festival_id,
       no_of_admits,
@@ -81,10 +81,9 @@ router.post(
       attend_status,
      
     } = req.body;
-
     try {
       if (
-        !booking_confirmation_id ||
+        !ticket_booking_confirmation_id ||
         !ticket_user_id ||
         !ticket_festival_id ||
         !no_of_admits ||
@@ -110,7 +109,7 @@ router.post(
         }
 
         const ticket_details = {
-          booking_confirmation_id,
+          ticket_booking_confirmation_id,
           ticket_user_id,
           ticket_festival_id,
           no_of_admits,
