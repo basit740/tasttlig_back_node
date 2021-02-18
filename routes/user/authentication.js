@@ -320,7 +320,7 @@ authRouter.post(
 // PUT sponsor information from multi-step form
 authRouter.put(
   "/user/update-sponsor-info",
-  createAccountLimiter,
+  //createAccountLimiter,
   async (req, res) => {
     const db_user = await authenticate_user_service.findUserByEmail(
       req.body.email
