@@ -129,7 +129,7 @@ const getServicesFromUser = async (user_id) => {
     .groupBy("business_details.business_details_user_id")
     .having("business_details.business_details_user_id", "=", Number(user_id))
     .then((value) => {
-      console.log('services user services',value);
+      console.log(value);
       return { success: true, details: value };
     })
     .catch((reason) => {
