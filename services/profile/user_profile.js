@@ -753,13 +753,13 @@ const approveOrDeclineHostApplication = async (
 ) => {
   try {
     const db_user_row = await getUserById(userId);
-
+    
     if (!db_user_row.success) {
       return { success: false, message: db_user_row.message };
     }
-
+    
     const db_user = db_user_row.user;
-    console.log(db_user)
+    
     // Get pending role which has been approved
     let role_pending = "";
     db_user.role.map((role) => {
@@ -767,7 +767,7 @@ const approveOrDeclineHostApplication = async (
         role_pending = role;
       }
     });
-
+    
     // Depends on status, we do different things:
     // If status is approved
     if (status === "APPROVED") {
@@ -803,12 +803,12 @@ const approveOrDeclineHostApplication = async (
       });
 
       // STEP 2: Update all Experiences to Active state
-/*       await db("experiences")
-        .where({
-          experience_creator_user_id: db_user.tasttlig_user_id,
-          status: "INACTIVE",
-        })
-        .update("status", "ACTIVE"); */
+      // await db("experiences")
+      //   .where({
+      //     experience_creator_user_id: db_user.tasttlig_user_id,
+      //     status: "INACTIVE",
+      //   })
+      //   .update("status", "ACTIVE");
 
       // STEP 3: Update all Food Samples to Active state if the user agreed to participate in festival
       if (db_user.is_participating_in_festival) {
@@ -1090,6 +1090,26 @@ const saveHostApplication = async (hostDto, user) => {
   });
 };
 
+//create passport preferences helper function
+const createPreferences = async (preference_details) => {
+  try {
+    await db.transaction(async (trx) => {
+      const db_preference = await trx("PassPort")
+        .insert(preference_details)
+        .returning("*");
+
+      if (!db_preference) {
+        return { success: false, details: "Inserting new preference failed." };
+      }
+
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
+
 const sendHostApplicationEmails = async (dbUser, documents) => {
   const applier = {
     user_id: dbUser.user.tasttlig_user_id,
@@ -1169,5 +1189,6 @@ module.exports = {
   saveSocialProof,
   savePaymentInformation,
   saveBusinessServices,
-  getNationalities
+  getNationalities,
+  createPreferences
 };

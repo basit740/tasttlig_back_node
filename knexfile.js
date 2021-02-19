@@ -2,7 +2,7 @@ module.exports = {
   development: {
     client: "pg",
     connection: {
-      database: "tasttlig_back_node_development"
+      database: "tasttlig_back_node_development",
     },
     migrations: {
       directory: "./db/migrations"
