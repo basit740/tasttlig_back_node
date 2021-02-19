@@ -129,22 +129,40 @@ const createNewFestival = async (festival_details, festival_images) => {
 // Add host ID to festivals table helper function
 const hostToFestival = async (festival_id, festival_vendor_id) => {
   try {
+    console.log(festival_id, "festival_id")
+    console.log(festival_vendor_id, "festival vendor id")
     await db.transaction(async (trx) => {
-      for (let item of festival_id) {
-        const db_host = await trx("festivals")
-          .where({ festival_id: item })
-          .update({
-            festival_vendor_id: trx.raw(
-              "array_append(festival_vendor_id, ?)",
-              [festival_vendor_id]
-            ),
-          })
-          .returning("*");
-
-        if (!db_host) {
-          return { success: false, details: "Inserting new host failed." };
+      if (typeof(festival_id) === "object") {
+        for (let item of festival_id) {
+          const db_host = await trx("festivals")
+            .where({ festival_id: item })
+            .update({
+              festival_vendor_id: trx.raw(
+                "array_append(festival_vendor_id, ?)",
+                [festival_vendor_id]
+              ),
+            })
+            .returning("*");
+  
+          if (!db_host) {
+            return { success: false, details: "Inserting new host failed." };
+          }
         }
+      } else {
+        const db_host = await trx("festivals")
+        .where({ festival_id })
+        .update({
+          festival_vendor_id: trx.raw(
+            "array_append(festival_vendor_id, ?)",
+            [festival_vendor_id]
+          ),
+        })
+        .returning("*");
+
+      if (!db_host) {
+        return { success: false, details: "Inserting new host failed." };
       }
+    }
     });
     return { success: true, details: "Success." };
   } catch (error) {

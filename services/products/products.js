@@ -52,7 +52,6 @@ const createNewProduct = async (
 
 // Get products in festival helper function
 const getProductsInFestival = async (festival_id) => {
-
   return await db
     .select(
       "products.*",
@@ -89,9 +88,11 @@ const getProductsInFestival = async (festival_id) => {
     .groupBy("business_details.zip_postal_code")
     .having("products.product_festivals_id[1]", "=", Number(festival_id))
     .then((value) => {
+      console.log(value)
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log(reason)
       return { success: false, details: reason };
     });
 };

@@ -5,6 +5,7 @@ const router = require("express").Router();
 const token_service = require("../../services/authentication/token");
 const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
+const authentication_service = require("../../services/authentication/authenticate_user")
 
 // GET all festivals
 router.get("/festival/all", async (req, res) => {
@@ -26,6 +27,36 @@ router.get("/festival/all", async (req, res) => {
       current_page,
       keyword,
       filters
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// GET all products, services and experiences from festival
+router.get("/products_services_experiences/festival", async (req, res) => {
+  try {
+    const current_page = req.query.page || 1;
+    //const keyword = req.query.keyword || "";
+
+    /*  const filters = {
+       nationalities: req.query.nationalities,
+       startDate: req.query.startDate,
+       startTime: new Date(req.query.startTime).getTime(),
+       cityLocation: req.query.cityLocation,
+       radius: req.query.radius,
+       latitude: req.query.latitude,
+       longitude: req.query.longitude,
+     }; */
+
+    const response = await festival_service.getAllProductsServicesExperiences(
+      current_page,
     );
 
     return res.send(response);
@@ -335,6 +366,48 @@ router.post(
     }
   }
 );
+
+router.post(
+  "/vendor-festival",
+  token_service.authenticateToken,
+  async (req, res) => {
+    const { festival_id } = req.body;
+    try {
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
+
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message,
+        });
+      }
+      const business_details = await authentication_service.getUserByBusinessDetails(req.user.id)
+      if (!business_details.success) {
+        return res.status(403).json({
+          success: false,
+          message: business_details.message,
+        });
+      }
+      console.log("business_details", business_details);
+
+      const response = await festival_service.hostToFestival(
+        festival_id,
+        business_details.business_details.business_details_id
+      );
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
+
+
 
 // GET festival restaurants
 router.get("/festival/restaurant/all", async (req, res) => {

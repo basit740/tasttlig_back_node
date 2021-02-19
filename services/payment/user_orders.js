@@ -16,7 +16,7 @@ const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const getOrderDetails = async (order_details) => {
   if (
     order_details.item_type === "plan" ||
-    order_details.item_type === "subscription"
+    order_details.item_type === "subscription" || order_details.item_type === "package"
   ) {
     return await db("subscriptions")
       .where({
@@ -215,7 +215,7 @@ const getCartOrderDetails = async (cartItems) => {
 const createOrder = async (order_details, db_order_details) => {
   if (
     order_details.item_type === "plan" ||
-    order_details.item_type === "subscription"
+    order_details.item_type === "subscription" || order_details.item_type === "package"
   ) {
     try {
       await db.transaction(async (trx) => {
