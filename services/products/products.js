@@ -96,6 +96,7 @@ const getProductsInFestival = async (festival_id) => {
       return { success: false, details: reason };
     });
 };
+
 const getProductsFromUser = async (user_id) => {
 
   return await db

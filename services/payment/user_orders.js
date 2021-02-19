@@ -14,9 +14,28 @@ const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
 // Get order details helper function
 const getOrderDetails = async (order_details) => {
+  const sponsorshipPackagesAdapter = () => {
+    if (
+      order_details.item_type === "package" &&
+      order_details.item_id === "all"
+    )
+      return true;
+    else return false;
+  };
+
+  const sponsorshipPackagePaymentAdapter = () => {
+    if (
+      order_details.item_type === "package" &&
+      order_details.item_id !== "all"
+    )
+      return true;
+    else return false;
+  };
+
   if (
     order_details.item_type === "plan" ||
-    order_details.item_type === "subscription" || order_details.item_type === "package"
+    order_details.item_type === "subscription" ||
+    sponsorshipPackagePaymentAdapter()
   ) {
     return await db("subscriptions")
       .where({
@@ -27,6 +46,24 @@ const getOrderDetails = async (order_details) => {
       .then((value) => {
         if (!value) {
           return { success: false, message: "No plan found." };
+        }
+
+        return { success: true, item: value };
+      })
+      .catch((error) => {
+        return { success: false, message: error };
+      });
+  }
+  // get all active subscriptions by item_type
+  else if (sponsorshipPackagesAdapter()) {
+    return await db("subscriptions")
+      .where({
+        subscription_type: order_details.item_type,
+        status: "ACTIVE",
+      })
+      .then((value) => {
+        if (!value) {
+          return { success: false, message: "No plans found." };
         }
 
         return { success: true, item: value };
@@ -308,6 +345,85 @@ const createOrder = async (order_details, db_order_details) => {
         },
       });
       console.log("success")
+      return { success: true, details: "Success." };
+    } catch (error) {
+      return { success: false, details: error.message };
+    }
+  }
+  //package db operations
+  if (order_details.item_type === "package") {
+    try {
+      await db.transaction(async (trx) => {
+        const total_amount_before_tax = parseFloat(db_order_details.item.price);
+        const total_tax = Math.round(total_amount_before_tax * 13) / 100;
+        const total_amount_after_tax = total_amount_before_tax + total_tax;
+        const db_orders = await trx("orders")
+          .insert({
+            order_by_user_id: order_details.user_id,
+            status: "SUCCESS",
+            total_amount_before_tax,
+            total_tax,
+            total_amount_after_tax,
+            order_datetime: new Date(),
+          })
+          .returning("*");
+
+        if (!db_orders) {
+          return { success: false, details: "Inserting new order failed." };
+        }
+
+        await trx("order_items").insert({
+          order_id: db_orders[0].order_id,
+          item_id: order_details.item_id,
+          item_type: order_details.item_type,
+          quantity: 1,
+          price_before_tax: total_amount_before_tax,
+        });
+
+        await trx("payments").insert({
+          order_id: db_orders[0].order_id,
+          payment_reference_number: order_details.payment_id,
+          payment_type: "CARD",
+          payment_vender: "STRIPE",
+        });
+
+        let subscription_end_datetime = null;
+
+        if (db_order_details.item.validity_in_months) {
+          subscription_end_datetime = new Date().setMonth(
+            new Date().getMonth() + db_order_details.item.validity_in_months
+          );
+        } else {
+          subscription_end_datetime = db_order_details.item.date_of_expiry;
+        }
+
+        await trx("user_subscriptions").insert({
+          subscription_code: db_order_details.item.subscription_code,
+          user_id: order_details.user_id,
+          subscription_start_datetime: new Date(),
+          subscription_end_datetime: subscription_end_datetime,
+        });
+
+        // await point_system_service.addUserPoints(
+        //   order_details.user_id,
+        //   total_amount_after_tax * 100
+        // );
+      });
+
+      const package_plan_name = _.startCase(db_order_details.item.subscription_name);
+
+      // Email to user on submitting the request to upgrade
+      await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: order_details.user_email,
+        bcc: ADMIN_EMAIL,
+        subject: "[Tasttlig] Package Purchase",
+        template: "package_purchase",
+        context: {
+          package_plan_name,
+        },
+      });
+
       return { success: true, details: "Success." };
     } catch (error) {
       return { success: false, details: error.message };

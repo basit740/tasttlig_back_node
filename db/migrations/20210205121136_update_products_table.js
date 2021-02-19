@@ -14,6 +14,7 @@ exports.up = function(knex) {
   exports.down = function(knex) {
     return knex.schema.alterTable("products", table => {
         table.dropColumn("product_independant_vendor_id");
+
         table.dropColumn("product_type");
         table.dropColumn("product_festivals_id");    
         

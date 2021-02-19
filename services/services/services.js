@@ -15,6 +15,7 @@ const createNewService = async (
 ) => {
   try {
     await db.transaction(async (trx) => {
+      console.log(service_information)
       const db_service = await trx("services")
         .insert(service_information)
         .returning("*");

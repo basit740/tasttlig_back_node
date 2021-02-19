@@ -327,7 +327,6 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     const { festival_id, festival_business_sponsor_id } = req.body;
-
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -344,7 +343,6 @@ router.post(
         festival_id,
         festival_business_sponsor_id
       );
-
       return res.send(response);
     } catch (error) {
       res.send({

@@ -325,6 +325,8 @@ router.post(
         product_status: "ACTIVE",
         product_created_at_datetime: new Date(),
         product_updated_at_datetime: new Date(),
+        product_creator_type: req.body.product_creator_type,
+        product_user_id: req.user.id,
       };
        const response = await products_service.createNewProduct(
         user_details_from_db,
@@ -467,6 +469,28 @@ router.get("/products/user/:user_id", async (req, res) => {
       req.params.user_id
     );
 
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// GET products from user
+router.get("/products/user/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    const response = await products_service.getProductsFromUser(
+      req.params.user_id
+    );
     return res.send(response);
   } catch (error) {
     res.send({
