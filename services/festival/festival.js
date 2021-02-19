@@ -168,16 +168,7 @@ const updateFestival = async (data, festival_images) => {
             })
       .returning("*")
 
-      // if (!db_festival) {
-      //   return { success: false, details: "Inserting new festival failed." };
-      // }
-
-      // const images = festival_images.map((festival_image_url) => ({
-      //   // festival_id: db_festival[0].data.festival_id,
-      //   festival_image_url,
-      // }));
-
-      // await trx("festival_images").update(images);
+      await trx("festival_images").where( {"festival_id": data.festival_id}).update({festival_image_url: festival_images[0]}).returning("*");
     });
 
     return { success: true, details: "Success." };
