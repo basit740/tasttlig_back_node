@@ -1157,6 +1157,7 @@ module.exports = {
   updateUserAccount,
   updateUserProfile,
   createUserInfo,
+  createPreferences,
   getUserByEmail,
   getUserByEmailWithSubscription,
   getUserByPassportId,
