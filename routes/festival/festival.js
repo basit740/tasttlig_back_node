@@ -290,7 +290,6 @@ router.put(
   "/festival/update/:festival_id",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("req from put: ", req.params.festival_id)
     const {
       images,
       festival_name,
@@ -303,7 +302,7 @@ router.put(
       festival_end_time,
       festival_description,
     } = req.body.festival_update_data;
-
+    const festival_id = req.params.festival_id;
     try {
       if (
         !images ||
@@ -348,14 +347,13 @@ router.put(
           festival_description,
           festival_created_at_datetime: new Date(),
           festival_updated_at_datetime: new Date(),
-          frestival_id: req.params.festival_id
+          festival_id
         };
 
         const response = await festival_service.updateFestival(
           festival_details,
           images
         );
-          console.log("respond: ", response)
         return res.send(response);
       } catch (error) {
         res.send({
