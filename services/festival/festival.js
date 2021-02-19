@@ -150,6 +150,72 @@ const createNewFestival = async (festival_details, festival_images) => {
   }
 };
 
+const updateFestival = async (data, image) => {
+  console.log("data from service fest: ", data, )
+  console.log("images:", image)
+  images;
+  try {
+    await db.transaction(async (trx) => {
+      const db_festival = await trx("festivals")
+      .where("festival_id", data.festival_id)
+      .first()
+      .update({
+        festival_name: data.festival_name,
+        festival_type: data.festival_type,
+        festival_price: data.festival_price,
+        festival_city: data.festival_city,
+        festival_start_date: data.festival_start_date,
+        festival_end_date: data.festival_end_date,
+        festival_start_time: data.festival_start_time,
+        festival_end_time: data.festival_end_time,
+        festival_description: data.festival_description,
+      })
+
+      if (!db_festival) {
+        return { success: false, details: "Inserting new festival failed." };
+      }
+
+      const images = festival_images.map((festival_image_url) => ({
+        festival_id: db_festival[0].festival_id,
+        festival_image_url,
+      }));
+
+      await trx("festival_images").insert(images);
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+  //----------------------------
+  //   return await db("festivals")
+  //     .where("festival_id", festival_id)
+  //     .first()
+  //     .update({
+  //       festival_name: data.festival_name,
+  //       festival_type: data.festival_type,
+  //       festival_price: data.festival_price,
+  //       festival_city: data.festival_city,
+  //       festival_start_date: data.festival_start_date,
+  //       festival_end_date: data.festival_end_date,
+  //       festival_start_time: data.festival_start_time,
+  //       festival_end_time: data.festival_end_time,
+  //       festival_description: data.festival_description,
+  //     })
+  //     .returning("*")
+      
+  //     .then((value) => {
+  //       return { success: true, details: value[0] };
+  //     })
+  //     .catch((reason) => {
+  //       return { success: false, details: reason };
+  //     });
+  // } catch (error) {
+  //   return { success: false, message: error };
+  // }
+};
+
+
 // Add host ID to festivals table helper function
 const hostToFestival = async (festival_id, festival_vendor_id) => {
   try {
@@ -287,5 +353,6 @@ module.exports = {
   sponsorToFestival,
   getFestivalDetails,
   getFestivalRestaurants,
-  getAllFestivalsPresent
+  getAllFestivalsPresent,
+  updateFestival
 };

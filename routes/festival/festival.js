@@ -285,6 +285,96 @@ router.post(
   }
 );
 
+// POST festival
+router.put(
+  "/festival/update/:festival_id",
+  token_service.authenticateToken,
+  async (req, res) => {
+    console.log("req from put: ", req.params.festival_id)
+    const {
+      images,
+      festival_name,
+      festival_type,
+      festival_price,
+      festival_city,
+      festival_start_date,
+      festival_end_date,
+      festival_start_time,
+      festival_end_time,
+      festival_description,
+    } = req.body.festival_update_data;
+
+    try {
+      if (
+        !images ||
+        !festival_name ||
+        !festival_type ||
+        !festival_price ||
+        !festival_city ||
+        !festival_start_date ||
+        !festival_end_date ||
+        !festival_start_time ||
+        !festival_end_time ||
+        !festival_description
+      ) {
+        return res.status(403).json({
+          success: false,
+          message: "Required parameters are not available in request.",
+        });
+      }
+
+      try {
+        const user_details_from_db = await user_profile_service.getUserById(
+          req.user.id
+        );
+
+        if (!user_details_from_db.success) {
+          return res.status(403).json({
+            success: false,
+            message: user_details_from_db.message,
+          });
+        }
+
+        const festival_details = {
+          festival_user_admin_id: [req.user.id],
+          festival_name,
+          festival_type,
+          festival_price,
+          festival_city,
+          festival_start_date: festival_start_date.substring(0, 10),
+          festival_end_date: festival_end_date.substring(0, 10),
+          festival_start_time,
+          festival_end_time,
+          festival_description,
+          festival_created_at_datetime: new Date(),
+          festival_updated_at_datetime: new Date(),
+          frestival_id: req.params.festival_id
+        };
+
+        const response = await festival_service.updateFestival(
+          festival_details,
+          images
+        );
+          console.log("respond: ", response)
+        return res.send(response);
+      } catch (error) {
+        res.send({
+          success: false,
+          message: "Error.",
+          response: error,
+        });
+      }
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
+
+
 // POST host to festival
 router.post(
   "/host-festival",
