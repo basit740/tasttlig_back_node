@@ -25,6 +25,7 @@ const createNewFoodSample = async (
   createdByAdmin
 ) => {
   try {
+    // console.log("data from foodsample service", db_user, food_sample_details)
     await db.transaction(async (trx) => {
       // food_sample_details.status = "INACTIVE";
       food_sample_details.food_ad_code =
@@ -34,14 +35,14 @@ const createNewFoodSample = async (
 
       if (
         createdByAdmin ||
-        user_role_object.includes("RESTAURANT") ||
-        user_role_object.includes("RESTAURANT_PENDING")
+        user_role_object.includes("HOST") ||
+        user_role_object.includes("HOST_PENDING")
       ) {
         food_sample_details.status = "ACTIVE";
       }
 
-      food_sample_details = await setAddressCoordinates(food_sample_details);
-
+      // food_sample_details = await setAddressCoordinates(food_sample_details);
+      
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
         .returning("*");

@@ -38,6 +38,25 @@ router.get("/festival/all", async (req, res) => {
   }
 });
 
+
+router.get("/festival/allFestival", async (req, res) => {
+  try {
+    
+
+    const response = await festival_service.getAllFestivalsPresent(
+      
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 // GET festival list
 router.get("/festival-list", async (req, res) => {
   try {
