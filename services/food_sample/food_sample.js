@@ -671,6 +671,8 @@ const getDistinctNationalities = async (
           .as("main")
       )
       .orderBy("rank", "desc");
+
+      console.log(query)
   }
 
   return await query
@@ -775,6 +777,26 @@ const addFoodSampleToFestival = async (
     });
 };
 
+const getNationalities = async (keyword) => {
+  try {
+    console.log(keyword)
+    return await db("nationalities")
+    .select("nationality")
+    .whereRaw("nationality LIKE ?", [keyword + '%'])
+    // .having("nationality", "LIKE", `$keyword%`)
+    .returning("*")
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log(reason)
+      return { success: false, details: reason };
+    });
+  } catch (error) {
+    return { success: false, message: error };
+  }
+};
+
 module.exports = {
   createNewFoodSample,
   getAllUserFoodSamples,
@@ -787,4 +809,5 @@ module.exports = {
   getFoodSampleById,
   addFoodSampleToFestival,
   getAllUserFoodSamplesNotInFestival,
+  getNationalities
 };

@@ -347,12 +347,16 @@ router.get("/food-sample/nationalities", async (req, res) => {
       );
     });
 
+    console.log(keyword)
+
     const response = await food_sample_service.getDistinctNationalities(
       status_operator,
       food_sample_status,
       keyword,
       alreadySelectedNationalityList
     );
+
+    console.log(response)
 
     return res.send(response);
   } catch (error) {
@@ -363,6 +367,26 @@ router.get("/food-sample/nationalities", async (req, res) => {
     });
   }
 });
+
+router.get("/food-sample/user-nationalities" , async (req, res) => {
+   
+  try {
+   const keyword = req.query.keyword || "";
+   console.log(keyword);
+   const response = await food_sample_service.getNationalities(keyword);
+     if (response.success) {
+       res.status(200).send(response);
+     } else {
+       return res.status(401).json({
+         success: false,
+         message: "Email already exists.",
+       });
+     }
+ 
+  } catch (error) {
+   console.log("Update", error);
+  }
+ });
 
 // GET food sample by ID
 router.get("/food-sample/:food_sample_id", async (req, res) => {
