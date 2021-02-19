@@ -39,24 +39,13 @@ router.get("/festival/all", async (req, res) => {
   }
 });
 
-// GET all products, services and experiences from festival
-router.get("/products_services_experiences/festival", async (req, res) => {
+
+router.get("/festival/allFestival", async (req, res) => {
   try {
-    const current_page = req.query.page || 1;
-    //const keyword = req.query.keyword || "";
+    
 
-    /*  const filters = {
-       nationalities: req.query.nationalities,
-       startDate: req.query.startDate,
-       startTime: new Date(req.query.startTime).getTime(),
-       cityLocation: req.query.cityLocation,
-       radius: req.query.radius,
-       latitude: req.query.latitude,
-       longitude: req.query.longitude,
-     }; */
-
-    const response = await festival_service.getAllProductsServicesExperiences(
-      current_page,
+    const response = await festival_service.getAllFestivalsPresent(
+      
     );
 
     return res.send(response);

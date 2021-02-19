@@ -77,12 +77,36 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
 
   return await query
     .then((value) => {
+      console.log(value)
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log(reason);
       return { success: false, details: reason };
     });
-};
+}
+
+const getAllFestivalsPresent = async () => {
+  
+  return await db
+  .select("festivals.*")
+  .from("festivals")
+  .where("festivals.festival_id", ">", 3)
+  .groupBy("festivals.festival_id")
+  .then((value) => {
+    return { success: true, festival_list: value };
+  })
+  .catch((reason) => {
+    return { success: false, data: reason };
+  });
+  
+  }
+
+
+
+ 
+ 
+
 
 // Get festival list helper function
 const getFestivalList = async () => {
@@ -281,4 +305,5 @@ module.exports = {
   sponsorToFestival,
   getFestivalDetails,
   getFestivalRestaurants,
+  getAllFestivalsPresent
 };

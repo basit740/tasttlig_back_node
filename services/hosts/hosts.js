@@ -15,8 +15,14 @@ const getHostApplications = async () => {
         "applications.user_id",
         "tasttlig_users.tasttlig_user_id"
       )
+      // .leftJoin(
+      //   "food_samples",
+      //   "applications.user_id",
+      //   "food_samples.food_sample_creater_user_id"
+      // )
       .groupBy("applications.application_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
+      // .groupBy("food_samples.food_sample_creater_user_id")
       .having("applications.status", "=", "Pending");
 
     return {
