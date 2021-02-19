@@ -8,7 +8,6 @@ const user_profile_service = require("../../services/profile/user_profile");
 
 // GET all passport details
 router.get("/passport", async (req, res) => {
-  console.log("BODY >>>>>", req.body);
   try {
     const userId = req.query.userId;
     const current_page = req.query.page || 1;
@@ -17,8 +16,6 @@ router.get("/passport", async (req, res) => {
       userId,
       current_page
     );
-
-    console.log("response >>>>>", response);
 
     return res.send(response);
   } catch (error) {

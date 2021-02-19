@@ -143,7 +143,6 @@ const getTicketList = async () => {
 };
 
 const newTicketInfo = async (ticket_details) => {
-
   try {
     await db.transaction(async (trx) => {
       const db_ticket = await trx("ticket_details")
@@ -157,7 +156,7 @@ const newTicketInfo = async (ticket_details) => {
 
     return { success: true, details: "Success." };
   } catch (error) {
-    console.log("error:", error)
+    console.log("error:", error);
     return { success: false, details: error.message };
   }
 };

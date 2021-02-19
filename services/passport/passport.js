@@ -24,11 +24,17 @@ const getPassportDetails = async (userId, currentPage) => {
       "PassPort.passport_user_id",
       "ticket_details.ticket_user_id"
     )
-    .leftJoin("festivals", "PassPort.passport_user_id", "festivals.festival_id")
-    .where("PassPort.passport_user_id", "=", userIdInt);
-  // .groupBy("festivals.festival_end_date")
-  // .groupBy("festivals.festival_id")
-  // .orderBy("festivals.festival_end_date", "asc");
+    .leftJoin(
+      "festivals",
+      "ticket_details.ticket_festival_id",
+      "festivals.festival_id"
+    )
+    .where("PassPort.passport_user_id", "=", userIdInt)
+    .groupBy("PassPort.passport_user_id")
+    .groupBy("PassPort.passport_id")
+    .groupBy("ticket_details.ticket_id")
+    .groupBy("festivals.festival_id")
+    .orderBy("festivals.festival_end_date", "asc");
 
   query = query.paginate({
     perPage: 12,
@@ -38,7 +44,6 @@ const getPassportDetails = async (userId, currentPage) => {
 
   return await query
     .then((value) => {
-      console.log("value >>>>", value.data);
       return { success: true, details: value };
     })
     .catch((reason) => {
