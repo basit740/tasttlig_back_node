@@ -79,7 +79,7 @@ router.post(
         product_expiry_time: req.body.product_expiry_time,
         product_description: req.body.product_description,
         product_festivals_id: req.body.product_festival_id
-        ?[req.body.product_festival_id]
+        ?req.body.product_festival_id
         : null,
         product_code: generateRandomString(4),
         product_status: "ACTIVE",
