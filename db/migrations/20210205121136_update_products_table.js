@@ -1,4 +1,5 @@
 
+
 exports.up = function(knex) {
     return knex.schema.alterTable("products", table => {
       table.integer("product_independant_vendor_id").unsigned().index()
@@ -20,4 +21,3 @@ exports.up = function(knex) {
         
     });
   };
-

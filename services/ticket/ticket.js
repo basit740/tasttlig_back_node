@@ -4,7 +4,6 @@
 const { db } = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 
-
 // Get all festivals helper function
 const getAllTickets = async (userId, currentPage) => {
   // let startDate = filters.startDate.substring(0, 10);
@@ -17,6 +16,7 @@ const getAllTickets = async (userId, currentPage) => {
       "tasttlig_users.last_name",
       "tasttlig_users.email",
       "tasttlig_users.phone_number",
+      "festivals.festival_price",
       "festivals.festival_name",
       "festivals.festival_city",
       "festivals.festival_description",
@@ -50,6 +50,7 @@ const getAllTickets = async (userId, currentPage) => {
     .groupBy("tasttlig_users.email")
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
+    .groupBy("festivals.festival_price")
     .groupBy("festivals.festival_name")
     .groupBy("festivals.festival_city")
     .groupBy("festivals.festival_description")
@@ -58,8 +59,7 @@ const getAllTickets = async (userId, currentPage) => {
     .groupBy("festivals.festival_end_date")
     .groupBy("festivals.festival_start_date")
     .groupBy("festivals.festival_id")
-    .orderBy("festivals.festival_start_date", "asc")
-  
+    .orderBy("festivals.festival_start_date", "asc");
 
   query = query.paginate({
     perPage: 12,
@@ -69,7 +69,7 @@ const getAllTickets = async (userId, currentPage) => {
 
   return await query
     .then((value) => {
-      console.log(value)
+      console.log(value);
       return { success: true, details: value };
     })
     .catch((reason) => {
@@ -77,7 +77,6 @@ const getAllTickets = async (userId, currentPage) => {
       return { success: false, details: reason };
     });
 };
-
 
 // Get tickets in festival helper function
 const getTicketDetails = async (ticket_id) => {
@@ -118,7 +117,7 @@ const getTicketDetails = async (ticket_id) => {
     .groupBy("ticket_details.ticket_id")
     .groupBy("tasttlig_users.tasttlig_user_id")
     .groupBy("festivals.festival_id")
-    .groupBy( "festivals.festival_type")
+    .groupBy("festivals.festival_type")
     .having("ticket_details.ticket_id", "=", ticket_id)
     .then((value) => {
       return { success: true, details: value };
@@ -144,7 +143,6 @@ const getTicketList = async () => {
 };
 
 const newTicketInfo = async (ticket_details) => {
-
   try {
     await db.transaction(async (trx) => {
       const db_ticket = await trx("ticket_details")
@@ -154,21 +152,18 @@ const newTicketInfo = async (ticket_details) => {
       if (!db_ticket) {
         return { success: false, details: "Inserting new ticket failed." };
       }
-
     });
 
     return { success: true, details: "Success." };
   } catch (error) {
-    console.log("error:", error)
+    console.log("error:", error);
     return { success: false, details: error.message };
   }
 };
 
-
-
 module.exports = {
- getAllTickets,
- getTicketDetails,
- getTicketList,
- newTicketInfo
+  getAllTickets,
+  getTicketDetails,
+  getTicketList,
+  newTicketInfo,
 };

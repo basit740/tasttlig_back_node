@@ -152,8 +152,7 @@ const createUserInfo = async (user) => {
         user_zip_postal_code: user["user_zip_code"],
         street_name: user["user_street_name"],
         street_number: user["user_street_number"],
-        apartment_no: user["user_apartment_number"]
-
+        apartment_no: user["user_apartment_number"],
       })
       .returning("*")
       .then((value) => {
@@ -170,15 +169,15 @@ const createUserInfo = async (user) => {
 const getNationalities = async (keyword) => {
   try {
     return await db("nationalities")
-    .select("nationality")
-    .having("nationality", "LIKE", keyword+'%')
-    .returning("*")
-    .then((value) => {
-      return { success: true, details: value[0] };
-    })
-    .catch((reason) => {
-      return { success: false, details: reason };
-    });
+      .select("nationality")
+      .having("nationality", "LIKE", keyword + "%")
+      .returning("*")
+      .then((value) => {
+        return { success: true, details: value[0] };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
   } catch (error) {
     return { success: false, message: error };
   }
@@ -339,6 +338,19 @@ const saveApplicationInformation = async (hostDto, trx) => {
       status: "Pending",
     });
     role_name = "VENDOR_PENDING";
+  }
+  if (applications.length === 0) {
+      applications.push({
+        user_id: hostDto.dbUser.user.tasttlig_user_id,
+        reason: "",
+        created_at: new Date(),
+        updated_at: new Date(),
+        type: "vendor",
+        status: "Pending",
+      });
+      role_name = "VENDOR_PENDING";
+    
+
   }
 
 /*   if (applications.length == 0 && hostDto.is_host === "no") {
@@ -753,13 +765,13 @@ const approveOrDeclineHostApplication = async (
 ) => {
   try {
     const db_user_row = await getUserById(userId);
-    
+
     if (!db_user_row.success) {
       return { success: false, message: db_user_row.message };
     }
-    
+
     const db_user = db_user_row.user;
-    
+
     // Get pending role which has been approved
     let role_pending = "";
     db_user.role.map((role) => {
@@ -767,7 +779,7 @@ const approveOrDeclineHostApplication = async (
         role_pending = role;
       }
     });
-    
+
     // Depends on status, we do different things:
     // If status is approved
     if (status === "APPROVED") {
@@ -1101,7 +1113,6 @@ const createPreferences = async (preference_details) => {
       if (!db_preference) {
         return { success: false, details: "Inserting new preference failed." };
       }
-
     });
 
     return { success: true, details: "Success." };
@@ -1168,6 +1179,7 @@ module.exports = {
   updateUserAccount,
   updateUserProfile,
   createUserInfo,
+  createPreferences,
   getUserByEmail,
   getUserByEmailWithSubscription,
   getUserByPassportId,

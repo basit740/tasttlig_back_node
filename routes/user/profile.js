@@ -87,7 +87,9 @@ const extractFile = (requestBody, key, text) => {
 };
 
 // POST application from multi-step form
-router.post("/user/host", async (req, res) => {
+router.post("/user/host",  token_service.authenticateToken, async (req, res) => {
+  console.log(req.body);
+  console.log(req.user)
   try {
     const hostDto = req.body;
     const response = await user_profile_service.saveHostApplication(
@@ -101,6 +103,7 @@ router.post("/user/host", async (req, res) => {
 
     return res.status(500).send(response);
   } catch (error) {
+    console.log(error)
     return res.status(403).json({
       success: false,
       message: error,
@@ -131,18 +134,17 @@ router.post("/user/vendor", async (req, res) => {
 });
 
 // POST application from multi-step form
-router.post("/complete-profile/preference/:id", token_service.authenticateToken, async (req, res) => {
-
-  
-
-    const {preferred_country_cuisine, food_preferences, food_allergies } = req.body;
+router.post(
+  "/complete-profile/preference/:id",
+  token_service.authenticateToken,
+  async (req, res) => {
+    const {
+      preferred_country_cuisine,
+      food_preferences,
+      food_allergies,
+    } = req.body;
     try {
-      if (
-        !food_preferences ||
-        !food_allergies ||
-        !preferred_country_cuisine 
-        
-      ) {
+      if (!food_preferences || !food_allergies || !preferred_country_cuisine) {
         return res.status(403).json({
           success: false,
           message: "Required parameters are not available in request.",
@@ -152,25 +154,25 @@ router.post("/complete-profile/preference/:id", token_service.authenticateToken,
       try {
         const user_details_from_db = await user_profile_service.getUserById(
           req.user.id
-          );
-          
-          if (!user_details_from_db.success) {
-            return res.status(403).json({
-              success: false,
-              message: user_details_from_db.message,
-            });
-          }
-          
-          const preference_details = {
-            food_preferences,
-            food_allergies,
-            preferred_country_cuisine
-          };
-          
+        );
+
+        if (!user_details_from_db.success) {
+          return res.status(403).json({
+            success: false,
+            message: user_details_from_db.message,
+          });
+        }
+
+        const preference_details = {
+          food_preferences,
+          food_allergies,
+          preferred_country_cuisine,
+        };
+
         const response = await user_profile_service.createPreferences(
           preference_details
         );
-          console.log("response from preferences:", response)
+
         return res.send(response);
       } catch (error) {
         res.send({
@@ -186,10 +188,8 @@ router.post("/complete-profile/preference/:id", token_service.authenticateToken,
         response: error,
       });
     }
-});
-
-
-
+  }
+);
 
 router.get("/user/application/:token", async (req, res) => {
   if (!req.params.token) {
@@ -268,11 +268,10 @@ router.put("/user/update-profile/:id", async (req, res) => {
 
 // get nationalities for user
 
-router.get("/user/nationalities" , async (req, res) => {
-   
- try {
-  const keyword = req.query.keyword || "";
-  const response = await user_profile_service.getNationalities(keyword);
+router.get("/user/nationalities", async (req, res) => {
+  try {
+    const keyword = req.query.keyword || "";
+    const response = await user_profile_service.getNationalities(keyword);
     if (response.success) {
       res.status(200).send(response);
     } else {
@@ -281,72 +280,90 @@ router.get("/user/nationalities" , async (req, res) => {
         message: "Email already exists.",
       });
     }
-
- } catch (error) {
-  console.log("Update", error);
- }
+  } catch (error) {
+    console.log("Update", error);
+  }
 });
 
 // // update user info for passport
-// 
-router.put("/user/user-info/:id", token_service.authenticateToken, async (req, res) => {
+//
+router.put(
+  "/user/user-info/:id",
+  token_service.authenticateToken,
+  async (req, res) => {
+    console.log("here");
+    console.log(req.body);
 
-  console.log("here")
-  console.log(req.body);
-
-  const {user_age, user_occupation, user_marital_status, user_country, user_city, 
-    user_zip_code, user_street_name, user_street_number, user_apartment_number, user_gender} = req.body;
+    const {
+      user_age,
+      user_occupation,
+      user_marital_status,
+      user_country,
+      user_city,
+      user_zip_code,
+      user_street_name,
+      user_street_number,
+      user_apartment_number,
+      user_gender,
+    } = req.body;
     console.log(user_age);
-  try {
-    if (
-      !user_age ||
-      !user_occupation ||
-      !user_marital_status||
-      // !user_country ||
-      !user_city ||
-      !user_zip_code ||
-      !user_street_name ||
-      !user_street_number || 
-      !user_gender
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "Required parameters are not available in request.",
-      });
-    }
-
-    // console.log(req)
-
     try {
-      const user_details_from_db = await user_profile_service.getUserById(
-        req.user.id
+      if (
+        !user_age ||
+        !user_occupation ||
+        !user_marital_status ||
+        // !user_country ||
+        !user_city ||
+        !user_zip_code ||
+        !user_street_name ||
+        !user_street_number ||
+        !user_gender
+      ) {
+        return res.status(403).json({
+          success: false,
+          message: "Required parameters are not available in request.",
+        });
+      }
+
+      // console.log(req)
+
+      try {
+        const user_details_from_db = await user_profile_service.getUserById(
+          req.user.id
         );
-        
+
         if (!user_details_from_db.success) {
           return res.status(403).json({
             success: false,
             message: user_details_from_db.message,
           });
         }
-        
+
         const user_info = {
-          user_age, user_occupation, 
-          user_marital_status, 
-          user_country, user_city, 
-          user_zip_code, 
-          user_street_name, 
-          user_street_number, 
-          user_apartment_number
+          user_age,
+          user_occupation,
+          user_marital_status,
+          user_country,
+          user_city,
+          user_zip_code,
+          user_street_name,
+          user_street_number,
+          user_apartment_number,
         };
 
         user_info["id"] = req.user.id;
-        
-        console.log("body from front-end:", user_info)
-      const response = await user_profile_service.createUserInfo(
-        user_info
-      );
-        console.log("response from preferences:", response)
-      return res.send(response);
+
+        console.log("body from front-end:", user_info);
+        const response = await user_profile_service.createUserInfo(user_info);
+        console.log("response from preferences:", response);
+        return res.send(response);
+      } catch (error) {
+        res.send({
+          success: false,
+          message: "Error.",
+          response: error,
+        });
+      }
     } catch (error) {
       res.send({
         success: false,
@@ -354,14 +371,8 @@ router.put("/user/user-info/:id", token_service.authenticateToken, async (req, r
         response: error,
       });
     }
-  } catch (error) {
-    res.send({
-      success: false,
-      message: "Error.",
-      response: error,
-    });
   }
-});
+);
 
 // GET user by email
 router.get("/user/check-email/:email", async (req, res) => {

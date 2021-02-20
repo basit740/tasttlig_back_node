@@ -157,11 +157,12 @@ const getHostApplication = async (userId) => {
 };
 
 const saveApplicationInformation = async (hostDto, trx) => {
+  console.log("hello")
   let applications = [];
   let role_name = "";
   let is_host = "yes"
 
-
+console.log('hello')
   if (is_host === "yes") {
     applications.push({
       user_id: hostDto.host_user_id,
@@ -176,7 +177,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
     role_name = "HOST_PENDING";
   }
-
+  console.log(role_name);
 
   // Save sponsor application to applications table
   // if (applications.length == 0 && hostDto.is_sponsor) {
@@ -191,19 +192,20 @@ const saveApplicationInformation = async (hostDto, trx) => {
   //   role_name = "SPONSOR_PENDING";
   // }
 
-  // if (applications.length == 0 && hostDto.is_host === "no") {
-  //   applications.push({
-  //     user_id: hostDto.dbUser.user.tasttlig_user_id,
-  //     reason: "",
-  //     created_at: new Date(),
-  //     updated_at: new Date(),
-  //     type: "restaurant",
-  //     status: "Pending",
-  //   });
-  //   role_name = "RESTAURANT_PENDING";
-  // }
+/*    if (applications.length == 0 && hostDto.is_host === "no") {
+    applications.push({
+       user_id: hostDto.dbUser.user.tasttlig_user_id,
+       reason: "",
+     created_at: new Date(),
+       updated_at: new Date(),
+       type: "vendor",
+       status: "Pending",
+     });
+     role_name = "VENDOR_PENDING";
+   } */
 
   // Get role code of new role to be added
+  console.log(role_name);
   const new_role_code = await trx("roles")
     .select()
     .where({ role: role_name })

@@ -11,7 +11,7 @@ router.get("/ticket/all", async (req, res) => {
   try {
     const ticket_user_id = req.query.ticket_user_id;
     const current_page = req.query.page || 1;
-    
+
     const response = await ticket_service.getAllTickets(
       ticket_user_id,
       current_page
@@ -72,14 +72,12 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     const {
-     
       ticket_booking_confirmation_id,
       ticket_user_id,
       ticket_festival_id,
       no_of_admits,
       stripe_receipt_id,
       attend_status,
-     
     } = req.body;
     try {
       if (
@@ -88,7 +86,6 @@ router.post(
         !ticket_festival_id ||
         !no_of_admits ||
         !stripe_receipt_id
-    
       ) {
         return res.status(403).json({
           success: false,
@@ -113,11 +110,9 @@ router.post(
           ticket_user_id,
           ticket_festival_id,
           no_of_admits,
-          stripe_receipt_id
-        }
-        const response = await ticket_service.newTicketInfo(
-          ticket_details
-        );
+          stripe_receipt_id,
+        };
+        const response = await ticket_service.newTicketInfo(ticket_details);
 
         return res.send(response);
       } catch (error) {
@@ -136,7 +131,5 @@ router.post(
     }
   }
 );
-
-
 
 module.exports = router;
