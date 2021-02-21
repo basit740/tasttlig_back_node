@@ -136,26 +136,52 @@ const updateUserProfile = async (user) => {
   }
 };
 
-// // Update user preferences
-// const updateUserPreferences = async (user) => {
-//   try {
-//     return await db("tasttlig_users")
-//       .where("tasttlig_user_id", user.id)
-//       .first()
-//       .update({
-//         user_preference: user.user_preference,
-//       })
-//       .returning("*")
-//       .then((value) => {
-//         return { success: true, details: value[0] };
-//       })
-//       .catch((reason) => {
-//         return { success: false, details: reason };
-//       });
-//   } catch (error) {
-//     return { success: false, message: error };
-//   }
-// }
+// Update user profile helper function
+const createUserInfo = async (user) => {
+  try {
+    return await db("tasttlig_users")
+      .where("tasttlig_user_id", user.id)
+      .first()
+      .update({
+        age: user["user_age"],
+        sex: user["user_gender"],
+        occupation: user["user_occupation"],
+        marital_status: user["user_marital_status"],
+        user_country: user["user_country"],
+        user_city: user["user_city"],
+        user_zip_postal_code: user["user_zip_code"],
+        street_name: user["user_street_name"],
+        street_number: user["user_street_number"],
+        apartment_no: user["user_apartment_number"],
+      })
+      .returning("*")
+      .then((value) => {
+        return { success: true, details: value[0] };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  } catch (error) {
+    return { success: false, message: error };
+  }
+};
+
+const getNationalities = async (keyword) => {
+  try {
+    return await db("nationalities")
+      .select("nationality")
+      .having("nationality", "LIKE", keyword + "%")
+      .returning("*")
+      .then((value) => {
+        return { success: true, details: value[0] };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  } catch (error) {
+    return { success: false, message: error };
+  }
+};
 
 // Save sponsor information to sponsors table helper function
 const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
@@ -197,25 +223,23 @@ const saveBusinessForUser = async (hostDto, user_id) => {
   return await db.transaction(async (trx) => {
     const businessInfo = {
       business_details_user_id: user_id,
-      business_category: hostDto.business_category,
-      business_type: hostDto.service_provider,
+      //business_type: hostDto.service_provider,
       business_name: hostDto.business_name,
-      ethnicity_of_restaurant: hostDto.culture,
-      business_address_1: hostDto.address_line_1,
-      business_address_2: hostDto.address_line_2,
-      city: hostDto.business_city,
+      //ethnicity_of_restaurant: hostDto.culture,
+      business_address_1: hostDto.business_address_1,
+      city: hostDto.city,
       state: hostDto.state,
-      zip_postal_code: hostDto.postal_code,
+      zip_postal_code: hostDto.zip_postal_code,
       country: hostDto.country,
-      business_phone_number: hostDto.phone_number,
-      business_registration_number: hostDto.registration_number,
-      instagram: hostDto.instagram,
-      facebook: hostDto.facebook,
-      in_current_festival: hostDto.in_current_festival,
+      //business_phone_number: hostDto.phone_number,
+      //business_registration_number: hostDto.registration_number,
+      //instagram: hostDto.instagram,
+      //facebook: hostDto.facebook,
+      //in_current_festival: hostDto.in_current_festival,
       business_details_created_at_datetime: new Date(),
       business_details_updated_at_datetime: new Date(),
     };
-
+    console.log("hello")
     const checkForUpdate = await trx("business_details")
       .select("business_details_id")
       .where("business_details_user_id", user_id)
@@ -233,7 +257,7 @@ const saveBusinessForUser = async (hostDto, user_id) => {
         .insert(businessInfo)
         .returning("*");
     }
-
+      console.log(response);
     return { success: true, details: response[0] };
   });
 };
@@ -304,8 +328,32 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
     role_name = "SPONSOR_PENDING";
   }
+  if (applications.length === 0 && hostDto.is_vendor) {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "vendor",
+      status: "Pending",
+    });
+    role_name = "VENDOR_PENDING";
+  }
+  if (applications.length === 0) {
+      applications.push({
+        user_id: hostDto.dbUser.user.tasttlig_user_id,
+        reason: "",
+        created_at: new Date(),
+        updated_at: new Date(),
+        type: "vendor",
+        status: "Pending",
+      });
+      role_name = "VENDOR_PENDING";
+    
 
-  if (applications.length == 0 && hostDto.is_host === "no") {
+  }
+
+/*   if (applications.length == 0 && hostDto.is_host === "no") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
       reason: "",
@@ -315,7 +363,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
       status: "Pending",
     });
     role_name = "RESTAURANT_PENDING";
-  }
+  } */
 
   // Get role code of new role to be added
   const new_role_code = await trx("roles")
@@ -767,12 +815,12 @@ const approveOrDeclineHostApplication = async (
       });
 
       // STEP 2: Update all Experiences to Active state
-      await db("experiences")
-        .where({
-          experience_creator_user_id: db_user.tasttlig_user_id,
-          status: "INACTIVE",
-        })
-        .update("status", "ACTIVE");
+      // await db("experiences")
+      //   .where({
+      //     experience_creator_user_id: db_user.tasttlig_user_id,
+      //     status: "INACTIVE",
+      //   })
+      //   .update("status", "ACTIVE");
 
       // STEP 3: Update all Food Samples to Active state if the user agreed to participate in festival
       if (db_user.is_participating_in_festival) {
@@ -806,11 +854,11 @@ const approveOrDeclineHostApplication = async (
 
       let role_name_in_title_case =
         new_role.charAt(0).toUpperCase() + new_role.slice(1).toLowerCase();
-      let active_item = "Food Samples";
+      let active_item = "Products";
 
-      if (role_name_in_title_case === "Host") {
+/*       if (role_name_in_title_case === "Host") {
         active_item = "Experiences";
-      }
+      } */
 
       // STEP 6: Email the user that their application is approved
       await Mailer.sendMail({
@@ -1054,6 +1102,25 @@ const saveHostApplication = async (hostDto, user) => {
   });
 };
 
+//create passport preferences helper function
+const createPreferences = async (preference_details) => {
+  try {
+    await db.transaction(async (trx) => {
+      const db_preference = await trx("PassPort")
+        .insert(preference_details)
+        .returning("*");
+
+      if (!db_preference) {
+        return { success: false, details: "Inserting new preference failed." };
+      }
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
+
 const sendHostApplicationEmails = async (dbUser, documents) => {
   const applier = {
     user_id: dbUser.user.tasttlig_user_id,
@@ -1111,7 +1178,8 @@ module.exports = {
   upgradeUserResponse,
   updateUserAccount,
   updateUserProfile,
-  // updateUserPreferences,
+  createUserInfo,
+  createPreferences,
   getUserByEmail,
   getUserByEmailWithSubscription,
   getUserByPassportId,
@@ -1133,4 +1201,6 @@ module.exports = {
   saveSocialProof,
   savePaymentInformation,
   saveBusinessServices,
+  getNationalities,
+  createPreferences
 };

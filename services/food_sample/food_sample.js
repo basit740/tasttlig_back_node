@@ -25,6 +25,7 @@ const createNewFoodSample = async (
   createdByAdmin
 ) => {
   try {
+    // console.log("data from foodsample service", db_user, food_sample_details)
     await db.transaction(async (trx) => {
       // food_sample_details.status = "INACTIVE";
       food_sample_details.food_ad_code =
@@ -34,14 +35,14 @@ const createNewFoodSample = async (
 
       if (
         createdByAdmin ||
-        user_role_object.includes("RESTAURANT") ||
-        user_role_object.includes("RESTAURANT_PENDING")
+        user_role_object.includes("HOST") ||
+        user_role_object.includes("HOST_PENDING")
       ) {
         food_sample_details.status = "ACTIVE";
       }
 
-      food_sample_details = await setAddressCoordinates(food_sample_details);
-
+      // food_sample_details = await setAddressCoordinates(food_sample_details);
+      
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
         .returning("*");
@@ -671,6 +672,8 @@ const getDistinctNationalities = async (
           .as("main")
       )
       .orderBy("rank", "desc");
+
+      console.log(query)
   }
 
   return await query
@@ -775,6 +778,26 @@ const addFoodSampleToFestival = async (
     });
 };
 
+const getNationalities = async (keyword) => {
+  try {
+    console.log(keyword)
+    return await db("nationalities")
+    .select("nationality")
+    .whereRaw("nationality LIKE ?", [keyword + '%'])
+    // .having("nationality", "LIKE", `$keyword%`)
+    .returning("*")
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log(reason)
+      return { success: false, details: reason };
+    });
+  } catch (error) {
+    return { success: false, message: error };
+  }
+};
+
 module.exports = {
   createNewFoodSample,
   getAllUserFoodSamples,
@@ -787,4 +810,5 @@ module.exports = {
   getFoodSampleById,
   addFoodSampleToFestival,
   getAllUserFoodSamplesNotInFestival,
+  getNationalities
 };

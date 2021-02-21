@@ -52,7 +52,6 @@ const createNewProduct = async (
 
 // Get products in festival helper function
 const getProductsInFestival = async (festival_id) => {
-    
   return await db
     .select(
       "products.*",
@@ -70,11 +69,11 @@ const getProductsInFestival = async (festival_id) => {
       "products.product_id",
       "product_images.product_id"
     )
-      .leftJoin(
+    .join(
       "festivals",
-      "products.product_festivals_id[0]",
+      "products.product_festivals_id[1]",
       "festivals.festival_id"
-    )  
+    )
     .leftJoin(
       "business_details",
       "products.product_business_id",
@@ -87,17 +86,19 @@ const getProductsInFestival = async (festival_id) => {
     .groupBy("business_details.city")
     .groupBy("business_details.state")
     .groupBy("business_details.zip_postal_code")
-    .having("products.product_festivals_id[1]", "=", Number(festival_id))
+    .having("products.product_festivals_id", "@>", [festival_id])
     .then((value) => {
+      console.log(value)
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log(reason)
       return { success: false, details: reason };
     });
 };
 
-// get all product by user id
 const getProductsFromUser = async (user_id) => {
+
   return await db
     .select(
       "products.*",
@@ -153,6 +154,35 @@ const findProduct = async (product_id) => {
       return { success: false, details: reason };
     });
 };
+// Find product helper function
+const addProductToFestival = async (festival_id, product_id) => {
+  try {
+    await db.transaction(async (trx) => {
+
+      const db_product = await trx("products")
+        .where({ product_id })
+        .update({
+          product_festivals_id: trx.raw(
+            "array_append(product_festivals_id, ?)",
+            [festival_id]
+          )
+        })
+        .returning("*");
+  
+      if (!db_product) {
+        return {
+          success: false,
+          details: "Inserting new product guest failed.",
+        };
+      }
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    console.log(error);
+    return { success: false, details: error.message };
+  }
+};
 
 // Claim product helper function
 const claimProduct = async (db_user, product_id) => {
@@ -187,5 +217,6 @@ module.exports = {
   getProductsInFestival,
   getProductsFromUser,
   findProduct,
+  addProductToFestival,
   claimProduct,
 };

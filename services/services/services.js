@@ -15,6 +15,7 @@ const createNewService = async (
 ) => {
   try {
     await db.transaction(async (trx) => {
+      console.log(service_information)
       const db_service = await trx("services")
         .insert(service_information)
         .returning("*");
@@ -95,8 +96,8 @@ const getServicesInFestival = async (festival_id) => {
     });
 };
 
-//get all service by user id
 const getServicesFromUser = async (user_id) => {
+
   return await db
     .select(
       "services.*",
@@ -137,7 +138,6 @@ const getServicesFromUser = async (user_id) => {
       return { success: false, details: reason };
     });
 };
-
 // Find service helper function
 const findService = async (service_id) => {
   return await db

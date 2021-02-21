@@ -87,7 +87,6 @@ router.post("/payment/stripe/success", async (req, res) => {
       user_passport_id: db_user.user.passport_id,
       payment_id: req.body.payment_id,
     };
-
     const db_order_details = await user_order_service.getOrderDetails(
       order_details
     );

@@ -77,12 +77,36 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
 
   return await query
     .then((value) => {
+      console.log(value)
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log(reason);
       return { success: false, details: reason };
     });
-};
+}
+
+const getAllFestivalsPresent = async () => {
+  
+  return await db
+  .select("festivals.*")
+  .from("festivals")
+  .where("festivals.festival_id", ">", 3)
+  .groupBy("festivals.festival_id")
+  .then((value) => {
+    return { success: true, festival_list: value };
+  })
+  .catch((reason) => {
+    return { success: false, data: reason };
+  });
+  
+  }
+
+
+
+ 
+ 
+
 
 // Get festival list helper function
 const getFestivalList = async () => {
@@ -126,25 +150,72 @@ const createNewFestival = async (festival_details, festival_images) => {
   }
 };
 
+const updateFestival = async (data, festival_images) => {
+  try {
+    await db.transaction(async (trx) => {
+      const db_festival = await trx("festivals")
+      .where( {"festival_id": data.festival_id})
+      .update({
+              festival_name: data.festival_name,
+              festival_type: data.festival_type,
+              festival_price: data.festival_price,
+              festival_city: data.festival_city,
+              festival_start_date: data.festival_start_date,
+              festival_end_date: data.festival_end_date,
+              festival_start_time: data.festival_start_time,
+              festival_end_time: data.festival_end_time,
+              festival_description: data.festival_description,
+            })
+      .returning("*")
+
+      await trx("festival_images").where( {"festival_id": data.festival_id}).update({festival_image_url: festival_images[0]}).returning("*");
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+  
+};
+
+
 // Add host ID to festivals table helper function
 const hostToFestival = async (festival_id, festival_vendor_id) => {
   try {
+    console.log(festival_id, "festival_id")
+    console.log(festival_vendor_id, "festival vendor id")
     await db.transaction(async (trx) => {
-      for (let item of festival_id) {
-        const db_host = await trx("festivals")
-          .where({ festival_id: item })
-          .update({
-            festival_vendor_id: trx.raw(
-              "array_append(festival_vendor_id, ?)",
-              [festival_vendor_id]
-            ),
-          })
-          .returning("*");
-
-        if (!db_host) {
-          return { success: false, details: "Inserting new host failed." };
+      if (typeof(festival_id) === "object") {
+        for (let item of festival_id) {
+          const db_host = await trx("festivals")
+            .where({ festival_id: item })
+            .update({
+              festival_vendor_id: trx.raw(
+                "array_append(festival_vendor_id, ?)",
+                [festival_vendor_id]
+              ),
+            })
+            .returning("*");
+  
+          if (!db_host) {
+            return { success: false, details: "Inserting new host failed." };
+          }
         }
+      } else {
+        const db_host = await trx("festivals")
+        .where({ festival_id })
+        .update({
+          festival_vendor_id: trx.raw(
+            "array_append(festival_vendor_id, ?)",
+            [festival_vendor_id]
+          ),
+        })
+        .returning("*");
+
+      if (!db_host) {
+        return { success: false, details: "Inserting new host failed." };
       }
+    }
     });
     return { success: true, details: "Success." };
   } catch (error) {
@@ -263,4 +334,6 @@ module.exports = {
   sponsorToFestival,
   getFestivalDetails,
   getFestivalRestaurants,
+  getAllFestivalsPresent,
+  updateFestival
 };

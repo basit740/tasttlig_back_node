@@ -40,7 +40,7 @@ const getOrderDetails = async (order_details) => {
     return await db("subscriptions")
       .where({
         subscription_code: order_details.item_id,
-        status: "ACTIVE",
+        //status: "ACTIVE",
       })
       .first()
       .then((value) => {
@@ -104,7 +104,24 @@ const getOrderDetails = async (order_details) => {
       .catch((error) => {
         return { success: false, message: error };
       });
-  } else if (order_details.item_type === "product") {
+  } else if (order_details.item_type === "vendor") {
+    return await db("business_details")
+      .where({
+        festival_id: order_details.item_id,
+      })
+      .first()
+      .then((value) => {
+        if (!value) {
+          return { success: false, message: "No festival found." };
+        }
+
+        return { success: true, item: value };
+      })
+      .catch((error) => {
+        return { success: false, message: error };
+      });
+  } 
+  else if (order_details.item_type === "product") {
     return await db("products")
       .where({
         product_id: order_details.item_id,
@@ -235,7 +252,7 @@ const getCartOrderDetails = async (cartItems) => {
 const createOrder = async (order_details, db_order_details) => {
   if (
     order_details.item_type === "plan" ||
-    order_details.item_type === "subscription"
+    order_details.item_type === "subscription" || order_details.item_type === "package"
   ) {
     try {
       await db.transaction(async (trx) => {
@@ -256,6 +273,8 @@ const createOrder = async (order_details, db_order_details) => {
         if (!db_orders) {
           return { success: false, details: "Inserting new order failed." };
         }
+        //console.log(db_orders);
+        //console.log(db_order_details);
 
         await trx("order_items").insert({
           order_id: db_orders[0].order_id,
@@ -295,6 +314,7 @@ const createOrder = async (order_details, db_order_details) => {
         // );
 
         // Get role code of new role to be added
+        if (!db_order_details.item.subscription_name === "vendor_basic") {
         const new_role_code = await trx("roles")
           .select()
           .where({ role: db_order_details.item.subscription_name })
@@ -307,7 +327,9 @@ const createOrder = async (order_details, db_order_details) => {
           user_id: order_details.user_id,
           role_code: new_role_code,
         });
+      }
       });
+    
 
       const membership_plan_name = _.startCase(order_details.item_id);
 
@@ -322,7 +344,7 @@ const createOrder = async (order_details, db_order_details) => {
           membership_plan_name,
         },
       });
-
+      console.log("success")
       return { success: true, details: "Success." };
     } catch (error) {
       return { success: false, details: error.message };

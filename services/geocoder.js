@@ -12,6 +12,7 @@ const geocoder = NodeGeocoder({
 // Set address co-ordinates helper function
 const setAddressCoordinates = async (details) => {
   try {
+    console.log("details from coordinates: ", details)
     const address = [
       details.address,
       details.city,
@@ -19,15 +20,16 @@ const setAddressCoordinates = async (details) => {
       details.country,
       details.postal_code,
     ].join(",");
-
+    
     const coordinates = (await geocoder.geocode(address))[0];
-
+    
     details.latitude = coordinates.latitude;
     details.longitude = coordinates.longitude;
     details.coordinates = gis.setSRID(
       gis.makePoint(coordinates.longitude, coordinates.latitude),
       4326
-    );
+      );
+      console.log("coordinates: ",details)
 
     return details;
   } catch (error) {

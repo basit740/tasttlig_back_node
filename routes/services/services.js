@@ -75,7 +75,7 @@ router.post(
         service_size_scope: req.body.service_size_scope,
         service_description: req.body.service_description,
         service_festival_id: req.body.service_festival_id
-        ?[req.body.service_festival_id]
+        ? req.body.service_festival_id
         : null,
         service_code: generateRandomString(4),
         service_status: "ACTIVE",
@@ -134,10 +134,12 @@ router.get("/services/user/:user_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
+
   try {
     const response = await services_service.getServicesFromUser(
       req.params.user_id
-    );console.log('services/user res',res.body);
+    );
+
     return res.send(response);
   } catch (error) {
     res.send({

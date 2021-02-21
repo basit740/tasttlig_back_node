@@ -15,8 +15,14 @@ const getHostApplications = async () => {
         "applications.user_id",
         "tasttlig_users.tasttlig_user_id"
       )
+      // .leftJoin(
+      //   "food_samples",
+      //   "applications.user_id",
+      //   "food_samples.food_sample_creater_user_id"
+      // )
       .groupBy("applications.application_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
+      // .groupBy("food_samples.food_sample_creater_user_id")
       .having("applications.status", "=", "Pending");
 
     return {
@@ -150,7 +156,103 @@ const getHostApplication = async (userId) => {
   }
 };
 
+const saveApplicationInformation = async (hostDto, trx) => {
+  console.log("hello")
+  let applications = [];
+  let role_name = "";
+  let is_host = "yes"
+
+console.log('hello')
+  if (is_host === "yes") {
+    applications.push({
+      user_id: hostDto.host_user_id,
+      video_link: hostDto.host_video_url,
+      // youtube_link: hostDto.host_youtube_link,
+      reason: hostDto.host_description,
+      // resume: hostDto.host_selection_resume,
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "host",
+      status: "Pending",
+    });
+    role_name = "HOST_PENDING";
+  }
+  console.log(role_name);
+
+  // Save sponsor application to applications table
+  // if (applications.length == 0 && hostDto.is_sponsor) {
+  //   applications.push({
+  //     user_id: hostDto.dbUser.user.tasttlig_user_id,
+  //     reason: "",
+  //     created_at: new Date(),
+  //     updated_at: new Date(),
+  //     type: "sponsor",
+  //     status: "Pending",
+  //   });
+  //   role_name = "SPONSOR_PENDING";
+  // }
+
+/*    if (applications.length == 0 && hostDto.is_host === "no") {
+    applications.push({
+       user_id: hostDto.dbUser.user.tasttlig_user_id,
+       reason: "",
+     created_at: new Date(),
+       updated_at: new Date(),
+       type: "vendor",
+       status: "Pending",
+     });
+     role_name = "VENDOR_PENDING";
+   } */
+
+  // Get role code of new role to be added
+  console.log(role_name);
+  const new_role_code = await trx("roles")
+    .select()
+    .where({ role: role_name })
+    .then((value) => {
+      return value[0].role_code;
+    });
+    console.log("new role: ", new_role_code)
+
+  // Insert new role for this user
+  await trx("user_role_lookup").insert({
+    user_id: hostDto.host_user_id,
+    role_code: new_role_code,
+  });
+  console.log("applications:", applications)
+
+  return trx("applications")
+    .insert(applications)
+    .returning("*")
+    .catch((reason) => {
+      console.log(reason);
+    });
+};
+
+
+const createHost = async (host_details) => {
+  try {
+    await db.transaction(async (trx) => {
+      await  saveApplicationInformation(host_details, trx);
+      const db_preference = await trx("hosts")
+        .insert(host_details)
+        .returning("*");
+
+      if (!db_preference) {
+        return { success: false, details: "Inserting new preference failed." };
+      }
+
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
+
+
 module.exports = {
   getHostApplications,
   getHostApplication,
+  createHost
 };
