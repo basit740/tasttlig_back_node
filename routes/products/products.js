@@ -90,8 +90,8 @@ router.post(
 
       for (let product of body) {
         let productInFestival
-        if (product.festivalId) {
-          productInFestival = product.festivalId;
+        if (product.product_festival_id) {
+          productInFestival = product.product_festival_id;
         } else {
           productInFestival = null;
         }
@@ -130,8 +130,8 @@ router.post(
       }
     } else {
       let productInFestival
-      if (body.festivalId) {
-        productInFestival = body.festivalId;
+      if (body.product_festival_id) {
+        productInFestival = body.product_festival_id;
       } else {
         productInFestival = null;
       }
