@@ -245,7 +245,9 @@ router.post(
 
       if (
         user_details_from_db.user.role.includes("VENDOR") ||
-        user_details_from_db.user.role.includes("VENDOR_PENDING")
+        user_details_from_db.user.role.includes("VENDOR_PENDING") ||
+        user_details_from_db.user.role.includes("SPONSOR") ||
+        user_details_from_db.user.role.includes("SPONSOR_PENDING")
       ) {
         if (!business_details_from_db.success) {
           return res.status(403).json({
@@ -280,7 +282,7 @@ router.post(
           product_expiry_date: product.product_expiry_date,
           product_expiry_time: product.product_expiry_time,
           product_description: product.product_description,
-          product_festivals_id: [productInFestival],
+          product_festivals_id: productInFestival,
           product_code: generateRandomString(4),
           product_status: "ACTIVE",
           product_created_at_datetime: new Date(),

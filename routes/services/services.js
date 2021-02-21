@@ -49,8 +49,8 @@ router.post(
       );
 
       if (
-        user_details_from_db.user.role.includes("RESTAURANT") ||
-        user_details_from_db.user.role.includes("RESTAURANT_PENDING")
+        user_details_from_db.user.role.includes("SPONSOR") ||
+        user_details_from_db.user.role.includes("SPONSOR_PENDING")
       ) {
         if (!business_details_from_db.success) {
           return res.status(403).json({
