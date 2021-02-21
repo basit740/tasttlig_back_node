@@ -75,7 +75,7 @@ router.post(
         service_size_scope: req.body.service_size_scope,
         service_description: req.body.service_description,
         service_festival_id: req.body.service_festival_id
-        ?req.body.service_festival_id
+        ?[req.body.service_festival_id]
         : null,
         service_code: generateRandomString(4),
         service_status: "ACTIVE",
