@@ -4,7 +4,7 @@ exports.up = function(knex) {
            
       
         table.specificType("cuisine_type", 'VARCHAR[]');
-        table.string("has_hosted_anything_before");
+        table.specificType("has_hosted_anything_before", 'VARCHAR[]');
         
         
            
