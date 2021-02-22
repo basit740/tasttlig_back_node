@@ -31,8 +31,9 @@ router.post(
       !body.product_expiry_time ||
       !body.product_description ||
       !body.product_images
-      //||
+      ||
      // !req.body.product_festival_id
+      !req.body.product_creator_type
     ) {
       return res.status(403).json({
         success: false,
@@ -67,12 +68,12 @@ router.post(
       } else {
         business_details_from_db = await authentication_service.getUserByBusinessDetails(
           user_details_from_db.user.tasttlig_user_id)
-      }
-      ;
+      };
 
       if (
         user_details_from_db.user.role.includes("VENDOR") ||
-        user_details_from_db.user.role.includes("VENDOR_PENDING")
+        user_details_from_db.user.role.includes("VENDOR_PENDING") ||
+        user_details_from_db.user.role.includes("SPONSOR_PENDING")
       ) {
         if (!business_details_from_db.success) {
           return res.status(403).json({
@@ -90,8 +91,8 @@ router.post(
 
       for (let product of body) {
         let productInFestival
-        if (product.festivalId) {
-          productInFestival = product.festivalId;
+        if (product.product_festival_id) {
+          productInFestival = product.product_festival_id;
         } else {
           productInFestival = null;
         }
@@ -107,11 +108,17 @@ router.post(
           product_expiry_date: product.product_expiry_date,
           product_expiry_time: product.product_expiry_time,
           product_description: product.product_description,
-          product_festivals_id: [productInFestival],
+          product_festivals_id: Array.isArray(productInFestival)
+          ? productInFestival
+          : productInFestival?
+          [productInFestival]
+          : null,
           product_code: generateRandomString(4),
           product_status: "ACTIVE",
           product_created_at_datetime: new Date(),
           product_updated_at_datetime: new Date(),
+          product_creator_type: req.body.product_creator_type,
+          product_user_id: req.user.id,
         };
          const response = await products_service.createNewProduct(
           user_details_from_db,
@@ -130,8 +137,8 @@ router.post(
       }
     } else {
       let productInFestival
-      if (body.festivalId) {
-        productInFestival = body.festivalId;
+      if (body.product_festival_id) {
+        productInFestival = body.product_festival_id;
       } else {
         productInFestival = null;
       }
@@ -147,11 +154,17 @@ router.post(
         product_expiry_date: body.product_expiry_date,
         product_expiry_time: body.product_expiry_time,
         product_description: body.product_description,
-        product_festivals_id: [productInFestival],
+        product_festivals_id: Array.isArray(productInFestival)
+        ? productInFestival
+        : productInFestival?
+        [productInFestival]
+        : null,
         product_code: generateRandomString(4),
         product_status: "ACTIVE",
         product_created_at_datetime: new Date(),
         product_updated_at_datetime: new Date(),
+        product_creator_type: req.body.product_creator_type,
+        product_user_id: req.user.id,
       };
        const response = await products_service.createNewProduct(
         user_details_from_db,
@@ -204,8 +217,9 @@ router.post(
       !body.product_expiry_time ||
       !body.product_description ||
       !body.product_images
-      //||
+      ||
      // !req.body.product_festival_id
+      !req.body.product_creator_type
     ) {
       return res.status(403).json({
         success: false,
@@ -246,7 +260,6 @@ router.post(
       if (
         user_details_from_db.user.role.includes("VENDOR") ||
         user_details_from_db.user.role.includes("VENDOR_PENDING") ||
-        user_details_from_db.user.role.includes("SPONSOR") ||
         user_details_from_db.user.role.includes("SPONSOR_PENDING")
       ) {
         if (!business_details_from_db.success) {
@@ -265,8 +278,8 @@ router.post(
 
       for (let product of req.body) {
         let productInFestival
-        if (product.festivalId) {
-          productInFestival = product.festivalId;
+        if (product.product_festival_id) {
+          productInFestival = product.product_festival_id;
         } else {
           productInFestival = null;
         }
@@ -282,11 +295,17 @@ router.post(
           product_expiry_date: product.product_expiry_date,
           product_expiry_time: product.product_expiry_time,
           product_description: product.product_description,
-          product_festivals_id: productInFestival,
+          product_festivals_id: Array.isArray(productInFestival)
+          ? productInFestival
+          : productInFestival?
+          [productInFestival]
+          : null,
           product_code: generateRandomString(4),
           product_status: "ACTIVE",
           product_created_at_datetime: new Date(),
           product_updated_at_datetime: new Date(),
+          product_creator_type: req.body.product_creator_type,
+          product_user_id: req.user.id,
         };
          const response = await products_service.createNewProduct(
           user_details_from_db,
@@ -305,8 +324,8 @@ router.post(
       }
     } else {
       let productInFestival
-      if (body.festivalId) {
-        productInFestival = body.festivalId;
+      if (body.product_festival_id) {
+        productInFestival = body.product_festival_id;
       } else {
         productInFestival = null;
       }
@@ -322,11 +341,17 @@ router.post(
         product_expiry_date: body.product_expiry_date,
         product_expiry_time: body.product_expiry_time,
         product_description: body.product_description,
-        product_festivals_id: [productInFestival],
+        product_festivals_id: Array.isArray(productInFestival)
+        ? productInFestival
+        : productInFestival?
+        [productInFestival]
+        : null,
         product_code: generateRandomString(4),
         product_status: "ACTIVE",
         product_created_at_datetime: new Date(),
         product_updated_at_datetime: new Date(),
+        product_creator_type: req.body.product_creator_type,
+        product_user_id: req.user.id,
         product_creator_type: req.body.product_creator_type,
         product_user_id: req.user.id,
       };
