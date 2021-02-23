@@ -6,8 +6,14 @@ const { formatTime } = require("../../functions/functions");
 
 // Get all festivals helper function
 const getAllFestivals = async (currentPage, keyword, filters) => {
-  let startDate = filters.startDate.substring(0, 10);
-  let startTime = formatTime(filters.startTime);
+  let startDate;
+  let startTime;
+    if (filters.stateDate) {
+       startDate = filters.startDate.substring(0, 10);
+    }
+    if (filters.startTime) {
+       startTime = formatTime(filters.startTime);
+    }
   let query = db
     .select(
       "festivals.*",
