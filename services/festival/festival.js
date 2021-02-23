@@ -89,8 +89,16 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
 const getAllFestivalsPresent = async () => {
   
   return await db
-  .select("festivals.*")
+  .select(
+    "festivals.*",
+    db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+  )
   .from("festivals")
+  .leftJoin(
+    "festival_images",
+    "festivals.festival_id",
+    "festival_images.festival_id"
+  )
   .where("festivals.festival_id", ">", 3)
   .groupBy("festivals.festival_id")
   .then((value) => {
