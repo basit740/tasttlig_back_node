@@ -723,4 +723,22 @@ router.get(
   }
 );
 
+const passport_service = require("../../services/passport/businessPassport");
+
+router.post("/business-passport", token_service.authenticateToken, async (req, res) => {
+  console.log("here", req.body)
+  try {
+    const response = await passport_service.postBusinessPassportDetails(
+      req.body
+    );
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 module.exports = router;
