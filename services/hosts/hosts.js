@@ -42,7 +42,10 @@ const getHostApplication = async (userId) => {
         "tasttlig_users.*",
         "business_details.*",
         "sponsors.*",
+        "hosts.*",
+        "food_samples.*",
         "payment_info.*",
+        "food_sample_images.image_url",
         db.raw("ARRAY_AGG(roles.role) as role")
       )
       .from("tasttlig_users")
@@ -50,6 +53,16 @@ const getHostApplication = async (userId) => {
         "business_details",
         "tasttlig_users.tasttlig_user_id",
         "business_details.business_details_user_id"
+      )
+      .leftJoin(
+        "hosts",
+        "tasttlig_users.tasttlig_user_id",
+        "hosts.host_user_id"
+      )
+      .leftJoin(
+        "food_samples",
+        "tasttlig_users.tasttlig_user_id",
+        "food_samples.food_sample_creater_user_id"
       )
       .leftJoin(
         "sponsors",
@@ -67,6 +80,10 @@ const getHostApplication = async (userId) => {
         "user_role_lookup.user_id"
       )
       .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+      .leftJoin("food_sample_images", "food_samples.food_sample_id", "food_sample_images.food_sample_id")
+      .groupBy("food_sample_images.food_sample_image_id")
+      .groupBy("food_samples.food_sample_id")
+      .groupBy("hosts.host_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
       .groupBy("business_details.business_details_id")
       .groupBy("sponsors.sponsor_id")
@@ -156,14 +173,14 @@ const getHostApplication = async (userId) => {
   }
 };
 
-const saveApplicationInformation = async (hostDto, trx) => {
-  console.log("hello")
+const saveApplicationInformation = async (hostDto, is_host, trx) => {
+  console.log("is_host", is_host)
   let applications = [];
   let role_name = "";
-  let is_host = "yes"
 
 console.log('hello')
   if (is_host === "yes") {
+    console.log("im in is_host", is_host)
     applications.push({
       user_id: hostDto.host_user_id,
       video_link: hostDto.host_video_url,
@@ -177,7 +194,7 @@ console.log('hello')
     });
     role_name = "HOST_PENDING";
   }
-  console.log(role_name);
+  console.log("role name",  role_name);
 
   // Save sponsor application to applications table
   // if (applications.length == 0 && hostDto.is_sponsor) {
@@ -205,7 +222,6 @@ console.log('hello')
    } */
 
   // Get role code of new role to be added
-  console.log(role_name);
   const new_role_code = await trx("roles")
     .select()
     .where({ role: role_name })
@@ -230,10 +246,10 @@ console.log('hello')
 };
 
 
-const createHost = async (host_details) => {
+const createHost = async (host_details, is_host) => {
   try {
     await db.transaction(async (trx) => {
-      await  saveApplicationInformation(host_details, trx);
+      await  saveApplicationInformation(host_details, is_host, trx);
       const db_preference = await trx("hosts")
         .insert(host_details)
         .returning("*");
