@@ -314,14 +314,15 @@ router.put(
     try {
       if (
         !user_age ||
-        !user_gender||
+        
         !user_occupation ||
         !user_marital_status ||
         // !user_country ||
         !user_city ||
-        !user_zip_code ||
-        !user_street_name ||
-        !user_gender
+        !user_zip_code
+        //!user_gender||
+        //!user_street_name ||
+        //!user_gender
       ) {
         return res.status(403).json({
           success: false,
