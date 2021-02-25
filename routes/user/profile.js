@@ -138,6 +138,9 @@ router.post(
   "/complete-profile/preference/:id",
   token_service.authenticateToken,
   async (req, res) => {
+    console.log("here");
+    console.log(req.body);
+    console.log(req.params)
     const {
       preferred_country_cuisine,
       food_preferences,
@@ -152,16 +155,16 @@ router.post(
       }
 
       try {
-        const user_details_from_db = await user_profile_service.getUserById(
-          req.user.id
-        );
+        // const user_details_from_db = await user_profile_service.getUserById(
+        //   req.user.id
+        // );
 
-        if (!user_details_from_db.success) {
-          return res.status(403).json({
-            success: false,
-            message: user_details_from_db.message,
-          });
-        }
+        // if (!user_details_from_db.success) {
+        //   return res.status(403).json({
+        //     success: false,
+        //     message: user_details_from_db.message,
+        //   });
+        // }
 
         const preference_details = {
           food_preferences,
@@ -170,7 +173,8 @@ router.post(
         };
 
         const response = await user_profile_service.createPreferences(
-          preference_details
+          preference_details,
+          req.params["id"]
         );
 
         return res.send(response);
@@ -310,13 +314,13 @@ router.put(
     try {
       if (
         !user_age ||
+        !user_gender||
         !user_occupation ||
         !user_marital_status ||
         // !user_country ||
         !user_city ||
         !user_zip_code ||
         !user_street_name ||
-        !user_street_number ||
         !user_gender
       ) {
         return res.status(403).json({
@@ -340,6 +344,7 @@ router.put(
         }
 
         const user_info = {
+          user_gender,
           user_age,
           user_occupation,
           user_marital_status,

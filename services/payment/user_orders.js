@@ -12,6 +12,31 @@ const _ = require("lodash");
 // Environment variables
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
+// Get vendor package details
+
+const getVendorSubscriptionDetails = async() => {
+  return await await db("subscriptions")
+  .select("subscription_name", "price")
+  .where("subscription_name", "LIKE", "vendor%")
+  }
+
+// const getNationalities = async (keyword) => {
+//   try {
+//     return await db("nationalities")
+//       .select("nationality")
+//       .having("nationality", "LIKE", keyword + "%")
+//       .returning("*")
+//       .then((value) => {
+//         return { success: true, details: value[0] };
+//       })
+//       .catch((reason) => {
+//         return { success: false, details: reason };
+//       });
+//   } catch (error) {
+//     return { success: false, message: error };
+//   }
+// };
+
 // Get order details helper function
 const getOrderDetails = async (order_details) => {
   const sponsorshipPackagesAdapter = () => {
@@ -936,4 +961,5 @@ module.exports = {
   getCartOrderDetails,
   createCartOrder,
   getAllUserOrders,
+  getVendorSubscriptionDetails
 };
