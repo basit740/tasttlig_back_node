@@ -45,6 +45,7 @@ const getHostApplication = async (userId) => {
         "hosts.*",
         "food_samples.*",
         "payment_info.*",
+        "business_details_images.*",
         "food_sample_images.image_url",
         db.raw("ARRAY_AGG(roles.role) as role")
       )
@@ -63,6 +64,11 @@ const getHostApplication = async (userId) => {
         "food_samples",
         "tasttlig_users.tasttlig_user_id",
         "food_samples.food_sample_creater_user_id"
+      )
+      .leftJoin(
+        "business_details_images",
+        "business_details.business_details_id",
+        "business_details_images.business_details_id"
       )
       .leftJoin(
         "sponsors",
@@ -84,6 +90,7 @@ const getHostApplication = async (userId) => {
       .groupBy("food_sample_images.food_sample_image_id")
       .groupBy("food_samples.food_sample_id")
       .groupBy("hosts.host_id")
+      .groupBy("business_details_images.business_details_image_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
       .groupBy("business_details.business_details_id")
       .groupBy("sponsors.sponsor_id")
