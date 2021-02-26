@@ -20,9 +20,10 @@ router.post(
       !req.body.service_capacity ||
       !req.body.service_size_scope ||
       !req.body.service_description ||
-      !req.body.service_images ||
+      !req.body.service_images 
+      //||
       //!req.body.service_festival_id ||
-      !req.body.service_creator_type
+     // !req.body.service_creator_type
     ) {
       return res.status(403).json({
         success: false,
@@ -75,13 +76,13 @@ router.post(
         service_size_scope: req.body.service_size_scope,
         service_description: req.body.service_description,
         service_festival_id: req.body.service_festival_id
-        ? req.body.service_festival_id
+        ? [req.body.service_festival_id]
         : null,
         service_code: generateRandomString(4),
         service_status: "ACTIVE",
         service_created_at_datetime: new Date(),
         service_updated_at_datetime: new Date(),
-        service_creator_type: req.body.service_creator_type,
+        service_creator_type: req.body.service_creator_type ? req.body.service_creator_type : null,
         service_user_id: req.user.id,
       };
 
@@ -90,9 +91,10 @@ router.post(
         service_information,
         req.body.service_images
       );
-
+        console.log(response);
       return res.send(response);
     } catch (error) {
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -115,9 +117,10 @@ router.get("/services/festival/:festival_id", async (req, res) => {
     const response = await services_service.getServicesInFestival(
       req.params.festival_id
     );
-
+      console.log(response);
     return res.send(response);
   } catch (error) {
+    console.log(error)
     res.send({
       success: false,
       message: "Error.",

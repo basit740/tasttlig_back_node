@@ -157,12 +157,9 @@ const getHostApplication = async (userId) => {
 };
 
 const saveApplicationInformation = async (hostDto, trx) => {
-  console.log("hello")
   let applications = [];
   let role_name = "";
   let is_host = "yes"
-
-console.log('hello')
   if (is_host === "yes") {
     applications.push({
       user_id: hostDto.host_user_id,

@@ -7,7 +7,7 @@ exports.up = function(knex) {
         .references("tasttlig_user_id").inTable("tasttlig_users");
       table.string("vendor_type");
       table.string("vendor_business_id").unsigned().index()
-        .references("business_details_user_id").inTable("business_details");
+        .references("business_details_id").inTable("business_details");
       table.text("vendor_description");
       
       

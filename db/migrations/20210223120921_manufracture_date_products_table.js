@@ -4,7 +4,7 @@ exports.up = function(knex) {
     return knex.schema.alterTable("products", table => {
            
       
-        table.datetime("product_manufacture_date");
+        table.date("product_manufacture_date");
         
               
     });

@@ -28,7 +28,7 @@ router.post(
       !body.product_quantity ||
       !body.product_size ||
       !body.product_expiry_date ||
-      !body.product_expiry_time ||
+      //!body.product_expiry_time ||
       !body.product_description ||
       !body.product_images
       //||
@@ -145,7 +145,8 @@ router.post(
         product_quantity: body.product_quantity,
         product_size: body.product_size,
         product_expiry_date: body.product_expiry_date,
-        product_expiry_time: body.product_expiry_time,
+        //product_expiry_time: body.product_expiry_time,
+        product_manufacture_date: body.product_manufacture_date,
         product_description: body.product_description,
         product_festivals_id: [productInFestival],
         product_code: generateRandomString(4),
