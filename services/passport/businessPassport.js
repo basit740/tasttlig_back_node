@@ -19,9 +19,11 @@ const postBusinessPassportDetails = async (data) => {
         zip_postal_code: data["user_business_postal_code"],
         business_registered: data["user_business_registered"],
         retail_business: data["user_business_retail"],
+        business_registered_location: data["user_business_registered_location"],
         business_type: data["user_business_type"],
         food_business_type: data["user_business_food_type"],
         business_passport_id: generateRandomString("6"),
+        business_details_created_at_datetime: data["start_date"],
       };
 
       var business_details_id = await trx("business_details")

@@ -9,7 +9,7 @@ const getPassportDetails = async (userId, currentPage) => {
   const userIdInt = Number(userId);
   let query = db
     .select(
-      "PassPort.*",
+      "tasttlig_users.*",
       "ticket_details.*",
       "festivals.festival_id",
       "festivals.festival_name",
@@ -18,10 +18,10 @@ const getPassportDetails = async (userId, currentPage) => {
       "festivals.festival_start_date",
       "festivals.festival_end_date"
     )
-    .from("PassPort")
+    .from("tasttlig_users")
     .leftJoin(
       "ticket_details",
-      "PassPort.passport_user_id",
+      "tasttlig_users.tasttlig_user_id",
       "ticket_details.ticket_user_id"
     )
     .leftJoin(
@@ -29,9 +29,9 @@ const getPassportDetails = async (userId, currentPage) => {
       "ticket_details.ticket_festival_id",
       "festivals.festival_id"
     )
-    .where("PassPort.passport_user_id", "=", userIdInt)
-    .groupBy("PassPort.passport_user_id")
-    .groupBy("PassPort.passport_id")
+    .where("tasttlig_users.tasttlig_user_id", "=", userIdInt)
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .groupBy("tasttlig_users.passport_id")
     .groupBy("ticket_details.ticket_id")
     .groupBy("festivals.festival_id")
     .orderBy("festivals.festival_end_date", "asc");

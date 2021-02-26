@@ -1103,22 +1103,27 @@ const saveHostApplication = async (hostDto, user) => {
 };
 
 //create passport preferences helper function
-const createPreferences = async (preference_details) => {
+const createPreferences = async (preference_details, user_id) => {
   try {
-    await db.transaction(async (trx) => {
-      const db_preference = await trx("PassPort")
-        .insert(preference_details)
-        .returning("*");
-
-      if (!db_preference) {
-        return { success: false, details: "Inserting new preference failed." };
-      }
+    console.log(preference_details)
+        return await db("tasttlig_users")
+        .where("tasttlig_user_id", user_id)
+        .first()
+        .update({
+          food_preferences: preference_details["food_preferences"],
+          food_allergies: preference_details["food_allergies"],
+          preferred_country_cuisine: preference_details["preferred_country_cuisine"],
+        })
+    .returning("*")
+    .then((value) =>  {
+      return { success: true, details: value[0] };
+    })
+      .catch((reason) => {
+      return { success: false, details: reason };
     });
-
-    return { success: true, details: "Success." };
-  } catch (error) {
-    return { success: false, details: error.message };
-  }
+} catch (error) {
+  return { success: false, message: error };
+}
 };
 
 const sendHostApplicationEmails = async (dbUser, documents) => {
@@ -1202,5 +1207,5 @@ module.exports = {
   savePaymentInformation,
   saveBusinessServices,
   getNationalities,
-  createPreferences
+  //createPreferences
 };

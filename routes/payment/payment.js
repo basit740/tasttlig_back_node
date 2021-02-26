@@ -243,4 +243,23 @@ router.post("/payment/stripe/cart/success", async (req, res) => {
   }
 });
 
+
+// GET subscription details
+router.get("/vendor-subscription-details", async (req, res) => {
+    try {
+    
+        const vendor_subscription_details = await user_order_service.getVendorSubscriptionDetails(
+      
+    );
+
+      return res.send(vendor_subscription_details);
+    } 
+      catch (error) {
+        res.send({
+        success: false,
+        message: error.message,
+      });
+  }
+});
+
 module.exports = router;
