@@ -352,6 +352,19 @@ const saveApplicationInformation = async (hostDto, trx) => {
     
 
   }
+  if (applications.length === 0) {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "sponsor",
+      status: "Pending",
+    });
+    role_name = "SPONSOR_PENDING";
+  
+
+}
 
 /*   if (applications.length == 0 && hostDto.is_host === "no") {
     applications.push({

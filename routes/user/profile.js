@@ -133,6 +133,29 @@ router.post("/user/vendor", async (req, res) => {
   }
 });
 
+router.post("/user/sponsor", async (req, res) => {
+  //console.log(req.body, "request body");
+  try {
+    const hostDto = req.body;
+    const response = await user_profile_service.saveHostApplication(
+      hostDto,
+      req.user
+    );
+
+    if (response.success) {
+      return res.send(response);
+    }
+
+    return res.status(500).send(response);
+  } catch (error) {
+    console.log(error);
+    return res.status(403).json({
+      success: false,
+      message: error,
+    });
+  }
+});
+
 // POST application from multi-step form
 router.post(
   "/complete-profile/preference/:id",

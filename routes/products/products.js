@@ -73,7 +73,8 @@ router.post(
       if (
         user_details_from_db.user.role.includes("VENDOR") ||
         user_details_from_db.user.role.includes("VENDOR_PENDING") ||
-        user_details_from_db.user.role.includes("SPONSOR_PENDING")
+        user_details_from_db.user.role.includes("SPONSOR_PENDING")||
+        user_details_from_db.user.role.includes("SPONSOR")
       ) {
         if (!business_details_from_db.success) {
           return res.status(403).json({
@@ -260,7 +261,8 @@ router.post(
       if (
         user_details_from_db.user.role.includes("VENDOR") ||
         user_details_from_db.user.role.includes("VENDOR_PENDING") ||
-        user_details_from_db.user.role.includes("SPONSOR_PENDING")
+        user_details_from_db.user.role.includes("SPONSOR_PENDING")||
+        user_details_from_db.user.role.includes("SPONSOR")
       ) {
         if (!business_details_from_db.success) {
           return res.status(403).json({
