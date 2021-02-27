@@ -188,14 +188,15 @@ const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
   return await db.transaction(async (trx) => {
     const sponsorInfo = {
       sponsor_user_id,
+      sponsor_business_id : sponsorDto.sponsor_business_id,
       /* sponsor_name: sponsorDto.business_name,
       sponsor_address_1: sponsorDto.address_line_1,
       sponsor_address_2: sponsorDto.address_line_2,
       sponsor_city: sponsorDto.business_city,
       sponsor_state: sponsorDto.state,
       sponsor_postal_code: sponsorDto.postal_code,
-      sponsor_country: sponsorDto.country, */
-      sponsor_description: sponsorDto.description,
+      sponsor_country: sponsorDto.country, 
+      sponsor_description: sponsorDto.description,*/
     };
 
     const checkForUpdate = await trx("sponsors")
