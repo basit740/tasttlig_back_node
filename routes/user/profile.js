@@ -7,6 +7,7 @@ const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const point_system_service = require("../../services/profile/points_system");
 const menu_item_service = require("../../services/menu_items/menu_items");
+const authentication_service = require("../../services/authentication/authenticate_user")
 
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
@@ -87,9 +88,9 @@ const extractFile = (requestBody, key, text) => {
 };
 
 // POST application from multi-step form
-router.post("/user/host",  token_service.authenticateToken, async (req, res) => {
+router.post("/user/host", token_service.authenticateToken, async (req, res) => {
   console.log(req.body);
-  console.log(req.user)
+  console.log(req.user);
   try {
     const hostDto = req.body;
     const response = await user_profile_service.saveHostApplication(
@@ -103,7 +104,7 @@ router.post("/user/host",  token_service.authenticateToken, async (req, res) => 
 
     return res.status(500).send(response);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(403).json({
       success: false,
       message: error,
@@ -133,6 +134,29 @@ router.post("/user/vendor", async (req, res) => {
   }
 });
 
+router.post("/user/sponsor", async (req, res) => {
+  //console.log(req.body, "request body");
+  try {
+    const hostDto = req.body;
+    const response = await user_profile_service.saveHostApplication(
+      hostDto,
+      req.user
+    );
+
+    if (response.success) {
+      return res.send(response);
+    }
+
+    return res.status(500).send(response);
+  } catch (error) {
+    console.log(error);
+    return res.status(403).json({
+      success: false,
+      message: error,
+    });
+  }
+});
+
 // POST application from multi-step form
 router.post(
   "/complete-profile/preference/:id",
@@ -140,7 +164,7 @@ router.post(
   async (req, res) => {
     console.log("here");
     console.log(req.body);
-    console.log(req.params)
+    console.log(req.params);
     const {
       preferred_country_cuisine,
       food_preferences,
@@ -314,7 +338,6 @@ router.put(
     try {
       if (
         !user_age ||
-        
         !user_occupation ||
         !user_marital_status ||
         // !user_country ||
@@ -731,20 +754,102 @@ router.get(
 
 const passport_service = require("../../services/passport/businessPassport");
 
-router.post("/business-passport", token_service.authenticateToken, async (req, res) => {
-  console.log("here", req.body)
-  try {
-    const response = await passport_service.postBusinessPassportDetails(
-      req.body
-    );
-    return res.send(response);
-  } catch (error) {
-    res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
-    });
-  }
-});
+router.post(
+  "/business-passport",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const response = await passport_service.postBusinessPassportDetails(
+        req.body
+      );
 
+      console.log('res',response.success);
+      console.log('body',req.body);
+      if (response.success && req.body.is_sponsor) {
+        saveUserApplicationToSponsor(req, res);
+      }
+else{
+      console.log('return',response);
+      return res.send(response);
+}
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
+
+const saveUserApplicationToSponsor = async (req, res)=>{
+  console.log('inside d funct', req.user);
+  // save sponsor application
+  const hostDto = {
+    is_sponsor: req.body.is_sponsor,
+    email: req.user.email,
+  };
+  console.log('hostdto',hostDto);
+  const saveHost = await user_profile_service.saveHostApplication(
+    hostDto,
+    req.user
+  );
+  console.log('savehost',saveHost);
+
+  //save sponsor for user
+  if (saveHost.success) {
+    try{
+    const db_user = await authenticate_user_service.findUserByEmail(
+      req.user.email
+    );
+    console.log('db_user',db_user);
+
+    if (!db_user.success) {
+      return res.status(403).json({
+        success: false,
+        message: "error",
+      });
+    }
+
+    const business_details = await authentication_service.getUserByBusinessDetails(
+      req.user.id
+    );
+    console.log('business_details',business_details);
+    if (!business_details.success) {
+      return res.status(403).json({
+        success: false,
+        message: business_details.message,
+      });
+    }
+
+    const sponsorData = {
+      sponsor_business_id:
+        business_details.business_details.business_details_id,
+    };
+    console.log('sponsor data',sponsorData);
+    const saveSponsorUser = await user_profile_service.saveSponsorForUser(
+      sponsorData,
+      db_user.user.tasttlig_user_id
+    ); //end
+
+    console.log('saveSponsorUser',saveSponsorUser);
+    if (!saveSponsorUser.success) {
+      return res.status(403).json({
+        success: false,
+        message: "error",
+      });
+    }
+    
+    console.log('final',saveSponsorUser.success);
+    return res.send(saveSponsorUser);
+} catch (error) {
+  res.send({
+    success: false,
+    message: "Error.",
+    response: error.message,
+  });
+}
+    //catch
+  }
+}
 module.exports = router;

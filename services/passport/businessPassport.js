@@ -30,7 +30,7 @@ const postBusinessPassportDetails = async (data) => {
         .insert(business_details)
         .returning("business_details_id");
 
-        console.log(business_details_id[0]);
+        console.log("detail id",business_details_id[0]);
 
       const business_details_images = {
         business_details_logo: data["user_business_logo"],
