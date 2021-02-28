@@ -70,7 +70,7 @@ const getServicesInFestival = async (festival_id) => {
       "services.service_id",
       "service_images.service_id"
     )
-    .leftJoin(
+    .join(
       "festivals",
       "services.service_festival_id[1]",
       "festivals.festival_id"
@@ -89,9 +89,11 @@ const getServicesInFestival = async (festival_id) => {
     .groupBy("business_details.zip_postal_code")
     .having("services.service_festival_id", "@>", [festival_id])
     .then((value) => {
+      console.log("service",value)
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log("service",reason)
       return { success: false, details: reason };
     });
 };

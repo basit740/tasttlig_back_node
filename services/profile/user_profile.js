@@ -286,6 +286,7 @@ const saveBusinessServices = async (db_user, services) => {
 const saveApplicationInformation = async (hostDto, trx) => {
   let applications = [];
   let role_name = "";
+  console.log("hostDto", hostDto);
 
   if (hostDto.is_host === "yes") {
     applications.push({
@@ -1078,7 +1079,7 @@ const getUserByPassportIdOrEmail = async (passport_id_or_email) => {
 // Save application from multi-step form to applications table helper function
 const saveHostApplication = async (hostDto, user) => {
   let dbUser = null;
-
+  console.log("user", user);
   if (user) {
     dbUser = await getUserById(user.id);
   }
@@ -1086,9 +1087,9 @@ const saveHostApplication = async (hostDto, user) => {
   if (dbUser == null || !dbUser.success) {
     dbUser = await getUserByPassportIdOrEmail(hostDto.email);
   }
-
+  
   hostDto.dbUser = dbUser;
-
+  console.log(hostDto.dbUser);
   return await db.transaction(async (trx) => {
     await saveApplicationInformation(hostDto, trx);
 

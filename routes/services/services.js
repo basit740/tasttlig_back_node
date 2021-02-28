@@ -50,8 +50,7 @@ router.post(
       );
 
       if (
-        user_details_from_db.user.role.includes("RESTAURANT") ||
-        user_details_from_db.user.role.includes("RESTAURANT_PENDING")
+        user_details_from_db.user.role.includes("SPONSOR_PENDING")
       ) {
         if (!business_details_from_db.success) {
           return res.status(403).json({
@@ -75,8 +74,10 @@ router.post(
         service_capacity: req.body.service_capacity,
         service_size_scope: req.body.service_size_scope,
         service_description: req.body.service_description,
-        service_festival_id: req.body.service_festival_id
-        ? [req.body.service_festival_id]
+        service_festival_id: Array.isArray(req.body.service_festival_id)
+        ? req.body.service_festival_id
+        : req.body.service_festival_id?
+        [req.body.service_festival_id]
         : null,
         service_code: generateRandomString(4),
         service_status: "ACTIVE",
@@ -85,7 +86,7 @@ router.post(
         service_creator_type: req.body.service_creator_type ? req.body.service_creator_type : null,
         service_user_id: req.user.id,
       };
-
+console.log('service_information',service_information);
       const response = await services_service.createNewService(
         user_details_from_db,
         service_information,

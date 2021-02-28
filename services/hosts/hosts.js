@@ -216,7 +216,7 @@ console.log('hello')
   //   role_name = "SPONSOR_PENDING";
   // }
 
-/*    if (applications.length == 0 && hostDto.is_host === "no") {
+    if (applications.length == 0 && hostDto.is_host === "no") {
     applications.push({
        user_id: hostDto.dbUser.user.tasttlig_user_id,
        reason: "",
@@ -226,7 +226,7 @@ console.log('hello')
        status: "Pending",
      });
      role_name = "VENDOR_PENDING";
-   } */
+   } 
 
   // Get role code of new role to be added
   const new_role_code = await trx("roles")
@@ -239,7 +239,7 @@ console.log('hello')
 
   // Insert new role for this user
   await trx("user_role_lookup").insert({
-    user_id: hostDto.host_user_id,
+    user_id: hostDto.host_user_id ? hostDto.host_user_id : hostDto.dbUser.user.tasttlig_user_id,
     role_code: new_role_code,
   });
   console.log("applications:", applications)
