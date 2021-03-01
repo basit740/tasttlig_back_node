@@ -19,6 +19,7 @@ router.post(
   "/food-sample/add",
   token_service.authenticateToken,
   async (req, res) => {
+    console.log(req.body);
     try {
       req.body.map(async (item) => {
         if (
@@ -170,6 +171,175 @@ router.post(
         }
       });
     } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
+router.post(
+  "/food-sample/noUser/add",
+  async (req, res) => {
+    console.log(req.body);
+    try {
+      req.body.map(async (item) => {
+        if (
+          !item.title ||
+          !item.festivals ||
+          !item.sample_size ||
+          !item.quantity ||
+          !item.city ||
+          !item.description ||
+          !item.images ||
+          //!item.product_expiry_date ||
+          !item.end_date ||
+          //!item.product_expiry_time ||
+          !item.end_time ||
+          !item.nationality_id
+        ) {
+          return res.status(403).json({
+            success: false,
+            message: "Required parameters are not available in request.",
+          });
+        }
+
+        /* let address = item.addressLine1;
+        if (item.addressLine2 && item.addressLine2.length > 0) {
+          address = `${address}, ${item.addressLine2}`;
+        } */
+
+        try {
+          /* const user_details_from_db = await user_profile_service.getUserById(
+            req.user.id
+          );
+
+          if (!user_details_from_db.success) {
+            return res.status(403).json({
+              success: false,
+              message: user_details_from_db.message,
+            });
+          } */
+          console.log(item.userEmail);
+          const user_details_from_db = await user_profile_service.getUserByEmail(
+            item.userEmail
+          );
+          console.log(user_details_from_db);
+          let createdByAdmin = false;
+          let db_user = user_details_from_db.user;
+          /* let user_role_object = db_user.role;
+
+          if (user_role_object.includes("ADMIN")) {
+            if (!item.userEmail) {
+              return res.status(403).json({
+                success: false,
+                message: "Required parameters are not available in request.",
+              });
+            }
+
+            const host_details_from_db = await user_profile_service.getUserByEmail(
+              item.userEmail
+            );
+            db_user = host_details_from_db.user;
+            createdByAdmin = true;
+          } */
+
+          const food_sample_details = {
+            food_sample_creater_user_id: db_user.tasttlig_user_id,
+            title: item.title,
+            start_date: item.start_date.substring(0, 10),
+            end_date: item.end_date.substring(0, 10),
+            start_time:
+              item.start_time.length === 5
+                ? item.start_time
+                : formatTime(item.start_time),
+            end_time:
+              item.end_time.length === 5
+                ? item.end_time
+                : formatTime(item.end_time),
+            description: item.description,
+            address: item.address ? item.address : address,
+            city: item.city,
+            state: item.state ? item.state : item.provinceTerritory,
+            country: "Canada",
+            postal_code: item.postal_code,
+            nationality_id: item.nationality_id,
+            sample_size: item.sample_size,
+            is_available_on_monday:
+              item.is_available_on_monday !== undefined
+                ? item.is_available_on_monday
+                : item.daysAvailable.includes("available_on_monday"),
+            is_available_on_tuesday:
+              item.is_available_on_tuesday !== undefined
+                ? item.is_available_on_tuesday
+                : item.daysAvailable.includes("available_on_tuesday"),
+            is_available_on_wednesday:
+              item.is_available_on_wednesday !== undefined
+                ? item.is_available_on_wednesday
+                : item.daysAvailable.includes("available_on_wednesday"),
+            is_available_on_thursday:
+              item.is_available_on_thursday !== undefined
+                ? item.is_available_on_thursday
+                : item.daysAvailable.includes("available_on_thursday"),
+            is_available_on_friday:
+              item.is_available_on_friday !== undefined
+                ? item.is_available_on_friday
+                : item.daysAvailable.includes("available_on_friday"),
+            is_available_on_saturday:
+              item.is_available_on_saturday !== undefined
+                ? item.is_available_on_saturday
+                : item.daysAvailable.includes("available_on_saturday"),
+            is_available_on_sunday:
+              item.is_available_on_sunday !== undefined
+                ? item.is_available_on_sunday
+                : item.daysAvailable.includes("available_on_sunday"),
+            is_vegetarian:
+              item.is_vegetarian !== undefined
+                ? item.is_vegetarian
+                : item.dietaryRestrictions.includes("vegetarian"),
+            is_vegan:
+              item.is_vegan !== undefined
+                ? item.is_vegan
+                : item.dietaryRestrictions.includes("vegan"),
+            is_gluten_free:
+              item.is_gluten_free !== undefined
+                ? item.is_gluten_free
+                : item.dietaryRestrictions.includes("glutenFree"),
+            is_halal:
+              item.is_halal !== undefined
+                ? item.is_halal
+                : item.dietaryRestrictions.includes("halal"),
+            spice_level: item.spice_level,
+            // food_sample_type: item.food_sample_type,
+            price: 2.0,
+            quantity: parseInt(item.quantity),
+            food_ad_code: generateRandomString(4),
+            status: "ACTIVE",
+            festival_id: item.addToFestival ? 2 : null,
+            festival_selected: item.festivals,
+          };
+          console.log("req from food sample,", food_sample_details)
+
+          const response = await food_sample_service.createNewFoodSample(
+            db_user,
+            food_sample_details,
+            item.images,
+            createdByAdmin
+          );
+            console.log("response from food sample", response)
+          return res.send(response);
+        } catch (error) {
+          console.log(error);
+          res.send({
+            success: false,
+            message: "Error.",
+            response: error,
+          });
+        }
+      });
+    } catch (error) {
+      console.log(error)
       res.send({
         success: false,
         message: "Error.",

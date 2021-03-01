@@ -8,7 +8,7 @@ const { formatTime } = require("../../functions/functions");
 const getAllFestivals = async (currentPage, keyword, filters) => {
   let startDate;
   let startTime;
-    if (filters.stateDate) {
+    if (filters.startDate) {
        startDate = filters.startDate.substring(0, 10);
     }
     if (filters.startTime) {
@@ -26,7 +26,8 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
       "festival_images.festival_id"
     )
     .where("festivals.festival_id", ">", 3)
-    .groupBy("festivals.festival_id");
+    .groupBy("festivals.festival_id")
+    .orderBy("festival_start_date");
 
   if (filters.nationalities && filters.nationalities.length) {
     query.whereIn("nationalities.nationality", filters.nationalities);

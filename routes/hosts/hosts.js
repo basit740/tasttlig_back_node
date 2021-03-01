@@ -88,7 +88,7 @@ router.post(
 );
 
 // POST application from multi-step form
-router.post("/request-host", token_service.authenticateToken, async (req, res) => {
+router.post("/request-host", /* token_service.authenticateToken, */ async (req, res) => {
   const {  host_user_id,
     host_video_url
   ,
@@ -111,6 +111,7 @@ router.post("/request-host", token_service.authenticateToken, async (req, res) =
    hosted_tasttlig_festival_before,
    able_to_provide_excellent_customer_service,
    able_to_provide_games_about_culture_cuisine } = req.body;
+   console.log(req.body);
   try {
     
     if (
@@ -125,7 +126,7 @@ router.post("/request-host", token_service.authenticateToken, async (req, res) =
     }
     
     const host_details = {
-      host_user_id,
+      host_user_id: host_user_id ? host_user_id : null,
       host_video_url,
       host_description,
       has_hosted_anything_before,
@@ -149,7 +150,7 @@ router.post("/request-host", token_service.authenticateToken, async (req, res) =
 
     const response = await hosts_service.createHost(
       host_details, 
-      is_host,
+      is_host, req.body.email
     );
     if (response.success) {
       console.log(response);
