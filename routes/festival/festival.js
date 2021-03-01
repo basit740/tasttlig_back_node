@@ -5,6 +5,38 @@ const router = require("express").Router();
 const token_service = require("../../services/authentication/token");
 const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
+const authentication_service = require("../../services/authentication/authenticate_user");
+
+router.get("/festival/landing-page", async (req, res) => {
+  try {
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
+
+    const filters = {
+      nationalities: req.query.nationalities,
+      startDate: req.query.startDate,
+      startTime: new Date(req.query.startTime).getTime(),
+      cityLocation: req.query.cityLocation,
+      radius: req.query.radius,
+      latitude: req.query.latitude,
+      longitude: req.query.longitude,
+    };
+
+    const response = await festival_service.getThreeFestivals(
+      current_page,
+      keyword,
+      filters
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
 
 // GET all festivals
 router.get("/festival/all", async (req, res) => {
@@ -27,6 +59,20 @@ router.get("/festival/all", async (req, res) => {
       keyword,
       filters
     );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+router.get("/festival/allFestival", async (req, res) => {
+  try {
+    const response = await festival_service.getAllFestivalsPresent();
 
     return res.send(response);
   } catch (error) {
@@ -127,7 +173,7 @@ router.get("/hosts/festival/:festival_id", async (req, res) => {
       req.params.festival_id
     );
 
-    for (let item of response.details[0].festival_restaurant_host_id) {
+    for (let item of response.details[0].festival_vendor_id) {
       const list = await user_profile_service.getUserById(item);
 
       if (list.user) {
@@ -328,7 +374,7 @@ router.put(
           festival_description,
           festival_created_at_datetime: new Date(),
           festival_updated_at_datetime: new Date(),
-          festival_id
+          festival_id,
         };
 
         const response = await festival_service.updateFestival(
@@ -394,7 +440,6 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     const { festival_id, festival_business_sponsor_id } = req.body;
-
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -411,7 +456,48 @@ router.post(
         festival_id,
         festival_business_sponsor_id
       );
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
 
+router.post(
+  "/vendor-festival",
+  token_service.authenticateToken,
+  async (req, res) => {
+    const { festival_id } = req.body;
+    try {
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
+
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message,
+        });
+      }
+      const business_details = await authentication_service.getUserByBusinessDetails(
+        req.user.id
+      );
+      if (!business_details.success) {
+        return res.status(403).json({
+          success: false,
+          message: business_details.message,
+        });
+      }
+      console.log("business_details", business_details);
+
+      const response = await festival_service.hostToFestival(
+        festival_id,
+        business_details.business_details.business_details_id
+      );
       return res.send(response);
     } catch (error) {
       res.send({

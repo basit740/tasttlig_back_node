@@ -87,10 +87,10 @@ router.post("/payment/stripe/success", async (req, res) => {
       user_passport_id: db_user.user.passport_id,
       payment_id: req.body.payment_id,
     };
-
     const db_order_details = await user_order_service.getOrderDetails(
       order_details
     );
+    console.log("db_order_details", db_order_details);
 
     if (!db_order_details.success) {
       return { success: false, message: "Invalid order details." };
@@ -100,6 +100,7 @@ router.post("/payment/stripe/success", async (req, res) => {
       order_details,
       db_order_details
     );
+    console.log("response", response);
 
     if (req.body.item_type === "food_sample") {
       const food_sample_claim_details = {
@@ -239,6 +240,25 @@ router.post("/payment/stripe/cart/success", async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+});
+
+
+// GET subscription details
+router.get("/vendor-subscription-details", async (req, res) => {
+    try {
+    
+        const vendor_subscription_details = await user_order_service.getVendorSubscriptionDetails(
+      
+    );
+
+      return res.send(vendor_subscription_details);
+    } 
+      catch (error) {
+        res.send({
+        success: false,
+        message: error.message,
+      });
   }
 });
 

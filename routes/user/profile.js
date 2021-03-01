@@ -7,6 +7,7 @@ const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const point_system_service = require("../../services/profile/points_system");
 const menu_item_service = require("../../services/menu_items/menu_items");
+const authentication_service = require("../../services/authentication/authenticate_user")
 
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
@@ -87,7 +88,9 @@ const extractFile = (requestBody, key, text) => {
 };
 
 // POST application from multi-step form
-router.post("/user/host", async (req, res) => {
+router.post("/user/host", token_service.authenticateToken, async (req, res) => {
+  console.log(req.body);
+  console.log(req.user);
   try {
     const hostDto = req.body;
     const response = await user_profile_service.saveHostApplication(
@@ -101,12 +104,120 @@ router.post("/user/host", async (req, res) => {
 
     return res.status(500).send(response);
   } catch (error) {
+    console.log(error);
     return res.status(403).json({
       success: false,
       message: error,
     });
   }
 });
+router.post("/user/vendor", async (req, res) => {
+  //console.log(req.body, "request body");
+  try {
+    const hostDto = req.body;
+    const response = await user_profile_service.saveHostApplication(
+      hostDto,
+      req.user
+    );
+
+    if (response.success) {
+      return res.send(response);
+    }
+
+    return res.status(500).send(response);
+  } catch (error) {
+    console.log(error);
+    return res.status(403).json({
+      success: false,
+      message: error,
+    });
+  }
+});
+
+router.post("/user/sponsor", async (req, res) => {
+  //console.log(req.body, "request body");
+  try {
+    const hostDto = req.body;
+    const response = await user_profile_service.saveHostApplication(
+      hostDto,
+      req.user
+    );
+
+    if (response.success) {
+      return res.send(response);
+    }
+
+    return res.status(500).send(response);
+  } catch (error) {
+    console.log(error);
+    return res.status(403).json({
+      success: false,
+      message: error,
+    });
+  }
+});
+
+// POST application from multi-step form
+router.post(
+  "/complete-profile/preference/:id",
+  token_service.authenticateToken,
+  async (req, res) => {
+    console.log("here");
+    console.log(req.body);
+    console.log(req.params);
+    const {
+      preferred_country_cuisine,
+      food_preferences,
+      food_allergies,
+    } = req.body;
+    try {
+      if (!food_preferences || !food_allergies || !preferred_country_cuisine) {
+        return res.status(403).json({
+          success: false,
+          message: "Required parameters are not available in request.",
+        });
+      }
+
+      try {
+        // const user_details_from_db = await user_profile_service.getUserById(
+        //   req.user.id
+        // );
+
+        // if (!user_details_from_db.success) {
+        //   return res.status(403).json({
+        //     success: false,
+        //     message: user_details_from_db.message,
+        //   });
+        // }
+
+        const preference_details = {
+          food_preferences,
+          food_allergies,
+          preferred_country_cuisine,
+        };
+
+        const response = await user_profile_service.createPreferences(
+          preference_details,
+          req.params["id"]
+        );
+
+        return res.send(response);
+      } catch (error) {
+        res.send({
+          success: false,
+          message: "Error.",
+          response: error,
+        });
+      }
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
 
 router.get("/user/application/:token", async (req, res) => {
   if (!req.params.token) {
@@ -182,6 +293,115 @@ router.put("/user/update-profile/:id", async (req, res) => {
     console.log("Update", error);
   }
 });
+
+// get nationalities for user
+
+router.get("/user/nationalities", async (req, res) => {
+  try {
+    const keyword = req.query.keyword || "";
+    const response = await user_profile_service.getNationalities(keyword);
+    if (response.success) {
+      res.status(200).send(response);
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: "Email already exists.",
+      });
+    }
+  } catch (error) {
+    console.log("Update", error);
+  }
+});
+
+// // update user info for passport
+//
+router.put(
+  "/user/user-info/:id",
+  token_service.authenticateToken,
+  async (req, res) => {
+    console.log("here");
+    console.log(req.body);
+
+    const {
+      user_age,
+      user_occupation,
+      user_marital_status,
+      user_country,
+      user_city,
+      user_zip_code,
+      user_street_name,
+      user_street_number,
+      user_apartment_number,
+      user_gender,
+    } = req.body;
+    console.log(user_age);
+    try {
+      if (
+        !user_age ||
+        !user_occupation ||
+        !user_marital_status ||
+        // !user_country ||
+        !user_city ||
+        !user_zip_code
+        //!user_gender||
+        //!user_street_name ||
+        //!user_gender
+      ) {
+        return res.status(403).json({
+          success: false,
+          message: "Required parameters are not available in request.",
+        });
+      }
+
+      // console.log(req)
+
+      try {
+        const user_details_from_db = await user_profile_service.getUserById(
+          req.user.id
+        );
+
+        if (!user_details_from_db.success) {
+          return res.status(403).json({
+            success: false,
+            message: user_details_from_db.message,
+          });
+        }
+
+        const user_info = {
+          user_gender,
+          user_age,
+          user_occupation,
+          user_marital_status,
+          user_country,
+          user_city,
+          user_zip_code,
+          user_street_name,
+          user_street_number,
+          user_apartment_number,
+        };
+
+        user_info["id"] = req.user.id;
+
+        console.log("body from front-end:", user_info);
+        const response = await user_profile_service.createUserInfo(user_info);
+        console.log("response from preferences:", response);
+        return res.send(response);
+      } catch (error) {
+        res.send({
+          success: false,
+          message: "Error.",
+          response: error,
+        });
+      }
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
 
 // GET user by email
 router.get("/user/check-email/:email", async (req, res) => {
@@ -532,4 +752,104 @@ router.get(
   }
 );
 
+const passport_service = require("../../services/passport/businessPassport");
+
+router.post(
+  "/business-passport",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const response = await passport_service.postBusinessPassportDetails(
+        req.body
+      );
+
+      console.log('res',response.success);
+      console.log('body',req.body);
+      if (response.success && req.body.is_sponsor) {
+        saveUserApplicationToSponsor(req, res);
+      }
+else{
+      console.log('return',response);
+      return res.send(response);
+}
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
+
+const saveUserApplicationToSponsor = async (req, res)=>{
+  console.log('inside d funct', req.user);
+  // save sponsor application
+  const hostDto = {
+    is_sponsor: req.body.is_sponsor,
+    email: req.user.email,
+  };
+  console.log('hostdto',hostDto);
+  const saveHost = await user_profile_service.saveHostApplication(
+    hostDto,
+    req.user
+  );
+  console.log('savehost',saveHost);
+
+  //save sponsor for user
+  if (saveHost.success) {
+    try{
+    const db_user = await authenticate_user_service.findUserByEmail(
+      req.user.email
+    );
+    console.log('db_user',db_user);
+
+    if (!db_user.success) {
+      return res.status(403).json({
+        success: false,
+        message: "error",
+      });
+    }
+
+    const business_details = await authentication_service.getUserByBusinessDetails(
+      req.user.id
+    );
+    console.log('business_details',business_details);
+    if (!business_details.success) {
+      return res.status(403).json({
+        success: false,
+        message: business_details.message,
+      });
+    }
+
+    const sponsorData = {
+      sponsor_business_id:
+        business_details.business_details.business_details_id,
+    };
+    console.log('sponsor data',sponsorData);
+    const saveSponsorUser = await user_profile_service.saveSponsorForUser(
+      sponsorData,
+      db_user.user.tasttlig_user_id
+    ); //end
+
+    console.log('saveSponsorUser',saveSponsorUser);
+    if (!saveSponsorUser.success) {
+      return res.status(403).json({
+        success: false,
+        message: "error",
+      });
+    }
+    
+    console.log('final',saveSponsorUser.success);
+    return res.send(saveSponsorUser);
+} catch (error) {
+  res.send({
+    success: false,
+    message: "Error.",
+    response: error.message,
+  });
+}
+    //catch
+  }
+}
 module.exports = router;

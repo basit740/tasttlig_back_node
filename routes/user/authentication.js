@@ -320,7 +320,7 @@ authRouter.post(
 // PUT sponsor information from multi-step form
 authRouter.put(
   "/user/update-sponsor-info",
-  createAccountLimiter,
+  //createAccountLimiter,
   async (req, res) => {
     const db_user = await authenticate_user_service.findUserByEmail(
       req.body.email
@@ -350,14 +350,13 @@ authRouter.put(
     const db_user = await authenticate_user_service.findUserByEmail(
       req.body.email
     );
-
     if (!db_user.success) {
       return res.status(403).json({
         success: false,
         message: "User does not exist.",
       });
     }
-
+    console.log(req.body);
     const response = await user_profile_service.saveBusinessForUser(
       req.body,
       db_user.user.tasttlig_user_id

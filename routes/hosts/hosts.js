@@ -54,7 +54,7 @@ router.post(
         req.params.userId,
         "APPROVED"
       );
-
+      
       return res.send(response);
     } catch (error) {
       res.status(500).send({
@@ -86,5 +86,88 @@ router.post(
     }
   }
 );
+
+// POST application from multi-step form
+router.post("/request-host", /* token_service.authenticateToken, */ async (req, res) => {
+  const {  host_user_id,
+    host_video_url
+  ,
+   host_description,
+   has_hosted_anything_before,
+   have_a_restaurant,
+   cuisine_type,
+   seating_option,
+   want_people_to_discover_your_cuisine,
+   able_to_provide_food_samples,
+   is_host,
+   has_hosted_other_things_before,
+   able_to_explain_the_origins_of_tasting_samples,
+   able_to_proudly_showcase_your_culture,
+   able_to_provie_private_dining_experience,
+   able_to_provide_3_or_more_course_meals_to_guests,
+   able_to_provide_live_entertainment,
+   able_to_provide_other_form_of_entertainment,
+   able_to_abide_by_health_safety_regulations,
+   hosted_tasttlig_festival_before,
+   able_to_provide_excellent_customer_service,
+   able_to_provide_games_about_culture_cuisine } = req.body;
+   console.log(req.body);
+  try {
+    
+    if (
+      !host_video_url ||
+      !host_description 
+      
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+    
+    const host_details = {
+      host_user_id: host_user_id ? host_user_id : null,
+      host_video_url,
+      host_description,
+      has_hosted_anything_before,
+      have_a_restaurant,
+      cuisine_type,
+      seating_option,
+      want_people_to_discover_your_cuisine,
+      able_to_provide_food_samples,
+      has_hosted_other_things_before,
+      able_to_explain_the_origins_of_tasting_samples,
+      able_to_proudly_showcase_your_culture,
+      able_to_provie_private_dining_experience,
+      able_to_provide_3_or_more_course_meals_to_guests,
+      able_to_provide_live_entertainment,
+      able_to_provide_other_form_of_entertainment,
+      able_to_abide_by_health_safety_regulations,
+      hosted_tasttlig_festival_before,
+      able_to_provide_excellent_customer_service,
+      able_to_provide_games_about_culture_cuisine
+    };
+
+    const response = await hosts_service.createHost(
+      host_details, 
+      is_host, req.body.email
+    );
+    if (response.success) {
+      console.log(response);
+      return res.send(response);
+    }
+    console.log("non-success", response)
+    return res.status(500).send(response);
+  } catch (error) {
+    console.log(error);
+    return res.status(403).json({
+      success: false,
+      message: error,
+    });
+  }
+});
+
+
+
 
 module.exports = router;

@@ -6,6 +6,117 @@ const { formatTime } = require("../../functions/functions");
 
 // Get all festivals helper function
 const getAllFestivals = async (currentPage, keyword, filters) => {
+  let startDate;
+  let startTime;
+    if (filters.startDate) {
+       startDate = filters.startDate.substring(0, 10);
+    }
+    if (filters.startTime) {
+       startTime = formatTime(filters.startTime);
+    }
+  let query = db
+    .select(
+      "festivals.*",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("festivals")
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    )
+    .where("festivals.festival_id", ">", 3)
+    .groupBy("festivals.festival_id")
+    .orderBy("festival_start_date");
+
+  if (filters.nationalities && filters.nationalities.length) {
+    query.whereIn("nationalities.nationality", filters.nationalities);
+  }
+
+  if (filters.startDate) {
+    query.where("festivals.festival_start_date", ">=", startDate);
+  }
+
+  if (filters.startTime) {
+    query.where("festivals.festival_start_time", ">=", startTime);
+  }
+
+  if (filters.cityLocation) {
+    query.where("festivals.festival_city", "=", filters.cityLocation);
+  }
+
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                "main.nationality, " +
+                "main.festival_name, " +
+                "main.festival_type, " +
+                "main.festival_price, " +
+                "main.festival_city, " +
+                "main.description)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+
+  query = query.paginate({
+    perPage: 12,
+    isLengthAware: true,
+    currentPage: currentPage,
+  });
+
+  return await query
+    .then((value) => {
+      console.log(value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log(reason);
+      return { success: false, details: reason };
+    });
+};
+
+const getAllFestivalsPresent = async () => {
+  
+  return await db
+  .select(
+    "festivals.*",
+    db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+  )
+  .from("festivals")
+  .leftJoin(
+    "festival_images",
+    "festivals.festival_id",
+    "festival_images.festival_id"
+  )
+  .where("festivals.festival_id", ">", 3)
+  .groupBy("festivals.festival_id")
+  .then((value) => {
+    return { success: true, festival_list: value };
+  })
+  .catch((reason) => {
+    return { success: false, data: reason };
+  });
+}
+  
+const getThreeFestivals = async (currentPage, keyword, filters) => {
   let startDate = filters.startDate.substring(0, 10);
   let startTime = formatTime(filters.startTime);
   let query = db
@@ -70,19 +181,35 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
   }
 
   query = query.paginate({
-    perPage: 12,
+    perPage: 3,
     isLengthAware: true,
     currentPage: currentPage,
   });
 
   return await query
     .then((value) => {
+      console.log(value);
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log(reason);
       return { success: false, details: reason };
     });
 };
+
+/* const getAllFestivalsPresent = async () => {
+  return await db
+    .select("festivals.*")
+    .from("festivals")
+    .where("festivals.festival_id", ">", 3)
+    .groupBy("festivals.festival_id")
+    .then((value) => {
+      return { success: true, festival_list: value };
+    })
+    .catch((reason) => {
+      return { success: false, data: reason };
+    });
+}; */
 
 // Get festival list helper function
 const getFestivalList = async () => {
@@ -112,6 +239,7 @@ const createNewFestival = async (festival_details, festival_images) => {
         return { success: false, details: "Inserting new festival failed." };
       }
 
+      console.log(festival_images)
       const images = festival_images.map((festival_image_url) => ({
         festival_id: db_festival[0].festival_id,
         festival_image_url,
@@ -126,18 +254,65 @@ const createNewFestival = async (festival_details, festival_images) => {
   }
 };
 
-// Add host ID to festivals table helper function
-const hostToFestival = async (festival_id, festival_restaurant_host_id) => {
+const updateFestival = async (data, festival_images) => {
   try {
     await db.transaction(async (trx) => {
-      for (let item of festival_id) {
+      const db_festival = await trx("festivals")
+        .where({ festival_id: data.festival_id })
+        .update({
+          festival_name: data.festival_name,
+          festival_type: data.festival_type,
+          festival_price: data.festival_price,
+          festival_city: data.festival_city,
+          festival_start_date: data.festival_start_date,
+          festival_end_date: data.festival_end_date,
+          festival_start_time: data.festival_start_time,
+          festival_end_time: data.festival_end_time,
+          festival_description: data.festival_description,
+        })
+        .returning("*");
+
+      await trx("festival_images")
+        .where({ festival_id: data.festival_id })
+        .update({ festival_image_url: festival_images[0] })
+        .returning("*");
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
+
+// Add host ID to festivals table helper function
+const hostToFestival = async (festival_id, festival_vendor_id) => {
+  try {
+    console.log(festival_id, "festival_id");
+    console.log(festival_vendor_id, "festival vendor id");
+    await db.transaction(async (trx) => {
+      if (typeof festival_id === "object") {
+        for (let item of festival_id) {
+          const db_host = await trx("festivals")
+            .where({ festival_id: item })
+            .update({
+              festival_vendor_id: trx.raw(
+                "array_append(festival_vendor_id, ?)",
+                [festival_vendor_id]
+              ),
+            })
+            .returning("*");
+
+          if (!db_host) {
+            return { success: false, details: "Inserting new host failed." };
+          }
+        }
+      } else {
         const db_host = await trx("festivals")
-          .where({ festival_id: item })
+          .where({ festival_id })
           .update({
-            festival_restaurant_host_id: trx.raw(
-              "array_append(festival_restaurant_host_id, ?)",
-              [festival_restaurant_host_id]
-            ),
+            festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
+              festival_vendor_id,
+            ]),
           })
           .returning("*");
 
@@ -146,9 +321,9 @@ const hostToFestival = async (festival_id, festival_restaurant_host_id) => {
         }
       }
     });
-
     return { success: true, details: "Success." };
   } catch (error) {
+    console.log(error);
     return { success: false, details: error.message };
   }
 };
@@ -211,8 +386,8 @@ const getFestivalDetails = async (festival_id) => {
   return await db
     .select(
       "festivals.*",
-      "business_details.business_name",
-      "sponsors.sponsor_name",
+      "b1.business_name AS business",
+      "b2.business_name AS sponsor",
       db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
     )
     .from("festivals")
@@ -222,21 +397,29 @@ const getFestivalDetails = async (festival_id) => {
       "festival_images.festival_id"
     )
     .leftJoin(
-      "business_details",
-      "festivals.festival_user_admin_id[0]",
-      "business_details.business_details_user_id"
+      "business_details AS b1",
+      "festivals.festival_user_admin_id[1]",
+      "b1.business_details_user_id"
     )
     .leftJoin(
       "sponsors",
-      "festivals.festival_business_sponsor_id[0]",
+      "festivals.festival_business_sponsor_id[1]",
       "sponsors.sponsor_id"
     )
+    .leftJoin(
+      "business_details AS b2",
+      "sponsors.sponsor_business_id",
+      "b2.business_details_user_id"
+    )
     .groupBy("festivals.festival_id")
-    .groupBy("business_details.business_name")
-    .groupBy("sponsors.sponsor_name")
+    .groupBy("b1.business_name")
+    .groupBy("b2.business_name")
     .having("festivals.festival_id", "=", festival_id)
     .then((value) => {
-      return { success: true, details: value };
+      return {
+        success: true,
+        details: value,
+      };
     })
     .catch((reason) => {
       return { success: false, details: reason };
@@ -248,7 +431,7 @@ const getFestivalRestaurants = async (host_id, festival_id) => {
     .select(
       "products.*",
       "business_details.*"
-     /*  db.raw("ARRAY_AGG(business_details_images.business_details_image_url) as image_urls") */
+      /*  db.raw("ARRAY_AGG(business_details_images.business_details_image_url) as image_urls") */
     )
     .from("products")
     .leftJoin(
@@ -263,26 +446,28 @@ const getFestivalRestaurants = async (host_id, festival_id) => {
     )
     .groupBy("business_details.business_details_id")
     .groupBy("products.product_name")
-    .having("products.product_business_id", "=", host_id[0])
+    .having("products.product_business_id", "=", host_id[0]);
 
-    return await productQuery
+  return await productQuery
     .then((value) => {
-      console.log(value)
+      console.log(value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log(reason)
+      console.log(reason);
       return { success: false, details: reason };
     });
 };
 
 module.exports = {
   getAllFestivals,
+  getThreeFestivals,
   getFestivalList,
   createNewFestival,
   hostToFestival,
   sponsorToFestival,
   getFestivalDetails,
   getFestivalRestaurants,
+  getAllFestivalsPresent,
   updateFestival,
 };

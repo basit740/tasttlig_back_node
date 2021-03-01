@@ -3,6 +3,8 @@
 // Libraries
 const { db } = require("../../db/db-config");
 const _ = require("lodash");
+const authenticate_user_service = require("../authentication/authenticate_user");
+const user_profile_service = require("../profile/user_profile");
 
 // Get all applications helper function
 const getHostApplications = async () => {
@@ -15,8 +17,14 @@ const getHostApplications = async () => {
         "applications.user_id",
         "tasttlig_users.tasttlig_user_id"
       )
+      // .leftJoin(
+      //   "food_samples",
+      //   "applications.user_id",
+      //   "food_samples.food_sample_creater_user_id"
+      // )
       .groupBy("applications.application_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
+      // .groupBy("food_samples.food_sample_creater_user_id")
       .having("applications.status", "=", "Pending");
 
     return {
@@ -36,7 +44,11 @@ const getHostApplication = async (userId) => {
         "tasttlig_users.*",
         "business_details.*",
         "sponsors.*",
+        "hosts.*",
+        "food_samples.*",
         "payment_info.*",
+        "business_details_images.*",
+        "food_sample_images.image_url",
         db.raw("ARRAY_AGG(roles.role) as role")
       )
       .from("tasttlig_users")
@@ -44,6 +56,21 @@ const getHostApplication = async (userId) => {
         "business_details",
         "tasttlig_users.tasttlig_user_id",
         "business_details.business_details_user_id"
+      )
+      .leftJoin(
+        "hosts",
+        "tasttlig_users.tasttlig_user_id",
+        "hosts.host_user_id"
+      )
+      .leftJoin(
+        "food_samples",
+        "tasttlig_users.tasttlig_user_id",
+        "food_samples.food_sample_creater_user_id"
+      )
+      .leftJoin(
+        "business_details_images",
+        "business_details.business_details_id",
+        "business_details_images.business_details_id"
       )
       .leftJoin(
         "sponsors",
@@ -61,6 +88,11 @@ const getHostApplication = async (userId) => {
         "user_role_lookup.user_id"
       )
       .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+      .leftJoin("food_sample_images", "food_samples.food_sample_id", "food_sample_images.food_sample_id")
+      .groupBy("food_sample_images.food_sample_image_id")
+      .groupBy("food_samples.food_sample_id")
+      .groupBy("hosts.host_id")
+      .groupBy("business_details_images.business_details_image_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
       .groupBy("business_details.business_details_id")
       .groupBy("sponsors.sponsor_id")
@@ -150,7 +182,120 @@ const getHostApplication = async (userId) => {
   }
 };
 
+const saveApplicationInformation = async (hostDto, is_host, trx) => {
+  console.log("is_host", is_host)
+  let applications = [];
+  let role_name = "";
+
+console.log('hello')
+  if (is_host === "yes") {
+    console.log("im in is_host", is_host)
+    applications.push({
+      user_id:  hostDto.host_user_id ? hostDto.host_user_id : hostDto.dbUser.user.tasttlig_user_id,
+      video_link: hostDto.host_video_url,
+      // youtube_link: hostDto.host_youtube_link,
+      reason: hostDto.host_description,
+      // resume: hostDto.host_selection_resume,
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "host",
+      status: "Pending",
+    });
+    role_name = "HOST_PENDING";
+  }
+  console.log("role name",  role_name);
+
+  // Save sponsor application to applications table
+  // if (applications.length == 0 && hostDto.is_sponsor) {
+  //   applications.push({
+  //     user_id: hostDto.dbUser.user.tasttlig_user_id,
+  //     reason: "",
+  //     created_at: new Date(),
+  //     updated_at: new Date(),
+  //     type: "sponsor",
+  //     status: "Pending",
+  //   });
+  //   role_name = "SPONSOR_PENDING";
+  // }
+
+    if (applications.length == 0 && hostDto.is_host === "no") {
+    applications.push({
+       user_id: hostDto.dbUser.user.tasttlig_user_id,
+       reason: "",
+     created_at: new Date(),
+       updated_at: new Date(),
+       type: "vendor",
+       status: "Pending",
+     });
+     role_name = "VENDOR_PENDING";
+   } 
+
+  // Get role code of new role to be added
+  const new_role_code = await trx("roles")
+    .select()
+    .where({ role: role_name })
+    .then((value) => {
+      return value[0].role_code;
+    });
+    console.log("new role: ", new_role_code)
+
+  // Insert new role for this user
+  await trx("user_role_lookup").insert({
+    user_id: hostDto.host_user_id ? hostDto.host_user_id : hostDto.dbUser.user.tasttlig_user_id,
+    role_code: new_role_code,
+  });
+  console.log("applications:", applications)
+
+  return trx("applications")
+    .insert(applications)
+    .returning("*")
+    .catch((reason) => {
+      console.log(reason);
+    });
+};
+
+
+const createHost = async (host_details, is_host, email) => {
+  try {
+    await db.transaction(async (trx) => {
+      let dbUser
+      if (email) {
+        await authenticate_user_service.createDummyUser(email);
+        dbUser = await user_profile_service.getUserByEmail(email);
+        host_details.dbUser = dbUser
+        await saveApplicationInformation(host_details, is_host, trx);
+        delete host_details.dbUser;
+        const db_preference = await trx("hosts")
+        .insert(host_details)
+        .returning("*");
+
+      if (!db_preference) {
+        return { success: false, details: "Inserting new preference failed." };
+      }
+      } else {
+      console.log(dbUser);
+      //hostDto.dbUser.user.tasttlig_user_id
+      await  saveApplicationInformation(host_details, is_host, trx);
+      const db_preference = await trx("hosts")
+        .insert(host_details)
+        .returning("*");
+
+      if (!db_preference) {
+        return { success: false, details: "Inserting new preference failed." };
+      }
+    }
+    });
+    console.log("hello");
+    return { success: true, details: "Success." };
+  } catch (error) {
+    console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
+
 module.exports = {
   getHostApplications,
   getHostApplication,
+  createHost
 };
