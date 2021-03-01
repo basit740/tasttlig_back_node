@@ -254,7 +254,7 @@ const createNewFestival = async (festival_details, festival_images) => {
   }
 };
 
-const updateFestival = async (data, festival_images) => {
+/* const updateFestival = async (data, festival_images) => {
   try {
     await db.transaction(async (trx) => {
       const db_festival = await trx("festivals")
@@ -282,7 +282,7 @@ const updateFestival = async (data, festival_images) => {
   } catch (error) {
     return { success: false, details: error.message };
   }
-};
+}; */
 
 // Add host ID to festivals table helper function
 const hostToFestival = async (festival_id, festival_vendor_id) => {
