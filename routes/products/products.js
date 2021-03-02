@@ -471,13 +471,21 @@ router.get("/products/festival/:festival_id", async (req, res) => {
     });
   }
 
+  const filters = {
+    price: req.query.price,
+    quantity: req.query.quantity,
+    size: req.query.size
+  }
+
   try {
     const response = await products_service.getProductsInFestival(
-      req.params.festival_id
+      req.params.festival_id,
+      filters
     );
-
+      console.log(response);
     return res.send(response);
   } catch (error) {
+    console.log(error)
     res.send({
       success: false,
       message: "Error.",
