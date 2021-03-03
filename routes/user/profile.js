@@ -763,7 +763,24 @@ router.post(
         req.body
       );
 
-      return res.send(response);
+      if (!response.success) {
+        return res.status(403).json({
+          success: false,
+          message: "error",
+        });
+      }
+      const hostDto = {
+        is_business: req.body.is_business,
+        email: req.user.email,
+      };
+      console.log('hostdto',hostDto);
+      const saveHost = await user_profile_service.saveHostApplication(
+        hostDto,
+        req.user
+      );
+      console.log('savehost',saveHost);
+
+      return res.send(saveHost);
     } catch (error) {
       res.send({
         success: false,

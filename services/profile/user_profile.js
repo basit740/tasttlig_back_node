@@ -289,6 +289,19 @@ const saveApplicationInformation = async (hostDto, trx) => {
   let role_name = "";
   console.log("hostDto", hostDto);
 
+  // Save business application to applications table
+  if (applications.length == 0 && hostDto.is_business) {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "business_member",
+      status: "Pending",
+    });
+    role_name = "BUSINESS_MEMBER_PENDING";
+  }
+
   if (hostDto.is_host === "yes") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
