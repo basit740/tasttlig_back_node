@@ -3,6 +3,8 @@
 // Libraries
 const { db } = require("../../db/db-config");
 const _ = require("lodash");
+const authenticate_user_service = require("../authentication/authenticate_user");
+const user_profile_service = require("../profile/user_profile");
 
 // Get all applications helper function
 const getHostApplications = async () => {
@@ -189,7 +191,7 @@ console.log('hello')
   if (is_host === "yes") {
     console.log("im in is_host", is_host)
     applications.push({
-      user_id: hostDto.host_user_id,
+      user_id:  hostDto.host_user_id ? hostDto.host_user_id : hostDto.dbUser.user.tasttlig_user_id,
       video_link: hostDto.host_video_url,
       // youtube_link: hostDto.host_youtube_link,
       reason: hostDto.host_description,
@@ -253,9 +255,26 @@ console.log('hello')
 };
 
 
-const createHost = async (host_details, is_host) => {
+const createHost = async (host_details, is_host, email) => {
   try {
     await db.transaction(async (trx) => {
+      let dbUser
+      if (email) {
+        await authenticate_user_service.createDummyUser(email);
+        dbUser = await user_profile_service.getUserByEmail(email);
+        host_details.dbUser = dbUser
+        await saveApplicationInformation(host_details, is_host, trx);
+        delete host_details.dbUser;
+        const db_preference = await trx("hosts")
+        .insert(host_details)
+        .returning("*");
+
+      if (!db_preference) {
+        return { success: false, details: "Inserting new preference failed." };
+      }
+      } else {
+      console.log(dbUser);
+      //hostDto.dbUser.user.tasttlig_user_id
       await  saveApplicationInformation(host_details, is_host, trx);
       const db_preference = await trx("hosts")
         .insert(host_details)
@@ -264,11 +283,12 @@ const createHost = async (host_details, is_host) => {
       if (!db_preference) {
         return { success: false, details: "Inserting new preference failed." };
       }
-
+    }
     });
-
+    console.log("hello");
     return { success: true, details: "Success." };
   } catch (error) {
+    console.log(error);
     return { success: false, details: error.message };
   }
 };

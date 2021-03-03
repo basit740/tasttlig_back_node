@@ -26,7 +26,8 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
       "festival_images.festival_id"
     )
     .where("festivals.festival_id", ">", 3)
-    .groupBy("festivals.festival_id");
+    .groupBy("festivals.festival_id")
+    .orderBy("festival_start_date");
 
   if (filters.nationalities && filters.nationalities.length) {
     query.whereIn("nationalities.nationality", filters.nationalities);
