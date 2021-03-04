@@ -464,6 +464,7 @@ router.post(
 
 // GET products in specific festival
 router.get("/products/festival/:festival_id", async (req, res) => {
+  console.log("params", req.query);
   if (!req.params.festival_id) {
     return res.status(403).json({
       success: false,
@@ -480,9 +481,10 @@ router.get("/products/festival/:festival_id", async (req, res) => {
   try {
     const response = await products_service.getProductsInFestival(
       req.params.festival_id,
-      filters
+      filters,
+      req.query.keyword
     );
-      console.log(response);
+      //console.log(response);
     return res.send(response);
   } catch (error) {
     console.log(error)

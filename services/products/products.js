@@ -51,7 +51,7 @@ const createNewProduct = async (
 };
 
 // Get products in festival helper function
-const getProductsInFestival = async (festival_id, filters) => {
+const getProductsInFestival = async (festival_id, filters, keyword) => {
   let query = db
     .select(
       "products.*",
@@ -106,7 +106,7 @@ const getProductsInFestival = async (festival_id, filters) => {
     } else if (filters.price === "highest_to_lowest") {
       //console.log("highest to lowest");
       orderByArray.push({ column: "products.product_price", order: "desc" })
-      query.orderBy("products.product_price", "desc")
+      //query.orderBy("products.product_price", "desc")
     }
   }
   if (filters.quantity) {
@@ -131,10 +131,40 @@ const getProductsInFestival = async (festival_id, filters) => {
       query.having("products.product_size", "=", "Full");
     }
   }
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                //"main.business_name, " +
+                "main.product_name, " +
+                "main.product_size, " +
+                "main.product_price, " +
+                //"main.business_city, " +
+                "main.product_description)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
 
   return await query
     .then((value) => {
-      console.log(value)
+      //console.log(value)
       return { success: true, details: value };
     })
     .catch((reason) => {
