@@ -1205,6 +1205,33 @@ const saveSpecials = async (hostDto) => {
   }
 };
 
+//get business details and images by user id
+const getBusinessDetailsByUserId = async (userId) => {
+  return await db
+    .select("business_details.*",
+    "business_details_images.*")
+    .from("business_details")
+    .leftJoin(
+      "business_details_images",
+      "business_details.business_details_id",
+      "business_details_images.business_details_id"
+    )
+    .groupBy("business_details.business_details_id")
+    .groupBy("business_details_images.business_details_image_id")
+    .having("business_details.business_details_user_id", "=", userId)
+    .first()
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No business for user found." };
+      }
+
+      return { success: true, business_details_all: value };
+    })
+    .catch((error) => {
+      return { success: false, message: error };
+    });
+};
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
@@ -1236,4 +1263,5 @@ module.exports = {
   saveBusinessServices,
   getNationalities,
   //createPreferences
+  getBusinessDetailsByUserId,
 };

@@ -791,6 +791,36 @@ router.post(
   }
 );
 
+    //get business details with images by user id
+router.get(
+  "/get-business-details-all",
+  token_service.authenticateToken,
+  async (req, res) => {
+
+    try{
+    const business_details_all = await user_profile_service.getBusinessDetailsByUserId(
+      req.user.id
+    );
+    console.log('business_details_all',business_details_all);
+    if (!business_details_all.success) {
+      return res.status(403).json({
+        success: false,
+        message: business_details_all.message,
+      });
+    }
+    
+    res.send(business_details_all);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error",
+      response: error.message,
+    });
+  }
+
+  }
+)
+
 // become sponsor in kind
 router.post(
   "/become-in-kind-sponsor",
