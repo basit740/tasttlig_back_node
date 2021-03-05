@@ -178,6 +178,7 @@ const getServicesFromUser = async (user_id) => {
       "business_details.city",
       "business_details.state",
       "business_details.zip_postal_code",
+      "nationalities.nationality",
       db.raw("ARRAY_AGG(service_images.service_image_url) as image_urls")
     )
     .from("services")
@@ -191,6 +192,11 @@ const getServicesFromUser = async (user_id) => {
       "services.service_business_id",
       "business_details.business_details_id"
     )
+    .leftJoin(
+      "nationalities",
+      "services.service_nationality_id",
+      "nationalities.id"
+    )
     .groupBy("services.service_id")
     .groupBy("business_details.business_name")
     .groupBy("business_details.business_address_1")
@@ -199,6 +205,7 @@ const getServicesFromUser = async (user_id) => {
     .groupBy("business_details.state")
     .groupBy("business_details.zip_postal_code")
     .groupBy("business_details.business_details_user_id")
+    .groupBy("nationalities.nationality")
     .having("business_details.business_details_user_id", "=", Number(user_id))
     .then((value) => {
       console.log(value);
