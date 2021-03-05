@@ -22,6 +22,7 @@ const createNewFoodSampleClaim = async (
   food_sample_claim_details
 ) => {
   try {
+    console.log("food_sample_claims detaisl:0", food_sample_claim_details)
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("food_sample_claims")
         .insert(food_sample_claim_details)
@@ -247,6 +248,7 @@ const getUserFoodSampleClaims = async (user_id) => {
     const db_food_sample_claim = await db
       .select(
         "food_samples.*",
+        "food_sample_claims.*",
         "tasttlig_users.first_name",
         "tasttlig_users.last_name",
         "nationalities.nationality",
@@ -266,7 +268,7 @@ const getUserFoodSampleClaims = async (user_id) => {
       )
       .leftJoin(
         "tasttlig_users",
-        "food_samples.food_sample_creater_user_id",
+        "food_sample_claims.food_sample_claim_user_id",
         "tasttlig_users.tasttlig_user_id"
       )
       .leftJoin(
@@ -274,7 +276,7 @@ const getUserFoodSampleClaims = async (user_id) => {
         "food_samples.nationality_id",
         "nationalities.id"
       )
-      .groupBy("food_sample_claims.food_sample_claim_user_id")
+      .groupBy("food_sample_claims.food_sample_claim_id")
       .groupBy("food_samples.food_sample_id")
       .groupBy("tasttlig_users.first_name")
       .groupBy("tasttlig_users.last_name")

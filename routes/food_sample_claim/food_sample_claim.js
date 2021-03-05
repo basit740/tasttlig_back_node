@@ -72,7 +72,6 @@ router.post("/food-sample-claim", async (req, res) => {
         });
       }
     }
-
     const food_sample_details_from_db = await food_sample_service.getFoodSampleById(
       req.body.food_sample_id
     );
@@ -90,6 +89,9 @@ router.post("/food-sample-claim", async (req, res) => {
       food_sample_claim_email: db_user.email,
       food_sample_claim_user_id: db_user.tasttlig_user_id,
       food_sample_id: db_food_sample.food_sample_id,
+      current_status: "Claimed",
+      claimed_quantity: req.body.claimed_quantity,
+      claim_Viewable_id: req.body.claim_Viewable_id,
     };
 
     const response = await food_sample_claim_service.createNewFoodSampleClaim(
