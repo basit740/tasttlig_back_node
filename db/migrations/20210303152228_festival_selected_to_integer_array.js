@@ -1,12 +1,7 @@
 
 exports.up = function(knex) {
   return knex.schema.alterTable("food_samples", table => {
-           
-      
-        
     table.specificType("festival_selected", 'INT[]').alter();
-       
-       
   
 });
 
