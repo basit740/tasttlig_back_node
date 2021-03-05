@@ -114,10 +114,17 @@ router.get("/services/festival/:festival_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
+  const filters = {
+    price: req.query.price,
+    quantity: req.query.quantity,
+    size: req.query.size
+  }
 
   try {
     const response = await services_service.getServicesInFestival(
-      req.params.festival_id
+      req.params.festival_id,
+      filters,
+      req.query.keyword
     );
       console.log(response);
     return res.send(response);
