@@ -492,7 +492,6 @@ router.post(
           message: business_details.message,
         });
       }
-      console.log("business_details", business_details);
 
       const response = await festival_service.hostToFestival(
         festival_id,

@@ -1232,6 +1232,41 @@ const getBusinessDetailsByUserId = async (userId) => {
     });
 };
 
+// Get user by subscription ID helper function
+const getSubscriptionsByUserId = async (userId) => {
+  return await db
+    .select(
+      "user_subscriptions.*",
+      "festivals.*",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("user_subscriptions")
+    .leftJoin(
+      "festivals",
+      "user_subscriptions.suscribed_festivals[1]",
+      "festivals.festival_id"
+    )
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    )
+    .groupBy("user_subscriptions.user_subscription_id")
+    .groupBy("festivals.festival_id")
+    .groupBy("festival_images.festival_id")
+    //.having("user_subscriptions.user_subscription_id", "=", userId)
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+
+      return { success: true, user: value };
+    })
+    .catch((error) => {console.log('subscr',error);
+      return { success: false, message: error };
+    });
+};
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
@@ -1264,4 +1299,5 @@ module.exports = {
   getNationalities,
   //createPreferences
   getBusinessDetailsByUserId,
+  getSubscriptionsByUserId,
 };

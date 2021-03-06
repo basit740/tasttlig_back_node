@@ -84,11 +84,9 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
 
   return await query
     .then((value) => {
-      console.log(value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log(reason);
       return { success: false, details: reason };
     });
 };
@@ -239,7 +237,6 @@ const createNewFestival = async (festival_details, festival_images) => {
         return { success: false, details: "Inserting new festival failed." };
       }
 
-      console.log(festival_images)
       const images = festival_images.map((festival_image_url) => ({
         festival_id: db_festival[0].festival_id,
         festival_image_url,

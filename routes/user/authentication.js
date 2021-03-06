@@ -356,7 +356,6 @@ authRouter.put(
         message: "User does not exist.",
       });
     }
-    console.log(req.body);
     const response = await user_profile_service.saveBusinessForUser(
       req.body,
       db_user.user.tasttlig_user_id
