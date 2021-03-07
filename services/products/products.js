@@ -97,6 +97,31 @@ const getProductsInFestival = async (festival_id) => {
     });
 };
 
+//product details for dashboard
+const getUserProductDetails = async (user_id) => {
+  return await db
+  .select(
+    "products.*",
+    "nationalities.country"
+    )
+    .from("products")
+    .leftJoin(
+    "nationalities",
+    "products.product_made_in_nationality_id",
+    "nationalities.id"
+    )
+    .groupBy("products.product_id")
+    .groupBy("products.product_made_in_nationality_id")
+    .groupBy("nationalities.id")
+    .having("products.product_user_id", "=", Number(user_id))
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+}
+
 const getProductsFromUser = async (user_id) => {
 
   return await db
@@ -219,4 +244,5 @@ module.exports = {
   findProduct,
   addProductToFestival,
   claimProduct,
+  getUserProductDetails,
 };

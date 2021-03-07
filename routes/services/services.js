@@ -131,6 +131,29 @@ router.get("/services/festival/:festival_id", async (req, res) => {
   }
 });
 
+router.get("/services/details/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await services_service.getUserServiceDetails(
+      req.params.user_id
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 //Get services from user
 router.get("/services/user/:user_id", async (req, res) => {
   if (!req.params.user_id) {

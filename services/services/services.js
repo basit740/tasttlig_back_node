@@ -98,6 +98,31 @@ const getServicesInFestival = async (festival_id) => {
     });
 };
 
+//service details for dashboard
+const getUserServiceDetails = async (user_id) => {
+  return await db
+  .select(
+    "services.*",
+    "nationalities.country"
+    )
+    .from("services")
+    .leftJoin(
+    "nationalities",
+    "services.service_nationality_id",
+    "nationalities.id"
+    )
+    .groupBy("services.service_id")
+    .groupBy("services.service_nationality_id")
+    .groupBy("nationalities.id")
+    .having("services.service_user_id", "=", Number(user_id))
+    .then((value) => {console.log('val',value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {console.log('reas',reason);
+      return { success: false, details: reason };
+    });
+}
+
 const getServicesFromUser = async (user_id) => {
 
   return await db
@@ -186,6 +211,7 @@ const claimService = async (db_user, service_id) => {
 module.exports = {
   createNewService,
   getServicesInFestival,
+  getUserServiceDetails,
   getServicesFromUser,
   findService,
   claimService,

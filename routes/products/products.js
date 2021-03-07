@@ -485,6 +485,30 @@ router.get("/products/festival/:festival_id", async (req, res) => {
     });
   }
 });
+
+router.get("/products/details/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await products_service.getUserProductDetails(
+      req.params.user_id
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 // GET products from specific user
 router.get("/products/user/:user_id", async (req, res) => {
   if (!req.params.user_id) {
