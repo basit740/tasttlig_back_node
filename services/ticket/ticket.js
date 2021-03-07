@@ -8,6 +8,8 @@ const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const getAllTickets = async (userId, currentPage) => {
   // let startDate = filters.startDate.substring(0, 10);
   // let startTime = formatTime(filters.startTime);
+  console.log(currentPage);
+  console.log("userId", userId);
   const userIdInt = Number(userId);
   let query = db
     .select(
@@ -19,6 +21,7 @@ const getAllTickets = async (userId, currentPage) => {
       "festivals.festival_price",
       "festivals.festival_name",
       "festivals.festival_city",
+      "festivals.festival_type",
       "festivals.festival_description",
       "festivals.festival_start_time",
       "festivals.festival_end_time",
@@ -53,6 +56,7 @@ const getAllTickets = async (userId, currentPage) => {
     .groupBy("festivals.festival_price")
     .groupBy("festivals.festival_name")
     .groupBy("festivals.festival_city")
+    .groupBy("festivals.festival_type")
     .groupBy("festivals.festival_description")
     .groupBy("festivals.festival_end_time")
     .groupBy("festivals.festival_start_time")

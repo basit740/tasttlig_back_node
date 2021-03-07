@@ -6,11 +6,17 @@ const token_service = require("../../services/authentication/token");
 const ticket_service = require("../../services/ticket/ticket");
 const user_profile_service = require("../../services/profile/user_profile");
 
+
 // GET all tickets
-router.get("/ticket/all", async (req, res) => {
+router.get("/ticket/all", token_service.authenticateToken, async (req, res) => {
+  console.log("query",req.query)
+  console.log(req.user);
   try {
-    const ticket_user_id = req.query.ticket_user_id;
+    const ticket_user_id = req.query.ticket_user_id || req.user.id
     const current_page = req.query.page || 1;
+
+    console.log('currentpage', current_page);
+    console.log(ticket_user_id);
 
     const response = await ticket_service.getAllTickets(
       ticket_user_id,
@@ -19,6 +25,7 @@ router.get("/ticket/all", async (req, res) => {
 
     return res.send(response);
   } catch (error) {
+    console.log(error);
     res.send({
       success: false,
       message: "Error.",
