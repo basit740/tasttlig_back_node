@@ -92,6 +92,7 @@ router.post("/food-sample-claim", async (req, res) => {
       current_status: "Claimed",
       claimed_quantity: req.body.claimed_quantity,
       claim_Viewable_id: req.body.claim_Viewable_id,
+      foodsample_festival_name: req.body.foodsample_festival_name,
     };
 
     const response = await food_sample_claim_service.createNewFoodSampleClaim(
