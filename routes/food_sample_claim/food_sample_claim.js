@@ -114,16 +114,19 @@ router.post("/food-sample-claim", async (req, res) => {
 
 // POST confirm food sample
 router.post("/food-sample-claim/confirm", async (req, res) => {
-  if (!req.body.token) {
+  console.log("body from claims:", req.body)
+  if (!req.body.claim_Viewable_id) {
     return res.status(403).json({
       success: false,
-      message: "Token not present in request.",
+      message: "Id not present in request.",
     });
   }
 
   const response = await food_sample_claim_service.confirmFoodSampleClaim(
-    req.body.token
+    req.body.claim_Viewable_id,
+    req.body.quantity
   );
+  console.log("response from claims:", response)
 
   return res.status(response.error ? 500 : 200).json(response);
 });
@@ -135,6 +138,27 @@ router.get(
   async (req, res) => {
     try {
       const db_food_claims = await food_sample_claim_service.getUserFoodSampleClaims(
+        req.user.id
+      );
+
+      return res.send(db_food_claims);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
+
+// GET Host food sample Redeems
+router.get(
+  "/food-sample-redeem/user/reservations",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const db_food_claims = await food_sample_claim_service.getUserFoodSampleRedeems(
         req.user.id
       );
 

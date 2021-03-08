@@ -115,29 +115,38 @@ const getFoodClaimCount = async (email, food_sample_id) => {
 };
 
 // Confirm food sample claim helper function
-const confirmFoodSampleClaim = async (token) => {
+const confirmFoodSampleClaim = async (claimId, quantityAfterRedeem) => {
+  console.log("quantity from confirm food claim", quantityAfterRedeem)
   try {
-    let payload = jwt.verify(token, process.env.EMAIL_SECRET);
-
     await db.transaction(async (trx) => {
-      await trx("food_sample_claims")
-        .where("food_sample_claim_id", payload.claim_id)
+      const db_food_sample_claim = await trx("food_sample_claims")
+        .where({ claim_Viewable_id: claimId })
         .update({
           status: Food_Sample_Claim_Status.CONFIRMED,
-        });
+          current_status: "Redeemed",
+        })
+        .returning("*");
 
-      // const db_food_sample = await trx("food_samples")
-      //   .select("food_samples.*")
-      //   .where("food_sample_id", payload.food_sample_id)
-      //   .first();
+        if(quantityAfterRedeem>=0) {
+          await db("food_samples")
+          .where({ food_sample_id: db_food_sample_claim[0].food_sample_id})
+          .update(
+           { quantity: quantityAfterRedeem}
+            )
+            // .returning("*")
 
-      // await sendClaimedEmailToUser(payload.db_user, db_food_sample);
+        }
+          // console.log("db_food_sample_claim", food_sample_id
+        // .catch((reason) => {
+        //   return { success: false, message: reason };
+        // });
     });
 
-    return { success: true };
+    return { success: true, details: "Success." };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { success: false, details: error.message };
   }
+   
 };
 
 // const sendPendingClaimedEmailToUser = async (db_user, db_food_sample) => {
@@ -290,10 +299,59 @@ const getUserFoodSampleClaims = async (user_id) => {
   }
 };
 
+// Get user food sample claims helper function
+const getUserFoodSampleRedeems = async (user_id) => {
+  try {
+    const db_food_sample_claim = await db
+      .select(
+        "food_samples.*",
+        "food_sample_claims.*",
+        "tasttlig_users.first_name",
+        "tasttlig_users.last_name",
+        "nationalities.nationality",
+        "nationalities.alpha_2_code",
+        db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
+      )
+      .from("food_sample_claims")
+      .leftJoin(
+        "food_samples",
+        "food_sample_claims.food_sample_id",
+        "food_samples.food_sample_id"
+      )
+      .leftJoin(
+        "food_sample_images",
+        "food_samples.food_sample_id",
+        "food_sample_images.food_sample_id"
+      )
+      .leftJoin(
+        "tasttlig_users",
+        "food_sample_claims.food_sample_claim_user_id",
+        "tasttlig_users.tasttlig_user_id"
+      )
+      .leftJoin(
+        "nationalities",
+        "food_samples.nationality_id",
+        "nationalities.id"
+      )
+      .groupBy("food_sample_claims.food_sample_claim_id")
+      .groupBy("food_samples.food_sample_id")
+      .groupBy("tasttlig_users.first_name")
+      .groupBy("tasttlig_users.last_name")
+      .groupBy("nationalities.nationality")
+      .groupBy("nationalities.alpha_2_code")
+      .having("food_sample_creater_user_id", "=", user_id);
+
+    return { success: true, details: db_food_sample_claim };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   createNewFoodSampleClaim,
   getFoodClaimCount,
   userCanClaimFoodSample,
   confirmFoodSampleClaim,
   getUserFoodSampleClaims,
+  getUserFoodSampleRedeems
 };
