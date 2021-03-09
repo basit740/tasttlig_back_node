@@ -103,14 +103,22 @@ const getUserServiceDetails = async (user_id) => {
   return await db
   .select(
     "services.*",
+    "service_images.service_image_id",
+    db.raw("ARRAY_AGG(service_images.service_image_url) as image_urls"),
     "nationalities.country"
     )
-    .from("services")
+    .from("service_images")
+    .rightJoin(
+    "services",
+    "service_images.service_id",
+    "services.service_id",
+    )
     .leftJoin(
     "nationalities",
     "services.service_nationality_id",
     "nationalities.id"
     )
+    .groupBy("service_images.service_image_id")
     .groupBy("services.service_id")
     .groupBy("services.service_nationality_id")
     .groupBy("nationalities.id")
@@ -207,6 +215,40 @@ const claimService = async (db_user, service_id) => {
     return { success: false, details: error.message };
   }
 };
+// Update service helper function
+const updateService = async (
+  db_user,
+  service_id,
+  data,
+) => {
+  const { service_images, ...service_update_data } = data;
+
+  try {
+    await db("services")
+      .where((builder) => {
+          return builder.where({
+            service_id,
+            service_user_id: db_user.tasttlig_user_id,
+          });
+      })
+      .update(service_update_data);
+
+    if (service_images && service_images.length) {
+      await db("service_images").where("service_id", service_id).del();
+
+      await db("service_images").insert(
+        service_images.map((image_url) => ({
+          service_id,
+          "service_image_url": image_url,
+        }))
+      );
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, details: error };
+  }
+};
 
 module.exports = {
   createNewService,
@@ -215,4 +257,5 @@ module.exports = {
   getServicesFromUser,
   findService,
   claimService,
+  updateService,
 };

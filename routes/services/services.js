@@ -227,4 +227,48 @@ router.post("/claim-service", async (req, res) => {
   }
 });
 
+router.put(
+  "/service/update/:service_id",
+  token_service.authenticateToken,
+  async (req, res) => {
+    if (!req.params.service_id || !req.body) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+
+    try {
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
+
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message,
+        });
+      }
+
+      let db_user = user_details_from_db.user;
+
+
+      const response = await services_service.updateService(
+        db_user,
+        req.params.service_id,
+        req.body,
+      );
+
+      console.log(response);
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
+
 module.exports = router;
