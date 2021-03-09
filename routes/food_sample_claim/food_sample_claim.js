@@ -126,7 +126,6 @@ router.post("/food-sample-claim/confirm", async (req, res) => {
     req.body.claim_Viewable_id,
     req.body.quantity
   );
-  console.log("response from claims:", response)
 
   return res.status(response.error ? 500 : 200).json(response);
 });
@@ -157,9 +156,12 @@ router.get(
   "/food-sample-redeem/user/reservations",
   token_service.authenticateToken,
   async (req, res) => {
+    console.log("requset from food sample redeem:", req.query)
+    const keyword = req.query.keyword || "";
     try {
       const db_food_claims = await food_sample_claim_service.getUserFoodSampleRedeems(
-        req.user.id
+        req.user.id,
+        keyword
       );
 
       return res.send(db_food_claims);

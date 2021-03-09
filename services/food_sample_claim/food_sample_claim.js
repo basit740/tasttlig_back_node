@@ -116,7 +116,6 @@ const getFoodClaimCount = async (email, food_sample_id) => {
 
 // Confirm food sample claim helper function
 const confirmFoodSampleClaim = async (claimId, quantityAfterRedeem) => {
-  console.log("quantity from confirm food claim", quantityAfterRedeem)
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("food_sample_claims")
@@ -136,10 +135,6 @@ const confirmFoodSampleClaim = async (claimId, quantityAfterRedeem) => {
             // .returning("*")
 
         }
-          // console.log("db_food_sample_claim", food_sample_id
-        // .catch((reason) => {
-        //   return { success: false, message: reason };
-        // });
     });
 
     return { success: true, details: "Success." };
@@ -300,9 +295,8 @@ const getUserFoodSampleClaims = async (user_id) => {
 };
 
 // Get user food sample claims helper function
-const getUserFoodSampleRedeems = async (user_id) => {
-  try {
-    const db_food_sample_claim = await db
+const getUserFoodSampleRedeems = async (user_id, keyword) => {
+  let query = db
       .select(
         "food_samples.*",
         "food_sample_claims.*",
@@ -341,10 +335,44 @@ const getUserFoodSampleRedeems = async (user_id) => {
       .groupBy("nationalities.alpha_2_code")
       .having("food_sample_creater_user_id", "=", user_id);
 
-    return { success: true, details: db_food_sample_claim };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+      if (keyword) {
+        // keyword=parseInt(keyword)
+        // console.log("keyword from condfition: ", keyword)
+        query = db
+          .select(
+            "*",
+            db.raw(
+              "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+                "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+                "END rank",
+              [keyword, keyword]
+            )
+          )
+          .from(
+            db
+              .select(
+                "main.*",
+                db.raw(
+                  "to_tsvector(concat_ws(' '," +
+                  "main.title, " +
+                  // "main.claim_Viewable_id, " +
+                  "main.first_name)) as search_text"
+                )
+              )
+              .from(query.as("main"))
+              .as("main")
+          )
+          .orderBy("rank", "desc");
+      }
+
+      return await query
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log("service", reason);
+      return { success: false, details: reason };
+    });
 };
 
 module.exports = {
