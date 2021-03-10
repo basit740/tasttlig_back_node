@@ -133,7 +133,7 @@ const updateUserProfile = async (user) => {
 const updateUserBusinessProfile = async (user) => {
   try {
     return await db("business_details")
-      .where("business_details_user_id", user.tasttlig_user_id)
+      .where("business_details_user_id", user.business_details_user_id)
       .first()
       .update(user)
       .returning("*")
@@ -1207,6 +1207,7 @@ module.exports = {
   upgradeUserResponse,
   updateUserAccount,
   updateUserProfile,
+  updateUserBusinessProfile,
   createUserInfo,
   createPreferences,
   getUserByEmail,

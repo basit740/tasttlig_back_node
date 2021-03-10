@@ -320,17 +320,16 @@ router.put("/user/update-profile/:id", async (req, res) => {
 router.put("/user/update-business-profile/:id", async (req, res) => {
   try {
     const user = {
-      tasttlig_user_id: req.params.id,
-
+      business_details_user_id: req.params.id,
       business_name: req.body.businessName,
       business_phone_number: req.body.businessPhoneNumber,
       business_street_number: req.body.businessStreetNumber,
       business_street_name: req.body.businessStreetName,
       business_unit: req.body.businessUnit,
-      business_city: req.body.businessCity,
-      business_state: req.body.businessState,
-      business_country: req.body.businessCountry,
-      business_zip_postal_code: req.body.businessPostalCode,
+      city: req.body.businessCity,
+      state: req.body.businessState,
+      country: req.body.businessCountry,
+      zip_postal_code: req.body.businessPostalCode,
       business_registered: req.body.businessRegistered,
       retail_business: req.body.businessRetail,
       business_type: req.body.businessType,
@@ -344,6 +343,7 @@ router.put("/user/update-business-profile/:id", async (req, res) => {
     if (response.success) {
       res.status(200).send(response);
     } else {
+      console.log("response >>>> ", response);
       return res.status(401).json({
         success: false,
         message: "Email already exists.",
