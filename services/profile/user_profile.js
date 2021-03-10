@@ -129,6 +129,25 @@ const updateUserProfile = async (user) => {
   }
 };
 
+// Update user business profile helper function
+const updateUserBusinessProfile = async (user) => {
+  try {
+    return await db("business_details")
+      .where("business_details_user_id", user.tasttlig_user_id)
+      .first()
+      .update(user)
+      .returning("*")
+      .then((value) => {
+        return { success: true, details: value[0] };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  } catch (error) {
+    return { success: false, message: error };
+  }
+};
+
 // Update user profile helper function
 const createUserInfo = async (user) => {
   try {
