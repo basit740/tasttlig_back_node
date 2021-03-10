@@ -26,12 +26,15 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     response.user.tasttlig_user_id
   );
 
+  console.log("check user obj >>>> yerrrrr >>>>", response.user);
+
   let user = {
     id: response.user.tasttlig_user_id,
     first_name: response.user.first_name,
     last_name: response.user.last_name,
     email: response.user.email,
     phone_number: response.user.phone_number,
+    age: response.user.age,
     role: response.user.role,
     profile_image_link: response.user.profile_image_link,
     banner_image_link: response.user.banner_image_link,
@@ -39,12 +42,30 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     profile_tag_line: response.user.profile_tag_line,
     address_line_1: response.user.user_address_line_1,
     address_line_2: response.user.user_address_line_2,
+    street_number: response.user.street_number,
+    street_name: response.user.street_name,
+    occupation: response.user.occupation,
     city: response.user.user_city,
+    country: response.user.user_country,
     postal_code: response.user.user_zip_postal_code,
     state: response.user.user_state,
     address_type: response.user.address_type,
     business_name: response.user.business_name,
     business_type: response.user.business_type,
+    business_phone_number: response.user.business_phone_number,
+    business_street_number: response.user.business_street_number,
+    business_street_name: response.user.business_street_name,
+    business_unit: response.user.business_unit,
+    business_registered: response.user.business_registered,
+    retail_business: response.user.retail_business,
+    food_business_type: response.user.food_business_type,
+    food_handlers_certificate: response.user.food_handlers_certificate,
+    business_registered_location: response.user.business_registered_location,
+    business_city: response.user.city,
+    business_state: response.user.state,
+    business_country: response.user.country,
+    business_zip_postal_code: response.user.business_zip_postal_code,
+    business_details_id: response.user.business_details_id,
     profile_status: response.user.profile_status,
     subscription_code: response.user.subscription_code,
     verified: response.user.is_email_verified,
@@ -782,6 +803,33 @@ router.post(
     }
   }
 );
+
+// router.put(
+//   "/business-passport",
+//   token_service.authenticateToken,
+//   async (req, res) => {
+//     try {
+//       const response = await passport_service.putBusinessPassportDetails(
+//         req.body
+//       );
+
+//       console.log("res", response.success);
+//       console.log("body", req.body);
+//       if (response.success && req.body.is_sponsor) {
+//         saveUserApplicationToSponsor(req, res);
+//       } else {
+//         console.log("return", response);
+//         return res.send(response);
+//       }
+//     } catch (error) {
+//       res.send({
+//         success: false,
+//         message: "Error.",
+//         response: error.message,
+//       });
+//     }
+//   }
+// );
 
 const saveUserApplicationToSponsor = async (req, res) => {
   console.log("inside d funct", req.user);

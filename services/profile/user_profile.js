@@ -47,6 +47,7 @@ const getUserBySubscriptionId = async (id) => {
     .select(
       "tasttlig_users.*",
       "user_subscriptions.*",
+      "business_details.*",
       db.raw("ARRAY_AGG(roles.role) as role")
     )
     .first()
@@ -56,6 +57,11 @@ const getUserBySubscriptionId = async (id) => {
       "user_subscriptions.user_id"
     )
     .leftJoin(
+      "business_details",
+      "tasttlig_users.tasttlig_user_id",
+      "business_details.business_details_user_id"
+    )
+    .leftJoin(
       "user_role_lookup",
       "tasttlig_users.tasttlig_user_id",
       "user_role_lookup.user_id"
@@ -63,6 +69,7 @@ const getUserBySubscriptionId = async (id) => {
     .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
     .groupBy("tasttlig_users.tasttlig_user_id")
     .groupBy("user_subscriptions.user_subscription_id")
+    .groupBy("business_details.business_details_id")
     .having("tasttlig_users.tasttlig_user_id", "=", id)
     .then((value) => {
       if (!value) {
