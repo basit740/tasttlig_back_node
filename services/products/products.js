@@ -280,6 +280,28 @@ const updateProduct = async (
   }
 };
 
+// Delete product helper function
+const deleteProduct = async (user_id, product_id, product_image_id) => {
+  return await db("product_images")
+    .where({
+      product_image_id,
+      product_id,
+    })
+    .del()
+    .then(async () => {
+      await db("products")
+      .where({
+      product_id,
+      "product_user_id": user_id,
+    })
+    .del()
+      return { success: true };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
 module.exports = {
   createNewProduct,
   getProductsInFestival,
@@ -289,4 +311,5 @@ module.exports = {
   claimProduct,
   getUserProductDetails,
   updateProduct,
+  deleteProduct,
 };

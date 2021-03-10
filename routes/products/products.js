@@ -648,4 +648,34 @@ router.put(
   }
 );
 
+// DELETE product
+router.delete(
+  "/product/delete/:product_id",
+  token_service.authenticateToken,
+  async (req, res) => {console.log(req.body, req.params.product_id);
+    if (!req.params.product_id) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+
+    try {
+      const response = await products_service.deleteProduct(
+        req.user.id,
+        req.params.product_id,
+        req.body.image_id
+      );
+console.log(response);
+      return res.send(response);
+    } catch (error) {console.log(error);
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
+
 module.exports = router;

@@ -957,11 +957,37 @@ const getAllUserOrders = async (user_id) => {
   }
 };
 
+const getUserOrders = async (user_id) => {
+    return await db
+    .select(
+      "orders.*",
+      "order_items.item_type",
+      "order_items.quantity")
+      .from("orders")
+      .leftJoin(
+        "order_items",
+        "orders.order_id",
+        "order_items.order_id"
+      )
+      .groupBy("orders.order_id")
+      .groupBy("order_items.order_id")
+    .having("order_by_user_id", "=", Number(user_id))
+    .then((value) => {
+      console.log(value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log(reason);
+      return { success: false, details: reason };
+    });
+}
+
 module.exports = {
   getOrderDetails,
   createOrder,
   getCartOrderDetails,
   createCartOrder,
   getAllUserOrders,
-  getVendorSubscriptionDetails
+  getVendorSubscriptionDetails,
+  getUserOrders
 };

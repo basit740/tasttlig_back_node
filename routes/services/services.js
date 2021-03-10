@@ -271,4 +271,34 @@ router.put(
   }
 );
 
+// DELETE service
+router.delete(
+  "/service/delete/:service_id",
+  token_service.authenticateToken,
+  async (req, res) => {
+    if (!req.params.service_id) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+
+    try {
+      const response = await services_service.deleteService(
+        req.user.id,
+        req.params.service_id,
+        req.body.image_id
+      );
+console.log(response);
+      return res.send(response);
+    } catch (error) {console.log(error);
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
+
 module.exports = router;

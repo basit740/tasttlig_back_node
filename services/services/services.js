@@ -250,6 +250,28 @@ const updateService = async (
   }
 };
 
+// Delete service helper function
+const deleteService = async (user_id, service_id, service_image_id) => {
+  return await db("service_images")
+    .where({
+      service_image_id,
+      service_id,
+    })
+    .del()
+    .then(async () => {
+      await db("services")
+      .where({
+        service_id,
+      "service_user_id": user_id,
+    })
+    .del()
+      return { success: true };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
 module.exports = {
   createNewService,
   getServicesInFestival,
@@ -258,4 +280,5 @@ module.exports = {
   findService,
   claimService,
   updateService,
+  deleteService,
 };
