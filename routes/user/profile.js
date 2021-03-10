@@ -26,8 +26,6 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     response.user.tasttlig_user_id
   );
 
-  console.log("check user obj >>>> yerrrrr >>>>", response.user);
-
   let user = {
     id: response.user.tasttlig_user_id,
     first_name: response.user.first_name,
@@ -343,7 +341,6 @@ router.put("/user/update-business-profile/:id", async (req, res) => {
     if (response.success) {
       res.status(200).send(response);
     } else {
-      console.log("response >>>> ", response);
       return res.status(401).json({
         success: false,
         message: "Email already exists.",
