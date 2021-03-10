@@ -107,23 +107,9 @@ const updateUserAccount = async (user) => {
 const updateUserProfile = async (user) => {
   try {
     return await db("tasttlig_users")
-      .where("tasttlig_user_id", user.id)
+      .where("tasttlig_user_id", user.tasttlig_user_id)
       .first()
-      .update({
-        first_name: user.first_name,
-        last_name: user.last_name,
-        phone_number: user.phone_number,
-        user_address_line_1: user.address_line_1,
-        user_address_line_2: user.address_line_2,
-        user_city: user.city,
-        user_state: user.state,
-        user_zip_postal_code: user.postal_code,
-        user_country: user.country,
-        address_type: user.address_type,
-        business_name: user.business_name,
-        business_type: user.business_type,
-        profile_status: user.profile_status,
-      })
+      .update(user)
       .returning("*")
       .then((value) => {
         return { success: true, details: value[0] };
@@ -188,7 +174,7 @@ const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
   return await db.transaction(async (trx) => {
     const sponsorInfo = {
       sponsor_user_id,
-      sponsor_business_id : sponsorDto.sponsor_business_id,
+      sponsor_business_id: sponsorDto.sponsor_business_id,
       /* sponsor_name: sponsorDto.business_name,
       sponsor_address_1: sponsorDto.address_line_1,
       sponsor_address_2: sponsorDto.address_line_2,
@@ -240,7 +226,7 @@ const saveBusinessForUser = async (hostDto, user_id) => {
       business_details_created_at_datetime: new Date(),
       business_details_updated_at_datetime: new Date(),
     };
-    console.log("hello")
+    console.log("hello");
     const checkForUpdate = await trx("business_details")
       .select("business_details_id")
       .where("business_details_user_id", user_id)
@@ -258,7 +244,7 @@ const saveBusinessForUser = async (hostDto, user_id) => {
         .insert(businessInfo)
         .returning("*");
     }
-      console.log(response);
+    console.log(response);
     return { success: true, details: response[0] };
   });
 };
@@ -342,17 +328,15 @@ const saveApplicationInformation = async (hostDto, trx) => {
     role_name = "VENDOR_PENDING";
   }
   if (applications.length === 0) {
-      applications.push({
-        user_id: hostDto.dbUser.user.tasttlig_user_id,
-        reason: "",
-        created_at: new Date(),
-        updated_at: new Date(),
-        type: "vendor",
-        status: "Pending",
-      });
-      role_name = "VENDOR_PENDING";
-    
-
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "vendor",
+      status: "Pending",
+    });
+    role_name = "VENDOR_PENDING";
   }
   if (applications.length === 0) {
     applications.push({
@@ -364,11 +348,9 @@ const saveApplicationInformation = async (hostDto, trx) => {
       status: "Pending",
     });
     role_name = "SPONSOR_PENDING";
-  
+  }
 
-}
-
-/*   if (applications.length == 0 && hostDto.is_host === "no") {
+  /*   if (applications.length == 0 && hostDto.is_host === "no") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
       reason: "",
@@ -871,7 +853,7 @@ const approveOrDeclineHostApplication = async (
         new_role.charAt(0).toUpperCase() + new_role.slice(1).toLowerCase();
       let active_item = "Products";
 
-/*       if (role_name_in_title_case === "Host") {
+      /*       if (role_name_in_title_case === "Host") {
         active_item = "Experiences";
       } */
 
@@ -1101,7 +1083,7 @@ const saveHostApplication = async (hostDto, user) => {
   if (dbUser == null || !dbUser.success) {
     dbUser = await getUserByPassportIdOrEmail(hostDto.email);
   }
-  
+
   hostDto.dbUser = dbUser;
   console.log(hostDto.dbUser);
   return await db.transaction(async (trx) => {
@@ -1120,25 +1102,26 @@ const saveHostApplication = async (hostDto, user) => {
 //create passport preferences helper function
 const createPreferences = async (preference_details, user_id) => {
   try {
-    console.log(preference_details)
-        return await db("tasttlig_users")
-        .where("tasttlig_user_id", user_id)
-        .first()
-        .update({
-          food_preferences: preference_details["food_preferences"],
-          food_allergies: preference_details["food_allergies"],
-          preferred_country_cuisine: preference_details["preferred_country_cuisine"],
-        })
-    .returning("*")
-    .then((value) =>  {
-      return { success: true, details: value[0] };
-    })
+    console.log(preference_details);
+    return await db("tasttlig_users")
+      .where("tasttlig_user_id", user_id)
+      .first()
+      .update({
+        food_preferences: preference_details["food_preferences"],
+        food_allergies: preference_details["food_allergies"],
+        preferred_country_cuisine:
+          preference_details["preferred_country_cuisine"],
+      })
+      .returning("*")
+      .then((value) => {
+        return { success: true, details: value[0] };
+      })
       .catch((reason) => {
-      return { success: false, details: reason };
-    });
-} catch (error) {
-  return { success: false, message: error };
-}
+        return { success: false, details: reason };
+      });
+  } catch (error) {
+    return { success: false, message: error };
+  }
 };
 
 const sendHostApplicationEmails = async (dbUser, documents) => {

@@ -7,7 +7,7 @@ const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const point_system_service = require("../../services/profile/points_system");
 const menu_item_service = require("../../services/menu_items/menu_items");
-const authentication_service = require("../../services/authentication/authenticate_user")
+const authentication_service = require("../../services/authentication/authenticate_user");
 
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
@@ -263,20 +263,22 @@ router.put("/user/update-account/:id", async (req, res) => {
 router.put("/user/update-profile/:id", async (req, res) => {
   try {
     const user = {
-      id: req.params.id,
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
-      phone_number: req.body.phone_number,
-      address_line_1: req.body.address_line_1,
-      address_line_2: req.body.address_line_2,
-      city: req.body.city,
-      state: req.body.state,
-      postal_code: req.body.postal_code,
-      country: "Canada",
-      address_type: req.body.address_type,
-      business_name: req.body.business_name,
-      business_type: req.body.business_type,
-      profile_status: req.body.profile_status,
+      tasttlig_user_id: req.params.id,
+      first_name: req.body.firstName,
+      last_name: req.body.lastName,
+      phone_number: req.body.phoneNumber,
+      street_number: req.body.streetNumber,
+      street_name: req.body.streetName,
+      apartment_no: req.body.unitNumber,
+      user_city: req.body.city,
+      user_state: req.body.region,
+      user_zip_postal_code: req.body.postalCode,
+      user_country: req.body.country,
+      occupation: req.body.occupation,
+      // address_type: req.body.address_type,
+      // business_name: req.body.business_name,
+      // business_type: req.body.business_type,
+      // profile_status: req.body.profile_status,
     };
 
     const response = await user_profile_service.updateUserProfile(user);
@@ -763,15 +765,14 @@ router.post(
         req.body
       );
 
-      console.log('res',response.success);
-      console.log('body',req.body);
+      console.log("res", response.success);
+      console.log("body", req.body);
       if (response.success && req.body.is_sponsor) {
         saveUserApplicationToSponsor(req, res);
+      } else {
+        console.log("return", response);
+        return res.send(response);
       }
-else{
-      console.log('return',response);
-      return res.send(response);
-}
     } catch (error) {
       res.send({
         success: false,
@@ -782,74 +783,74 @@ else{
   }
 );
 
-const saveUserApplicationToSponsor = async (req, res)=>{
-  console.log('inside d funct', req.user);
+const saveUserApplicationToSponsor = async (req, res) => {
+  console.log("inside d funct", req.user);
   // save sponsor application
   const hostDto = {
     is_sponsor: req.body.is_sponsor,
     email: req.user.email,
   };
-  console.log('hostdto',hostDto);
+  console.log("hostdto", hostDto);
   const saveHost = await user_profile_service.saveHostApplication(
     hostDto,
     req.user
   );
-  console.log('savehost',saveHost);
+  console.log("savehost", saveHost);
 
   //save sponsor for user
   if (saveHost.success) {
-    try{
-    const db_user = await authenticate_user_service.findUserByEmail(
-      req.user.email
-    );
-    console.log('db_user',db_user);
+    try {
+      const db_user = await authenticate_user_service.findUserByEmail(
+        req.user.email
+      );
+      console.log("db_user", db_user);
 
-    if (!db_user.success) {
-      return res.status(403).json({
+      if (!db_user.success) {
+        return res.status(403).json({
+          success: false,
+          message: "error",
+        });
+      }
+
+      const business_details = await authentication_service.getUserByBusinessDetails(
+        req.user.id
+      );
+      console.log("business_details", business_details);
+      if (!business_details.success) {
+        return res.status(403).json({
+          success: false,
+          message: business_details.message,
+        });
+      }
+
+      const sponsorData = {
+        sponsor_business_id:
+          business_details.business_details.business_details_id,
+      };
+      console.log("sponsor data", sponsorData);
+      const saveSponsorUser = await user_profile_service.saveSponsorForUser(
+        sponsorData,
+        db_user.user.tasttlig_user_id
+      ); //end
+
+      console.log("saveSponsorUser", saveSponsorUser);
+      if (!saveSponsorUser.success) {
+        return res.status(403).json({
+          success: false,
+          message: "error",
+        });
+      }
+
+      console.log("final", saveSponsorUser.success);
+      return res.send(saveSponsorUser);
+    } catch (error) {
+      res.send({
         success: false,
-        message: "error",
+        message: "Error.",
+        response: error.message,
       });
     }
-
-    const business_details = await authentication_service.getUserByBusinessDetails(
-      req.user.id
-    );
-    console.log('business_details',business_details);
-    if (!business_details.success) {
-      return res.status(403).json({
-        success: false,
-        message: business_details.message,
-      });
-    }
-
-    const sponsorData = {
-      sponsor_business_id:
-        business_details.business_details.business_details_id,
-    };
-    console.log('sponsor data',sponsorData);
-    const saveSponsorUser = await user_profile_service.saveSponsorForUser(
-      sponsorData,
-      db_user.user.tasttlig_user_id
-    ); //end
-
-    console.log('saveSponsorUser',saveSponsorUser);
-    if (!saveSponsorUser.success) {
-      return res.status(403).json({
-        success: false,
-        message: "error",
-      });
-    }
-    
-    console.log('final',saveSponsorUser.success);
-    return res.send(saveSponsorUser);
-} catch (error) {
-  res.send({
-    success: false,
-    message: "Error.",
-    response: error.message,
-  });
-}
     //catch
   }
-}
+};
 module.exports = router;
