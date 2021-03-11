@@ -19,10 +19,11 @@ const MAX_CLAIMS = 3;
 const createNewFoodSampleClaim = async (
   db_user,
   db_food_sample,
+  quantityAfterClaim,
   food_sample_claim_details
 ) => {
   try {
-    console.log("food_sample_claims detaisl:0", food_sample_claim_details)
+    console.log("food_sample_claims detaisl:0", quantityAfterClaim)
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("food_sample_claims")
         .insert(food_sample_claim_details)
@@ -33,6 +34,17 @@ const createNewFoodSampleClaim = async (
           success: false,
           details: "Inserting new food sample claim failed.",
         };
+      }
+      console.log("food sample claim result:", db_food_sample_claim)
+
+      if(quantityAfterClaim>=0) {
+        await db("food_samples")
+        .where({ food_sample_id: db_food_sample_claim[0].food_sample_id})
+        .update(
+         { claimed_total_quantity: quantityAfterClaim}
+          )
+          // .returning("*")
+
       }
 
       // Email to user on claiming food sample
@@ -115,11 +127,11 @@ const getFoodClaimCount = async (email, food_sample_id) => {
 };
 
 // Confirm food sample claim helper function
-const confirmFoodSampleClaim = async (claimId, quantityAfterRedeem) => {
+const confirmFoodSampleClaim = async (claimId, quantityAfterRedeem, totalRedeemQuantity) => {
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("food_sample_claims")
-        .where({ claim_Viewable_id: claimId })
+        .where({ claim_viewable_id: claimId })
         .update({
           status: Food_Sample_Claim_Status.CONFIRMED,
           current_status: "Redeemed",
@@ -130,7 +142,9 @@ const confirmFoodSampleClaim = async (claimId, quantityAfterRedeem) => {
           await db("food_samples")
           .where({ food_sample_id: db_food_sample_claim[0].food_sample_id})
           .update(
-           { quantity: quantityAfterRedeem}
+           { quantity: quantityAfterRedeem,
+              redeemed_total_quantity: totalRedeemQuantity
+          }
             )
             // .returning("*")
 
@@ -355,7 +369,7 @@ const getUserFoodSampleRedeems = async (user_id, keyword) => {
                 db.raw(
                   "to_tsvector(concat_ws(' '," +
                   "main.title, " +
-                  // "main.claim_Viewable_id, " +
+                  "main.claim_viewable_id, " +
                   "main.first_name)) as search_text"
                 )
               )
