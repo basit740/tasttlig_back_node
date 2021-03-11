@@ -19,6 +19,7 @@ router.post("/food-sample-claim", async (req, res) => {
 
   let db_user;
   let new_user = false;
+  const claimed_total_quantity = req.body.claimed_total_quantity;
 
   db_user = await user_profile_service.getUserByPassportIdOrEmail(
     req.body.food_sample_claim_user
@@ -91,13 +92,15 @@ router.post("/food-sample-claim", async (req, res) => {
       food_sample_id: db_food_sample.food_sample_id,
       current_status: "Claimed",
       claimed_quantity: req.body.claimed_quantity,
-      claim_Viewable_id: req.body.claim_Viewable_id,
+      claim_viewable_id: req.body.claim_viewable_id,
       foodsample_festival_name: req.body.foodsample_festival_name,
+      
     };
 
     const response = await food_sample_claim_service.createNewFoodSampleClaim(
       db_user,
       db_food_sample,
+      claimed_total_quantity,
       food_sample_claim_details
     );
 
@@ -115,7 +118,7 @@ router.post("/food-sample-claim", async (req, res) => {
 // POST confirm food sample
 router.post("/food-sample-claim/confirm", async (req, res) => {
   console.log("body from claims:", req.body)
-  if (!req.body.claim_Viewable_id) {
+  if (!req.body.claim_viewable_id) {
     return res.status(403).json({
       success: false,
       message: "Id not present in request.",
@@ -123,8 +126,9 @@ router.post("/food-sample-claim/confirm", async (req, res) => {
   }
 
   const response = await food_sample_claim_service.confirmFoodSampleClaim(
-    req.body.claim_Viewable_id,
-    req.body.quantity
+    req.body.claim_viewable_id,
+    req.body.quantity,
+    req.body.redeemed_total_quantity,
   );
 
   return res.status(response.error ? 500 : 200).json(response);
