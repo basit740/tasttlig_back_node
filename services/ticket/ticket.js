@@ -63,6 +63,7 @@ const getAllTickets = async (userId, currentPage) => {
     .groupBy("festivals.festival_end_date")
     .groupBy("festivals.festival_start_date")
     .groupBy("festivals.festival_id")
+    .groupBy("festivals.festival_type")
     .orderBy("festivals.festival_start_date", "asc");
 
   query = query.paginate({
@@ -147,7 +148,9 @@ const getTicketList = async () => {
 };
 
 const newTicketInfo = async (ticket_details) => {
+  console.log("data from ticket add:", ticket_details)
   try {
+
     await db.transaction(async (trx) => {
       const db_ticket = await trx("ticket_details")
         .insert(ticket_details)

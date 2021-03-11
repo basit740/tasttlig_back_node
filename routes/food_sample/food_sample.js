@@ -20,7 +20,7 @@ router.post(
   "/food-sample/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log(req.body);
+    console.log("im here:", req.body);
     try {
       req.body.map(async (item) => {
         if (
@@ -152,8 +152,10 @@ router.post(
             status: "ACTIVE",
             festival_id: item.addToFestival ? 2 : null,
             festival_selected: item.festivals,
+            claimed_total_quantity: 0,
+            redeemed_total_quantity: 0,
           };
-          console.log("req from food sample,", food_sample_details)
+          // console.log("req from food sample,", food_sample_details)
 
           const response = await food_sample_service.createNewFoodSample(
             db_user,

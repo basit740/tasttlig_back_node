@@ -829,6 +829,13 @@ const approveOrDeclineHostApplication = async (
         role_code: new_role_code,
       });
 
+        await db("food_samples")
+          .where({
+            food_sample_creater_user_id: db_user.tasttlig_user_id,
+            status: "INACTIVE",
+          })
+          .update("status", "ACTIVE");
+
       // STEP 2: Update all Experiences to Active state
       // await db("experiences")
       //   .where({

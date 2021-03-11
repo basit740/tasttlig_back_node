@@ -22,6 +22,7 @@ router.get("/ticket/all", token_service.authenticateToken, async (req, res) => {
       ticket_user_id,
       current_page
     );
+    console.log("response frp,", response)
 
     return res.send(response);
   } catch (error) {
@@ -109,7 +110,7 @@ router.post(
       ticket_festival_id,
       no_of_admits,
       stripe_receipt_id,
-      attend_status,
+      // attend_status,
     } = req.body;
     try {
       if (
@@ -118,50 +119,54 @@ router.post(
         !ticket_festival_id ||
         !no_of_admits ||
         !stripe_receipt_id
-      ) {
-        return res.status(403).json({
-          success: false,
-          message: "Required parameters are not available in request.",
-        });
-      }
-
-      try {
-        const user_details_from_db = await user_profile_service.getUserById(
-          req.user.id
-        );
-
-        if (!user_details_from_db.success) {
+        ) {
           return res.status(403).json({
             success: false,
-            message: user_details_from_db.message,
+            message: "Required parameters are not available in request.",
           });
         }
 
-        const ticket_details = {
-          ticket_booking_confirmation_id,
-          ticket_user_id,
-          ticket_festival_id,
-          no_of_admits,
-          stripe_receipt_id,
-        };
-        const response = await ticket_service.newTicketInfo(ticket_details);
-
-        return res.send(response);
-      } catch (error) {
-        res.send({
+  try {
+    const user_details_from_db = await user_profile_service.getUserById(
+      req.user.id
+      );
+      
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
           success: false,
-          message: "Error.",
-          response: error,
+          message: user_details_from_db.message,
         });
       }
+      
+      const ticket_details = {
+        ticket_booking_confirmation_id,
+        ticket_user_id,
+        ticket_festival_id,
+        no_of_admits,
+        stripe_receipt_id,
+      };
+      
+      
+      const response = await ticket_service.newTicketInfo(ticket_details);
+      
+      return res.send(response);
     } catch (error) {
+      console.log("error: ", error)
       res.send({
         success: false,
         message: "Error.",
         response: error,
       });
     }
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error,
+    });
   }
+  
+}
 );
 
 module.exports = router;

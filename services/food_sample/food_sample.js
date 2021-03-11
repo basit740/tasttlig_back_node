@@ -34,11 +34,14 @@ const createNewFoodSample = async (
       let user_role_object = db_user.role;
 
       if (
-        createdByAdmin ||
-        user_role_object.includes("HOST") ||
-        user_role_object.includes("HOST_PENDING")
+        user_role_object.includes("HOST") || createdByAdmin
+        
       ) {
         food_sample_details.status = "ACTIVE";
+      } 
+      else if (
+      user_role_object.includes("HOST_PENDING")) {
+        food_sample_details.status = "INACTIVE";
       }
 
       // food_sample_details = await setAddressCoordinates(food_sample_details);
