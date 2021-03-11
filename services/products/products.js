@@ -51,8 +51,8 @@ const createNewProduct = async (
 };
 
 // Get products in festival helper function
-const getProductsInFestival = async (festival_id) => {
-  return await db
+const getProductsInFestival = async (festival_id, filters, keyword) => {
+  let query = db
     .select(
       "products.*",
       "business_details.business_name",
@@ -87,8 +87,84 @@ const getProductsInFestival = async (festival_id) => {
     .groupBy("business_details.state")
     .groupBy("business_details.zip_postal_code")
     .having("products.product_festivals_id", "@>", [festival_id])
+  /*     .then((value) => {
+        console.log(value)
+        return { success: true, details: value };
+      })
+      .catch((reason) => {
+        console.log(reason)
+        return { success: false, details: reason };
+      }); */
+  let orderByArray = []
+  if (filters.price) {
+
+
+    if (filters.price === "lowest_to_highest") {
+      //console.log("lowest to highest")
+      orderByArray.push({ column: "products.product_price", order: "asc" })
+      //query.orderBy("products.product_price", "asc")
+    } else if (filters.price === "highest_to_lowest") {
+      //console.log("highest to lowest");
+      orderByArray.push({ column: "products.product_price", order: "desc" })
+      //query.orderBy("products.product_price", "desc")
+    }
+  }
+  if (filters.quantity) {
+    if (filters.quantity === "lowest_to_highest") {
+      orderByArray.push({ column: "products.product_quantity", order: "asc" })
+    } else if (filters.quantity === "highest_to_lowest") {
+      orderByArray.push({ column: "products.product_quantity", order: "desc" })
+    }
+  }
+
+  if (filters.price || filters.quantity) {
+    query.orderBy(orderByArray);
+  }
+  if (filters.size) {
+    if (filters.size === "bite_size") {
+      query.having("products.product_size", "=", "Bite Size");
+    } else if (filters.size === "quarter") {
+      query.having("products.product_size", "=", "Quarter");
+    } else if (filters.size === "half") {
+      query.having("products.product_size", "=", "Half");
+    } else if (filters.size === "full") {
+      query.having("products.product_size", "=", "Full");
+    }
+  }
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                //"main.business_name, " +
+                "main.product_name, " +
+                "main.product_size, " +
+                "main.product_price, " +
+                //"main.business_city, " +
+                "main.product_description)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+
+  return await query
     .then((value) => {
-      console.log(value)
+      //console.log(value)
       return { success: true, details: value };
     })
     .catch((reason) => {
@@ -168,7 +244,7 @@ const addProductToFestival = async (festival_id, product_id) => {
           )
         })
         .returning("*");
-  
+
       if (!db_product) {
         return {
           success: false,

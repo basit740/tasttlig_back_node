@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const food_sample_service = require("../../services/food_sample/food_sample");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
+const festival_service = require("../../services/festival/festival")
 const {
   generateRandomString,
   formatTime,
@@ -497,6 +498,55 @@ router.get("/food-sample/all", async (req, res) => {
 
     return res.send(response);
   } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+// GET all food samples in festival
+router.get("/food-sample/festival/:festivalId", async (req, res) => {
+  try {
+    console.log("body",req.body)
+    console.log("params",req.params)
+    //const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
+    const status_operator = "=";
+    const food_sample_status = "ACTIVE";
+    //const food_ad_code = req.query.food_ad_code;
+
+    const filters = {
+/*       nationalities: req.query.nationalities,
+      startDate: req.query.startDate,
+      endDate: req.query.endDate,
+      radius: req.query.radius,
+      latitude: req.query.latitude,
+      longitude: req.query.longitude,
+      quantity: req.query.quantity,
+      festival_name: req.query.festival_name, */
+      price: req.query.price,
+      quantity: req.query.quantity,
+      size: req.query.size
+    };
+/*     const festival = await festival_service.getFestivalDetails(
+      req.params.festivalId
+    );
+    const festival_title = festival.details.festival_name */
+    //console.log("festival_title",festival_title);
+    const response = await food_sample_service.getAllFoodSamplesInFestival(
+      status_operator,
+      food_sample_status,
+      keyword,
+      //current_page,
+      //food_ad_code,
+      filters,
+      req.params.festivalId
+    );
+
+    return res.send(response);
+  } catch (error) {
+    console.log(error)
     res.send({
       success: false,
       message: "Error.",

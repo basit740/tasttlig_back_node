@@ -34,11 +34,14 @@ const createNewFoodSample = async (
       let user_role_object = db_user.role;
 
       if (
-        createdByAdmin ||
-        user_role_object.includes("HOST") ||
-        user_role_object.includes("HOST_PENDING")
+        user_role_object.includes("HOST") || createdByAdmin
+        
       ) {
         food_sample_details.status = "ACTIVE";
+      } 
+      else if (
+      user_role_object.includes("HOST_PENDING")) {
+        food_sample_details.status = "INACTIVE";
       }
 
       // food_sample_details = await setAddressCoordinates(food_sample_details);
@@ -532,6 +535,215 @@ const getAllFoodSamples = async (
       return { success: false, details: reason };
     });
 };
+// Get all food samples in festival helper function
+const getAllFoodSamplesInFestival = async (
+  operator,
+  status,
+  keyword,
+  //currentPage,
+  //food_ad_code,
+  filters,
+  festival_id
+) => {
+  const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
+  const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
+  let startDate
+  let endDate
+  let startTime
+  let endTime
+  if (filters.startDate && filters.endDate && filters.startTime && filters.endDate) {
+     startDate = filters.startDate.substring(0, 10);
+     endDate = filters.endDate.substring(0, 10);
+     startTime = formatTime(filters.startDate);
+     endTime = formatTime(filters.endDate);
+  }
+  let query = db
+    .select(
+      "food_samples.*",
+      "tasttlig_users.first_name",
+      "tasttlig_users.last_name",
+      "business_details.business_name",
+      "business_details.business_details_id",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
+      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls"),
+/*       db.raw(
+        "(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
+        [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay]
+      ) */
+    )
+    .from("food_samples")
+    .leftJoin(
+      "food_sample_images",
+      "food_samples.food_sample_id",
+      "food_sample_images.food_sample_id"
+    )
+    .leftJoin(
+      "tasttlig_users",
+      "food_samples.food_sample_creater_user_id",
+      "tasttlig_users.tasttlig_user_id"
+    )
+    .leftJoin(
+      "business_details",
+      "food_samples.food_sample_creater_user_id",
+      "business_details.business_details_user_id"
+    )
+    .leftJoin(
+      "nationalities",
+      "food_samples.nationality_id",
+      "nationalities.id"
+    )
+    .leftJoin(
+      "festivals", 
+      "food_samples.festival_selected[1]", "festivals.festival_id"
+      )
+    .groupBy("food_samples.food_sample_id")
+    .groupBy("tasttlig_users.first_name")
+    .groupBy("tasttlig_users.last_name")
+    .groupBy("business_details.business_name")
+    .groupBy("business_details.business_details_id")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code")
+    .groupBy("festivals.festival_id")
+    .having("food_samples.status", operator, status)
+    .having("food_samples.festival_selected", "@>", [festival_id])
+
+    let orderByArray = []
+  if (filters.price) {
+
+
+    if (filters.price === "lowest_to_highest") {
+      //console.log("lowest to highest")
+      orderByArray.push({ column: "food_samples.price", order: "asc" })
+      //query.orderBy("products.product_price", "asc")
+    } else if (filters.price === "highest_to_lowest") {
+      //console.log("highest to lowest");
+      orderByArray.push({ column: "food_samples.price", order: "desc" })
+      //query.orderBy("products.product_price", "desc")
+    }
+  }
+  if (filters.quantity) {
+    if (filters.quantity === "lowest_to_highest") {
+      orderByArray.push({ column: "food_samples.quantity", order: "asc" })
+    } else if (filters.quantity === "highest_to_lowest") {
+      orderByArray.push({ column: "food_samples.quantity", order: "desc" })
+    }
+  }
+
+  if (filters.price || filters.quantity) {
+    query.orderBy(orderByArray);
+  }
+  if (filters.size) {
+    if (filters.size === "bite_size") {
+      query.having("food_samples.sample_size", "=", "Bite Size");
+    } else if (filters.size === "quarter") {
+      query.having("food_samples.sample_size", "=", "Quarter");
+    } else if (filters.size === "half") {
+      query.having("food_samples.sample_size", "=", "Half");
+    } else if (filters.size === "full") {
+      query.having("food_samples.sample_size", "=", "Full");
+    }
+  }
+
+/*   if (filters.nationalities && filters.nationalities.length) {
+    query.whereIn("nationalities.nationality", filters.nationalities);
+  }
+
+  if (filters.latitude && filters.longitude) {
+    query.select(
+      gis
+        .distance(
+          "food_samples.coordinates",
+          gis.geography(gis.makePoint(filters.longitude, filters.latitude))
+        )
+        .as("distanceAway")
+    );
+    query.where(
+      gis.dwithin(
+        "food_samples.coordinates",
+        gis.geography(gis.makePoint(filters.longitude, filters.latitude)),
+        filters.radius || 100000
+      )
+    );
+    query.orderBy("distanceAway", "asc");
+  }
+
+  if (filters.startDate) {
+    query
+      // .whereRaw(
+      //   "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) >= ?",
+      //   [filters.startDate]
+      // );
+      .where("food_samples.start_date", ">=", startDate)
+      .andWhere("food_samples.start_time", ">=", startTime);
+  }
+
+  if (filters.endDate) {
+    query
+      // .whereRaw(
+      //   "cast(concat(food_samples.end_date, ' ', food_samples.end_time) as date) <= ?",
+      //   [filters.endDate]
+      // );
+      .where("food_samples.end_date", "<=", endDate)
+      .andWhere("food_samples.end_time", "<=", endTime);
+  }
+
+  if (filters.quantity) {
+    query.where("food_samples.quantity", ">=", filters.quantity);
+  }
+
+  //if (food_ad_code) {
+    //query.where("food_ad_code", "=", food_ad_code);
+  //}
+
+  if (filters.festival_name) {
+    query.where("festival_name", "=", filters.festival_name);
+  } */
+
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                //"main.nationality, " +
+                "main.title, " +
+                "main.description, " +
+                "main.business_name, " +
+                "main.first_name, " +
+                "main.last_name, " +
+                "main.address, " +
+                "main.city, " +
+                "main.state, " +
+                "main.postal_code)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+
+  return await query
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log("service", reason);
+      return { success: false, details: reason };
+    });
+};
 
 // Get food sample helper function
 const getFoodSample = async (food_sample_id) => {
@@ -804,6 +1016,7 @@ module.exports = {
   updateFoodSample,
   deleteFoodSample,
   getAllFoodSamples,
+  getAllFoodSamplesInFestival,
   getFoodSample,
   updateReviewFoodSample,
   getDistinctNationalities,
