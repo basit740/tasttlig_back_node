@@ -165,9 +165,33 @@ const newTicketInfo = async (ticket_details) => {
   }
 };
 
+const deleteTicketsFromUser = async(user_id, delete_items) => {
+  try {
+    for (let item of delete_items) {
+      await db.transaction(async(trx) => {
+        const ticketDelete = await trx("ticket_details")
+        .where({
+          ticket_id: item.ticket_id,
+        })
+        .del()
+        .then(() => {
+          return { success: true };
+        })
+        .catch((reason) => {
+          console.log(reason);
+          return { success: false, details: reason };
+        });
+      })
+    }
+  } catch(error) {
+    return { success: false, details: error}
+  }
+}
+
 module.exports = {
   getAllTickets,
   getTicketDetails,
   getTicketList,
   newTicketInfo,
+  deleteTicketsFromUser
 };

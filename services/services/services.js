@@ -231,6 +231,34 @@ const findService = async (service_id) => {
     });
 };
 
+const deleteServicesFromUser = async(user_id, delete_items) => {
+  try {
+    for (let item of delete_items) {
+      await db.transaction(async(trx) => {
+        const serviceImagesDelete = await trx("service_images")
+         .where({
+           service_id: item.service_id
+         })
+         .del()
+        const serviceDelete = await trx("services")
+        .where({
+          service_id: item.service_id,
+        })
+        .del()
+        .then(() => {
+          return { success: true };
+        })
+        .catch((reason) => {
+          console.log(reason);
+          return { success: false, details: reason };
+        });
+      })
+    }
+  } catch(error) {
+    return { success: false, details: error}
+  }
+}
+
 // Claim service helper function
 const claimService = async (db_user, service_id) => {
   try {
@@ -264,5 +292,6 @@ module.exports = {
   getServicesInFestival,
   getServicesFromUser,
   findService,
+  deleteServicesFromUser,
   claimService,
 };

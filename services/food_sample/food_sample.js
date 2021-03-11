@@ -1007,6 +1007,34 @@ const getNationalities = async (keyword) => {
   }
 };
 
+const deleteFoodSamplesFromUser = async(user_id, delete_items) => {
+  try {
+    for (let item of delete_items) {
+      await db.transaction(async(trx) => {
+         const productImagesDelete = await trx("food_sample_images")
+         .where({
+           food_sample_id: item.food_sample_id
+         })
+         .del() 
+        const foodSampleDelete = await trx("food_samples")
+        .where({
+          food_sample_id: item.food_sample_id,
+        })
+        .del()
+        .then(() => {
+          return { success: true };
+        })
+        .catch((reason) => {
+          console.log(reason);
+          return { success: false, details: reason };
+        });
+      })
+    }
+  } catch(error) {
+    return { success: false, details: error}
+  }
+}
+
 module.exports = {
   createNewFoodSample,
   getAllUserFoodSamples,
@@ -1020,5 +1048,6 @@ module.exports = {
   getFoodSampleById,
   addFoodSampleToFestival,
   getAllUserFoodSamplesNotInFestival,
-  getNationalities
+  getNationalities,
+  deleteFoodSamplesFromUser
 };

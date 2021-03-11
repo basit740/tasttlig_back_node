@@ -223,6 +223,34 @@ const getProductsFromUser = async (user_id) => {
     });
 };
 
+const deleteProductsFromUser = async(user_id, delete_items) => {
+  try {
+    for (let item of delete_items) {
+      await db.transaction(async(trx) => {
+        const productImagesDelete = await trx("product_images")
+         .where({
+           product_id: item.product_id
+         })
+         .del()
+        const productDelete = await trx("products")
+        .where({
+          product_id: item.product_id,
+        })
+        .del()
+        .then(() => {
+          return { success: true };
+        })
+        .catch((reason) => {
+          console.log(reason);
+          return { success: false, details: reason };
+        });
+      })
+    }
+  } catch(error) {
+    return { success: false, details: error}
+  }
+}
+
 // Find product helper function
 const findProduct = async (product_id) => {
   return await db
@@ -300,6 +328,7 @@ module.exports = {
   getProductsInFestival,
   getProductsFromUser,
   findProduct,
+  deleteProductsFromUser,
   addProductToFestival,
   claimProduct,
 };

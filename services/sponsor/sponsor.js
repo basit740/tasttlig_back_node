@@ -48,14 +48,15 @@ const getInKindUserSponsorships = async(user_id) => {
   .from("festivals")
   .leftJoin(
     "products",
-    "festivals.festival_business_sponsor_id[1]",
-    "products.product_user_id"
+    "festivals.festival_id",
+    "products.product_festivals_id[1]"
   )
   .groupBy("festivals.*")
   .groupBy("products.product_user_id")
   .groupBy("festivals.festival_business_sponsor_id")
   .groupBy("products.product_name")
   .groupBy("products.product_creator_type")
+  .groupBy("products.product_festivals_id[1]")
   .groupBy("festivals.festival_id")
   .having("products.product_user_id", "=", Number(user_id))
   .andHaving("products.product_creator_type", "=", "SPONSOR")

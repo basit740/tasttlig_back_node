@@ -540,6 +540,30 @@ router.get("/products/user/:user_id", async (req, res) => {
     });
   }
 });
+router.delete("/products/delete/user/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  //console.log("req params",req.body)
+  //console.log(req.body.delete_items)
+  try {
+    const response = await products_service.deleteProductsFromUser(
+      req.params.user_id,
+      req.body.delete_items
+    );
+    return res.send(response);
+  } catch (error) {
+    console.log(error)
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
 
 // POST claim product in specific festival
 router.post("/claim-product", async (req, res) => {
