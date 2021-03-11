@@ -333,6 +333,7 @@ router.put(
       user_street_number,
       user_apartment_number,
       user_gender,
+      user_state,
     } = req.body;
     console.log(user_age);
     try {
@@ -374,6 +375,7 @@ router.put(
           user_marital_status,
           user_country,
           user_city,
+          user_state,
           user_zip_code,
           user_street_name,
           user_street_number,
