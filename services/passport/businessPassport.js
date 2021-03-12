@@ -126,10 +126,12 @@ const postBusinessPassportDetails = async (data) => {
         business_type: data["user_business_type"],
         food_business_type: data["user_business_food_type"],
         business_passport_id: generateRandomString("6"),
-        business_details_created_at_datetime: data["start_date"],
+        business_details_registration_date: data["start_date"],
         business_member_status: data["member_status"],
         business_phone_number: data["user_business_phone_number"]
       };
+
+      console.log(business_details)
 
       var business_details_id = await trx("business_details")
         .insert(business_details)
@@ -146,6 +148,8 @@ const postBusinessPassportDetails = async (data) => {
       await trx("business_details_images")
         .insert(business_details_images);
 
+        console.log("inserted business images")
+        
         return { success: true };
     });
   } catch (error) {

@@ -143,8 +143,9 @@ const createUserInfo = async (user) => {
       .where("tasttlig_user_id", user.id)
       .first()
       .update({
-        age: user["user_age"],
+        // age: user["user_age"],
         sex: user["user_gender"],
+        date_of_birth: user["user_date_of_birth"],
         occupation: user["user_occupation"],
         marital_status: user["user_marital_status"],
         user_country: user["user_country"],
