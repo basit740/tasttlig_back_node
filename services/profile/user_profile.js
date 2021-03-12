@@ -1261,7 +1261,12 @@ const getSubscriptionsByUserId = async (userId) => {
     .groupBy("user_subscriptions.user_subscription_id")
     .groupBy("festivals.festival_id")
     .groupBy("festival_images.festival_id")
-    //.having("user_subscriptions.user_subscription_id", "=", userId)
+    .having("user_subscriptions.user_id", "=", userId)
+    .andWhere(function() {
+      this.where("user_subscriptions.subscription_code", "S_C1")
+      .orWhere("user_subscriptions.subscription_code", "S_C2")
+      .orWhere("user_subscriptions.subscription_code", "S_C3")
+    })
     .then((value) => {
       if (!value) {
         return { success: false, message: "No user found." };
