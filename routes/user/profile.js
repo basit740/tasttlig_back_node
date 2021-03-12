@@ -7,7 +7,7 @@ const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const point_system_service = require("../../services/profile/points_system");
 const menu_item_service = require("../../services/menu_items/menu_items");
-const authentication_service = require("../../services/authentication/authenticate_user")
+const authentication_service = require("../../services/authentication/authenticate_user");
 
 //get user subscription by user id
 router.get("/user-subscription", token_service.authenticateToken, async (req, res) => {
@@ -47,6 +47,7 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     last_name: response.user.last_name,
     email: response.user.email,
     phone_number: response.user.phone_number,
+    age: response.user.age,
     role: response.user.role,
     profile_image_link: response.user.profile_image_link,
     banner_image_link: response.user.banner_image_link,
@@ -54,12 +55,30 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     profile_tag_line: response.user.profile_tag_line,
     address_line_1: response.user.user_address_line_1,
     address_line_2: response.user.user_address_line_2,
+    street_number: response.user.street_number,
+    street_name: response.user.street_name,
+    occupation: response.user.occupation,
     city: response.user.user_city,
+    country: response.user.user_country,
     postal_code: response.user.user_zip_postal_code,
     state: response.user.user_state,
     address_type: response.user.address_type,
     business_name: response.user.business_name,
     business_type: response.user.business_type,
+    business_phone_number: response.user.business_phone_number,
+    business_street_number: response.user.business_street_number,
+    business_street_name: response.user.business_street_name,
+    business_unit: response.user.business_unit,
+    business_registered: response.user.business_registered,
+    retail_business: response.user.retail_business,
+    food_business_type: response.user.food_business_type,
+    food_handlers_certificate: response.user.food_handlers_certificate,
+    business_registered_location: response.user.business_registered_location,
+    business_city: response.user.city,
+    business_state: response.user.state,
+    business_country: response.user.country,
+    business_zip_postal_code: response.user.zip_postal_code,
+    business_details_id: response.user.business_details_id,
     profile_status: response.user.profile_status,
     subscription_code: response.user.subscription_code,
     verified: response.user.is_email_verified,
@@ -277,23 +296,61 @@ router.put("/user/update-account/:id", async (req, res) => {
 router.put("/user/update-profile/:id", async (req, res) => {
   try {
     const user = {
-      id: req.params.id,
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
-      phone_number: req.body.phone_number,
-      address_line_1: req.body.address_line_1,
-      address_line_2: req.body.address_line_2,
-      city: req.body.city,
-      state: req.body.state,
-      postal_code: req.body.postal_code,
-      country: "Canada",
-      address_type: req.body.address_type,
-      business_name: req.body.business_name,
-      business_type: req.body.business_type,
-      profile_status: req.body.profile_status,
+      tasttlig_user_id: req.params.id,
+      first_name: req.body.firstName,
+      last_name: req.body.lastName,
+      phone_number: req.body.phoneNumber,
+      street_number: req.body.streetNumber,
+      street_name: req.body.streetName,
+      apartment_no: req.body.unitNumber,
+      user_city: req.body.city,
+      user_state: req.body.region,
+      user_zip_postal_code: req.body.postalCode,
+      user_country: req.body.country,
+      occupation: req.body.occupation,
+      // address_type: req.body.address_type,
+      // business_name: req.body.business_name,
+      // business_type: req.body.business_type,
+      // profile_status: req.body.profile_status,
     };
 
     const response = await user_profile_service.updateUserProfile(user);
+
+    if (response.success) {
+      res.status(200).send(response);
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: "Email already exists.",
+      });
+    }
+  } catch (error) {
+    console.log("Update", error);
+  }
+});
+
+router.put("/user/update-business-profile/:id", async (req, res) => {
+  try {
+    const user = {
+      business_details_user_id: req.params.id,
+      business_name: req.body.businessName,
+      business_phone_number: req.body.businessPhoneNumber,
+      business_street_number: req.body.businessStreetNumber,
+      business_street_name: req.body.businessStreetName,
+      business_unit: req.body.businessUnit,
+      city: req.body.businessCity,
+      state: req.body.businessState,
+      country: req.body.businessCountry,
+      zip_postal_code: req.body.businessPostalCode,
+      business_registered: req.body.businessRegistered,
+      retail_business: req.body.businessRetail,
+      business_type: req.body.businessType,
+      food_business_type: req.body.foodBusinessType,
+      food_handlers_certificate: req.body.foodHandlersCertificate,
+      business_registered_location: req.body.businessRegisteredLocation,
+    };
+
+    const response = await user_profile_service.updateUserBusinessProfile(user);
 
     if (response.success) {
       res.status(200).send(response);
@@ -778,7 +835,7 @@ router.post(
       const response = await passport_service.postBusinessPassportDetails(
         req.body
       );
-
+        //here
       if (!response.success) {
         return res.status(403).json({
           success: false,
@@ -910,7 +967,9 @@ router.post(
   }
 );
 
-const saveUserApplicationToSponsor = async (req, res)=>{
+
+const saveUserApplicationToSponsor = async (req, res) => {
+  console.log("inside d funct", req.user);
   // save sponsor application
   const hostDto = {
     is_sponsor: req.body.is_sponsor,
@@ -928,12 +987,12 @@ const saveUserApplicationToSponsor = async (req, res)=>{
       req.user.email
     );
 
-    if (!db_user.success) {
-      return res.status(403).json({
-        success: false,
-        message: "error",
-      });
-    }
+      if (!db_user.success) {
+        return res.status(403).json({
+          success: false,
+          message: "error",
+        });
+      }
 
     const business_details = await authentication_service.getUserByBusinessDetails(
       req.user.id
@@ -957,7 +1016,8 @@ const saveUserApplicationToSponsor = async (req, res)=>{
     if (!saveSponsorUser.success) {
       return res.status(403).json({
         success: false,
-        message: "error",
+        message: "Error.",
+        response: error.message,
       });
     }
     
@@ -971,5 +1031,5 @@ const saveUserApplicationToSponsor = async (req, res)=>{
 }
     //catch
   }
-}
+};
 module.exports = router;
