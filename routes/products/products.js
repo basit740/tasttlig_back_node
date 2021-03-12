@@ -495,6 +495,30 @@ router.get("/products/festival/:festival_id", async (req, res) => {
     });
   }
 });
+
+router.get("/products/details/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await products_service.getUserProductDetails(
+      req.params.user_id
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 // GET products from specific user
 router.get("/products/user/:user_id", async (req, res) => {
   if (!req.params.user_id) {
@@ -613,5 +637,79 @@ router.post("/claim-product", async (req, res) => {
     });
   }
 });
+
+
+router.put(
+  "/product/update/:product_id",
+  token_service.authenticateToken,
+  async (req, res) => {
+    if (!req.params.product_id || !req.body) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+
+    try {
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
+
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message,
+        });
+      }
+
+      let db_user = user_details_from_db.user;
+
+
+      const response = await products_service.updateProduct(
+        db_user,
+        req.params.product_id,
+        req.body,
+      );
+      console.log(response);
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
+
+// DELETE product
+router.delete(
+  "/product/delete/:product_id",
+  token_service.authenticateToken,
+  async (req, res) => {console.log(req.body, req.params.product_id);
+    if (!req.params.product_id) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+
+    try {
+      const response = await products_service.deleteProduct(
+        req.user.id,
+        req.params.product_id,
+        req.body.image_id
+      );
+console.log(response);
+      return res.send(response);
+    } catch (error) {console.log(error);
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
 
 module.exports = router;

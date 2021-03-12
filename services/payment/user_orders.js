@@ -277,7 +277,7 @@ const getCartOrderDetails = async (cartItems) => {
 const createOrder = async (order_details, db_order_details) => {
   if (
     order_details.item_type === "plan" ||
-    order_details.item_type === "subscription" || order_details.item_type === "package"
+    order_details.item_type === "subscription"
   ) {
     try {
       await db.transaction(async (trx) => {
@@ -427,6 +427,8 @@ const createOrder = async (order_details, db_order_details) => {
           user_id: order_details.user_id,
           subscription_start_datetime: new Date(),
           subscription_end_datetime: subscription_end_datetime,
+          suscribed_festivals: db_order_details.subscribed_festivals,
+          cash_payment_received: db_order_details.item.price,
         });
 
         // await point_system_service.addUserPoints(
@@ -955,11 +957,37 @@ const getAllUserOrders = async (user_id) => {
   }
 };
 
+const getUserOrders = async (user_id) => {
+    return await db
+    .select(
+      "orders.*",
+      "order_items.item_type",
+      "order_items.quantity")
+      .from("orders")
+      .leftJoin(
+        "order_items",
+        "orders.order_id",
+        "order_items.order_id"
+      )
+      .groupBy("orders.order_id")
+      .groupBy("order_items.order_id")
+    .having("order_by_user_id", "=", Number(user_id))
+    .then((value) => {
+      console.log(value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log(reason);
+      return { success: false, details: reason };
+    });
+}
+
 module.exports = {
   getOrderDetails,
   createOrder,
   getCartOrderDetails,
   createCartOrder,
   getAllUserOrders,
-  getVendorSubscriptionDetails
+  getVendorSubscriptionDetails,
+  getUserOrders
 };

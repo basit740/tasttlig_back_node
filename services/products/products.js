@@ -173,6 +173,39 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
     });
 };
 
+//product details for dashboard
+const getUserProductDetails = async (user_id) => {
+  return await db
+  .select(
+    "products.*",
+    "product_images.product_image_id",
+    db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls"),
+    "nationalities.country"
+    )
+    .from("product_images")
+    .rightJoin(
+    "products",
+    "product_images.product_id",
+    "products.product_id",
+    )
+    .leftJoin(
+    "nationalities",
+    "products.product_made_in_nationality_id",
+    "nationalities.id"
+    )
+    .groupBy("product_images.product_image_id")
+    .groupBy("products.product_id")
+    .groupBy("products.product_made_in_nationality_id")
+    .groupBy("nationalities.id")
+    .having("products.product_user_id", "=", Number(user_id))
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+}
+
 const getProductsFromUser = async (user_id) => {
 
   return await db
@@ -323,6 +356,63 @@ const claimProduct = async (db_user, product_id) => {
   }
 };
 
+// Update product helper function
+const updateProduct = async (
+  db_user,
+  product_id,
+  data,
+) => {
+  const { product_images, ...product_update_data } = data;
+
+  try {
+    await db("products")
+      .where((builder) => {
+          return builder.where({
+            product_id,
+            product_user_id: db_user.tasttlig_user_id,
+          });
+      })
+      .update(product_update_data);
+
+    if (product_images && product_images.length) {
+      await db("product_images").where("product_id", product_id).del();
+
+      await db("product_images").insert(
+        product_images.map((image_url) => ({
+          product_id,
+          "product_image_url":image_url,
+        }))
+      );
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, details: error };
+  }
+};
+
+// Delete product helper function
+const deleteProduct = async (user_id, product_id, product_image_id) => {
+  return await db("product_images")
+    .where({
+      product_image_id,
+      product_id,
+    })
+    .del()
+    .then(async () => {
+      await db("products")
+      .where({
+      product_id,
+      "product_user_id": user_id,
+    })
+    .del()
+      return { success: true };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
 module.exports = {
   createNewProduct,
   getProductsInFestival,
@@ -331,4 +421,7 @@ module.exports = {
   deleteProductsFromUser,
   addProductToFestival,
   claimProduct,
+  getUserProductDetails,
+  updateProduct,
+  deleteProduct,
 };

@@ -289,6 +289,19 @@ const saveApplicationInformation = async (hostDto, trx) => {
   let role_name = "";
   console.log("hostDto", hostDto);
 
+  // Save business application to applications table
+  if (applications.length == 0 && hostDto.is_business) {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "business_member",
+      status: "Pending",
+    });
+    role_name = "BUSINESS_MEMBER_PENDING";
+  }
+
   if (hostDto.is_host === "yes") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -1199,6 +1212,68 @@ const saveSpecials = async (hostDto) => {
   }
 };
 
+//get business details and images by user id
+const getBusinessDetailsByUserId = async (userId) => {
+  return await db
+    .select("business_details.*",
+    "business_details_images.*")
+    .from("business_details")
+    .leftJoin(
+      "business_details_images",
+      "business_details.business_details_id",
+      "business_details_images.business_details_id"
+    )
+    .groupBy("business_details.business_details_id")
+    .groupBy("business_details_images.business_details_image_id")
+    .having("business_details.business_details_user_id", "=", userId)
+    .first()
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No business for user found." };
+      }
+
+      return { success: true, business_details_all: value };
+    })
+    .catch((error) => {
+      return { success: false, message: error };
+    });
+};
+
+// Get user by subscription ID helper function
+const getSubscriptionsByUserId = async (userId) => {
+  return await db
+    .select(
+      "user_subscriptions.*",
+      "festivals.*",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("user_subscriptions")
+    .leftJoin(
+      "festivals",
+      "user_subscriptions.suscribed_festivals[1]",
+      "festivals.festival_id"
+    )
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    )
+    .groupBy("user_subscriptions.user_subscription_id")
+    .groupBy("festivals.festival_id")
+    .groupBy("festival_images.festival_id")
+    //.having("user_subscriptions.user_subscription_id", "=", userId)
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+
+      return { success: true, user: value };
+    })
+    .catch((error) => {console.log('subscr',error);
+      return { success: false, message: error };
+    });
+};
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
@@ -1230,4 +1305,6 @@ module.exports = {
   saveBusinessServices,
   getNationalities,
   //createPreferences
+  getBusinessDetailsByUserId,
+  getSubscriptionsByUserId,
 };

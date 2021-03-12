@@ -90,17 +90,21 @@ router.post("/payment/stripe/success", async (req, res) => {
     const db_order_details = await user_order_service.getOrderDetails(
       order_details
     );
-    console.log("db_order_details", db_order_details);
 
     if (!db_order_details.success) {
       return { success: false, message: "Invalid order details." };
     }
 
+    db_order_details.subscribed_festivals = 
+    Array.isArray(req.body.subscribed_festivals)
+        ? req.body.subscribed_festivals
+        : req.body.subscribed_festivals?
+        [req.body.subscribed_festivals]
+        : null;
     const response = await user_order_service.createOrder(
       order_details,
       db_order_details
     );
-    console.log("response", response);
 
     if (req.body.item_type === "food_sample") {
       const food_sample_claim_details = {

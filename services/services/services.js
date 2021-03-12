@@ -167,6 +167,39 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
   });
 };
 
+//service details for dashboard
+const getUserServiceDetails = async (user_id) => {
+  return await db
+  .select(
+    "services.*",
+    "service_images.service_image_id",
+    db.raw("ARRAY_AGG(service_images.service_image_url) as image_urls"),
+    "nationalities.country"
+    )
+    .from("service_images")
+    .rightJoin(
+    "services",
+    "service_images.service_id",
+    "services.service_id",
+    )
+    .leftJoin(
+    "nationalities",
+    "services.service_nationality_id",
+    "nationalities.id"
+    )
+    .groupBy("service_images.service_image_id")
+    .groupBy("services.service_id")
+    .groupBy("services.service_nationality_id")
+    .groupBy("nationalities.id")
+    .having("services.service_user_id", "=", Number(user_id))
+    .then((value) => {console.log('val',value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {console.log('reas',reason);
+      return { success: false, details: reason };
+    });
+}
+
 const getServicesFromUser = async (user_id) => {
 
   return await db
@@ -286,12 +319,71 @@ const claimService = async (db_user, service_id) => {
     return { success: false, details: error.message };
   }
 };
+// Update service helper function
+const updateService = async (
+  db_user,
+  service_id,
+  data,
+) => {
+  const { service_images, ...service_update_data } = data;
+
+  try {
+    await db("services")
+      .where((builder) => {
+          return builder.where({
+            service_id,
+            service_user_id: db_user.tasttlig_user_id,
+          });
+      })
+      .update(service_update_data);
+
+    if (service_images && service_images.length) {
+      await db("service_images").where("service_id", service_id).del();
+
+      await db("service_images").insert(
+        service_images.map((image_url) => ({
+          service_id,
+          "service_image_url": image_url,
+        }))
+      );
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, details: error };
+  }
+};
+
+// Delete service helper function
+const deleteService = async (user_id, service_id, service_image_id) => {
+  return await db("service_images")
+    .where({
+      service_image_id,
+      service_id,
+    })
+    .del()
+    .then(async () => {
+      await db("services")
+      .where({
+        service_id,
+      "service_user_id": user_id,
+    })
+    .del()
+      return { success: true };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
 
 module.exports = {
   createNewService,
   getServicesInFestival,
+  getUserServiceDetails,
   getServicesFromUser,
   findService,
   deleteServicesFromUser,
   claimService,
+  updateService,
+  deleteService,
 };

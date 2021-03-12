@@ -9,6 +9,21 @@ const point_system_service = require("../../services/profile/points_system");
 const menu_item_service = require("../../services/menu_items/menu_items");
 const authentication_service = require("../../services/authentication/authenticate_user")
 
+//get user subscription by user id
+router.get("/user-subscription", token_service.authenticateToken, async (req, res) => {
+  const response = await user_profile_service.getSubscriptionsByUserId(
+    req.user.id
+  );
+
+  if (!response.success) {
+    return res.status(403).json({
+      success: false,
+      message: response.message,
+    });
+  }
+  res.send(response);
+})
+
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
   const response = await user_profile_service.getUserBySubscriptionId(
@@ -149,7 +164,6 @@ router.post("/user/sponsor", async (req, res) => {
 
     return res.status(500).send(response);
   } catch (error) {
-    console.log(error);
     return res.status(403).json({
       success: false,
       message: error,
@@ -319,8 +333,6 @@ router.put(
   "/user/user-info/:id",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("here");
-    console.log(req.body);
 
     const {
       user_age,
@@ -763,15 +775,22 @@ router.post(
         req.body
       );
 
-      console.log('res',response.success);
-      console.log('body',req.body);
-      if (response.success && req.body.is_sponsor) {
-        saveUserApplicationToSponsor(req, res);
+      if (!response.success) {
+        return res.status(403).json({
+          success: false,
+          message: "error",
+        });
       }
-else{
-      console.log('return',response);
-      return res.send(response);
-}
+      const hostDto = {
+        is_business: req.body.is_business,
+        email: req.user.email,
+      };
+      const saveHost = await user_profile_service.saveHostApplication(
+        hostDto,
+        req.user
+      );
+
+      return res.send(saveHost);
     } catch (error) {
       res.send({
         success: false,
@@ -782,19 +801,50 @@ else{
   }
 );
 
-const saveUserApplicationToSponsor = async (req, res)=>{
-  console.log('inside d funct', req.user);
+    //get business details with images by user id
+router.get(
+  "/get-business-details-all",
+  token_service.authenticateToken,
+  async (req, res) => {
+
+    try{
+    const business_details_all = await user_profile_service.getBusinessDetailsByUserId(
+      req.user.id
+    );
+    if (!business_details_all.success) {
+      return res.status(403).json({
+        success: false,
+        message: business_details_all.message,
+      });
+    }
+    
+    res.send(business_details_all);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error",
+      response: error.message,
+    });
+  }
+
+  }
+)
+
+// become sponsor in kind
+router.post(
+  "/become-in-kind-sponsor",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
   // save sponsor application
   const hostDto = {
     is_sponsor: req.body.is_sponsor,
     email: req.user.email,
   };
-  console.log('hostdto',hostDto);
   const saveHost = await user_profile_service.saveHostApplication(
     hostDto,
     req.user
   );
-  console.log('savehost',saveHost);
 
   //save sponsor for user
   if (saveHost.success) {
@@ -802,7 +852,6 @@ const saveUserApplicationToSponsor = async (req, res)=>{
     const db_user = await authenticate_user_service.findUserByEmail(
       req.user.email
     );
-    console.log('db_user',db_user);
 
     if (!db_user.success) {
       return res.status(403).json({
@@ -814,7 +863,6 @@ const saveUserApplicationToSponsor = async (req, res)=>{
     const business_details = await authentication_service.getUserByBusinessDetails(
       req.user.id
     );
-    console.log('business_details',business_details);
     if (!business_details.success) {
       return res.status(403).json({
         success: false,
@@ -826,13 +874,11 @@ const saveUserApplicationToSponsor = async (req, res)=>{
       sponsor_business_id:
         business_details.business_details.business_details_id,
     };
-    console.log('sponsor data',sponsorData);
     const saveSponsorUser = await user_profile_service.saveSponsorForUser(
       sponsorData,
       db_user.user.tasttlig_user_id
     ); //end
 
-    console.log('saveSponsorUser',saveSponsorUser);
     if (!saveSponsorUser.success) {
       return res.status(403).json({
         success: false,
@@ -840,7 +886,77 @@ const saveUserApplicationToSponsor = async (req, res)=>{
       });
     }
     
-    console.log('final',saveSponsorUser.success);
+    return res.send(saveSponsorUser);
+} catch (error) {
+  res.send({
+    success: false,
+    message: "Error.",
+    response: error.message,
+  });
+}
+    //catch
+  }
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
+
+const saveUserApplicationToSponsor = async (req, res)=>{
+  // save sponsor application
+  const hostDto = {
+    is_sponsor: req.body.is_sponsor,
+    email: req.user.email,
+  };
+  const saveHost = await user_profile_service.saveHostApplication(
+    hostDto,
+    req.user
+  );
+
+  //save sponsor for user
+  if (saveHost.success) {
+    try{
+    const db_user = await authenticate_user_service.findUserByEmail(
+      req.user.email
+    );
+
+    if (!db_user.success) {
+      return res.status(403).json({
+        success: false,
+        message: "error",
+      });
+    }
+
+    const business_details = await authentication_service.getUserByBusinessDetails(
+      req.user.id
+    );
+    if (!business_details.success) {
+      return res.status(403).json({
+        success: false,
+        message: business_details.message,
+      });
+    }
+
+    const sponsorData = {
+      sponsor_business_id:
+        business_details.business_details.business_details_id,
+    };
+    const saveSponsorUser = await user_profile_service.saveSponsorForUser(
+      sponsorData,
+      db_user.user.tasttlig_user_id
+    ); //end
+
+    if (!saveSponsorUser.success) {
+      return res.status(403).json({
+        success: false,
+        message: "error",
+      });
+    }
+    
     return res.send(saveSponsorUser);
 } catch (error) {
   res.send({
