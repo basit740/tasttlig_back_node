@@ -335,7 +335,8 @@ router.put(
   async (req, res) => {
 
     const {
-      user_age,
+      // user_age,
+      user_date_of_birth,
       user_occupation,
       user_marital_status,
       user_country,
@@ -345,11 +346,12 @@ router.put(
       user_street_number,
       user_apartment_number,
       user_gender,
+      user_state,
     } = req.body;
-    console.log(user_age);
+    console.log(user_date_of_birth);
     try {
       if (
-        !user_age ||
+        !user_date_of_birth ||
         !user_occupation ||
         !user_marital_status ||
         // !user_country ||
@@ -381,11 +383,13 @@ router.put(
 
         const user_info = {
           user_gender,
-          user_age,
+          // user_age,
+          user_date_of_birth,
           user_occupation,
           user_marital_status,
           user_country,
           user_city,
+          user_state,
           user_zip_code,
           user_street_name,
           user_street_number,

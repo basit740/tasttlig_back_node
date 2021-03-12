@@ -143,11 +143,13 @@ const createUserInfo = async (user) => {
       .where("tasttlig_user_id", user.id)
       .first()
       .update({
-        age: user["user_age"],
+        // age: user["user_age"],
         sex: user["user_gender"],
+        date_of_birth: user["user_date_of_birth"],
         occupation: user["user_occupation"],
         marital_status: user["user_marital_status"],
         user_country: user["user_country"],
+        user_state: user["user_state"],
         user_city: user["user_city"],
         user_zip_postal_code: user["user_zip_code"],
         street_name: user["user_street_name"],
@@ -317,19 +319,6 @@ const saveApplicationInformation = async (hostDto, trx) => {
     role_name = "HOST_PENDING";
   }
 
-  // if (hostDto.is_cook === "yes") {
-  //   applications.push({
-  //     user_id: hostDto.dbUser.user.tasttlig_user_id,
-  //     video_link: hostDto.cook_selection_video,
-  //     youtube_link: hostDto.cook_youtube_link,
-  //     reason: hostDto.cook_selection,
-  //     resume: hostDto.cook_selection_resume,
-  //     created_at: new Date(),
-  //     updated_at: new Date(),
-  //     type: "cook",
-  //     status: "Pending"
-  //   })
-  // }
 
   // Save sponsor application to applications table
   if (applications.length == 0 && hostDto.is_sponsor) {
@@ -381,17 +370,6 @@ const saveApplicationInformation = async (hostDto, trx) => {
 
 }
 
-/*   if (applications.length == 0 && hostDto.is_host === "no") {
-    applications.push({
-      user_id: hostDto.dbUser.user.tasttlig_user_id,
-      reason: "",
-      created_at: new Date(),
-      updated_at: new Date(),
-      type: "restaurant",
-      status: "Pending",
-    });
-    role_name = "RESTAURANT_PENDING";
-  } */
 
   // Get role code of new role to be added
   const new_role_code = await trx("roles")
