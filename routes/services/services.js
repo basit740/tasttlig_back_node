@@ -20,10 +20,10 @@ router.post(
       !req.body.service_capacity ||
       !req.body.service_size_scope ||
       !req.body.service_description ||
-      !req.body.service_images 
+      !req.body.service_images
       //||
       //!req.body.service_festival_id ||
-     // !req.body.service_creator_type
+      // !req.body.service_creator_type
     ) {
       return res.status(403).json({
         success: false,
@@ -50,7 +50,7 @@ router.post(
       );
 
       if (
-        user_details_from_db.user.role.includes("SPONSOR_PENDING")||
+        user_details_from_db.user.role.includes("SPONSOR_PENDING") ||
         user_details_from_db.user.role.includes("SPONSOR")
       ) {
         if (!business_details_from_db.success) {
@@ -76,27 +76,26 @@ router.post(
         service_size_scope: req.body.service_size_scope,
         service_description: req.body.service_description,
         service_festival_id: Array.isArray(req.body.service_festival_id)
-        ? req.body.service_festival_id
-        : req.body.service_festival_id?
-        [req.body.service_festival_id]
-        : null,
+          ? req.body.service_festival_id
+          : req.body.service_festival_id
+          ? [req.body.service_festival_id]
+          : null,
         service_code: generateRandomString(4),
         service_status: "ACTIVE",
         service_created_at_datetime: new Date(),
         service_updated_at_datetime: new Date(),
-        service_creator_type: req.body.service_creator_type ? req.body.service_creator_type : null,
+        service_creator_type: req.body.service_creator_type
+          ? req.body.service_creator_type
+          : null,
         service_user_id: req.user.id,
       };
-console.log('service_information',service_information);
       const response = await services_service.createNewService(
         user_details_from_db,
         service_information,
         req.body.service_images
       );
-        console.log(response);
       return res.send(response);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -117,8 +116,8 @@ router.get("/services/festival/:festival_id", async (req, res) => {
   const filters = {
     price: req.query.price,
     quantity: req.query.quantity,
-    size: req.query.size
-  }
+    size: req.query.size,
+  };
 
   try {
     const response = await services_service.getServicesInFestival(
@@ -126,10 +125,8 @@ router.get("/services/festival/:festival_id", async (req, res) => {
       filters,
       req.query.keyword
     );
-      console.log(response);
     return res.send(response);
   } catch (error) {
-    console.log(error)
     res.send({
       success: false,
       message: "Error.",
@@ -192,8 +189,6 @@ router.delete("/services/delete/user/:user_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
-  //console.log("req params",req.body)
-  //console.log(req.body.delete_items)
   try {
     const response = await services_service.deleteServicesFromUser(
       req.params.user_id,
@@ -201,7 +196,6 @@ router.delete("/services/delete/user/:user_id", async (req, res) => {
     );
     return res.send(response);
   } catch (error) {
-    console.log(error)
     res.send({
       success: false,
       message: "Error.",
@@ -284,14 +278,12 @@ router.put(
 
       let db_user = user_details_from_db.user;
 
-
       const response = await services_service.updateService(
         db_user,
         req.params.service_id,
-        req.body,
+        req.body
       );
 
-      console.log(response);
       return res.send(response);
     } catch (error) {
       res.send({
@@ -321,9 +313,8 @@ router.delete(
         req.params.service_id,
         req.body.image_id
       );
-console.log(response);
       return res.send(response);
-    } catch (error) {console.log(error);
+    } catch (error) {
       res.send({
         success: false,
         message: "Error.",
