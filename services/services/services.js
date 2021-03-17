@@ -165,7 +165,6 @@ const getUserServiceDetails = async (user_id) => {
   return await db
     .select(
       "services.*",
-      "service_images.service_image_id",
       db.raw("ARRAY_AGG(service_images.service_image_url) as image_urls"),
       "nationalities.country"
     )
@@ -176,7 +175,6 @@ const getUserServiceDetails = async (user_id) => {
       "services.service_nationality_id",
       "nationalities.id"
     )
-    .groupBy("service_images.service_image_id")
     .groupBy("services.service_id")
     .groupBy("services.service_nationality_id")
     .groupBy("nationalities.id")

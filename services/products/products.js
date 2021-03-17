@@ -170,7 +170,6 @@ const getUserProductDetails = async (user_id) => {
   return await db
     .select(
       "products.*",
-      "product_images.product_image_id",
       db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls"),
       "nationalities.country"
     )
@@ -181,7 +180,6 @@ const getUserProductDetails = async (user_id) => {
       "products.product_made_in_nationality_id",
       "nationalities.id"
     )
-    .groupBy("product_images.product_image_id")
     .groupBy("products.product_id")
     .groupBy("products.product_made_in_nationality_id")
     .groupBy("nationalities.id")
