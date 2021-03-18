@@ -22,6 +22,7 @@ const createNewFoodSampleClaim = async (
   quantityAfterClaim,
   food_sample_claim_details
 ) => {
+  console.log("data coming from here :" , food_sample_claim_details)
   try {
     console.log("food_sample_claims detaisl:0", quantityAfterClaim)
     await db.transaction(async (trx) => {
