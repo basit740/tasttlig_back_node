@@ -610,7 +610,6 @@ router.put(
   "/product/update/",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("bdy", req.body);
     if (!req.body) {
       return res.status(403).json({
         success: false,
@@ -633,7 +632,6 @@ router.put(
       let db_user = user_details_from_db.user;
 
       const response = await products_service.updateProduct(db_user, req.body);
-      console.log("res", response);
       return res.send(response);
     } catch (error) {
       res.send({
@@ -662,7 +660,6 @@ router.delete(
         req.user.id,
         req.body.product_id
       );
-      console.log("res", response);
       return res.send(response);
     } catch (error) {
       res.send({

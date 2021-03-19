@@ -340,13 +340,10 @@ const claimProduct = async (db_user, product_id) => {
 const updateProduct = async (db_user, data) => {
   const { product_images, ...product_update_data } = data;
   let updateData = {};
-  console.log("multi", "mmmmm");
   updateData.product_festivals_id = data.product_festivals_id;
-  console.log("multi", updateData);
 
   try {
     if (Array.isArray(data.product_id)) {
-      console.log("multi", updateData);
       await db("products")
         .whereIn("product_id", data.product_id)
         .where((builder) => {
@@ -369,7 +366,6 @@ const updateProduct = async (db_user, data) => {
 
       return { success: true };
     } else {
-      console.log("single", product_id);
       await db("products")
         .where((builder) => {
           return builder.where({
@@ -417,7 +413,6 @@ const deleteProduct = async (user_id, product_id) => {
         return { success: true };
       })
       .catch((reason) => {
-        console.log("p servs", reason);
         return { success: false, details: reason };
       });
   } else {

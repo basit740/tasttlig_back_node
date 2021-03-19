@@ -306,9 +306,7 @@ const claimService = async (db_user, service_id) => {
 const updateService = async (db_user, data) => {
   const { service_images, ...service_update_data } = data;
   let updateData = {};
-  console.log("multi", "mmmmm");
   updateData.service_festival_id = data.service_festival_id;
-  console.log("multi", data);
 
   try {
     if (Array.isArray(data.service_id)) {
