@@ -404,7 +404,8 @@ router.post(
   "/host-festival",
   token_service.authenticateToken,
   async (req, res) => {
-    const { festival_id, festival_restaurant_host_id } = req.body;
+    console.log("everything coming from host festival:", req.body)
+    const { festival_id, festival_restaurant_host_id, foodSamplePreference } = req.body;
 
     try {
       const user_details_from_db = await user_profile_service.getUserById(
@@ -420,7 +421,8 @@ router.post(
 
       const response = await festival_service.hostToFestival(
         festival_id,
-        festival_restaurant_host_id
+        festival_restaurant_host_id, 
+        foodSamplePreference
       );
 
       return res.send(response);
