@@ -1013,20 +1013,26 @@ const getNationalities = async (keyword) => {
 const deleteFoodSamplesFromUser = async(user_id, delete_items) => {
   try {
     for (let item of delete_items) {
+      console.log("itemsssfddddds", item)
       await db.transaction(async(trx) => {
          const productImagesDelete = await trx("food_sample_images")
          .where({
-           food_sample_id: item.food_sample_id
+           food_sample_id: item
          })
          .del() 
+         const foodSampleClaimsDelete = await trx("food_sample_claims")
+         .where({
+           food_sample_id: item,
+         })
+         .delete()
+         .then(() => {
+           return { success: true };
+         })
         const foodSampleDelete = await trx("food_samples")
         .where({
-          food_sample_id: item.food_sample_id,
+          food_sample_id: item,
         })
         .del()
-        .then(() => {
-          return { success: true };
-        })
         .catch((reason) => {
           console.log(reason);
           return { success: false, details: reason };
