@@ -607,10 +607,11 @@ router.post("/claim-product", async (req, res) => {
 });
 
 router.put(
-  "/product/update/:product_id",
+  "/product/update/",
   token_service.authenticateToken,
   async (req, res) => {
-    if (!req.params.product_id || !req.body) {
+    console.log("bdy", req.body);
+    if (!req.body) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
@@ -631,11 +632,7 @@ router.put(
 
       let db_user = user_details_from_db.user;
 
-      const response = await products_service.updateProduct(
-        db_user,
-        req.params.product_id,
-        req.body
-      );
+      const response = await products_service.updateProduct(db_user, req.body);
       return res.send(response);
     } catch (error) {
       res.send({
@@ -662,9 +659,9 @@ router.delete(
     try {
       const response = await products_service.deleteProduct(
         req.user.id,
-        req.params.product_id,
-        req.body.image_id
+        req.params.product_id
       );
+      console.log("res", response);
       return res.send(response);
     } catch (error) {
       res.send({

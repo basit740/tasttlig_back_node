@@ -254,10 +254,10 @@ router.post("/claim-service", async (req, res) => {
 });
 
 router.put(
-  "/service/update/:service_id",
+  "/service/update",
   token_service.authenticateToken,
   async (req, res) => {
-    if (!req.params.service_id || !req.body) {
+    if (!req.body) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
@@ -278,11 +278,7 @@ router.put(
 
       let db_user = user_details_from_db.user;
 
-      const response = await services_service.updateService(
-        db_user,
-        req.params.service_id,
-        req.body
-      );
+      const response = await services_service.updateService(db_user, req.body);
 
       return res.send(response);
     } catch (error) {
@@ -310,8 +306,7 @@ router.delete(
     try {
       const response = await services_service.deleteService(
         req.user.id,
-        req.params.service_id,
-        req.body.image_id
+        req.params.service_id
       );
       return res.send(response);
     } catch (error) {

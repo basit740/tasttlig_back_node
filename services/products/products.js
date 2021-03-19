@@ -337,56 +337,104 @@ const claimProduct = async (db_user, product_id) => {
 };
 
 // Update product helper function
-const updateProduct = async (db_user, product_id, data) => {
-  const { product_images, ...product_update_data } = data;
+const updateProduct = async (db_user, data) => {
+  const { product_images, product_id, ...product_update_data } = data;
 
   try {
-    await db("products")
-      .where((builder) => {
-        return builder.where({
-          product_id,
-          product_user_id: db_user.tasttlig_user_id,
-        });
-      })
-      .update(product_update_data);
+    if (Array.isArray(product_id)) {
+      console.log("multi", product_id);
+      await db("products")
+        .whereIn("product_id", product_id)
+        .where((builder) => {
+          return builder.where({
+            product_user_id: db_user.tasttlig_user_id,
+          });
+        })
+        .update(product_update_data);
 
-    if (product_images && product_images.length) {
-      await db("product_images").where("product_id", product_id).del();
+      if (product_images && product_images.length) {
+        await db("product_images").whereIn("product_id", product_id).del();
 
-      await db("product_images").insert(
-        product_images.map((image_url) => ({
-          product_id,
-          product_image_url: image_url,
-        }))
-      );
+        await db("product_images").insert(
+          product_images.map((image_url) => ({
+            product_id,
+            product_image_url: image_url,
+          }))
+        );
+      }
+
+      return { success: true };
+    } else {
+      console.log("single", product_id);
+      await db("products")
+        .where((builder) => {
+          return builder.where({
+            product_id,
+            product_user_id: db_user.tasttlig_user_id,
+          });
+        })
+        .update(product_update_data);
+
+      if (product_images && product_images.length) {
+        await db("product_images").where("product_id", product_id).del();
+
+        await db("product_images").insert(
+          product_images.map((image_url) => ({
+            product_id,
+            product_image_url: image_url,
+          }))
+        );
+      }
+
+      return { success: true };
     }
-
-    return { success: true };
   } catch (error) {
     return { success: false, details: error };
   }
 };
 
 // Delete product helper function
-const deleteProduct = async (user_id, product_id, product_image_id) => {
-  return await db("product_images")
-    .where({
-      product_image_id,
+const deleteProduct = async (user_id, product_id) => {
+  if (Array.isArray(product_id)) {
+    return await db("product_images")
+      /*  .where({
       product_id,
-    })
-    .del()
-    .then(async () => {
-      await db("products")
-        .where({
-          product_id,
-          product_user_id: user_id,
-        })
-        .del();
-      return { success: true };
-    })
-    .catch((reason) => {
-      return { success: false, details: reason };
-    });
+    }) */
+      .whereIn("product_id", product_id)
+      .del()
+      .then(async () => {
+        await db("products")
+          .where({
+            /* product_id, */
+            product_user_id: user_id,
+          })
+          .whereIn("product_id", product_id)
+          .del();
+        return { success: true };
+      })
+      .catch((reason) => {
+        console.log("p servs", reason);
+        return { success: false, details: reason };
+      });
+  } else {
+    return await db("product_images")
+      .where({
+        product_id,
+      })
+      .del()
+      .then(async () => {
+        await db("products")
+          .where({
+            product_id,
+            product_user_id: user_id,
+          })
+          .del();
+        return { success: true };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  }
 };
 
 module.exports = {

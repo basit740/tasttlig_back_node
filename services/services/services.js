@@ -303,56 +303,99 @@ const claimService = async (db_user, service_id) => {
   }
 };
 // Update service helper function
-const updateService = async (db_user, service_id, data) => {
-  const { service_images, ...service_update_data } = data;
+const updateService = async (db_user, data) => {
+  const { service_images, service_id, ...service_update_data } = data;
 
   try {
-    await db("services")
-      .where((builder) => {
-        return builder.where({
-          service_id,
-          service_user_id: db_user.tasttlig_user_id,
-        });
-      })
-      .update(service_update_data);
+    if (Array.isArray(service_id)) {
+      await db("services")
+        .whereIn("service_id", service_id)
+        .where((builder) => {
+          return builder.where({
+            /* service_id, */
+            service_user_id: db_user.tasttlig_user_id,
+          });
+        })
+        .update(service_update_data);
 
-    if (service_images && service_images.length) {
-      await db("service_images").where("service_id", service_id).del();
+      if (service_images && service_images.length) {
+        await db("service_images").whereIn("service_id", service_id).del();
 
-      await db("service_images").insert(
-        service_images.map((image_url) => ({
-          service_id,
-          service_image_url: image_url,
-        }))
-      );
+        await db("service_images").insert(
+          service_images.map((image_url) => ({
+            service_id,
+            service_image_url: image_url,
+          }))
+        );
+      }
+
+      return { success: true };
+    } else {
+      await db("services")
+        .where((builder) => {
+          return builder.where({
+            service_id,
+            service_user_id: db_user.tasttlig_user_id,
+          });
+        })
+        .update(service_update_data);
+
+      if (service_images && service_images.length) {
+        await db("service_images").where("service_id", service_id).del();
+
+        await db("service_images").insert(
+          service_images.map((image_url) => ({
+            service_id,
+            service_image_url: image_url,
+          }))
+        );
+      }
+
+      return { success: true };
     }
-
-    return { success: true };
   } catch (error) {
     return { success: false, details: error };
   }
 };
 
 // Delete service helper function
-const deleteService = async (user_id, service_id, service_image_id) => {
-  return await db("service_images")
-    .where({
-      service_image_id,
-      service_id,
-    })
-    .del()
-    .then(async () => {
-      await db("services")
-        .where({
-          service_id,
-          service_user_id: user_id,
-        })
-        .del();
-      return { success: true };
-    })
-    .catch((reason) => {
-      return { success: false, details: reason };
-    });
+const deleteService = async (user_id, service_id) => {
+  if (Array.isArray(service_id)) {
+    return await db("service_images")
+      .whereIn("service_id", service_id)
+      .del()
+      .then(async () => {
+        await db("services")
+          .where({
+            /* service_id, */
+            service_user_id: user_id,
+          })
+          .whereIn("service_id", service_id)
+          .del();
+        return { success: true };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  } else {
+    return await db("service_images")
+      .where({
+        service_id,
+      })
+      .del()
+      .then(async () => {
+        await db("services")
+          .where({
+            service_id,
+            service_user_id: user_id,
+          })
+          .del();
+        return { success: true };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  }
 };
 
 module.exports = {
