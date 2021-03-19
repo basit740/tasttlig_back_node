@@ -1,6 +1,6 @@
 exports.up = function (knex) {
   return knex.schema.alterTable("hosts", (table) => {
-    // table.string("has_hosted_other_things_before");
+    table.string("has_hosted_other_things_before");
   });
 };
 

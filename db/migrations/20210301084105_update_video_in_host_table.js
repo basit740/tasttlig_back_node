@@ -1,6 +1,6 @@
 exports.up = function (knex) {
   return knex.schema.alterTable("hosts", (table) => {
-    // table.string("host_video_url");
+    table.string("host_video_url");
   });
 };
 
