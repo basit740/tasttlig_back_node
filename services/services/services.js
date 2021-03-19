@@ -15,7 +15,6 @@ const createNewService = async (
 ) => {
   try {
     await db.transaction(async (trx) => {
-      console.log(service_information);
       const db_service = await trx("services")
         .insert(service_information)
         .returning("*");
@@ -142,11 +141,9 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
   let orderByArray = [];
   if (filters.price) {
     if (filters.price === "lowest_to_highest") {
-      //console.log("lowest to highest")
       orderByArray.push({ column: "services.service_price", order: "asc" });
       //query.orderBy("products.product_price", "asc")
     } else if (filters.price === "highest_to_lowest") {
-      //console.log("highest to lowest");
       orderByArray.push({ column: "services.service_price", order: "desc" });
       //query.orderBy("services.service_price", "desc")
     }
@@ -206,11 +203,9 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
   }
   return await query
     .then((value) => {
-      console.log("service", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("service", reason);
       return { success: false, details: reason };
     });
 };
@@ -220,7 +215,6 @@ const getUserServiceDetails = async (user_id) => {
   return await db
     .select(
       "services.*",
-      "service_images.service_image_id",
       db.raw("ARRAY_AGG(service_images.service_image_url) as image_urls"),
       "nationalities.country"
     )
@@ -231,17 +225,14 @@ const getUserServiceDetails = async (user_id) => {
       "services.service_nationality_id",
       "nationalities.id"
     )
-    .groupBy("service_images.service_image_id")
     .groupBy("services.service_id")
     .groupBy("services.service_nationality_id")
     .groupBy("nationalities.id")
     .having("services.service_user_id", "=", Number(user_id))
     .then((value) => {
-      console.log("val", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("reas", reason);
       return { success: false, details: reason };
     });
 };
@@ -286,11 +277,9 @@ const getServicesFromUser = async (user_id) => {
     .groupBy("nationalities.nationality")
     .having("business_details.business_details_user_id", "=", Number(user_id))
     .then((value) => {
-      console.log(value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log(reason);
       return { success: false, details: reason };
     });
 };
@@ -327,7 +316,6 @@ const deleteServicesFromUser = async (user_id, delete_items) => {
             return { success: true };
           })
           .catch((reason) => {
-            console.log(reason);
             return { success: false, details: reason };
           });
       });
@@ -365,56 +353,103 @@ const claimService = async (db_user, service_id) => {
   }
 };
 // Update service helper function
-const updateService = async (db_user, service_id, data) => {
+const updateService = async (db_user, data) => {
   const { service_images, ...service_update_data } = data;
+  let updateData = {};
+  console.log("multi", "mmmmm");
+  updateData.service_festival_id = data.service_festival_id;
+  console.log("multi", data);
 
   try {
-    await db("services")
-      .where((builder) => {
-        return builder.where({
-          service_id,
-          service_user_id: db_user.tasttlig_user_id,
-        });
-      })
-      .update(service_update_data);
+    if (Array.isArray(data.service_id)) {
+      await db("services")
+        .whereIn("service_id", data.service_id)
+        .where((builder) => {
+          return builder.where({
+            /* service_id, */
+            service_user_id: db_user.tasttlig_user_id,
+          });
+        })
+        .update(updateData);
 
-    if (service_images && service_images.length) {
-      await db("service_images").where("service_id", service_id).del();
+      /* if (service_images && service_images.length) {
+        await db("service_images").whereIn("service_id", service_id).del();
 
-      await db("service_images").insert(
-        service_images.map((image_url) => ({
-          service_id,
-          service_image_url: image_url,
-        }))
-      );
+        await db("service_images").insert(
+          service_images.map((image_url) => ({
+            service_id,
+            service_image_url: image_url,
+          }))
+        );
+      } */
+
+      return { success: true };
+    } else {
+      await db("services")
+        .where((builder) => {
+          return builder.where({
+            service_id,
+            service_user_id: db_user.tasttlig_user_id,
+          });
+        })
+        .update(service_update_data);
+
+      if (service_images && service_images.length) {
+        await db("service_images").where("service_id", service_id).del();
+
+        await db("service_images").insert(
+          service_images.map((image_url) => ({
+            service_id,
+            service_image_url: image_url,
+          }))
+        );
+      }
+
+      return { success: true };
     }
-
-    return { success: true };
   } catch (error) {
     return { success: false, details: error };
   }
 };
 
 // Delete service helper function
-const deleteService = async (user_id, service_id, service_image_id) => {
-  return await db("service_images")
-    .where({
-      service_image_id,
-      service_id,
-    })
-    .del()
-    .then(async () => {
-      await db("services")
-        .where({
-          service_id,
-          service_user_id: user_id,
-        })
-        .del();
-      return { success: true };
-    })
-    .catch((reason) => {
-      return { success: false, details: reason };
-    });
+const deleteService = async (user_id, service_id) => {
+  if (Array.isArray(service_id)) {
+    return await db("service_images")
+      .whereIn("service_id", service_id)
+      .del()
+      .then(async () => {
+        await db("services")
+          .where({
+            /* service_id, */
+            service_user_id: user_id,
+          })
+          .whereIn("service_id", service_id)
+          .del();
+        return { success: true };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  } else {
+    return await db("service_images")
+      .where({
+        service_id,
+      })
+      .del()
+      .then(async () => {
+        await db("services")
+          .where({
+            service_id,
+            service_user_id: user_id,
+          })
+          .del();
+        return { success: true };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  }
 };
 
 module.exports = {

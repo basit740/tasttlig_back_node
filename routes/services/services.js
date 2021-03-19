@@ -89,16 +89,13 @@ router.post(
           : null,
         service_user_id: req.user.id,
       };
-      console.log("service_information", service_information);
       const response = await services_service.createNewService(
         user_details_from_db,
         service_information,
         req.body.service_images
       );
-      console.log(response);
       return res.send(response);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -128,10 +125,8 @@ router.get("/services/festival/:festival_id", async (req, res) => {
       filters,
       req.query.keyword
     );
-    console.log(response);
     return res.send(response);
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: "Error.",
@@ -267,8 +262,6 @@ router.delete("/services/delete/user/:user_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
-  //console.log("req params",req.body)
-  //console.log(req.body.delete_items)
   try {
     const response = await services_service.deleteServicesFromUser(
       req.params.user_id,
@@ -276,7 +269,6 @@ router.delete("/services/delete/user/:user_id", async (req, res) => {
     );
     return res.send(response);
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: "Error.",
@@ -335,10 +327,10 @@ router.post("/claim-service", async (req, res) => {
 });
 
 router.put(
-  "/service/update/:service_id",
+  "/service/update",
   token_service.authenticateToken,
   async (req, res) => {
-    if (!req.params.service_id || !req.body) {
+    if (!req.body) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
@@ -359,13 +351,8 @@ router.put(
 
       let db_user = user_details_from_db.user;
 
-      const response = await services_service.updateService(
-        db_user,
-        req.params.service_id,
-        req.body
-      );
+      const response = await services_service.updateService(db_user, req.body);
 
-      console.log(response);
       return res.send(response);
     } catch (error) {
       res.send({
@@ -379,10 +366,10 @@ router.put(
 
 // DELETE service
 router.delete(
-  "/service/delete/:service_id",
+  "/service/delete",
   token_service.authenticateToken,
   async (req, res) => {
-    if (!req.params.service_id) {
+    if (!req.body.service_id) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
@@ -392,13 +379,10 @@ router.delete(
     try {
       const response = await services_service.deleteService(
         req.user.id,
-        req.params.service_id,
-        req.body.image_id
+        req.body.service_id
       );
-      console.log(response);
       return res.send(response);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",

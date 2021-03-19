@@ -86,34 +86,28 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
     .groupBy("business_details.city")
     .groupBy("business_details.state")
     .groupBy("business_details.zip_postal_code")
-    .having("products.product_festivals_id", "@>", [festival_id])
+    .having("products.product_festivals_id", "@>", [festival_id]);
   /*     .then((value) => {
-        console.log(value)
         return { success: true, details: value };
       })
       .catch((reason) => {
-        console.log(reason)
         return { success: false, details: reason };
       }); */
-  let orderByArray = []
+  let orderByArray = [];
   if (filters.price) {
-
-
     if (filters.price === "lowest_to_highest") {
-      //console.log("lowest to highest")
-      orderByArray.push({ column: "products.product_price", order: "asc" })
+      orderByArray.push({ column: "products.product_price", order: "asc" });
       //query.orderBy("products.product_price", "asc")
     } else if (filters.price === "highest_to_lowest") {
-      //console.log("highest to lowest");
-      orderByArray.push({ column: "products.product_price", order: "desc" })
+      orderByArray.push({ column: "products.product_price", order: "desc" });
       //query.orderBy("products.product_price", "desc")
     }
   }
   if (filters.quantity) {
     if (filters.quantity === "lowest_to_highest") {
-      orderByArray.push({ column: "products.product_quantity", order: "asc" })
+      orderByArray.push({ column: "products.product_quantity", order: "asc" });
     } else if (filters.quantity === "highest_to_lowest") {
-      orderByArray.push({ column: "products.product_quantity", order: "desc" })
+      orderByArray.push({ column: "products.product_quantity", order: "desc" });
     }
   }
 
@@ -164,11 +158,9 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
 
   return await query
     .then((value) => {
-      //console.log(value)
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log(reason)
       return { success: false, details: reason };
     });
 };
@@ -176,24 +168,18 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
 //product details for dashboard
 const getUserProductDetails = async (user_id) => {
   return await db
-  .select(
-    "products.*",
-    "product_images.product_image_id",
-    db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls"),
-    "nationalities.country"
+    .select(
+      "products.*",
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls"),
+      "nationalities.country"
     )
     .from("product_images")
-    .rightJoin(
-    "products",
-    "product_images.product_id",
-    "products.product_id",
-    )
+    .rightJoin("products", "product_images.product_id", "products.product_id")
     .leftJoin(
-    "nationalities",
-    "products.product_made_in_nationality_id",
-    "nationalities.id"
+      "nationalities",
+      "products.product_made_in_nationality_id",
+      "nationalities.id"
     )
-    .groupBy("product_images.product_image_id")
     .groupBy("products.product_id")
     .groupBy("products.product_made_in_nationality_id")
     .groupBy("nationalities.id")
@@ -204,10 +190,9 @@ const getUserProductDetails = async (user_id) => {
     .catch((reason) => {
       return { success: false, details: reason };
     });
-}
+};
 
 const getProductsFromUser = async (user_id) => {
-
   return await db
     .select(
       "products.*",
@@ -235,7 +220,7 @@ const getProductsFromUser = async (user_id) => {
       "nationalities",
       "products.product_made_in_nationality_id",
       "nationalities.id"
-      )
+    )
     .groupBy("products.product_id")
     .groupBy("business_details.business_name")
     .groupBy("business_details.business_address_1")
@@ -247,42 +232,39 @@ const getProductsFromUser = async (user_id) => {
     .groupBy("nationalities.nationality")
     .having("business_details.business_details_user_id", "=", Number(user_id))
     .then((value) => {
-      console.log(value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log(reason);
       return { success: false, details: reason };
     });
 };
 
-const deleteProductsFromUser = async(user_id, delete_items) => {
+const deleteProductsFromUser = async (user_id, delete_items) => {
   try {
     for (let item of delete_items) {
-      await db.transaction(async(trx) => {
+      await db.transaction(async (trx) => {
         const productImagesDelete = await trx("product_images")
-         .where({
-           product_id: item.product_id
-         })
-         .del()
+          .where({
+            product_id: item.product_id,
+          })
+          .del();
         const productDelete = await trx("products")
-        .where({
-          product_id: item.product_id,
-        })
-        .del()
-        .then(() => {
-          return { success: true };
-        })
-        .catch((reason) => {
-          console.log(reason);
-          return { success: false, details: reason };
-        });
-      })
+          .where({
+            product_id: item.product_id,
+          })
+          .del()
+          .then(() => {
+            return { success: true };
+          })
+          .catch((reason) => {
+            return { success: false, details: reason };
+          });
+      });
     }
-  } catch(error) {
-    return { success: false, details: error}
+  } catch (error) {
+    return { success: false, details: error };
   }
-}
+};
 
 // Find product helper function
 const findProduct = async (product_id) => {
@@ -302,14 +284,13 @@ const findProduct = async (product_id) => {
 const addProductToFestival = async (festival_id, product_id) => {
   try {
     await db.transaction(async (trx) => {
-
       const db_product = await trx("products")
         .where({ product_id })
         .update({
           product_festivals_id: trx.raw(
             "array_append(product_festivals_id, ?)",
             [festival_id]
-          )
+          ),
         })
         .returning("*");
 
@@ -323,7 +304,6 @@ const addProductToFestival = async (festival_id, product_id) => {
 
     return { success: true, details: "Success." };
   } catch (error) {
-    console.log(error);
     return { success: false, details: error.message };
   }
 };
@@ -357,60 +337,108 @@ const claimProduct = async (db_user, product_id) => {
 };
 
 // Update product helper function
-const updateProduct = async (
-  db_user,
-  product_id,
-  data,
-) => {
+const updateProduct = async (db_user, data) => {
   const { product_images, ...product_update_data } = data;
+  let updateData = {};
+  console.log("multi", "mmmmm");
+  updateData.product_festivals_id = data.product_festivals_id;
+  console.log("multi", updateData);
 
   try {
-    await db("products")
-      .where((builder) => {
+    if (Array.isArray(data.product_id)) {
+      console.log("multi", updateData);
+      await db("products")
+        .whereIn("product_id", data.product_id)
+        .where((builder) => {
+          return builder.where({
+            product_user_id: db_user.tasttlig_user_id,
+          });
+        })
+        .update(updateData);
+
+      /* if (product_images && product_images.length) {
+        await db("product_images").whereIn("product_id", product_id).del();
+
+        await db("product_images").insert(
+          product_images.map((image_url) => ({
+            product_id,
+            product_image_url: image_url,
+          }))
+        );
+      } */
+
+      return { success: true };
+    } else {
+      console.log("single", product_id);
+      await db("products")
+        .where((builder) => {
           return builder.where({
             product_id,
             product_user_id: db_user.tasttlig_user_id,
           });
-      })
-      .update(product_update_data);
+        })
+        .update(product_update_data);
 
-    if (product_images && product_images.length) {
-      await db("product_images").where("product_id", product_id).del();
+      if (product_images && product_images.length) {
+        await db("product_images").where("product_id", product_id).del();
 
-      await db("product_images").insert(
-        product_images.map((image_url) => ({
-          product_id,
-          "product_image_url":image_url,
-        }))
-      );
+        await db("product_images").insert(
+          product_images.map((image_url) => ({
+            product_id,
+            product_image_url: image_url,
+          }))
+        );
+      }
+
+      return { success: true };
     }
-
-    return { success: true };
   } catch (error) {
     return { success: false, details: error };
   }
 };
 
 // Delete product helper function
-const deleteProduct = async (user_id, product_id, product_image_id) => {
-  return await db("product_images")
-    .where({
-      product_image_id,
+const deleteProduct = async (user_id, product_id) => {
+  if (Array.isArray(product_id)) {
+    return await db("product_images")
+      /*  .where({
       product_id,
-    })
-    .del()
-    .then(async () => {
-      await db("products")
+    }) */
+      .whereIn("product_id", product_id)
+      .del()
+      .then(async () => {
+        await db("products")
+          .where({
+            /* product_id, */
+            product_user_id: user_id,
+          })
+          .whereIn("product_id", product_id)
+          .del();
+        return { success: true };
+      })
+      .catch((reason) => {
+        console.log("p servs", reason);
+        return { success: false, details: reason };
+      });
+  } else {
+    return await db("product_images")
       .where({
-      product_id,
-      "product_user_id": user_id,
-    })
-    .del()
-      return { success: true };
-    })
-    .catch((reason) => {
-      return { success: false, details: reason };
-    });
+        product_id,
+      })
+      .del()
+      .then(async () => {
+        await db("products")
+          .where({
+            product_id,
+            product_user_id: user_id,
+          })
+          .del();
+        return { success: true };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  }
 };
 
 module.exports = {

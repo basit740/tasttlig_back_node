@@ -13,8 +13,6 @@ router.post(
   "/products/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("body", req.body);
-    console.log("user", req.user);
     let body;
     if (req.body[0]) {
       body = req.body[0];
@@ -51,8 +49,6 @@ router.post(
           req.query.email
         );
       }
-
-      console.log("user details from db", user_details_from_db);
 
       if (!user_details_from_db.success) {
         return res.status(403).json({
@@ -129,7 +125,6 @@ router.post(
             product_information,
             product.product_images || product.images
           );
-          console.log(response);
           if (response.success) {
             result = response;
           } else {
@@ -176,7 +171,6 @@ router.post(
           product_information,
           body.product_images || body.images
         );
-        console.log(response);
         if (response.success) {
           result = response;
         } else {
@@ -186,10 +180,8 @@ router.post(
           });
         }
       }
-      console.log("new response", result);
       return res.send(result);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -199,8 +191,6 @@ router.post(
   }
 );
 router.post("/products/noUser/add", async (req, res) => {
-  console.log("body", req.body);
-  console.log("user", req.params);
   let body;
   if (req.body[0]) {
     body = req.body[0];
@@ -237,8 +227,6 @@ router.post("/products/noUser/add", async (req, res) => {
         req.query.email
       );
     }
-
-    console.log("user details from db", user_details_from_db);
 
     if (!user_details_from_db.success) {
       return res.status(403).json({
@@ -314,7 +302,6 @@ router.post("/products/noUser/add", async (req, res) => {
           product_information,
           product.product_images || product.images
         );
-        console.log(response);
         if (response.success) {
           result = response;
         } else {
@@ -362,7 +349,6 @@ router.post("/products/noUser/add", async (req, res) => {
         product_information,
         body.product_images || body.images
       );
-      console.log(response);
       if (response.success) {
         result = response;
       } else {
@@ -372,10 +358,8 @@ router.post("/products/noUser/add", async (req, res) => {
         });
       }
     }
-    console.log("new response", result);
     return res.send(result);
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: "Error.",
@@ -388,7 +372,6 @@ router.post(
   "/products/festival/:festivalId",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log(req.body);
     if (!req.body.festivalId) {
       return res.status(403).json({
         success: false,
@@ -443,10 +426,8 @@ router.post(
           message: "Error.",
         });
       }
-      console.log("new response", result);
       return res.send(result);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -458,7 +439,6 @@ router.post(
 
 // GET products in specific festival
 router.get("/products/festival/:festival_id", async (req, res) => {
-  console.log("params", req.query);
   if (!req.params.festival_id) {
     return res.status(403).json({
       success: false,
@@ -478,10 +458,8 @@ router.get("/products/festival/:festival_id", async (req, res) => {
       filters,
       req.query.keyword
     );
-    //console.log(response);
     return res.send(response);
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: "Error.",
@@ -565,8 +543,6 @@ router.delete("/products/delete/user/:user_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
-  //console.log("req params",req.body)
-  //console.log(req.body.delete_items)
   try {
     const response = await products_service.deleteProductsFromUser(
       req.params.user_id,
@@ -574,7 +550,6 @@ router.delete("/products/delete/user/:user_id", async (req, res) => {
     );
     return res.send(response);
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: "Error.",
@@ -633,10 +608,11 @@ router.post("/claim-product", async (req, res) => {
 });
 
 router.put(
-  "/product/update/:product_id",
+  "/product/update/",
   token_service.authenticateToken,
   async (req, res) => {
-    if (!req.params.product_id || !req.body) {
+    console.log("bdy", req.body);
+    if (!req.body) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
@@ -657,12 +633,8 @@ router.put(
 
       let db_user = user_details_from_db.user;
 
-      const response = await products_service.updateProduct(
-        db_user,
-        req.params.product_id,
-        req.body
-      );
-      console.log(response);
+      const response = await products_service.updateProduct(db_user, req.body);
+      console.log("res", response);
       return res.send(response);
     } catch (error) {
       res.send({
@@ -676,11 +648,10 @@ router.put(
 
 // DELETE product
 router.delete(
-  "/product/delete/:product_id",
+  "/product/delete",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log(req.body, req.params.product_id);
-    if (!req.params.product_id) {
+    if (!req.body.product_id) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
@@ -690,13 +661,11 @@ router.delete(
     try {
       const response = await products_service.deleteProduct(
         req.user.id,
-        req.params.product_id,
-        req.body.image_id
+        req.body.product_id
       );
-      console.log(response);
+      console.log("res", response);
       return res.send(response);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",
