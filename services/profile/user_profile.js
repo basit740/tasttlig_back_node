@@ -82,6 +82,51 @@ const getUserBySubscriptionId = async (id) => {
       return { success: false, message: error };
     });
 };
+// Get all subscriptions from user id
+const getVendorUserBySubscriptionId = async (id) => {
+  return await db("tasttlig_users")
+    .select(
+      "tasttlig_users.*",
+      "user_subscriptions.*",
+      "business_details.*",
+      db.raw("ARRAY_AGG(roles.role) as role")
+    )
+    .leftJoin(
+      "user_subscriptions",
+      "tasttlig_users.tasttlig_user_id",
+      "user_subscriptions.user_id"
+    )
+    .leftJoin(
+      "business_details",
+      "tasttlig_users.tasttlig_user_id",
+      "business_details.business_details_user_id"
+    )
+    .leftJoin(
+      "user_role_lookup",
+      "tasttlig_users.tasttlig_user_id",
+      "user_role_lookup.user_id"
+    )
+    .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .groupBy("user_subscriptions.user_subscription_id")
+    .groupBy("business_details.business_details_id")
+    .having("tasttlig_users.tasttlig_user_id", "=", id)
+    .andWhere(function () {
+      this.where("user_subscriptions.subscription_code", "V_MIN")
+        .orWhere("user_subscriptions.subscription_code", "V_MOD")
+        .orWhere("user_subscriptions.subscription_code", "V_ULTRA");
+    })
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+
+      return { success: true, user: value };
+    })
+    .catch((error) => {
+      return { success: false, message: error };
+    });
+};
 
 // Update user account helper function
 const updateUserAccount = async (user) => {
@@ -330,7 +375,6 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
     role_name = "HOST_PENDING";
   }
-
 
   // Save sponsor application to applications table
   if (applications.length == 0 && hostDto.is_sponsor) {
@@ -839,12 +883,12 @@ const approveOrDeclineHostApplication = async (
         role_code: new_role_code,
       });
 
-        await db("food_samples")
-          .where({
-            food_sample_creater_user_id: db_user.tasttlig_user_id,
-            status: "INACTIVE",
-          })
-          .update("status", "ACTIVE");
+      await db("food_samples")
+        .where({
+          food_sample_creater_user_id: db_user.tasttlig_user_id,
+          status: "INACTIVE",
+        })
+        .update("status", "ACTIVE");
 
       // STEP 2: Update all Experiences to Active state
       // await db("experiences")
@@ -1213,8 +1257,7 @@ const saveSpecials = async (hostDto) => {
 //get business details and images by user id
 const getBusinessDetailsByUserId = async (userId) => {
   return await db
-    .select("business_details.*",
-    "business_details_images.*")
+    .select("business_details.*", "business_details_images.*")
     .from("business_details")
     .leftJoin(
       "business_details_images",
@@ -1260,10 +1303,10 @@ const getSubscriptionsByUserId = async (userId) => {
     .groupBy("festivals.festival_id")
     .groupBy("festival_images.festival_id")
     .having("user_subscriptions.user_id", "=", userId)
-    .andWhere(function() {
+    .andWhere(function () {
       this.where("user_subscriptions.subscription_code", "S_C1")
-      .orWhere("user_subscriptions.subscription_code", "S_C2")
-      .orWhere("user_subscriptions.subscription_code", "S_C3")
+        .orWhere("user_subscriptions.subscription_code", "S_C2")
+        .orWhere("user_subscriptions.subscription_code", "S_C3");
     })
     .then((value) => {
       if (!value) {
@@ -1272,7 +1315,8 @@ const getSubscriptionsByUserId = async (userId) => {
 
       return { success: true, user: value };
     })
-    .catch((error) => {console.log('subscr',error);
+    .catch((error) => {
+      console.log("subscr", error);
       return { success: false, message: error };
     });
 };
@@ -1280,6 +1324,7 @@ const getSubscriptionsByUserId = async (userId) => {
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
+  getVendorUserBySubscriptionId,
   upgradeUserResponse,
   updateUserAccount,
   updateUserProfile,
