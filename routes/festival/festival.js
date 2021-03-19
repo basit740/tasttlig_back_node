@@ -486,6 +486,7 @@ router.post(
       const business_details = await authentication_service.getUserByBusinessDetails(
         req.user.id
       );
+      console.log(business_details);
       if (!business_details.success) {
         return res.status(403).json({
           success: false,
@@ -499,6 +500,7 @@ router.post(
       );
       return res.send(response);
     } catch (error) {
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",
