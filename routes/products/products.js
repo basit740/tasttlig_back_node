@@ -646,10 +646,10 @@ router.put(
 
 // DELETE product
 router.delete(
-  "/product/delete/:product_id",
+  "/product/delete",
   token_service.authenticateToken,
   async (req, res) => {
-    if (!req.params.product_id) {
+    if (!req.body.product_id) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
@@ -659,7 +659,7 @@ router.delete(
     try {
       const response = await products_service.deleteProduct(
         req.user.id,
-        req.params.product_id
+        req.body.product_id
       );
       console.log("res", response);
       return res.send(response);

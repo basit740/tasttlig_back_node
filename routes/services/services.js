@@ -293,10 +293,10 @@ router.put(
 
 // DELETE service
 router.delete(
-  "/service/delete/:service_id",
+  "/service/delete",
   token_service.authenticateToken,
   async (req, res) => {
-    if (!req.params.service_id) {
+    if (!req.body.service_id) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
@@ -306,7 +306,7 @@ router.delete(
     try {
       const response = await services_service.deleteService(
         req.user.id,
-        req.params.service_id
+        req.body.service_id
       );
       return res.send(response);
     } catch (error) {
