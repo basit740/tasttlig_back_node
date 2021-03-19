@@ -304,21 +304,25 @@ const claimService = async (db_user, service_id) => {
 };
 // Update service helper function
 const updateService = async (db_user, data) => {
-  const { service_images, service_id, ...service_update_data } = data;
+  const { service_images, ...service_update_data } = data;
+  let updateData = {};
+  console.log("multi", "mmmmm");
+  updateData.service_festival_id = data.service_festival_id;
+  console.log("multi", data);
 
   try {
-    if (Array.isArray(service_id)) {
+    if (Array.isArray(data.service_id)) {
       await db("services")
-        .whereIn("service_id", service_id)
+        .whereIn("service_id", data.service_id)
         .where((builder) => {
           return builder.where({
             /* service_id, */
             service_user_id: db_user.tasttlig_user_id,
           });
         })
-        .update(service_update_data);
+        .update(updateData);
 
-      if (service_images && service_images.length) {
+      /* if (service_images && service_images.length) {
         await db("service_images").whereIn("service_id", service_id).del();
 
         await db("service_images").insert(
@@ -327,7 +331,7 @@ const updateService = async (db_user, data) => {
             service_image_url: image_url,
           }))
         );
-      }
+      } */
 
       return { success: true };
     } else {

@@ -339,19 +339,22 @@ const claimProduct = async (db_user, product_id) => {
 // Update product helper function
 const updateProduct = async (db_user, data) => {
   const { product_images, ...product_update_data } = data;
-  const product_id = data.product_id;
+  let updateData = {};
+  console.log("multi", "mmmmm");
+  updateData.product_festivals_id = data.product_festivals_id;
+  console.log("multi", updateData);
 
   try {
-    if (Array.isArray(product_id)) {
-      console.log("multi", product_id);
+    if (Array.isArray(data.product_id)) {
+      console.log("multi", updateData);
       await db("products")
-        .whereIn("product_id", product_id)
+        .whereIn("product_id", data.product_id)
         .where((builder) => {
           return builder.where({
             product_user_id: db_user.tasttlig_user_id,
           });
         })
-        .update(product_update_data);
+        .update(updateData);
 
       /* if (product_images && product_images.length) {
         await db("product_images").whereIn("product_id", product_id).del();
