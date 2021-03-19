@@ -153,8 +153,11 @@ const postBusinessPassportDetails = async (data) => {
         return { success: true };
     });
   } catch (error) {
-    console.log(error)
-    return { success: false, details: error.message };
+    
+    if(error.detail.includes("already exists")) {
+      return { success: false, details: "User Business Information already exists, you can edit your existing information under passport section in your profile" };
+    }
+    return { success: false, details: error.detail };
   }
 };
 
