@@ -338,7 +338,8 @@ const claimProduct = async (db_user, product_id) => {
 
 // Update product helper function
 const updateProduct = async (db_user, data) => {
-  const { product_images, product_id, ...product_update_data } = data;
+  const { product_images, ...product_update_data } = data;
+  const product_id = data.product_id;
 
   try {
     if (Array.isArray(product_id)) {
@@ -352,7 +353,7 @@ const updateProduct = async (db_user, data) => {
         })
         .update(product_update_data);
 
-      if (product_images && product_images.length) {
+      /* if (product_images && product_images.length) {
         await db("product_images").whereIn("product_id", product_id).del();
 
         await db("product_images").insert(
@@ -361,7 +362,7 @@ const updateProduct = async (db_user, data) => {
             product_image_url: image_url,
           }))
         );
-      }
+      } */
 
       return { success: true };
     } else {

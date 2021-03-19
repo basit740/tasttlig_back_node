@@ -633,6 +633,7 @@ router.put(
       let db_user = user_details_from_db.user;
 
       const response = await products_service.updateProduct(db_user, req.body);
+      console.log("res", response);
       return res.send(response);
     } catch (error) {
       res.send({
