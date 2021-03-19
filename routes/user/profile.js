@@ -835,11 +835,10 @@ router.post(
       const response = await passport_service.postBusinessPassportDetails(
         req.body
       );
-        //here
       if (!response.success) {
-        return res.status(403).json({
+        return res.status(200).json({
           success: false,
-          message: "error",
+          message: response.details,
         });
       }
       const hostDto = {
@@ -853,10 +852,9 @@ router.post(
 
       return res.send(saveHost);
     } catch (error) {
-      res.send({
+      return res.status(403).json({
         success: false,
-        message: "Error.",
-        response: error.message,
+        message: response.details,
       });
     }
   }
