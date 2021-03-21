@@ -6,19 +6,27 @@ const token_service = require("../../services/authentication/token");
 const ticket_service = require("../../services/ticket/ticket");
 const user_profile_service = require("../../services/profile/user_profile");
 
+
 // GET all tickets
-router.get("/ticket/all", async (req, res) => {
+router.get("/ticket/all", token_service.authenticateToken, async (req, res) => {
+  console.log("query",req.query)
+  console.log(req.user);
   try {
-    const ticket_user_id = req.query.ticket_user_id;
+    const ticket_user_id = req.query.ticket_user_id || req.user.id
     const current_page = req.query.page || 1;
+
+    console.log('currentpage', current_page);
+    console.log(ticket_user_id);
 
     const response = await ticket_service.getAllTickets(
       ticket_user_id,
       current_page
     );
+    console.log("response frp,", response)
 
     return res.send(response);
   } catch (error) {
+    console.log(error);
     res.send({
       success: false,
       message: "Error.",
@@ -66,6 +74,31 @@ router.get("/ticket/:ticket_id", async (req, res) => {
   }
 });
 
+router.delete("/tickets/delete/user/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  //console.log("req params",req.body)
+  //console.log(req.body.delete_items)
+  try {
+    const response = await ticket_service.deleteTicketsFromUser(
+      req.params.user_id,
+      req.body.delete_items
+    );
+    return res.send(response);
+  } catch (error) {
+    console.log(error)
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 // POST to tickets table
 router.post(
   "/ticket/add",
@@ -77,7 +110,7 @@ router.post(
       ticket_festival_id,
       no_of_admits,
       stripe_receipt_id,
-      attend_status,
+      // attend_status,
     } = req.body;
     try {
       if (
@@ -86,50 +119,54 @@ router.post(
         !ticket_festival_id ||
         !no_of_admits ||
         !stripe_receipt_id
-      ) {
-        return res.status(403).json({
-          success: false,
-          message: "Required parameters are not available in request.",
-        });
-      }
-
-      try {
-        const user_details_from_db = await user_profile_service.getUserById(
-          req.user.id
-        );
-
-        if (!user_details_from_db.success) {
+        ) {
           return res.status(403).json({
             success: false,
-            message: user_details_from_db.message,
+            message: "Required parameters are not available in request.",
           });
         }
 
-        const ticket_details = {
-          ticket_booking_confirmation_id,
-          ticket_user_id,
-          ticket_festival_id,
-          no_of_admits,
-          stripe_receipt_id,
-        };
-        const response = await ticket_service.newTicketInfo(ticket_details);
-
-        return res.send(response);
-      } catch (error) {
-        res.send({
+  try {
+    const user_details_from_db = await user_profile_service.getUserById(
+      req.user.id
+      );
+      
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
           success: false,
-          message: "Error.",
-          response: error,
+          message: user_details_from_db.message,
         });
       }
+      
+      const ticket_details = {
+        ticket_booking_confirmation_id,
+        ticket_user_id,
+        ticket_festival_id,
+        no_of_admits,
+        stripe_receipt_id,
+      };
+      
+      
+      const response = await ticket_service.newTicketInfo(ticket_details);
+      
+      return res.send(response);
     } catch (error) {
+      console.log("error: ", error)
       res.send({
         success: false,
         message: "Error.",
         response: error,
       });
     }
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error,
+    });
   }
+  
+}
 );
 
 module.exports = router;

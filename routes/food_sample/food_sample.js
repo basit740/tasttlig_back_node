@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const food_sample_service = require("../../services/food_sample/food_sample");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
+const festival_service = require("../../services/festival/festival")
 const {
   generateRandomString,
   formatTime,
@@ -19,7 +20,7 @@ router.post(
   "/food-sample/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log(req.body);
+    console.log("im here:", req.body);
     try {
       req.body.map(async (item) => {
         if (
@@ -151,8 +152,10 @@ router.post(
             status: "ACTIVE",
             festival_id: item.addToFestival ? 2 : null,
             festival_selected: item.festivals,
+            claimed_total_quantity: 0,
+            redeemed_total_quantity: 0,
           };
-          console.log("req from food sample,", food_sample_details)
+          // console.log("req from food sample,", food_sample_details)
 
           const response = await food_sample_service.createNewFoodSample(
             db_user,
@@ -497,6 +500,55 @@ router.get("/food-sample/all", async (req, res) => {
 
     return res.send(response);
   } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+// GET all food samples in festival
+router.get("/food-sample/festival/:festivalId", async (req, res) => {
+  try {
+    console.log("body",req.body)
+    console.log("params",req.params)
+    //const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
+    const status_operator = "=";
+    const food_sample_status = "ACTIVE";
+    //const food_ad_code = req.query.food_ad_code;
+
+    const filters = {
+/*       nationalities: req.query.nationalities,
+      startDate: req.query.startDate,
+      endDate: req.query.endDate,
+      radius: req.query.radius,
+      latitude: req.query.latitude,
+      longitude: req.query.longitude,
+      quantity: req.query.quantity,
+      festival_name: req.query.festival_name, */
+      price: req.query.price,
+      quantity: req.query.quantity,
+      size: req.query.size
+    };
+/*     const festival = await festival_service.getFestivalDetails(
+      req.params.festivalId
+    );
+    const festival_title = festival.details.festival_name */
+    //console.log("festival_title",festival_title);
+    const response = await food_sample_service.getAllFoodSamplesInFestival(
+      status_operator,
+      food_sample_status,
+      keyword,
+      //current_page,
+      //food_ad_code,
+      filters,
+      req.params.festivalId
+    );
+
+    return res.send(response);
+  } catch (error) {
+    console.log(error)
     res.send({
       success: false,
       message: "Error.",
@@ -999,5 +1051,31 @@ router.delete(
     }
   }
 );
+// For multiple deletions of food sample
+router.delete("/food-sample/delete/user/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  // console.log("req params",req.body)
+  console.log(req.body)
+  try {
+    const response = await food_sample_service.deleteFoodSamplesFromUser(
+      req.params.user_id,
+      req.body.delete_items
+    );
+    console.log("responsssss", response)
+    return res.send(response);
+  } catch (error) {
+    console.log(error)
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
 
 module.exports = router;

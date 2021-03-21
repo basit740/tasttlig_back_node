@@ -14,11 +14,11 @@ const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
 // Get vendor package details
 
-const getVendorSubscriptionDetails = async() => {
+const getVendorSubscriptionDetails = async () => {
   return await await db("subscriptions")
-  .select("subscription_name", "price")
-  .where("subscription_name", "LIKE", "vendor%")
-  }
+    .select("subscription_name", "price")
+    .where("subscription_name", "LIKE", "vendor%");
+};
 
 // const getNationalities = async (keyword) => {
 //   try {
@@ -145,8 +145,7 @@ const getOrderDetails = async (order_details) => {
       .catch((error) => {
         return { success: false, message: error };
       });
-  } 
-  else if (order_details.item_type === "product") {
+  } else if (order_details.item_type === "product") {
     return await db("products")
       .where({
         product_id: order_details.item_id,
@@ -277,7 +276,7 @@ const getCartOrderDetails = async (cartItems) => {
 const createOrder = async (order_details, db_order_details) => {
   if (
     order_details.item_type === "plan" ||
-    order_details.item_type === "subscription" || order_details.item_type === "package"
+    order_details.item_type === "subscription"
   ) {
     try {
       await db.transaction(async (trx) => {
@@ -340,21 +339,20 @@ const createOrder = async (order_details, db_order_details) => {
 
         // Get role code of new role to be added
         if (!db_order_details.item.subscription_name === "vendor_basic") {
-        const new_role_code = await trx("roles")
-          .select()
-          .where({ role: db_order_details.item.subscription_name })
-          .then((value) => {
-            return value[0].role_code;
-          });
+          const new_role_code = await trx("roles")
+            .select()
+            .where({ role: db_order_details.item.subscription_name })
+            .then((value) => {
+              return value[0].role_code;
+            });
 
-        // Insert new role for this user
-        await trx("user_role_lookup").insert({
-          user_id: order_details.user_id,
-          role_code: new_role_code,
-        });
-      }
+          // Insert new role for this user
+          await trx("user_role_lookup").insert({
+            user_id: order_details.user_id,
+            role_code: new_role_code,
+          });
+        }
       });
-    
 
       const membership_plan_name = _.startCase(order_details.item_id);
 
@@ -369,7 +367,7 @@ const createOrder = async (order_details, db_order_details) => {
           membership_plan_name,
         },
       });
-      console.log("success")
+      console.log("success");
       return { success: true, details: "Success." };
     } catch (error) {
       return { success: false, details: error.message };
@@ -379,9 +377,13 @@ const createOrder = async (order_details, db_order_details) => {
   if (order_details.item_type === "package") {
     try {
       await db.transaction(async (trx) => {
-        const total_amount_before_tax = parseFloat(db_order_details.item.price);
-        const total_tax = Math.round(total_amount_before_tax * 13) / 100;
-        const total_amount_after_tax = total_amount_before_tax + total_tax;
+        let total_amount_before_tax = parseFloat(db_order_details.item.price);
+        if (order_details.vendor_festivals) {
+          total_amount_before_tax =
+            order_details.vendor_festivals.length * total_amount_before_tax;
+        }
+        let total_tax = Math.round(total_amount_before_tax * 13) / 100;
+        let total_amount_after_tax = total_amount_before_tax + total_tax;
         const db_orders = await trx("orders")
           .insert({
             order_by_user_id: order_details.user_id,
@@ -401,7 +403,9 @@ const createOrder = async (order_details, db_order_details) => {
           order_id: db_orders[0].order_id,
           item_id: order_details.item_id,
           item_type: order_details.item_type,
-          quantity: 1,
+          quantity: order_details.vendor_festivals
+            ? order_details.vendor_festivals.length
+            : 1,
           price_before_tax: total_amount_before_tax,
         });
 
@@ -427,6 +431,8 @@ const createOrder = async (order_details, db_order_details) => {
           user_id: order_details.user_id,
           subscription_start_datetime: new Date(),
           subscription_end_datetime: subscription_end_datetime,
+          suscribed_festivals: db_order_details.subscribed_festivals,
+          cash_payment_received: db_order_details.item.price,
         });
 
         // await point_system_service.addUserPoints(
@@ -435,7 +441,9 @@ const createOrder = async (order_details, db_order_details) => {
         // );
       });
 
-      const package_plan_name = _.startCase(db_order_details.item.subscription_name);
+      const package_plan_name = _.startCase(
+        db_order_details.item.subscription_name
+      );
 
       // Email to user on submitting the request to upgrade
       await Mailer.sendMail({
@@ -451,6 +459,7 @@ const createOrder = async (order_details, db_order_details) => {
 
       return { success: true, details: "Success." };
     } catch (error) {
+      console.log(error);
       return { success: false, details: error.message };
     }
   } else if (order_details.item_type === "food_sample") {
@@ -955,11 +964,30 @@ const getAllUserOrders = async (user_id) => {
   }
 };
 
+const getUserOrders = async (user_id) => {
+  return await db
+    .select("orders.*", "order_items.item_type", "order_items.quantity")
+    .from("orders")
+    .leftJoin("order_items", "orders.order_id", "order_items.order_id")
+    .groupBy("orders.order_id")
+    .groupBy("order_items.order_id")
+    .having("order_by_user_id", "=", Number(user_id))
+    .then((value) => {
+      console.log(value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log(reason);
+      return { success: false, details: reason };
+    });
+};
+
 module.exports = {
   getOrderDetails,
   createOrder,
   getCartOrderDetails,
   createCartOrder,
   getAllUserOrders,
-  getVendorSubscriptionDetails
+  getVendorSubscriptionDetails,
+  getUserOrders,
 };

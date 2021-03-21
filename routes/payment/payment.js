@@ -42,11 +42,13 @@ router.post("/payment/stripe", async (req, res) => {
     }
 
     const response = await stripe_payment_service.paymentIntent(
-      db_order_details
+      db_order_details,
+      req.body.vendor_festivals
     );
 
     return res.send(response);
   } catch (error) {
+    console.log(error);
     res.send({
       success: false,
       message: error.message,
@@ -86,21 +88,27 @@ router.post("/payment/stripe/success", async (req, res) => {
       user_email: db_user.user.email,
       user_passport_id: db_user.user.passport_id,
       payment_id: req.body.payment_id,
+      vendor_festivals: req.body.vendor_festivals,
     };
     const db_order_details = await user_order_service.getOrderDetails(
       order_details
     );
-    console.log("db_order_details", db_order_details);
 
     if (!db_order_details.success) {
       return { success: false, message: "Invalid order details." };
     }
 
+    db_order_details.subscribed_festivals = Array.isArray(
+      req.body.subscribed_festivals
+    )
+      ? req.body.subscribed_festivals
+      : req.body.subscribed_festivals
+      ? [req.body.subscribed_festivals]
+      : null;
     const response = await user_order_service.createOrder(
       order_details,
       db_order_details
     );
-    console.log("response", response);
 
     if (req.body.item_type === "food_sample") {
       const food_sample_claim_details = {
@@ -127,6 +135,7 @@ router.post("/payment/stripe/success", async (req, res) => {
       return res.send(response);
     }
   } catch (error) {
+    console.log(error);
     res.send({
       success: false,
       message: error.message,
@@ -243,22 +252,17 @@ router.post("/payment/stripe/cart/success", async (req, res) => {
   }
 });
 
-
 // GET subscription details
 router.get("/vendor-subscription-details", async (req, res) => {
-    try {
-    
-        const vendor_subscription_details = await user_order_service.getVendorSubscriptionDetails(
-      
-    );
+  try {
+    const vendor_subscription_details = await user_order_service.getVendorSubscriptionDetails();
 
-      return res.send(vendor_subscription_details);
-    } 
-      catch (error) {
-        res.send({
-        success: false,
-        message: error.message,
-      });
+    return res.send(vendor_subscription_details);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
   }
 });
 

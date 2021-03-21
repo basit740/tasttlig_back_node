@@ -8,6 +8,8 @@ const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const getAllTickets = async (userId, currentPage) => {
   // let startDate = filters.startDate.substring(0, 10);
   // let startTime = formatTime(filters.startTime);
+  console.log(currentPage);
+  console.log("userId", userId);
   const userIdInt = Number(userId);
   let query = db
     .select(
@@ -19,6 +21,7 @@ const getAllTickets = async (userId, currentPage) => {
       "festivals.festival_price",
       "festivals.festival_name",
       "festivals.festival_city",
+      "festivals.festival_type",
       "festivals.festival_description",
       "festivals.festival_start_time",
       "festivals.festival_end_time",
@@ -53,12 +56,14 @@ const getAllTickets = async (userId, currentPage) => {
     .groupBy("festivals.festival_price")
     .groupBy("festivals.festival_name")
     .groupBy("festivals.festival_city")
+    .groupBy("festivals.festival_type")
     .groupBy("festivals.festival_description")
     .groupBy("festivals.festival_end_time")
     .groupBy("festivals.festival_start_time")
     .groupBy("festivals.festival_end_date")
     .groupBy("festivals.festival_start_date")
     .groupBy("festivals.festival_id")
+    .groupBy("festivals.festival_type")
     .orderBy("festivals.festival_start_date", "asc");
 
   query = query.paginate({
@@ -143,7 +148,9 @@ const getTicketList = async () => {
 };
 
 const newTicketInfo = async (ticket_details) => {
+  console.log("data from ticket add:", ticket_details)
   try {
+
     await db.transaction(async (trx) => {
       const db_ticket = await trx("ticket_details")
         .insert(ticket_details)
@@ -161,9 +168,33 @@ const newTicketInfo = async (ticket_details) => {
   }
 };
 
+const deleteTicketsFromUser = async(user_id, delete_items) => {
+  try {
+    for (let item of delete_items) {
+      await db.transaction(async(trx) => {
+        const ticketDelete = await trx("ticket_details")
+        .where({
+          ticket_id: item.ticket_id,
+        })
+        .del()
+        .then(() => {
+          return { success: true };
+        })
+        .catch((reason) => {
+          console.log(reason);
+          return { success: false, details: reason };
+        });
+      })
+    }
+  } catch(error) {
+    return { success: false, details: error}
+  }
+}
+
 module.exports = {
   getAllTickets,
   getTicketDetails,
   getTicketList,
   newTicketInfo,
+  deleteTicketsFromUser
 };

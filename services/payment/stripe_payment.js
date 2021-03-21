@@ -8,7 +8,7 @@ const keySecret = process.env.STRIPE_SECRET_KEY;
 const stripe = new Stripe(keySecret);
 
 // Stripe payment helper function
-const paymentIntent = async (order_details) => {
+const paymentIntent = async (order_details, vendor_festivals) => {
   try {
     let total_amount_before_tax = 0;
     if (order_details.item.festival_price) {
@@ -19,6 +19,10 @@ const paymentIntent = async (order_details) => {
       total_amount_before_tax = parseFloat(order_details.item.service_price);
     } else if (order_details.item.experience_price) {
       total_amount_before_tax = parseFloat(order_details.item.experience_price);
+    } else if (vendor_festivals) {
+      total_amount_before_tax = parseFloat(
+        vendor_festivals.length * order_details.item.price
+      );
     } else {
       total_amount_before_tax = parseFloat(order_details.item.price);
     }
@@ -33,6 +37,7 @@ const paymentIntent = async (order_details) => {
 
     return { success: true, client_secret: payment.client_secret };
   } catch (error) {
+    console.log(error);
     return { success: false, message: error.message };
   }
 };

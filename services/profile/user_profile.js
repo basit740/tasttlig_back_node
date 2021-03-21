@@ -47,6 +47,7 @@ const getUserBySubscriptionId = async (id) => {
     .select(
       "tasttlig_users.*",
       "user_subscriptions.*",
+      "business_details.*",
       db.raw("ARRAY_AGG(roles.role) as role")
     )
     .first()
@@ -56,6 +57,11 @@ const getUserBySubscriptionId = async (id) => {
       "user_subscriptions.user_id"
     )
     .leftJoin(
+      "business_details",
+      "tasttlig_users.tasttlig_user_id",
+      "business_details.business_details_user_id"
+    )
+    .leftJoin(
       "user_role_lookup",
       "tasttlig_users.tasttlig_user_id",
       "user_role_lookup.user_id"
@@ -63,7 +69,53 @@ const getUserBySubscriptionId = async (id) => {
     .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
     .groupBy("tasttlig_users.tasttlig_user_id")
     .groupBy("user_subscriptions.user_subscription_id")
+    .groupBy("business_details.business_details_id")
     .having("tasttlig_users.tasttlig_user_id", "=", id)
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+
+      return { success: true, user: value };
+    })
+    .catch((error) => {
+      return { success: false, message: error };
+    });
+};
+// Get all subscriptions from user id
+const getVendorUserBySubscriptionId = async (id) => {
+  return await db("tasttlig_users")
+    .select(
+      "tasttlig_users.*",
+      "user_subscriptions.*",
+      "business_details.*",
+      db.raw("ARRAY_AGG(roles.role) as role")
+    )
+    .leftJoin(
+      "user_subscriptions",
+      "tasttlig_users.tasttlig_user_id",
+      "user_subscriptions.user_id"
+    )
+    .leftJoin(
+      "business_details",
+      "tasttlig_users.tasttlig_user_id",
+      "business_details.business_details_user_id"
+    )
+    .leftJoin(
+      "user_role_lookup",
+      "tasttlig_users.tasttlig_user_id",
+      "user_role_lookup.user_id"
+    )
+    .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .groupBy("user_subscriptions.user_subscription_id")
+    .groupBy("business_details.business_details_id")
+    .having("tasttlig_users.tasttlig_user_id", "=", id)
+    .andWhere(function () {
+      this.where("user_subscriptions.subscription_code", "V_MIN")
+        .orWhere("user_subscriptions.subscription_code", "V_MOD")
+        .orWhere("user_subscriptions.subscription_code", "V_ULTRA");
+    })
     .then((value) => {
       if (!value) {
         return { success: false, message: "No user found." };
@@ -107,23 +159,28 @@ const updateUserAccount = async (user) => {
 const updateUserProfile = async (user) => {
   try {
     return await db("tasttlig_users")
-      .where("tasttlig_user_id", user.id)
+      .where("tasttlig_user_id", user.tasttlig_user_id)
       .first()
-      .update({
-        first_name: user.first_name,
-        last_name: user.last_name,
-        phone_number: user.phone_number,
-        user_address_line_1: user.address_line_1,
-        user_address_line_2: user.address_line_2,
-        user_city: user.city,
-        user_state: user.state,
-        user_zip_postal_code: user.postal_code,
-        user_country: user.country,
-        address_type: user.address_type,
-        business_name: user.business_name,
-        business_type: user.business_type,
-        profile_status: user.profile_status,
+      .update(user)
+      .returning("*")
+      .then((value) => {
+        return { success: true, details: value[0] };
       })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  } catch (error) {
+    return { success: false, message: error };
+  }
+};
+
+// Update user business profile helper function
+const updateUserBusinessProfile = async (user) => {
+  try {
+    return await db("business_details")
+      .where("business_details_user_id", user.business_details_user_id)
+      .first()
+      .update(user)
       .returning("*")
       .then((value) => {
         return { success: true, details: value[0] };
@@ -143,11 +200,13 @@ const createUserInfo = async (user) => {
       .where("tasttlig_user_id", user.id)
       .first()
       .update({
-        age: user["user_age"],
+        // age: user["user_age"],
         sex: user["user_gender"],
+        date_of_birth: user["user_date_of_birth"],
         occupation: user["user_occupation"],
         marital_status: user["user_marital_status"],
         user_country: user["user_country"],
+        user_state: user["user_state"],
         user_city: user["user_city"],
         user_zip_postal_code: user["user_zip_code"],
         street_name: user["user_street_name"],
@@ -188,7 +247,7 @@ const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
   return await db.transaction(async (trx) => {
     const sponsorInfo = {
       sponsor_user_id,
-      sponsor_business_id : sponsorDto.sponsor_business_id,
+      sponsor_business_id: sponsorDto.sponsor_business_id,
       /* sponsor_name: sponsorDto.business_name,
       sponsor_address_1: sponsorDto.address_line_1,
       sponsor_address_2: sponsorDto.address_line_2,
@@ -240,7 +299,7 @@ const saveBusinessForUser = async (hostDto, user_id) => {
       business_details_created_at_datetime: new Date(),
       business_details_updated_at_datetime: new Date(),
     };
-    console.log("hello")
+    console.log("hello");
     const checkForUpdate = await trx("business_details")
       .select("business_details_id")
       .where("business_details_user_id", user_id)
@@ -258,7 +317,7 @@ const saveBusinessForUser = async (hostDto, user_id) => {
         .insert(businessInfo)
         .returning("*");
     }
-      console.log(response);
+    console.log(response);
     return { success: true, details: response[0] };
   });
 };
@@ -289,6 +348,19 @@ const saveApplicationInformation = async (hostDto, trx) => {
   let role_name = "";
   console.log("hostDto", hostDto);
 
+  // Save business application to applications table
+  if (applications.length == 0 && hostDto.is_business) {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "business_member",
+      status: "Pending",
+    });
+    role_name = "BUSINESS_MEMBER_PENDING";
+  }
+
   if (hostDto.is_host === "yes") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -303,20 +375,6 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
     role_name = "HOST_PENDING";
   }
-
-  // if (hostDto.is_cook === "yes") {
-  //   applications.push({
-  //     user_id: hostDto.dbUser.user.tasttlig_user_id,
-  //     video_link: hostDto.cook_selection_video,
-  //     youtube_link: hostDto.cook_youtube_link,
-  //     reason: hostDto.cook_selection,
-  //     resume: hostDto.cook_selection_resume,
-  //     created_at: new Date(),
-  //     updated_at: new Date(),
-  //     type: "cook",
-  //     status: "Pending"
-  //   })
-  // }
 
   // Save sponsor application to applications table
   if (applications.length == 0 && hostDto.is_sponsor) {
@@ -342,17 +400,15 @@ const saveApplicationInformation = async (hostDto, trx) => {
     role_name = "VENDOR_PENDING";
   }
   if (applications.length === 0) {
-      applications.push({
-        user_id: hostDto.dbUser.user.tasttlig_user_id,
-        reason: "",
-        created_at: new Date(),
-        updated_at: new Date(),
-        type: "vendor",
-        status: "Pending",
-      });
-      role_name = "VENDOR_PENDING";
-    
-
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "vendor",
+      status: "Pending",
+    });
+    role_name = "VENDOR_PENDING";
   }
   if (applications.length === 0) {
     applications.push({
@@ -364,11 +420,9 @@ const saveApplicationInformation = async (hostDto, trx) => {
       status: "Pending",
     });
     role_name = "SPONSOR_PENDING";
-  
+  }
 
-}
-
-/*   if (applications.length == 0 && hostDto.is_host === "no") {
+  /*   if (applications.length == 0 && hostDto.is_host === "no") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
       reason: "",
@@ -829,6 +883,13 @@ const approveOrDeclineHostApplication = async (
         role_code: new_role_code,
       });
 
+      await db("food_samples")
+        .where({
+          food_sample_creater_user_id: db_user.tasttlig_user_id,
+          status: "INACTIVE",
+        })
+        .update("status", "ACTIVE");
+
       // STEP 2: Update all Experiences to Active state
       // await db("experiences")
       //   .where({
@@ -871,7 +932,7 @@ const approveOrDeclineHostApplication = async (
         new_role.charAt(0).toUpperCase() + new_role.slice(1).toLowerCase();
       let active_item = "Products";
 
-/*       if (role_name_in_title_case === "Host") {
+      /*       if (role_name_in_title_case === "Host") {
         active_item = "Experiences";
       } */
 
@@ -1101,7 +1162,7 @@ const saveHostApplication = async (hostDto, user) => {
   if (dbUser == null || !dbUser.success) {
     dbUser = await getUserByPassportIdOrEmail(hostDto.email);
   }
-  
+
   hostDto.dbUser = dbUser;
   console.log(hostDto.dbUser);
   return await db.transaction(async (trx) => {
@@ -1120,25 +1181,26 @@ const saveHostApplication = async (hostDto, user) => {
 //create passport preferences helper function
 const createPreferences = async (preference_details, user_id) => {
   try {
-    console.log(preference_details)
-        return await db("tasttlig_users")
-        .where("tasttlig_user_id", user_id)
-        .first()
-        .update({
-          food_preferences: preference_details["food_preferences"],
-          food_allergies: preference_details["food_allergies"],
-          preferred_country_cuisine: preference_details["preferred_country_cuisine"],
-        })
-    .returning("*")
-    .then((value) =>  {
-      return { success: true, details: value[0] };
-    })
+    console.log(preference_details);
+    return await db("tasttlig_users")
+      .where("tasttlig_user_id", user_id)
+      .first()
+      .update({
+        food_preferences: preference_details["food_preferences"],
+        food_allergies: preference_details["food_allergies"],
+        preferred_country_cuisine:
+          preference_details["preferred_country_cuisine"],
+      })
+      .returning("*")
+      .then((value) => {
+        return { success: true, details: value[0] };
+      })
       .catch((reason) => {
-      return { success: false, details: reason };
-    });
-} catch (error) {
-  return { success: false, message: error };
-}
+        return { success: false, details: reason };
+      });
+  } catch (error) {
+    return { success: false, message: error };
+  }
 };
 
 const sendHostApplicationEmails = async (dbUser, documents) => {
@@ -1192,12 +1254,81 @@ const saveSpecials = async (hostDto) => {
   }
 };
 
+//get business details and images by user id
+const getBusinessDetailsByUserId = async (userId) => {
+  return await db
+    .select("business_details.*", "business_details_images.*")
+    .from("business_details")
+    .leftJoin(
+      "business_details_images",
+      "business_details.business_details_id",
+      "business_details_images.business_details_id"
+    )
+    .groupBy("business_details.business_details_id")
+    .groupBy("business_details_images.business_details_image_id")
+    .having("business_details.business_details_user_id", "=", userId)
+    .first()
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No business for user found." };
+      }
+
+      return { success: true, business_details_all: value };
+    })
+    .catch((error) => {
+      return { success: false, message: error };
+    });
+};
+
+// Get user by subscription ID helper function
+const getSubscriptionsByUserId = async (userId) => {
+  return await db
+    .select(
+      "user_subscriptions.*",
+      "festivals.*",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("user_subscriptions")
+    .leftJoin(
+      "festivals",
+      "user_subscriptions.suscribed_festivals[1]",
+      "festivals.festival_id"
+    )
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    )
+    .groupBy("user_subscriptions.user_subscription_id")
+    .groupBy("festivals.festival_id")
+    .groupBy("festival_images.festival_id")
+    .having("user_subscriptions.user_id", "=", userId)
+    .andWhere(function () {
+      this.where("user_subscriptions.subscription_code", "S_C1")
+        .orWhere("user_subscriptions.subscription_code", "S_C2")
+        .orWhere("user_subscriptions.subscription_code", "S_C3");
+    })
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+
+      return { success: true, user: value };
+    })
+    .catch((error) => {
+      console.log("subscr", error);
+      return { success: false, message: error };
+    });
+};
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
+  getVendorUserBySubscriptionId,
   upgradeUserResponse,
   updateUserAccount,
   updateUserProfile,
+  updateUserBusinessProfile,
   createUserInfo,
   createPreferences,
   getUserByEmail,
@@ -1223,4 +1354,6 @@ module.exports = {
   saveBusinessServices,
   getNationalities,
   //createPreferences
+  getBusinessDetailsByUserId,
+  getSubscriptionsByUserId,
 };

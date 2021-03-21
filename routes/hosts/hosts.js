@@ -4,6 +4,7 @@
 const router = require("express").Router();
 const token_service = require("../../services/authentication/token");
 const hosts_service = require("../../services/hosts/hosts");
+const business_passport_service = require("../../services/passport/businessPassport");
 const user_profile_service = require("../../services/profile/user_profile");
 
 // GET applications
@@ -65,6 +66,51 @@ router.post(
   }
 );
 
+// POST business member application approval from admin
+router.post(
+  "/business-member-applications/:userId/approve",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      console.log("here rest")
+      const response = await business_passport_service.approveOrDeclineBusinessMemberApplication(
+        req.params.userId,
+        "APPROVED",
+        ""
+      );
+      
+      return res.send(response);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// POST application decline from admin
+router.post(
+  "/business-member-applications/:userId/decline",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const response = await business_passport_service.approveOrDeclineBusinessMemberApplication(
+        req.params.userId,
+        "DECLINED",
+        req.body.declineReason
+      );
+
+      return res.send(response);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
 // POST application decline from admin
 router.post(
   "/applications/:userId/decline",
@@ -90,8 +136,7 @@ router.post(
 // POST application from multi-step form
 router.post("/request-host", /* token_service.authenticateToken, */ async (req, res) => {
   const {  host_user_id,
-    host_video_url
-  ,
+    host_video_url,
    host_description,
    has_hosted_anything_before,
    have_a_restaurant,
@@ -167,7 +212,40 @@ router.post("/request-host", /* token_service.authenticateToken, */ async (req, 
   }
 });
 
+router.get(
+  "/business-member-applications",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const applications = await business_passport_service.getBusinessApplications(req.params.userId);
+      
+      return res.send(applications);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
 
+router.get(
+  "/business-application/:userId",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const applications = await business_passport_service.getBusinessApplicantDetails(req.params.userId);
+      
+      return res.send(applications);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
 
 
 module.exports = router;

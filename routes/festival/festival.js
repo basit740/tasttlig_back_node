@@ -404,7 +404,8 @@ router.post(
   "/host-festival",
   token_service.authenticateToken,
   async (req, res) => {
-    const { festival_id, festival_restaurant_host_id } = req.body;
+    console.log("everything coming from host festival:", req.body)
+    const { festival_id, festival_restaurant_host_id, foodSamplePreference } = req.body;
 
     try {
       const user_details_from_db = await user_profile_service.getUserById(
@@ -420,7 +421,8 @@ router.post(
 
       const response = await festival_service.hostToFestival(
         festival_id,
-        festival_restaurant_host_id
+        festival_restaurant_host_id, 
+        foodSamplePreference
       );
 
       return res.send(response);
@@ -486,13 +488,13 @@ router.post(
       const business_details = await authentication_service.getUserByBusinessDetails(
         req.user.id
       );
+      console.log(business_details);
       if (!business_details.success) {
         return res.status(403).json({
           success: false,
           message: business_details.message,
         });
       }
-      console.log("business_details", business_details);
 
       const response = await festival_service.hostToFestival(
         festival_id,
@@ -500,6 +502,7 @@ router.post(
       );
       return res.send(response);
     } catch (error) {
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",

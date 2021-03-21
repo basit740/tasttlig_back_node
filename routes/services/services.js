@@ -20,10 +20,10 @@ router.post(
       !req.body.service_capacity ||
       !req.body.service_size_scope ||
       !req.body.service_description ||
-      !req.body.service_images 
+      !req.body.service_images
       //||
       //!req.body.service_festival_id ||
-     // !req.body.service_creator_type
+      // !req.body.service_creator_type
     ) {
       return res.status(403).json({
         success: false,
@@ -50,7 +50,7 @@ router.post(
       );
 
       if (
-        user_details_from_db.user.role.includes("SPONSOR_PENDING")||
+        user_details_from_db.user.role.includes("SPONSOR_PENDING") ||
         user_details_from_db.user.role.includes("SPONSOR")
       ) {
         if (!business_details_from_db.success) {
@@ -76,27 +76,26 @@ router.post(
         service_size_scope: req.body.service_size_scope,
         service_description: req.body.service_description,
         service_festival_id: Array.isArray(req.body.service_festival_id)
-        ? req.body.service_festival_id
-        : req.body.service_festival_id?
-        [req.body.service_festival_id]
-        : null,
+          ? req.body.service_festival_id
+          : req.body.service_festival_id
+          ? [req.body.service_festival_id]
+          : null,
         service_code: generateRandomString(4),
         service_status: "ACTIVE",
         service_created_at_datetime: new Date(),
         service_updated_at_datetime: new Date(),
-        service_creator_type: req.body.service_creator_type ? req.body.service_creator_type : null,
+        service_creator_type: req.body.service_creator_type
+          ? req.body.service_creator_type
+          : null,
         service_user_id: req.user.id,
       };
-console.log('service_information',service_information);
       const response = await services_service.createNewService(
         user_details_from_db,
         service_information,
         req.body.service_images
       );
-        console.log(response);
       return res.send(response);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -114,15 +113,116 @@ router.get("/services/festival/:festival_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
+  const filters = {
+    price: req.query.price,
+    quantity: req.query.quantity,
+    size: req.query.size,
+  };
 
   try {
     const response = await services_service.getServicesInFestival(
-      req.params.festival_id
+      req.params.festival_id,
+      filters,
+      req.query.keyword
     );
-      console.log(response);
     return res.send(response);
   } catch (error) {
-    console.log(error)
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// POST services
+router.post(
+  "/services/festival/:festivalId",
+  token_service.authenticateToken,
+  async (req, res) => {
+    console.log(req.body);
+    if (!req.body.festivalId) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+
+    try {
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
+
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message,
+        });
+      }
+
+      let createdByAdmin = true;
+
+      const business_details_from_db = await authentication_service.getUserByBusinessDetails(
+        req.user.id
+      );
+
+      if (
+        user_details_from_db.user.role.includes("VENDOR") ||
+        user_details_from_db.user.role.includes("VENDOR_PENDING")
+      ) {
+        if (!business_details_from_db.success) {
+          return res.status(403).json({
+            success: false,
+            message: business_details_from_db.message,
+          });
+        }
+
+        createdByAdmin = false;
+      }
+
+      let db_business_details = business_details_from_db.business_details;
+      let result = "";
+      const response = await services_service.addServiceToFestival(
+        req.body.festivalId,
+        req.body.ps
+      );
+      console.log(response);
+      if (response.success) {
+        result = response;
+      } else {
+        return res.send({
+          success: false,
+          message: "Error.",
+        });
+      }
+      console.log("new response", result);
+      return res.send(result);
+    } catch (error) {
+      console.log(error);
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
+
+router.get("/services/details/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await services_service.getUserServiceDetails(
+      req.params.user_id
+    );
+
+    return res.send(response);
+  } catch (error) {
     res.send({
       success: false,
       message: "Error.",
@@ -145,6 +245,28 @@ router.get("/services/user/:user_id", async (req, res) => {
       req.params.user_id
     );
 
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+router.delete("/services/delete/user/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    const response = await services_service.deleteServicesFromUser(
+      req.params.user_id,
+      req.body.delete_items
+    );
     return res.send(response);
   } catch (error) {
     res.send({
@@ -203,5 +325,71 @@ router.post("/claim-service", async (req, res) => {
     });
   }
 });
+
+router.put(
+  "/service/update",
+  token_service.authenticateToken,
+  async (req, res) => {
+    if (!req.body) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+
+    try {
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
+
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message,
+        });
+      }
+
+      let db_user = user_details_from_db.user;
+
+      const response = await services_service.updateService(db_user, req.body);
+
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
+
+// DELETE service
+router.delete(
+  "/service/delete",
+  token_service.authenticateToken,
+  async (req, res) => {
+    if (!req.body.service_id) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+
+    try {
+      const response = await services_service.deleteService(
+        req.user.id,
+        req.body.service_id
+      );
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
 
 module.exports = router;
