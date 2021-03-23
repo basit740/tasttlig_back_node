@@ -1056,13 +1056,13 @@ router.delete("/food-sample/delete/user/:user_id", async (req, res) => {
     });
   }
   // console.log("req params",req.body)
-  console.log(req.body)
+  console.log(req.body);
   try {
     const response = await food_sample_service.deleteFoodSamplesFromUser(
       req.params.user_id,
       req.body.delete_items
     );
-    console.log("responsssss", response)
+    console.log("responsssss", response);
     return res.send(response);
   } catch (error) {
     console.log(error);
