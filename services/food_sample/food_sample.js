@@ -33,14 +33,19 @@ const createNewFoodSample = async (
         Math.random().toString(36).substring(2, 4);
       let user_role_object = db_user.role;
 
-      if (user_role_object.includes("HOST") || createdByAdmin) {
+      if (
+        user_role_object.includes("HOST") || createdByAdmin
+        
+      ) {
         food_sample_details.status = "ACTIVE";
-      } else if (user_role_object.includes("HOST_PENDING")) {
+      } 
+      else if (
+      user_role_object.includes("HOST_PENDING")) {
         food_sample_details.status = "INACTIVE";
       }
 
       // food_sample_details = await setAddressCoordinates(food_sample_details);
-
+      
       const db_food_sample = await trx("food_samples")
         .insert(food_sample_details)
         .returning("*");
@@ -542,40 +547,16 @@ const getAllFoodSamplesInFestival = async (
 ) => {
   const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
   const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
-  let startDate;
-  let endDate;
-  let startTime;
-  let endTime;
-  if (
-    filters.startDate &&
-    filters.endDate &&
-    filters.startTime &&
-    filters.endDate
-  ) {
-    startDate = filters.startDate.substring(0, 10);
-    endDate = filters.endDate.substring(0, 10);
-    startTime = formatTime(filters.startDate);
-    endTime = formatTime(filters.endDate);
+  let startDate
+  let endDate
+  let startTime
+  let endTime
+  if (filters.startDate && filters.endDate && filters.startTime && filters.endDate) {
+     startDate = filters.startDate.substring(0, 10);
+     endDate = filters.endDate.substring(0, 10);
+     startTime = formatTime(filters.startDate);
+     endTime = formatTime(filters.endDate);
   }
-
-  const getColumn = (dow) => {
-    if (dow == "monday" || "Monday") {
-      return "is_available_on_monday";
-    } else if (dow == "tuesday" || "Tuesday") {
-      return "food_samples.is_available_on_tuesday";
-    } else if (dow == "wednesday" || "Wednesday") {
-      return "food_samples.is_available_on_wednesday";
-    } else if (dow == "thursday" || "Thursday") {
-      return "food_samples.is_available_on_thursday";
-    } else if (dow == "friday" || "Friday") {
-      return "food_samples.is_available_on_friday";
-    } else if (dow == "saturday" || "Saturday") {
-      return "food_samples.is_available_on_saturday";
-    } else if (dow == "sunday" || "Sunday") {
-      return "food_samples.is_available_on_sunday";
-    }
-  };
-
   let query = db
     .select(
       "food_samples.*",
@@ -585,8 +566,8 @@ const getAllFoodSamplesInFestival = async (
       "business_details.business_details_id",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
-      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
-      /*       db.raw(
+      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls"),
+/*       db.raw(
         "(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
         [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay]
       ) */
@@ -613,10 +594,9 @@ const getAllFoodSamplesInFestival = async (
       "nationalities.id"
     )
     .leftJoin(
-      "festivals",
-      "food_samples.festival_selected[1]",
-      "festivals.festival_id"
-    )
+      "festivals", 
+      "food_samples.festival_selected[1]", "festivals.festival_id"
+      )
     .groupBy("food_samples.food_sample_id")
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
@@ -626,25 +606,27 @@ const getAllFoodSamplesInFestival = async (
     .groupBy("nationalities.alpha_2_code")
     .groupBy("festivals.festival_id")
     .having("food_samples.status", operator, status)
-    .having("food_samples.festival_selected", "@>", [festival_id]);
+    .having("food_samples.festival_selected", "@>", [festival_id])
 
-  let orderByArray = [];
+    let orderByArray = []
   if (filters.price) {
+
+
     if (filters.price === "lowest_to_highest") {
       //console.log("lowest to highest")
-      orderByArray.push({ column: "food_samples.price", order: "asc" });
+      orderByArray.push({ column: "food_samples.price", order: "asc" })
       //query.orderBy("products.product_price", "asc")
     } else if (filters.price === "highest_to_lowest") {
       //console.log("highest to lowest");
-      orderByArray.push({ column: "food_samples.price", order: "desc" });
+      orderByArray.push({ column: "food_samples.price", order: "desc" })
       //query.orderBy("products.product_price", "desc")
     }
   }
   if (filters.quantity) {
     if (filters.quantity === "lowest_to_highest") {
-      orderByArray.push({ column: "food_samples.quantity", order: "asc" });
+      orderByArray.push({ column: "food_samples.quantity", order: "asc" })
     } else if (filters.quantity === "highest_to_lowest") {
-      orderByArray.push({ column: "food_samples.quantity", order: "desc" });
+      orderByArray.push({ column: "food_samples.quantity", order: "desc" })
     }
   }
 
@@ -663,11 +645,7 @@ const getAllFoodSamplesInFestival = async (
     }
   }
 
-  /* if (filters.dayOfWeek) {
-    query.having(getColumn(filters.dayOfWeek), true);
-  } */
-
-  /*   if (filters.nationalities && filters.nationalities.length) {
+/*   if (filters.nationalities && filters.nationalities.length) {
     query.whereIn("nationalities.nationality", filters.nationalities);
   }
 
@@ -907,7 +885,7 @@ const getDistinctNationalities = async (
       )
       .orderBy("rank", "desc");
 
-    console.log(query);
+      console.log(query)
   }
 
   return await query
@@ -1014,51 +992,57 @@ const addFoodSampleToFestival = async (
 
 const getNationalities = async (keyword) => {
   try {
-    console.log(keyword);
+    console.log(keyword)
     return await db("nationalities")
-      .select("nationality")
-      .whereRaw("nationality LIKE ?", [keyword + "%"])
-      // .having("nationality", "LIKE", `$keyword%`)
-      .returning("*")
-      .then((value) => {
-        return { success: true, details: value };
-      })
-      .catch((reason) => {
-        console.log(reason);
-        return { success: false, details: reason };
-      });
+    .select("nationality")
+    .whereRaw("nationality LIKE ?", [keyword + '%'])
+    // .having("nationality", "LIKE", `$keyword%`)
+    .returning("*")
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log(reason)
+      return { success: false, details: reason };
+    });
   } catch (error) {
     return { success: false, message: error };
   }
 };
 
-const deleteFoodSamplesFromUser = async (user_id, delete_items) => {
+const deleteFoodSamplesFromUser = async(user_id, delete_items) => {
   try {
     for (let item of delete_items) {
-      await db.transaction(async (trx) => {
-        const productImagesDelete = await trx("food_sample_images")
-          .where({
-            food_sample_id: item.food_sample_id,
-          })
-          .del();
+      console.log("itemsssfddddds", item)
+      await db.transaction(async(trx) => {
+         const productImagesDelete = await trx("food_sample_images")
+         .where({
+           food_sample_id: item
+         })
+         .del() 
+         const foodSampleClaimsDelete = await trx("food_sample_claims")
+         .where({
+           food_sample_id: item,
+         })
+         .delete()
+         .then(() => {
+           return { success: true };
+         })
         const foodSampleDelete = await trx("food_samples")
-          .where({
-            food_sample_id: item.food_sample_id,
-          })
-          .del()
-          .then(() => {
-            return { success: true };
-          })
-          .catch((reason) => {
-            console.log(reason);
-            return { success: false, details: reason };
-          });
-      });
+        .where({
+          food_sample_id: item,
+        })
+        .del()
+        .catch((reason) => {
+          console.log(reason);
+          return { success: false, details: reason };
+        });
+      })
     }
-  } catch (error) {
-    return { success: false, details: error };
+  } catch(error) {
+    return { success: false, details: error}
   }
-};
+}
 
 module.exports = {
   createNewFoodSample,
@@ -1074,5 +1058,5 @@ module.exports = {
   addFoodSampleToFestival,
   getAllUserFoodSamplesNotInFestival,
   getNationalities,
-  deleteFoodSamplesFromUser,
+  deleteFoodSamplesFromUser
 };

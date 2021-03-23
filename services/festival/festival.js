@@ -290,9 +290,10 @@ const updateFestival = async (data, festival_images) => {
 };
 
 // Add host ID to festivals table helper function
-const hostToFestival = async (festival_id, festival_vendor_id) => {
+const hostToFestival = async (festival_id, festival_vendor_id, foodSamplePreference) => {
   try {
     console.log(festival_id, "festival_id");
+    console.log(foodSamplePreference, "Food sample preferen<e");
     console.log(festival_vendor_id, "festival vendor id");
     await db.transaction(async (trx) => {
       if (typeof festival_id === "object") {
@@ -306,7 +307,19 @@ const hostToFestival = async (festival_id, festival_vendor_id) => {
               ),
             })
             .returning("*");
-
+            for (let sample of foodSamplePreference) {
+              console.log("itemm>>>>>>", sample)
+              const db_host = await trx("food_samples")
+                .where({ food_sample_id: sample })
+                .update({
+                  festival_selected: trx.raw(
+                    "array_append(festival_selected, ?)",
+                    item
+                  ),
+                })
+                .returning("*");
+      
+              }
           if (!db_host) {
             return { success: false, details: "Inserting new host failed." };
           }
@@ -320,11 +333,25 @@ const hostToFestival = async (festival_id, festival_vendor_id) => {
             ]),
           })
           .returning("*");
+          for (let sample of foodSamplePreference) {
+        console.log("itemm>>>>>>", sample)
+        const db_host = await trx("food_samples")
+          .where({ food_sample_id: sample })
+          .update({
+            festival_selected: trx.raw(
+              "array_append(festival_selected, ?)",
+              festival_id
+            ),
+          })
+          .returning("*");
 
+        }
         if (!db_host) {
           return { success: false, details: "Inserting new host failed." };
         }
       }
+      
+
     });
     return { success: true, details: "Success." };
   } catch (error) {

@@ -10,6 +10,7 @@ const authenticate_user_service = require("../../services/authentication/authent
 
 // POST food sample claim
 router.post("/food-sample-claim", async (req, res) => {
+  console.log("body from the food sample claim: ", req.body)
   if (!req.body.food_sample_claim_user || !req.body.food_sample_id) {
     return res.status(403).json({
       success: false,
@@ -103,7 +104,7 @@ router.post("/food-sample-claim", async (req, res) => {
       claimed_total_quantity,
       food_sample_claim_details
     );
-
+console.log("response from here", response)
     return res.send(response);
   } catch (error) {
     res.send({
