@@ -317,6 +317,7 @@ router.put(
   "/festival/update/:festival_id",
   token_service.authenticateToken,
   async (req, res) => {
+   
     const {
       images,
       festival_name,
