@@ -242,7 +242,8 @@ router.get("/services/user/:user_id", async (req, res) => {
 
   try {
     const response = await services_service.getServicesFromUser(
-      req.params.user_id
+      req.params.user_id,
+      req.body.keyword
     );
 
     return res.send(response);
