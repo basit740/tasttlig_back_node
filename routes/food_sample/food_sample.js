@@ -20,21 +20,22 @@ router.post(
   "/food-sample/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("im here:", req.body);
     try {
       req.body.map(async (item) => {
+
         if (
-          !item.title ||
+          !item.name ||
           !item.festivals ||
           !item.sample_size ||
           !item.quantity ||
-          !item.city ||
+          // !item.city ||
           !item.description ||
           !item.images ||
           //!item.product_expiry_date ||
-          !item.end_date ||
+          // !item.end_date ||
           //!item.product_expiry_time ||
           !item.end_time ||
+          !item.start_time ||
           !item.nationality_id
         ) {
           return res.status(403).json({
@@ -42,6 +43,8 @@ router.post(
             message: "Required parameters are not available in request.",
           });
         }
+        console.log("im here:", item);
+
 
         /* let address = item.addressLine1;
         if (item.addressLine2 && item.addressLine2.length > 0) {
@@ -81,9 +84,9 @@ router.post(
 
           const food_sample_details = {
             food_sample_creater_user_id: db_user.tasttlig_user_id,
-            title: item.title,
-            start_date: item.start_date.substring(0, 10),
-            end_date: item.end_date.substring(0, 10),
+            title: item.name,
+            // start_date: item.start_date.substring(0, 10),
+            // end_date: item.end_date.substring(0, 10),
             start_time:
               item.start_time.length === 5
                 ? item.start_time
@@ -93,11 +96,11 @@ router.post(
                 ? item.end_time
                 : formatTime(item.end_time),
             description: item.description,
-            address: item.address ? item.address : address,
-            city: item.city,
-            state: item.state ? item.state : item.provinceTerritory,
-            country: "Canada",
-            postal_code: item.postal_code,
+            // address: item.address ? item.address : address,
+            // city: item.city,
+            // state: item.state ? item.state : item.provinceTerritory,
+            // country: "Canada",
+            // postal_code: item.postal_code,
             nationality_id: item.nationality_id,
             sample_size: item.sample_size,
             is_available_on_monday:
@@ -155,7 +158,6 @@ router.post(
             claimed_total_quantity: 0,
             redeemed_total_quantity: 0,
           };
-          // console.log("req from food sample,", food_sample_details)
 
           const response = await food_sample_service.createNewFoodSample(
             db_user,
