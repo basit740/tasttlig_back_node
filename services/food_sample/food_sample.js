@@ -664,7 +664,7 @@ const getAllFoodSamplesInFestival = async (
   }
 
   if (filters.dayOfWeek) {
-    query.having(getColumn(filters.dayOfWeek), true);
+    query.having(getColumn(filters.dayOfWeek), "=", true);
   }
 
   /*   if (filters.nationalities && filters.nationalities.length) {
