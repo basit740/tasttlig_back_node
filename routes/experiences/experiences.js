@@ -3,7 +3,7 @@
 // Libraries
 const router = require("express").Router();
 const token_service = require("../../services/authentication/token");
-const experiences_service = require("../../services/experiences/experiences");
+const experiences_service = require("../../services/experience/experience");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
 const { generateRandomString } = require("../../functions/functions");
@@ -109,6 +109,63 @@ router.get("/experiences/festival/:festival_id", async (req, res) => {
   try {
     const response = await experiences_service.getExperiencesInFestival(
       req.params.festival_id
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// GET experiences in specific festival
+router.get("/experiences/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  let user_details_from_db;
+  if (req.params.user_id) {
+    user_details_from_db = await user_profile_service.getUserById(
+      req.params.user_id
+    );
+  }
+
+  if (!user_details_from_db.success) {
+    return res.status(403).json({
+      success: false,
+      message: user_details_from_db.message,
+    });
+  }
+
+  let business_details_from_db;
+  if (req.params.user_id) {
+    business_details_from_db = await authentication_service.getUserByBusinessDetails(
+      req.params.user_id
+    );
+  } else {
+    business_details_from_db = await authentication_service.getUserByBusinessDetails(
+      req.params.user_id
+    );
+  }
+
+  if (!business_details_from_db.success) {
+    return res.status(403).json({
+      success: false,
+      message: business_details_from_db.message,
+    });
+  }
+  let business_details_id =
+    business_details_from_db.business_details.business_details_id;
+  try {
+    const response = await experiences_service.getUserExperiencesById(
+      business_details_id
     );
 
     return res.send(response);

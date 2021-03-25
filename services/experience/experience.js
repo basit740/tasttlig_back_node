@@ -236,14 +236,17 @@ const getAllUserExperience = async (
       "experiences.experience_id",
       "experience_images.experience_id"
     )
-    .leftJoin("nationalities", "experiences.experience_nationality_id", "nationalities.id")
+    .leftJoin(
+      "nationalities",
+      "experiences.experience_nationality_id",
+      "nationalities.id"
+    )
     .groupBy("experiences.experience_id")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code");
 
   if (!requestByAdmin) {
-    query = query
-      .having("experiences.experience_status", operator, status);
+    query = query.having("experiences.experience_status", operator, status);
   } else {
     query = query.having("experiences.experience_status", operator, status);
   }
@@ -288,6 +291,41 @@ const getAllUserExperience = async (
       return { success: true, details: value };
     })
     .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
+// Get all experiences by user id helper function
+const getUserExperiencesById = async (user_id) => {
+  console.log("functttttttt", user_id);
+  return await db
+    .select(
+      "experiences.*",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
+      db.raw("ARRAY_AGG(experience_images.experience_image_url) as image_urls")
+    )
+    .from("experiences")
+    .leftJoin(
+      "experience_images",
+      "experiences.experience_id",
+      "experience_images.experience_id"
+    )
+    .leftJoin(
+      "nationalities",
+      "experiences.experience_nationality_id",
+      "nationalities.id"
+    )
+    .groupBy("experiences.experience_id")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code")
+    .having("experiences.experience_business_id", "=", Number(user_id))
+    .then((value) => {
+      console.log("*******************************", value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log("err*******************************", reason);
       return { success: false, details: reason };
     });
 };
@@ -476,4 +514,5 @@ module.exports = {
   updateExperience,
   getExperience,
   getDistinctNationalities,
+  getUserExperiencesById,
 };
