@@ -6,6 +6,7 @@ exports.up = function (knex) {
       table.dropColumn("address");
       table.dropColumn("city");
       table.dropColumn("state");
+      table.dropColumn("country");
       table.dropColumn("postal_code");
       table.dropColumn("review_food_sample_reason");
       table.dropColumn("coordinates");
