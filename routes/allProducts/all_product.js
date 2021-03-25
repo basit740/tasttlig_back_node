@@ -3,7 +3,7 @@
 // Libraries
 const router = require("express").Router();
 const token_service = require("../../services/authentication/token");
-const food_sample_service = require("../../services/food_sample/food_sample");
+const all_product_service = require("../../services/allProducts/all_product");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
 const festival_service = require("../../services/festival/festival")
@@ -17,7 +17,7 @@ const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
 // POST food sample
 router.post(
-  "/food-sample/add",
+  "/all-product/add",
   token_service.authenticateToken,
   async (req, res) => {
     try {
@@ -43,6 +43,7 @@ router.post(
             message: "Required parameters are not available in request.",
           });
         }
+        console.log("im here:", item);
 
 
         /* let address = item.addressLine1;
@@ -81,8 +82,8 @@ router.post(
             createdByAdmin = true;
           }
 
-          const all_product_details = {
-            product_user_id: db_user.tasttlig_user_id,
+          const food_sample_details = {
+            food_sample_creater_user_id: db_user.tasttlig_user_id,
             title: item.name,
             // start_date: item.start_date.substring(0, 10),
             // end_date: item.end_date.substring(0, 10),
@@ -101,7 +102,7 @@ router.post(
             // country: "Canada",
             // postal_code: item.postal_code,
             nationality_id: item.nationality_id,
-            product_size: item.sample_size,
+            sample_size: item.sample_size,
             is_available_on_monday:
               item.is_available_on_monday !== undefined
                 ? item.is_available_on_monday
@@ -152,15 +153,15 @@ router.post(
             quantity: parseInt(item.quantity),
             food_ad_code: generateRandomString(4),
             status: "ACTIVE",
-            // festival_id: item.addToFestival ? 2 : null,
+            festival_id: item.addToFestival ? 2 : null,
             festival_selected: item.festivals,
             claimed_total_quantity: 0,
             redeemed_total_quantity: 0,
           };
 
-          const response = await food_sample_service.createNewFoodSample(
+          const response = await all_product_service.createNewFoodSample(
             db_user,
-            all_product_details,
+            food_sample_details,
             item.images,
             createdByAdmin
           );
@@ -184,9 +185,9 @@ router.post(
   }
 );
 router.post(
-  "/food-sample/noUser/add",
+  "/all-product/noUser/add",
   async (req, res) => {
-    // console.log(req.body);
+    console.log(req.body);
     try {
       req.body.map(async (item) => {
         if (
@@ -225,9 +226,11 @@ router.post(
               message: user_details_from_db.message,
             });
           } */
+          console.log(item.userEmail);
           const user_details_from_db = await user_profile_service.getUserByEmail(
             item.userEmail
           );
+          console.log(user_details_from_db);
           let createdByAdmin = false;
           let db_user = user_details_from_db.user;
           /* let user_role_object = db_user.role;
@@ -248,10 +251,10 @@ router.post(
           } */
 
           const food_sample_details = {
-            product_user_id: db_user.tasttlig_user_id,
+            food_sample_creater_user_id: db_user.tasttlig_user_id,
             title: item.title,
-            // start_date: item.start_date.substring(0, 10),
-            // end_date: item.end_date.substring(0, 10),
+            start_date: item.start_date.substring(0, 10),
+            end_date: item.end_date.substring(0, 10),
             start_time:
               item.start_time.length === 5
                 ? item.start_time
@@ -261,13 +264,13 @@ router.post(
                 ? item.end_time
                 : formatTime(item.end_time),
             description: item.description,
-            // address: item.address ? item.address : address,
-            // city: item.city,
-            // state: item.state ? item.state : item.provinceTerritory,
-            // country: "Canada",
-            // postal_code: item.postal_code,
+            address: item.address ? item.address : address,
+            city: item.city,
+            state: item.state ? item.state : item.provinceTerritory,
+            country: "Canada",
+            postal_code: item.postal_code,
             nationality_id: item.nationality_id,
-            product_size: item.sample_size,
+            sample_size: item.sample_size,
             is_available_on_monday:
               item.is_available_on_monday !== undefined
                 ? item.is_available_on_monday
@@ -318,12 +321,12 @@ router.post(
             quantity: parseInt(item.quantity),
             food_ad_code: generateRandomString(4),
             status: "ACTIVE",
-            // festival_id: item.addToFestival ? 2 : null,
+            festival_id: item.addToFestival ? 2 : null,
             festival_selected: item.festivals,
           };
           console.log("req from food sample,", food_sample_details)
 
-          const response = await food_sample_service.createNewFoodSample(
+          const response = await all_product_service.createNewFoodSample(
             db_user,
             food_sample_details,
             item.images,
@@ -351,125 +354,9 @@ router.post(
   }
 );
 
-// // POST food samples from Host multi-step form helper function
-// router.post("/food-samples/add", async (req, res) => {
-//   try {
-//     req.body.map(async (item) => {
-//       if (
-//         !item.title ||
-//         !item.sample_size ||
-//         !item.quantity ||
-//         !item.city ||
-//         !item.postal_code ||
-//         !item.description ||
-//         !item.images ||
-//         !item.start_date ||
-//         !item.end_date ||
-//         !item.start_time ||
-//         !item.end_time ||
-//         !item.nationality_id
-//       ) {
-//         return res.status(403).json({
-//           success: false,
-//           message: "Required parameters are not available in request.",
-//         });
-//       }
-
-//       let address = item.addressLine1;
-
-//       if (item.addressLine2 && item.addressLine2.length > 0) {
-//         address = `${address}, ${item.addressLine2}`;
-//       }
-
-//       try {
-//         let dbUser = await user_profile_service.getUserByPassportIdOrEmail(
-//           item.email
-//         );
-//         item.dbUser = dbUser;
-//         let createdByAdmin = true;
-
-//         const food_sample_details = {
-//           food_sample_creater_user_id: item.dbUser.user.tasttlig_user_id,
-//           title: item.title,
-//           start_date: item.start_date.substring(0, 10),
-//           end_date: item.end_date.substring(0, 10),
-//           start_time:
-//             item.start_time.length === 5
-//               ? item.start_time
-//               : formatTime(item.start_time),
-//           end_time:
-//             item.end_time.length === 5
-//               ? item.end_time
-//               : formatTime(item.end_time),
-//           description: item.description,
-//           address: item.address ? item.address : address,
-//           city: item.city,
-//           state: item.state ? item.state : item.provinceTerritory,
-//           country: "Canada",
-//           postal_code: item.postal_code,
-//           nationality_id: item.nationality_id,
-//           sample_size: item.sample_size,
-//           is_available_on_monday: item.daysAvailable.includes(
-//             "available_on_monday"
-//           ),
-//           is_available_on_tuesday: item.daysAvailable.includes(
-//             "available_on_tuesday"
-//           ),
-//           is_available_on_wednesday: item.daysAvailable.includes(
-//             "available_on_wednesday"
-//           ),
-//           is_available_on_thursday: item.daysAvailable.includes(
-//             "available_on_thursday"
-//           ),
-//           is_available_on_friday: item.daysAvailable.includes(
-//             "available_on_friday"
-//           ),
-//           is_available_on_saturday: item.daysAvailable.includes(
-//             "available_on_saturday"
-//           ),
-//           is_available_on_sunday: item.daysAvailable.includes(
-//             "available_on_sunday"
-//           ),
-//           is_vegetarian: item.dietaryRestrictions.includes("vegetarian"),
-//           is_vegan: item.dietaryRestrictions.includes("vegan"),
-//           is_gluten_free: item.dietaryRestrictions.includes("glutenFree"),
-//           is_halal: item.dietaryRestrictions.includes("halal"),
-//           spice_level: item.spice_level,
-//           // food_sample_type: item.food_sample_type,
-//           price: 2.0,
-//           quantity: parseInt(item.quantity),
-//           food_ad_code: generateRandomString(4),
-//           status: "ACTIVE",
-//           festival_id: item.addToFestival ? 2 : null,
-//         };
-
-//         const response = await food_sample_service.createNewFoodSample(
-//           dbUser,
-//           food_sample_details,
-//           item.images,
-//           createdByAdmin
-//         );
-
-//         return res.send(response);
-//       } catch (error) {
-//         res.send({
-//           success: false,
-//           message: "Error.",
-//           response: error,
-//         });
-//       }
-//     });
-//   } catch (error) {
-//     res.send({
-//       success: false,
-//       message: "Error.",
-//       response: error,
-//     });
-//   }
-// });
 
 // GET all food samples
-router.get("/food-sample/all", async (req, res) => {
+router.get("/all-product/all", async (req, res) => {
   try {
     const current_page = req.query.page || 1;
     const keyword = req.query.keyword || "";
@@ -488,7 +375,7 @@ router.get("/food-sample/all", async (req, res) => {
       festival_name: req.query.festival_name,
     };
 
-    const response = await food_sample_service.getAllFoodSamples(
+    const response = await all_product_service.getAllFoodSamples(
       status_operator,
       food_sample_status,
       keyword,
@@ -507,7 +394,7 @@ router.get("/food-sample/all", async (req, res) => {
   }
 });
 // GET all food samples in festival
-router.get("/food-sample/festival/:festivalId", async (req, res) => {
+router.get("/all-product/festival/:festivalId", async (req, res) => {
   try {
     console.log("body",req.body)
     console.log("params",req.params)
@@ -535,7 +422,7 @@ router.get("/food-sample/festival/:festivalId", async (req, res) => {
     );
     const festival_title = festival.details.festival_name */
     //console.log("festival_title",festival_title);
-    const response = await food_sample_service.getAllFoodSamplesInFestival(
+    const response = await all_product_service.getAllFoodSamplesInFestival(
       status_operator,
       food_sample_status,
       keyword,
@@ -557,7 +444,7 @@ router.get("/food-sample/festival/:festivalId", async (req, res) => {
 });
 
 // GET nationalities for food samples
-router.get("/food-sample/nationalities", async (req, res) => {
+router.get("/all-product/nationalities", async (req, res) => {
   try {
     const keyword = req.query.keyword || "";
     const selectedNationality = req.query.selectedNationality || [];
@@ -573,7 +460,7 @@ router.get("/food-sample/nationalities", async (req, res) => {
 
     console.log(keyword)
 
-    const response = await food_sample_service.getDistinctNationalities(
+    const response = await all_product_service.getDistinctNationalities(
       status_operator,
       food_sample_status,
       keyword,
@@ -592,12 +479,12 @@ router.get("/food-sample/nationalities", async (req, res) => {
   }
 });
 
-router.get("/food-sample/user-nationalities" , async (req, res) => {
+router.get("/all-product/user-nationalities" , async (req, res) => {
    
   try {
    const keyword = req.query.keyword || "";
    console.log(keyword);
-   const response = await food_sample_service.getNationalities(keyword);
+   const response = await all_product_service.getNationalities(keyword);
      if (response.success) {
        res.status(200).send(response);
      } else {
@@ -613,7 +500,7 @@ router.get("/food-sample/user-nationalities" , async (req, res) => {
  });
 
 // GET food sample by ID
-router.get("/food-sample/:food_sample_id", async (req, res) => {
+router.get("/all-product/:food_sample_id", async (req, res) => {
   if (!req.params.food_sample_id) {
     return res.status(403).json({
       success: false,
@@ -622,7 +509,7 @@ router.get("/food-sample/:food_sample_id", async (req, res) => {
   }
 
   try {
-    const response = await food_sample_service.getFoodSample(
+    const response = await all_product_service.getFoodSample(
       req.params.food_sample_id
     );
 
@@ -637,7 +524,7 @@ router.get("/food-sample/:food_sample_id", async (req, res) => {
 });
 
 // GET Google Maps API key
-router.get("/food-sample/googleMaps/api", (req, res) => {
+router.get("/all-product/googleMaps/api", (req, res) => {
   const response = GOOGLE_MAPS_API_KEY;
 
   return res.send(response);
@@ -645,7 +532,7 @@ router.get("/food-sample/googleMaps/api", (req, res) => {
 
 // GET all food samples from user
 router.get(
-  "/food-sample/user/all",
+  "/all-product/user/all",
   token_service.authenticateToken,
   async (req, res) => {
     try {
@@ -673,7 +560,7 @@ router.get(
         requestByAdmin = true;
       }
 
-      const response = await food_sample_service.getAllUserFoodSamples(
+      const response = await all_product_service.getAllUserFoodSamples(
         req.user.id,
         status_operator,
         food_sample_status,
@@ -695,7 +582,7 @@ router.get(
 
 // GET all food samples from user not in festival
 router.get(
-  "/food-sample/festival/user/all",
+  "/all-product/festival/user/all",
   token_service.authenticateToken,
   async (req, res) => {
     try {
@@ -724,7 +611,7 @@ router.get(
         requestByAdmin = true;
       }
 
-      const response = await food_sample_service.getAllUserFoodSamplesNotInFestival(
+      const response = await all_product_service.getAllUserFoodSamplesNotInFestival(
         req.user.id,
         status_operator,
         food_sample_status,
@@ -746,7 +633,7 @@ router.get(
 );
 
 // GET food sample owner
-router.get("/food-sample/owner/:owner_id", async (req, res) => {
+router.get("/all-product/owner/:owner_id", async (req, res) => {
   if (!req.params.owner_id) {
     return res.status(403).json({
       success: false,
@@ -760,7 +647,7 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
 
-    const food_sample_response = await food_sample_service.getAllUserFoodSamples(
+    const food_sample_response = await all_product_service.getAllUserFoodSamples(
       req.params.owner_id,
       status_operator,
       food_sample_status,
@@ -798,7 +685,7 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
 });
 
 // GET business name for food sample
-router.get("/food-sample/business/:business_name", async (req, res) => {
+router.get("/all-product/business/:business_name", async (req, res) => {
   try {
     const current_page = req.query.page || 1;
     const keyword = req.query.keyword || "";
@@ -817,7 +704,7 @@ router.get("/food-sample/business/:business_name", async (req, res) => {
       });
     }
 
-    const food_sample_response = await food_sample_service.getAllUserFoodSamples(
+    const food_sample_response = await all_product_service.getAllUserFoodSamples(
       user.user.tasttlig_user_id,
       status_operator,
       food_sample_status,
@@ -843,7 +730,7 @@ router.get("/food-sample/business/:business_name", async (req, res) => {
 
 // GET all archived food samples from a user
 router.get(
-  "/food-sample/user/archived",
+  "/all-product/user/archived",
   token_service.authenticateToken,
   async (req, res) => {
     try {
@@ -871,7 +758,7 @@ router.get(
         requestByAdmin = true;
       }
 
-      const response = await food_sample_service.getAllUserFoodSamples(
+      const response = await all_product_service.getAllUserFoodSamples(
         req.user.id,
         status_operator,
         food_sample_status,
@@ -893,7 +780,7 @@ router.get(
 
 // POST food sample to festival
 router.post(
-  "/food-sample/add-festival",
+  "/all-product/add-festival",
   token_service.authenticateToken,
   async (req, res) => {
     if (!req.body.food_sample_id || !req.body.festival_name) {
@@ -923,7 +810,7 @@ router.post(
         requestByAdmin = true;
       }
 
-      const response = await food_sample_service.addFoodSampleToFestival(
+      const response = await all_product_service.addFoodSampleToFestival(
         req.body.food_sample_id,
         req.user.id,
         req.user.email,
@@ -944,7 +831,7 @@ router.post(
 
 // PUT food sample review
 router.put(
-  "/food-sample/review",
+  "/all-product/review",
   token_service.verifyTokenForReview,
   async (req, res) => {
     if (!req.body.food_sample_update_data) {
@@ -955,7 +842,7 @@ router.put(
     }
 
     try {
-      const response = await food_sample_service.updateReviewFoodSample(
+      const response = await all_product_service.updateReviewFoodSample(
         req.details.id,
         req.details.user_id,
         req.body.food_sample_update_data
@@ -974,7 +861,7 @@ router.put(
 
 // PUT food sample update
 router.put(
-  "/food-sample/update/:food_sample_id",
+  "/all-product/update/:food_sample_id",
   token_service.authenticateToken,
   async (req, res) => {
     if (!req.params.food_sample_id || !req.body.food_sample_update_data) {
@@ -1004,7 +891,7 @@ router.put(
         updatedByAdmin = true;
       }
 
-      const response = await food_sample_service.updateFoodSample(
+      const response = await all_product_service.updateFoodSample(
         db_user,
         req.params.food_sample_id,
         req.body.food_sample_update_data,
@@ -1024,7 +911,7 @@ router.put(
 
 // DELETE food sample
 router.delete(
-  "/food-sample/delete/:food_sample_id",
+  "/all-product/delete/:food_sample_id",
   token_service.authenticateToken,
   async (req, res) => {
     if (!req.params.food_sample_id) {
@@ -1035,7 +922,7 @@ router.delete(
     }
 
     try {
-      const response = await food_sample_service.deleteFoodSample(
+      const response = await all_product_service.deleteFoodSample(
         req.user.id,
         req.params.food_sample_id
       );
@@ -1051,7 +938,7 @@ router.delete(
   }
 );
 // For multiple deletions of food sample
-router.delete("/food-sample/delete/user/:user_id", async (req, res) => {
+router.delete("/all-product/delete/user/:user_id", async (req, res) => {
   if (!req.params.user_id) {
     return res.status(403).json({
       success: false,
@@ -1061,7 +948,7 @@ router.delete("/food-sample/delete/user/:user_id", async (req, res) => {
   // console.log("req params",req.body)
   console.log(req.body)
   try {
-    const response = await food_sample_service.deleteFoodSamplesFromUser(
+    const response = await all_product_service.deleteFoodSamplesFromUser(
       req.params.user_id,
       req.body.delete_items
     );

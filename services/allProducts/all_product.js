@@ -20,17 +20,15 @@ const SITE_BASE = process.env.SITE_BASE;
 function */
 const createNewFoodSample = async (
   db_user,
-  all_product_details,
-  all_product_images,
+  food_sample_details,
+  food_sample_images,
   createdByAdmin
 ) => {
-  console.log("data from foodsample service",  all_product_details)
-  console.log("id from foodsample service",  db_user)
-  console.log("image from foodsample service",  all_product_images)
+  console.log("data from foodsample service",  food_sample_details)
   try {
     await db.transaction(async (trx) => {
-      // all_product_details.status = "INACTIVE";
-      all_product_details.food_ad_code =
+      // food_sample_details.status = "INACTIVE";
+      food_sample_details.food_ad_code =
         Math.random().toString(36).substring(2, 4) +
         Math.random().toString(36).substring(2, 4);
       let user_role_object = db_user.role;
@@ -39,55 +37,44 @@ const createNewFoodSample = async (
         user_role_object.includes("HOST") || createdByAdmin
         
       ) {
-        all_product_details.status = "ACTIVE";
+        food_sample_details.status = "ACTIVE";
       } 
       else if (
       user_role_object.includes("HOST_PENDING")) {
-        all_product_details.status = "INACTIVE";
+        food_sample_details.status = "INACTIVE";
       }
 
-      // all_product_details = await setAddressCoordinates(all_product_details);
+      // food_sample_details = await setAddressCoordinates(food_sample_details);
       
-      const db_all_product = await trx("all_products")
-        .insert(all_product_details)
+      const db_food_sample = await trx("food_samples")
+        .insert(food_sample_details)
         .returning("*");
 
-      await trx("all_products")
+      await trx("food_samples")
         .where({
-          product_id: db_all_product[0].product_id,
+          food_sample_id: db_food_sample[0].food_sample_id,
         })
         .update({
-          product_id: db_all_product[0].product_id,
+          original_food_sample_id: db_food_sample[0].food_sample_id,
         });
 
-      if (!db_all_product) {
-        return { success: false, details: "Inserting new product failed." };
+      if (!db_food_sample) {
+        return { success: false, details: "Inserting new food sample failed." };
       }
 
-      // const images = all_product_images.map((all_product_image) => ({
-      //   product_id: db_all_product[0].product_id,
-      //   product_image_url: all_product_image,
-      // }));
+      const images = food_sample_images.map((food_sample_image) => ({
+        food_sample_id: db_food_sample[0].food_sample_id,
+        image_url: food_sample_image,
+      }));
 
-      // await trx("product_images").insert(images);
-      console.log("hey this is the error:",db_all_product)
-      if (all_product_images && all_product_images.length) {
-        await db("product_images").where("product_id", db_all_product[0].product_id).del();
-let product_id = db_all_product[0].product_id;
-        await db("product_images").insert(
-          all_product_images.map((image_url) => ({
-            product_id,
-            product_image_url: image_url,
-          }))
-        );
-      }
+      await trx("food_sample_images").insert(images);
 
       if (createdByAdmin) {
         // Email to review the food sample from the owner
         jwt.sign(
           {
-            id: db_all_product[0].product_id,
-            user_id: db_all_product[0].product_user_id,
+            id: db_food_sample[0].food_sample_id,
+            user_id: db_food_sample[0].food_sample_creater_user_id,
           },
           process.env.EMAIL_SECRET,
           {
@@ -95,16 +82,16 @@ let product_id = db_all_product[0].product_id;
           },
           async (err, emailToken) => {
             try {
-              const url = `${SITE_BASE}/review-food-sample/${db_all_product[0].product_id}/${emailToken}`;
+              const url = `${SITE_BASE}/review-food-sample/${db_food_sample[0].food_sample_id}/${emailToken}`;
 
               await Mailer.sendMail({
                 from: process.env.SES_DEFAULT_FROM,
                 to: db_user.email,
-                subject: `[Tasttlig] Review Food sample "${all_product_details.title}"`,
+                subject: `[Tasttlig] Review Food sample "${food_sample_details.title}"`,
                 template: "review_food_sample",
                 context: {
-                  title: all_product_details.title,
-                  // url_review_food_sample: url,
+                  title: food_sample_details.title,
+                  url_review_food_sample: url,
                 },
               });
             } catch (error) {
@@ -115,7 +102,7 @@ let product_id = db_all_product[0].product_id;
             }
           }
         );
-      } else if (all_product_details.status === "ACTIVE") {
+      } else if (food_sample_details.status === "ACTIVE") {
         // Food sample created confirmation email
         await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,
@@ -124,8 +111,8 @@ let product_id = db_all_product[0].product_id;
           subject: `[Tasttlig] New Food Sample Created`,
           template: "new_food_sample",
           context: {
-            title: all_product_details.title,
-            status: all_product_details.status,
+            title: food_sample_details.title,
+            status: food_sample_details.status,
           },
         });
       }
@@ -135,12 +122,12 @@ let product_id = db_all_product[0].product_id;
   } catch (error) {
     // Duplicate key
     if (error.code === 23505) {
-      all_product_details.food_ad_code = generateRandomString(4);
+      food_sample_details.food_ad_code = generateRandomString(4);
 
       return createNewFoodSample(
         db_user,
-        all_product_details,
-        all_product_images,
+        food_sample_details,
+        food_sample_images,
         createdByAdmin
       );
     }
