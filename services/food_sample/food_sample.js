@@ -24,8 +24,8 @@ const createNewFoodSample = async (
   food_sample_images,
   createdByAdmin
 ) => {
+  console.log("data from foodsample service",  food_sample_details)
   try {
-    // console.log("data from foodsample service", db_user, food_sample_details)
     await db.transaction(async (trx) => {
       // food_sample_details.status = "INACTIVE";
       food_sample_details.food_ad_code =

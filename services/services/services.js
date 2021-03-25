@@ -50,6 +50,56 @@ const createNewService = async (
   }
 };
 
+const addServiceToFestival = async (festival_id, service_id) => {
+  try {
+    await db.transaction(async (trx) => {
+      console.log("serviceId", service_id);
+      let query = await db
+        .select("services.*")
+        .from("services")
+        .where("service_id", "=", service_id);
+      console.log(query);
+      if (query[0].service_festival_id) {
+        const db_service = await trx("services")
+          .where({ service_id })
+          .update({
+            service_festival_id: trx.raw(
+              "array_append(service_festival_id, ?)",
+              [festival_id]
+            ),
+          })
+          .returning("*");
+
+        if (!db_service) {
+          return {
+            success: false,
+            details: "Inserting new product guest failed.",
+          };
+        }
+      } else {
+        const db_service = await trx("services")
+          .where({ service_id })
+          .update({
+            service_festival_id: [festival_id],
+          })
+          .returning("*");
+
+        if (!db_service) {
+          return {
+            success: false,
+            details: "Inserting new product guest failed.",
+          };
+        }
+      }
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
 // Get services in festival helper function
 const getServicesInFestival = async (festival_id, filters, keyword) => {
   let query = db
@@ -403,6 +453,7 @@ const deleteService = async (user_id, service_id) => {
 module.exports = {
   createNewService,
   getServicesInFestival,
+  addServiceToFestival,
   getUserServiceDetails,
   getServicesFromUser,
   findService,

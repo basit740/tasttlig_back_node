@@ -260,6 +260,7 @@ const createNewFestival = async (festival_details, festival_images) => {
 };
 
 const updateFestival = async (data, festival_images) => {
+  console.log("body from the festival:", festival_images)
   try {
     await db.transaction(async (trx) => {
       const db_festival = await trx("festivals")
@@ -277,10 +278,17 @@ const updateFestival = async (data, festival_images) => {
         })
         .returning("*");
 
-      await trx("festival_images")
+        await trx("festival_images")
         .where({ festival_id: data.festival_id })
-        .update({ festival_image_url: festival_images[0] })
-        .returning("*");
+        .delete()
+  
+        for(let image of festival_images) {
+          await trx("festival_images")
+          // .where({ festival_id: data.festival_id })
+          .insert({ festival_image_url: image, festival_id: data.festival_id })
+          .returning("*");
+          
+        }
     });
 
     return { success: true, details: "Success." };
@@ -292,9 +300,6 @@ const updateFestival = async (data, festival_images) => {
 // Add host ID to festivals table helper function
 const hostToFestival = async (festival_id, festival_vendor_id, foodSamplePreference) => {
   try {
-    console.log(festival_id, "festival_id");
-    console.log(foodSamplePreference, "Food sample preferen<e");
-    console.log(festival_vendor_id, "festival vendor id");
     await db.transaction(async (trx) => {
       if (typeof festival_id === "object") {
         for (let item of festival_id) {
