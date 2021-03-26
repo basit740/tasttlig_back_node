@@ -271,9 +271,110 @@ const createNewProduct = async (
   }
 };
 
+// Get all user food samples helper function
+const getAllUserProducts = async (
+  user_id,
+  operator,
+  status,
+  keyword,
+  currentPage,
+  requestByAdmin = false,
+  festival_name = ""
+) => {
+  console.log("coming into the get ll user food samples", user_id,operator, status)
+  const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
+  const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
+  let query = db
+    .select(
+      "products.*",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls"),
+      // db.raw(
+      //   "(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
+      //   [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay]
+      // )
+    )
+    .from("products")
+    .leftJoin(
+      "product_images",
+      "products.product_id",
+      "product_images.product_id"
+    )
+    .leftJoin(
+      "festivals", 
+      "products.festival_selected[1]", "festivals.festival_id"
+      )
+    .leftJoin(
+      "nationalities",
+      "products.nationality_id",
+      "nationalities.id"
+    )
+    .groupBy("products.product_id")
+    .groupBy("festivals.festival_id")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code");
+
+  if (!requestByAdmin) {
+    query = query
+      .having("product_user_id", "=", user_id)
+      .having("products.status", operator, status);
+  } else {
+    query = query.having("products.status", operator, status);
+  }
+
+  if (festival_name !== "") {
+    query = query.having("festivals.festival_name", "=", festival_name);
+  }
+
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                "main.title, " +
+                "main.description, " +
+                "main.nationality" +
+                ")) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+
+  query = query.paginate({
+    perPage: 12,
+    isLengthAware: true,
+    currentPage: currentPage,
+  });
+
+  return await query
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
 
 module.exports = {
   createNewProduct,
   getAllProductsInFestival,
+  getAllUserProducts,
   
 };

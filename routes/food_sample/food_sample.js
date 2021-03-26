@@ -649,6 +649,7 @@ router.get(
   token_service.authenticateToken,
   async (req, res) => {
     try {
+      // console.log("what is the request bro:", req)
       const current_page = req.query.page || 1;
       const keyword = req.query.keyword || "";
       const status_operator = "!=";
@@ -681,7 +682,7 @@ router.get(
         current_page,
         requestByAdmin
       );
-
+        console.log("response from food samples:", response)
       return res.send(response);
     } catch (error) {
       res.send({

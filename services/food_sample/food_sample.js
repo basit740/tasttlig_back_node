@@ -148,38 +148,41 @@ const getAllUserFoodSamples = async (
   const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
   let query = db
     .select(
-      "food_samples.*",
+      "products.*",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
-      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls"),
-      db.raw(
-        "(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
-        [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay]
-      )
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls"),
+      // db.raw(
+      //   "(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
+      //   [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay]
+      // )
     )
-    .from("food_samples")
+    .from("products")
     .leftJoin(
-      "food_sample_images",
-      "food_samples.food_sample_id",
-      "food_sample_images.food_sample_id"
+      "product_images",
+      "products.product_id",
+      "product_images.product_id"
     )
-    .leftJoin("festivals", "food_samples.festival_id", "festivals.festival_id")
+    .leftJoin(
+      "festivals", 
+      "products.festival_selected[1]", "festivals.festival_id"
+      )
     .leftJoin(
       "nationalities",
-      "food_samples.nationality_id",
+      "products.nationality_id",
       "nationalities.id"
     )
-    .groupBy("food_samples.food_sample_id")
+    .groupBy("products.product_id")
     .groupBy("festivals.festival_id")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code");
 
   if (!requestByAdmin) {
     query = query
-      .having("food_sample_creater_user_id", "=", user_id)
-      .having("food_samples.status", operator, status);
+      .having("product_user_id", "=", user_id)
+      .having("products.status", operator, status);
   } else {
-    query = query.having("food_samples.status", operator, status);
+    query = query.having("products.status", operator, status);
   }
 
   if (festival_name !== "") {
