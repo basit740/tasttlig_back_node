@@ -22,7 +22,6 @@ router.post(
   async (req, res) => {
     try {
       req.body.map(async (item) => {
-
         if (
           !item.name ||
           !item.festivals ||
@@ -43,8 +42,6 @@ router.post(
             message: "Required parameters are not available in request.",
           });
         }
-        console.log("im here:", item);
-
 
         /* let address = item.addressLine1;
         if (item.addressLine2 && item.addressLine2.length > 0) {
@@ -82,8 +79,8 @@ router.post(
             createdByAdmin = true;
           }
 
-          const food_sample_details = {
-            food_sample_creater_user_id: db_user.tasttlig_user_id,
+          const all_product_details = {
+            product_user_id: db_user.tasttlig_user_id,
             title: item.name,
             // start_date: item.start_date.substring(0, 10),
             // end_date: item.end_date.substring(0, 10),
@@ -102,7 +99,7 @@ router.post(
             // country: "Canada",
             // postal_code: item.postal_code,
             nationality_id: item.nationality_id,
-            sample_size: item.sample_size,
+            product_size: item.sample_size,
             is_available_on_monday:
               item.is_available_on_monday !== undefined
                 ? item.is_available_on_monday
@@ -153,7 +150,7 @@ router.post(
             quantity: parseInt(item.quantity),
             food_ad_code: generateRandomString(4),
             status: "ACTIVE",
-            festival_id: item.addToFestival ? 2 : null,
+            // festival_id: item.addToFestival ? 2 : null,
             festival_selected: item.festivals,
             claimed_total_quantity: 0,
             redeemed_total_quantity: 0,
@@ -161,7 +158,7 @@ router.post(
 
           const response = await food_sample_service.createNewFoodSample(
             db_user,
-            food_sample_details,
+            all_product_details,
             item.images,
             createdByAdmin
           );
@@ -648,6 +645,7 @@ router.get(
   token_service.authenticateToken,
   async (req, res) => {
     try {
+      // console.log("what is the request bro:", req)
       const current_page = req.query.page || 1;
       const keyword = req.query.keyword || "";
       const status_operator = "!=";
@@ -680,7 +678,7 @@ router.get(
         current_page,
         requestByAdmin
       );
-
+      console.log("response from food samples:", response);
       return res.send(response);
     } catch (error) {
       res.send({
