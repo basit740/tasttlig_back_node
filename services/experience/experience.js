@@ -14,23 +14,22 @@ const SITE_BASE = process.env.SITE_BASE;
 const createNewExperience = async (
   db_user,
   experience_details,
-  experience_images,
-  createdByAdmin
+  experience_images
 ) => {
   try {
     await db.transaction(async (trx) => {
-      experience_details.status = "INACTIVE";
+      /* experience_details.status = "INACTIVE";
       let user_role_object = db_user.role;
 
       if (user_role_object.includes("HOST")) {
         experience_details.status = "ACTIVE";
-      }
+      } */
 
-      experience_details = await setAddressCoordinates(
+      /* experience_details = await setAddressCoordinates(
         experience_details,
         true
-      );
-
+      ); */
+      //experience_details.status = "ACTIVE";
       const db_experience = await trx("experiences")
         .insert(experience_details)
         .returning("*");
@@ -41,12 +40,12 @@ const createNewExperience = async (
 
       const images = experience_images.map((experience_image) => ({
         experience_id: db_experience[0].experience_id,
-        image_url: experience_image,
+        experience_image_url: experience_image,
       }));
 
-      await trx("experience_images").insert(images);
+      await trx("experience_images").insert(images); //else { // Email to user on submitting the request to upgrade
 
-      if (createdByAdmin) {
+      /* if (createdByAdmin) {
         // Email to confirm the new experience by hosts
         jwt.sign(
           {
@@ -79,26 +78,27 @@ const createNewExperience = async (
             }
           }
         );
-      } else {
-        // Email to user on submitting the request to upgrade
-        await Mailer.sendMail({
+      } */ await Mailer.sendMail(
+        {
           from: process.env.SES_DEFAULT_FROM,
-          to: db_user.email,
+          to: db_user.user.email,
           bcc: ADMIN_EMAIL,
           subject: `[Tasttlig] New Experience Created`,
           template: "new_experience",
           context: {
-            first_name: db_user.first_name,
-            last_name: db_user.last_name,
+            first_name: db_user.user.first_name,
+            last_name: db_user.user.last_name,
             title: experience_details.title,
             status: experience_details.status,
           },
-        });
-      }
+        }
+      );
+      //}
     });
 
     return { success: true, details: "Success." };
   } catch (error) {
+    console.log("*******err", error);
     return { success: false, details: error.message };
   }
 };
