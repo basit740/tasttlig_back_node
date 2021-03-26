@@ -275,7 +275,8 @@ const getServicesFromUser = async (user_id, keyword) => {
     .groupBy("business_details.zip_postal_code")
     .groupBy("business_details.business_details_user_id")
     .groupBy("nationalities.nationality")
-    .having("business_details.business_details_user_id", "=", Number(user_id));
+    //.having("business_details.business_details_user_id", "=", Number(user_id));
+    .having("services.service_user_id", "=", Number(user_id));
 
   if (keyword) {
     query = db
@@ -309,9 +310,11 @@ const getServicesFromUser = async (user_id, keyword) => {
   }
   return await query
     .then((value) => {
+      console.log(value);
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log(reason);
       return { success: false, details: reason };
     });
 };
