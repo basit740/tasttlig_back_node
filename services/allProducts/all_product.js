@@ -371,10 +371,38 @@ const getAllUserProducts = async (
     });
 };
 
+// Get food sample by ID helper function
+const getProductById = async (id) => {
+  return await db("products")
+    .where("product_id", id)
+    .first()
+    .leftJoin(
+      "tasttlig_users",
+      "products.product_user_id",
+      "tasttlig_users.tasttlig_user_id"
+    )
+    .leftJoin(
+      "business_details",
+      "products.product_user_id",
+      "business_details.business_details_user_id"
+    )
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No food sample found." };
+      }
+
+      return { success: true, food_sample: value };
+    })
+    .catch((error) => {
+      return { success: false, message: error };
+    });
+};
+
 
 module.exports = {
   createNewProduct,
   getAllProductsInFestival,
   getAllUserProducts,
+  getProductById
   
 };
