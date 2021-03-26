@@ -5,7 +5,7 @@ const token_service = require("../../services/authentication/token");
 const all_product_service = require("../../services/allProducts/all_product");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
-const festival_service = require("../../services/festival/festival")
+const festival_service = require("../../services/festival/festival");
 const {
   generateRandomString,
   formatTime,
@@ -17,7 +17,6 @@ const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 // GET all food samples in festival
 router.get("/all-products/festival/:festivalId", async (req, res) => {
   try {
-  
     const keyword = req.query.keyword || "";
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
@@ -25,7 +24,7 @@ router.get("/all-products/festival/:festivalId", async (req, res) => {
     const filters = {
       price: req.query.price,
       quantity: req.query.quantity,
-      size: req.query.size
+      size: req.query.size,
     };
 
     const response = await all_product_service.getAllProductsInFestival(
@@ -38,7 +37,7 @@ router.get("/all-products/festival/:festivalId", async (req, res) => {
 
     return res.send(response);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.send({
       success: false,
       message: "Error.",
@@ -52,10 +51,9 @@ router.post(
   "/all-products/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("im coming from here man:", req.body)
+    console.log("im coming from here man:", req.body);
     try {
       req.body.map(async (item) => {
-
         if (
           !item.name ||
           !item.festivals ||
@@ -63,7 +61,6 @@ router.post(
           !item.quantity ||
           !item.description ||
           !item.images ||
-
           !item.end_time ||
           !item.start_time ||
           !item.nationality_id
@@ -117,7 +114,7 @@ router.post(
                 ? item.end_time
                 : formatTime(item.end_time),
             description: item.description,
-          
+
             nationality_id: item.nationality_id,
             product_size: item.sample_size,
             is_available_on_monday:
@@ -180,7 +177,7 @@ router.post(
             item.images,
             createdByAdmin
           );
-            console.log("response from food sample", response)
+          console.log("response from food sample", response);
           return res.send(response);
         } catch (error) {
           res.send({
@@ -208,6 +205,7 @@ router.get(
     try {
       const current_page = req.query.page || 1;
       const keyword = req.query.keyword || "";
+      //console.log("request params", req.query);
       const status_operator = "!=";
       const food_sample_status = "ARCHIVED";
 
@@ -248,6 +246,5 @@ router.get(
     }
   }
 );
-
 
 module.exports = router;

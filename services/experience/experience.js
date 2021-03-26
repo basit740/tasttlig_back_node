@@ -228,6 +228,7 @@ const getAllUserExperience = async (
       "experiences.*",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
+      "business_details.business_name",
       db.raw("ARRAY_AGG(experience_images.experience_image_url) as image_urls")
     )
     .from("experiences")
@@ -236,14 +237,29 @@ const getAllUserExperience = async (
       "experiences.experience_id",
       "experience_images.experience_id"
     )
-    .leftJoin("nationalities", "experiences.experience_nationality_id", "nationalities.id")
+    .leftJoin(
+      "nationalities",
+      "experiences.experience_nationality_id",
+      "nationalities.id"
+    )
+    .leftJoin(
+      "business_details",
+      "experiences.experience_business_id",
+      "business_details.business_details_id"
+    )
     .groupBy("experiences.experience_id")
+    .groupBy("business_details.business_details_id")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code");
 
   if (!requestByAdmin) {
     query = query
-      .having("experiences.experience_status", operator, status);
+      .having("experiences.experience_status", operator, status)
+      .having(
+        "business_details.business_details_user_id",
+        "=",
+        Number(user_id)
+      );
   } else {
     query = query.having("experiences.experience_status", operator, status);
   }
@@ -288,6 +304,7 @@ const getAllUserExperience = async (
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log(reason);
       return { success: false, details: reason };
     });
 };

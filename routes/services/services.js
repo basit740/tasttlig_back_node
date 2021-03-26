@@ -243,11 +243,10 @@ router.get("/services/user/:user_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
-
   try {
     const response = await services_service.getServicesFromUser(
-      req.params.user_id,
-      req.body.keyword
+      req.query.user_id,
+      req.query.keyword
     );
 
     return res.send(response);
