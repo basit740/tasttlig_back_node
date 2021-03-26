@@ -100,17 +100,19 @@ router.post(
             : null,
 
         products_selected:
-          req.body.product_selected && Array.isArray(req.body.product_selected)
-            ? req.body.product_selected
-            : req.body.product_selected
-            ? [req.body.product_selected]
+          req.body.products_selected &&
+          Array.isArray(req.body.products_selected)
+            ? req.body.products_selected
+            : req.body.products_selected
+            ? [req.body.products_selected]
             : null,
 
         services_selected:
-          req.body.service_selected && Array.isArray(req.body.service_selected)
-            ? req.body.service_selected
-            : req.body.service_selected
-            ? [req.body.service_selected]
+          req.body.services_selected &&
+          Array.isArray(req.body.services_selected)
+            ? req.body.services_selected
+            : req.body.services_selected
+            ? [req.body.services_selected]
             : null,
         experience_code: generateRandomString(4),
         experience_status: "ACTIVE",
