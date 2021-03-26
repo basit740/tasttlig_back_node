@@ -200,4 +200,54 @@ router.post(
   }
 );
 
+// GET all food samples from user
+router.get(
+  "/all-products/user/all",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const current_page = req.query.page || 1;
+      const keyword = req.query.keyword || "";
+      const status_operator = "!=";
+      const food_sample_status = "ARCHIVED";
+
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
+
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message,
+        });
+      }
+
+      let requestByAdmin = false;
+      let db_user = user_details_from_db.user;
+      let user_role_object = db_user.role;
+
+      if (user_role_object.includes("ADMIN")) {
+        requestByAdmin = true;
+      }
+
+      const response = await all_product_service.getAllUserProducts(
+        req.user.id,
+        status_operator,
+        food_sample_status,
+        keyword,
+        current_page,
+        requestByAdmin
+      );
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
+
+
 module.exports = router;
