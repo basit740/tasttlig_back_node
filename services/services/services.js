@@ -237,8 +237,8 @@ const getUserServiceDetails = async (user_id) => {
     });
 };
 
-const getServicesFromUser = async (user_id) => {
-  return await db
+const getServicesFromUser = async (user_id, keyword) => {
+  let query = db
     .select(
       "services.*",
       "business_details.business_name",
@@ -275,7 +275,39 @@ const getServicesFromUser = async (user_id) => {
     .groupBy("business_details.zip_postal_code")
     .groupBy("business_details.business_details_user_id")
     .groupBy("nationalities.nationality")
-    .having("business_details.business_details_user_id", "=", Number(user_id))
+    .having("business_details.business_details_user_id", "=", Number(user_id));
+
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                //"main.business_name, " +
+                "main.service_name, " +
+                "main.service_capacity, " +
+                "main.service_price, " +
+                //"main.business_city, " +
+                "main.service_description)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+  return await query
     .then((value) => {
       return { success: true, details: value };
     })

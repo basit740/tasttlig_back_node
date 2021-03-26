@@ -48,7 +48,7 @@ const userRegister = async (new_user, sendEmail = true) => {
           db("roles")
             .select()
             .where({
-              role: "MEMBER",
+              role: "GUEST",
             })
             .then(async (value) => {
               // Insert new role in auth server

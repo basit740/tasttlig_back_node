@@ -910,18 +910,18 @@ const getDistinctNationalities = async (
 };
 
 // Get food sample by ID helper function
-const getFoodSampleById = async (id) => {
-  return await db("food_samples")
-    .where("food_sample_id", id)
+const getProductById = async (id) => {
+  return await db("products")
+    .where("product_id", id)
     .first()
     .leftJoin(
       "tasttlig_users",
-      "food_samples.food_sample_creater_user_id",
+      "products.product_user_id",
       "tasttlig_users.tasttlig_user_id"
     )
     .leftJoin(
       "business_details",
-      "food_samples.food_sample_creater_user_id",
+      "products.product_user_id",
       "business_details.business_details_user_id"
     )
     .then((value) => {
@@ -1066,7 +1066,7 @@ module.exports = {
   getFoodSample,
   updateReviewFoodSample,
   getDistinctNationalities,
-  getFoodSampleById,
+  getProductById,
   addFoodSampleToFestival,
   getAllUserFoodSamplesNotInFestival,
   getNationalities,

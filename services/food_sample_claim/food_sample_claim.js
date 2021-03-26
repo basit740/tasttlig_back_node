@@ -18,16 +18,15 @@ const MAX_CLAIMS = 3;
 // Create food sample claim helper function
 const createNewFoodSampleClaim = async (
   db_user,
-  db_food_sample,
+  db_all_products,
   quantityAfterClaim,
-  food_sample_claim_details
+  product_claim_details
 ) => {
-  console.log("data coming from here :" , food_sample_claim_details)
+  console.log("data coming from here :" , product_claim_details)
   try {
-    console.log("food_sample_claims detaisl:0", quantityAfterClaim)
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("food_sample_claims")
-        .insert(food_sample_claim_details)
+        .insert(product_claim_details)
         .returning("*");
 
       if (!db_food_sample_claim) {
@@ -39,26 +38,23 @@ const createNewFoodSampleClaim = async (
       console.log("food sample claim result:", db_food_sample_claim)
 
       if(quantityAfterClaim>=0) {
-        await db("food_samples")
-        .where({ food_sample_id: db_food_sample_claim[0].food_sample_id})
+        await db("products")
+        .where({ product_id: db_food_sample_claim[0].food_sample_id})
         .update(
          { claimed_total_quantity: quantityAfterClaim}
           )
-          // .returning("*")
 
       }
 
-      // Email to user on claiming food sample
-      // await sendPendingClaimedEmailToUser(db_user, db_food_sample);
       await sendClaimedEmailToUser(
         db_user,
-        db_food_sample,
+        db_all_products,
         db_food_sample_claim[0]
       );
 
       await sendClaimedEmailToProvider(
         db_user,
-        db_food_sample,
+        db_all_products,
         db_food_sample_claim[0]
       );
     });
@@ -128,7 +124,7 @@ const getFoodClaimCount = async (email, food_sample_id) => {
 };
 
 // Confirm food sample claim helper function
-const confirmFoodSampleClaim = async (claimId, quantityAfterRedeem, totalRedeemQuantity) => {
+const confirmProductClaim = async (claimId, quantityAfterRedeem, totalRedeemQuantity) => {
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("food_sample_claims")
@@ -140,8 +136,8 @@ const confirmFoodSampleClaim = async (claimId, quantityAfterRedeem, totalRedeemQ
         .returning("*");
 
         if(quantityAfterRedeem>=0) {
-          await db("food_samples")
-          .where({ food_sample_id: db_food_sample_claim[0].food_sample_id})
+          await db("products")
+          .where({ product_id: db_food_sample_claim[0].food_sample_id})
           .update(
            { quantity: quantityAfterRedeem,
               redeemed_total_quantity: totalRedeemQuantity
@@ -262,28 +258,28 @@ const sendClaimedEmailToProvider = async (
 };
 
 // Get user food sample claims helper function
-const getUserFoodSampleClaims = async (user_id) => {
+const getUserProductsClaims = async (user_id) => {
   try {
     const db_food_sample_claim = await db
       .select(
-        "food_samples.*",
+        "products.*",
         "food_sample_claims.*",
         "tasttlig_users.first_name",
         "tasttlig_users.last_name",
         "nationalities.nationality",
         "nationalities.alpha_2_code",
-        db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
+        db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
       )
       .from("food_sample_claims")
       .leftJoin(
-        "food_samples",
+        "products",
         "food_sample_claims.food_sample_id",
-        "food_samples.food_sample_id"
+        "products.product_id"
       )
       .leftJoin(
-        "food_sample_images",
-        "food_samples.food_sample_id",
-        "food_sample_images.food_sample_id"
+        "product_images",
+        "products.product_id",
+        "product_images.product_id"
       )
       .leftJoin(
         "tasttlig_users",
@@ -292,11 +288,11 @@ const getUserFoodSampleClaims = async (user_id) => {
       )
       .leftJoin(
         "nationalities",
-        "food_samples.nationality_id",
+        "products.nationality_id",
         "nationalities.id"
       )
       .groupBy("food_sample_claims.food_sample_claim_id")
-      .groupBy("food_samples.food_sample_id")
+      .groupBy("products.product_id")
       .groupBy("tasttlig_users.first_name")
       .groupBy("tasttlig_users.last_name")
       .groupBy("nationalities.nationality")
@@ -310,27 +306,27 @@ const getUserFoodSampleClaims = async (user_id) => {
 };
 
 // Get user food sample claims helper function
-const getUserFoodSampleRedeems = async (user_id, keyword) => {
+const getUserProductsRedeems = async (user_id, keyword) => {
   let query = db
       .select(
-        "food_samples.*",
+        "products.*",
         "food_sample_claims.*",
         "tasttlig_users.first_name",
         "tasttlig_users.last_name",
         "nationalities.nationality",
         "nationalities.alpha_2_code",
-        db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
+        db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
       )
       .from("food_sample_claims")
       .leftJoin(
-        "food_samples",
+        "products",
         "food_sample_claims.food_sample_id",
-        "food_samples.food_sample_id"
+        "products.product_id"
       )
       .leftJoin(
-        "food_sample_images",
-        "food_samples.food_sample_id",
-        "food_sample_images.food_sample_id"
+        "product_images",
+        "products.product_id",
+        "product_images.product_id"
       )
       .leftJoin(
         "tasttlig_users",
@@ -339,16 +335,16 @@ const getUserFoodSampleRedeems = async (user_id, keyword) => {
       )
       .leftJoin(
         "nationalities",
-        "food_samples.nationality_id",
+        "products.nationality_id",
         "nationalities.id"
       )
       .groupBy("food_sample_claims.food_sample_claim_id")
-      .groupBy("food_samples.food_sample_id")
+      .groupBy("products.product_id")
       .groupBy("tasttlig_users.first_name")
       .groupBy("tasttlig_users.last_name")
       .groupBy("nationalities.nationality")
       .groupBy("nationalities.alpha_2_code")
-      .having("food_sample_creater_user_id", "=", user_id);
+      .having("product_user_id", "=", user_id);
 
       if (keyword) {
         // keyword=parseInt(keyword)
@@ -394,7 +390,7 @@ module.exports = {
   createNewFoodSampleClaim,
   getFoodClaimCount,
   userCanClaimFoodSample,
-  confirmFoodSampleClaim,
-  getUserFoodSampleClaims,
-  getUserFoodSampleRedeems
+  confirmProductClaim,
+  getUserProductsClaims,
+  getUserProductsRedeems
 };

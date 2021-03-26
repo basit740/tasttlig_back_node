@@ -9,8 +9,7 @@ const food_sample_service = require("../../services/food_sample/food_sample");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 
 // POST food sample claim
-router.post("/food-sample-claim", async (req, res) => {
-  console.log("body from the food sample claim: ", req.body)
+router.post("/all-products-claim", async (req, res) => {
   if (!req.body.food_sample_claim_user || !req.body.food_sample_id) {
     return res.status(403).json({
       success: false,
@@ -40,9 +39,10 @@ router.post("/food-sample-claim", async (req, res) => {
       });
     }
   }
-
+  
+  
   db_user = db_user.user;
-
+  
   try {
     if (!new_user) {
       const {
@@ -74,23 +74,23 @@ router.post("/food-sample-claim", async (req, res) => {
         });
       }
     }
-    const food_sample_details_from_db = await food_sample_service.getFoodSampleById(
+    const product_details_from_db = await food_sample_service.getProductById(
       req.body.food_sample_id
     );
 
-    if (!food_sample_details_from_db.success) {
+    if (!product_details_from_db.success) {
       return res.status(403).json({
         success: false,
-        message: food_sample_details_from_db.message,
+        message: product_details_from_db.message,
       });
     }
 
-    let db_food_sample = food_sample_details_from_db.food_sample;
+    let db_all_products = product_details_from_db.food_sample;
 
-    const food_sample_claim_details = {
+    const product_claim_details = {
       food_sample_claim_email: db_user.email,
       food_sample_claim_user_id: db_user.tasttlig_user_id,
-      food_sample_id: db_food_sample.food_sample_id,
+      food_sample_id: db_all_products.product_id,
       current_status: "Claimed",
       claimed_quantity: req.body.claimed_quantity,
       claim_viewable_id: req.body.claim_viewable_id,
@@ -100,13 +100,14 @@ router.post("/food-sample-claim", async (req, res) => {
 
     const response = await food_sample_claim_service.createNewFoodSampleClaim(
       db_user,
-      db_food_sample,
+      db_all_products,
       claimed_total_quantity,
-      food_sample_claim_details
+      product_claim_details
     );
-console.log("response from here", response)
+      console.log("response from here", response)
     return res.send(response);
   } catch (error) {
+    console.log("error comin", error)
     res.send({
       success: false,
       message:
@@ -116,9 +117,8 @@ console.log("response from here", response)
   }
 });
 
-// POST confirm food sample
-router.post("/food-sample-claim/confirm", async (req, res) => {
-  console.log("body from claims:", req.body)
+// POST confirm product redeem status
+router.post("/all-products-claim/confirm", async (req, res) => {
   if (!req.body.claim_viewable_id) {
     return res.status(403).json({
       success: false,
@@ -126,7 +126,7 @@ router.post("/food-sample-claim/confirm", async (req, res) => {
     });
   }
 
-  const response = await food_sample_claim_service.confirmFoodSampleClaim(
+  const response = await food_sample_claim_service.confirmProductClaim(
     req.body.claim_viewable_id,
     req.body.quantity,
     req.body.redeemed_total_quantity,
@@ -137,11 +137,12 @@ router.post("/food-sample-claim/confirm", async (req, res) => {
 
 // GET user food sample claim
 router.get(
-  "/food-sample-claim/user/reservations",
+  "/all-product-claim/user/reservations",
   token_service.authenticateToken,
   async (req, res) => {
+
     try {
-      const db_food_claims = await food_sample_claim_service.getUserFoodSampleClaims(
+      const db_food_claims = await food_sample_claim_service.getUserProductsClaims(
         req.user.id
       );
 
@@ -158,13 +159,13 @@ router.get(
 
 // GET Host food sample Redeems
 router.get(
-  "/food-sample-redeem/user/reservations",
+  "/all-product-redeem/user/reservations",
   token_service.authenticateToken,
   async (req, res) => {
     console.log("requset from food sample redeem:", req.query)
     const keyword = req.query.keyword || "";
     try {
-      const db_food_claims = await food_sample_claim_service.getUserFoodSampleRedeems(
+      const db_food_claims = await food_sample_claim_service.getUserProductsRedeems(
         req.user.id,
         keyword
       );
