@@ -491,30 +491,6 @@ router.get("/products/details/:user_id", async (req, res) => {
   }
 });
 
-// GET products from specific user
-router.get("/products/user/:user_id", async (req, res) => {
-  if (!req.params.user_id) {
-    return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
-    });
-  }
-
-  try {
-    const response = await products_service.getProductsFromUser(
-      req.params.user_id
-    );
-
-    return res.send(response);
-  } catch (error) {
-    res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
-    });
-  }
-});
-
 // GET products from user
 router.get("/products/user/:user_id", async (req, res) => {
   if (!req.params.user_id) {
@@ -525,7 +501,8 @@ router.get("/products/user/:user_id", async (req, res) => {
   }
   try {
     const response = await products_service.getProductsFromUser(
-      req.params.user_id
+      req.params.user_id,
+      req.body.keyword
     );
     return res.send(response);
   } catch (error) {
