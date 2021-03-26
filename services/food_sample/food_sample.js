@@ -20,15 +20,14 @@ const SITE_BASE = process.env.SITE_BASE;
 function */
 const createNewFoodSample = async (
   db_user,
-  food_sample_details,
-  food_sample_images,
+  all_product_details,
+  all_product_images,
   createdByAdmin
 ) => {
+
   try {
-    // console.log("data from foodsample service", db_user, food_sample_details)
     await db.transaction(async (trx) => {
-      // food_sample_details.status = "INACTIVE";
-      food_sample_details.food_ad_code =
+      all_product_details.food_ad_code =
         Math.random().toString(36).substring(2, 4) +
         Math.random().toString(36).substring(2, 4);
       let user_role_object = db_user.role;
@@ -37,44 +36,43 @@ const createNewFoodSample = async (
         user_role_object.includes("HOST") || createdByAdmin
         
       ) {
-        food_sample_details.status = "ACTIVE";
+        all_product_details.status = "ACTIVE";
       } 
       else if (
       user_role_object.includes("HOST_PENDING")) {
-        food_sample_details.status = "INACTIVE";
+        all_product_details.status = "INACTIVE";
       }
-
-      // food_sample_details = await setAddressCoordinates(food_sample_details);
       
-      const db_food_sample = await trx("food_samples")
-        .insert(food_sample_details)
+      const db_all_product = await trx("products")
+        .insert(all_product_details)
         .returning("*");
 
-      await trx("food_samples")
+      await trx("products")
         .where({
-          food_sample_id: db_food_sample[0].food_sample_id,
+          product_id: db_all_product[0].product_id,
         })
         .update({
-          original_food_sample_id: db_food_sample[0].food_sample_id,
+          product_id: db_all_product[0].product_id,
         });
 
-      if (!db_food_sample) {
-        return { success: false, details: "Inserting new food sample failed." };
+      if (!db_all_product) {
+        return { success: false, details: "Inserting new product failed." };
       }
 
-      const images = food_sample_images.map((food_sample_image) => ({
-        food_sample_id: db_food_sample[0].food_sample_id,
-        image_url: food_sample_image,
+      const images = all_product_images.map((all_product_image) => ({
+        product_id: db_all_product[0].product_id,
+        product_image_url: all_product_image,
       }));
 
-      await trx("food_sample_images").insert(images);
+      await trx("product_images").insert(images);
+
 
       if (createdByAdmin) {
         // Email to review the food sample from the owner
         jwt.sign(
           {
-            id: db_food_sample[0].food_sample_id,
-            user_id: db_food_sample[0].food_sample_creater_user_id,
+            id: db_all_product[0].product_id,
+            user_id: db_all_product[0].product_user_id,
           },
           process.env.EMAIL_SECRET,
           {
@@ -82,16 +80,16 @@ const createNewFoodSample = async (
           },
           async (err, emailToken) => {
             try {
-              const url = `${SITE_BASE}/review-food-sample/${db_food_sample[0].food_sample_id}/${emailToken}`;
+              const url = `${SITE_BASE}/review-food-sample/${db_all_product[0].product_id}/${emailToken}`;
 
               await Mailer.sendMail({
                 from: process.env.SES_DEFAULT_FROM,
                 to: db_user.email,
-                subject: `[Tasttlig] Review Food sample "${food_sample_details.title}"`,
+                subject: `[Tasttlig] Review Food sample "${all_product_details.title}"`,
                 template: "review_food_sample",
                 context: {
-                  title: food_sample_details.title,
-                  url_review_food_sample: url,
+                  title: all_product_details.title,
+                  // url_review_food_sample: url,
                 },
               });
             } catch (error) {
@@ -102,7 +100,7 @@ const createNewFoodSample = async (
             }
           }
         );
-      } else if (food_sample_details.status === "ACTIVE") {
+      } else if (all_product_details.status === "ACTIVE") {
         // Food sample created confirmation email
         await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,
@@ -111,8 +109,8 @@ const createNewFoodSample = async (
           subject: `[Tasttlig] New Food Sample Created`,
           template: "new_food_sample",
           context: {
-            title: food_sample_details.title,
-            status: food_sample_details.status,
+            title: all_product_details.title,
+            status: all_product_details.status,
           },
         });
       }
@@ -122,12 +120,12 @@ const createNewFoodSample = async (
   } catch (error) {
     // Duplicate key
     if (error.code === 23505) {
-      food_sample_details.food_ad_code = generateRandomString(4);
+      all_product_details.food_ad_code = generateRandomString(4);
 
       return createNewFoodSample(
         db_user,
-        food_sample_details,
-        food_sample_images,
+        all_product_details,
+        all_product_images,
         createdByAdmin
       );
     }
@@ -150,38 +148,41 @@ const getAllUserFoodSamples = async (
   const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
   let query = db
     .select(
-      "food_samples.*",
+      "products.*",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
-      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls"),
-      db.raw(
-        "(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
-        [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay]
-      )
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls"),
+      // db.raw(
+      //   "(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
+      //   [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay]
+      // )
     )
-    .from("food_samples")
+    .from("products")
     .leftJoin(
-      "food_sample_images",
-      "food_samples.food_sample_id",
-      "food_sample_images.food_sample_id"
+      "product_images",
+      "products.product_id",
+      "product_images.product_id"
     )
-    .leftJoin("festivals", "food_samples.festival_id", "festivals.festival_id")
+    .leftJoin(
+      "festivals", 
+      "products.festival_selected[1]", "festivals.festival_id"
+      )
     .leftJoin(
       "nationalities",
-      "food_samples.nationality_id",
+      "products.nationality_id",
       "nationalities.id"
     )
-    .groupBy("food_samples.food_sample_id")
+    .groupBy("products.product_id")
     .groupBy("festivals.festival_id")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code");
 
   if (!requestByAdmin) {
     query = query
-      .having("food_sample_creater_user_id", "=", user_id)
-      .having("food_samples.status", operator, status);
+      .having("product_user_id", "=", user_id)
+      .having("products.status", operator, status);
   } else {
-    query = query.having("food_samples.status", operator, status);
+    query = query.having("products.status", operator, status);
   }
 
   if (festival_name !== "") {
@@ -559,45 +560,45 @@ const getAllFoodSamplesInFestival = async (
   }
   let query = db
     .select(
-      "food_samples.*",
+      "products.*",
       "tasttlig_users.first_name",
       "tasttlig_users.last_name",
       "business_details.business_name",
       "business_details.business_details_id",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
-      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls"),
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls"),
 /*       db.raw(
         "(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
         [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay]
       ) */
     )
-    .from("food_samples")
+    .from("products")
     .leftJoin(
-      "food_sample_images",
-      "food_samples.food_sample_id",
-      "food_sample_images.food_sample_id"
+      "product_images",
+      "products.product_id",
+      "product_images.product_id"
     )
     .leftJoin(
       "tasttlig_users",
-      "food_samples.food_sample_creater_user_id",
+      "products.product_user_id",
       "tasttlig_users.tasttlig_user_id"
     )
     .leftJoin(
       "business_details",
-      "food_samples.food_sample_creater_user_id",
+      "products.product_user_id",
       "business_details.business_details_user_id"
     )
     .leftJoin(
       "nationalities",
-      "food_samples.nationality_id",
+      "products.nationality_id",
       "nationalities.id"
     )
     .leftJoin(
       "festivals", 
-      "food_samples.festival_selected[1]", "festivals.festival_id"
+      "products.festival_selected[1]", "festivals.festival_id"
       )
-    .groupBy("food_samples.food_sample_id")
+    .groupBy("products.product_id")
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
     .groupBy("business_details.business_name")
@@ -605,8 +606,8 @@ const getAllFoodSamplesInFestival = async (
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
     .groupBy("festivals.festival_id")
-    .having("food_samples.status", operator, status)
-    .having("food_samples.festival_selected", "@>", [festival_id])
+    .having("products.status", operator, status)
+    .having("products.festival_selected", "@>", [festival_id])
 
     let orderByArray = []
   if (filters.price) {
@@ -614,19 +615,19 @@ const getAllFoodSamplesInFestival = async (
 
     if (filters.price === "lowest_to_highest") {
       //console.log("lowest to highest")
-      orderByArray.push({ column: "food_samples.price", order: "asc" })
+      orderByArray.push({ column: "products.price", order: "asc" })
       //query.orderBy("products.product_price", "asc")
     } else if (filters.price === "highest_to_lowest") {
       //console.log("highest to lowest");
-      orderByArray.push({ column: "food_samples.price", order: "desc" })
+      orderByArray.push({ column: "products.price", order: "desc" })
       //query.orderBy("products.product_price", "desc")
     }
   }
   if (filters.quantity) {
     if (filters.quantity === "lowest_to_highest") {
-      orderByArray.push({ column: "food_samples.quantity", order: "asc" })
+      orderByArray.push({ column: "products.quantity", order: "asc" })
     } else if (filters.quantity === "highest_to_lowest") {
-      orderByArray.push({ column: "food_samples.quantity", order: "desc" })
+      orderByArray.push({ column: "products.quantity", order: "desc" })
     }
   }
 
@@ -635,13 +636,13 @@ const getAllFoodSamplesInFestival = async (
   }
   if (filters.size) {
     if (filters.size === "bite_size") {
-      query.having("food_samples.sample_size", "=", "Bite Size");
+      query.having("products.product_size", "=", "Bite Size");
     } else if (filters.size === "quarter") {
-      query.having("food_samples.sample_size", "=", "Quarter");
+      query.having("products.product_size", "=", "Quarter");
     } else if (filters.size === "half") {
-      query.having("food_samples.sample_size", "=", "Half");
+      query.having("products.product_size", "=", "Half");
     } else if (filters.size === "full") {
-      query.having("food_samples.sample_size", "=", "Full");
+      query.having("products.product_size", "=", "Full");
     }
   }
 
@@ -720,13 +721,9 @@ const getAllFoodSamplesInFestival = async (
                 //"main.nationality, " +
                 "main.title, " +
                 "main.description, " +
-                "main.business_name, " +
+                // "main.business_name, " +
                 "main.first_name, " +
-                "main.last_name, " +
-                "main.address, " +
-                "main.city, " +
-                "main.state, " +
-                "main.postal_code)) as search_text"
+                "main.last_name)) as search_text"
             )
           )
           .from(query.as("main"))

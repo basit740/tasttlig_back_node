@@ -20,21 +20,22 @@ router.post(
   "/food-sample/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("im here:", req.body);
     try {
       req.body.map(async (item) => {
+
         if (
-          !item.title ||
+          !item.name ||
           !item.festivals ||
           !item.sample_size ||
           !item.quantity ||
-          !item.city ||
+          // !item.city ||
           !item.description ||
           !item.images ||
           //!item.product_expiry_date ||
-          !item.end_date ||
+          // !item.end_date ||
           //!item.product_expiry_time ||
           !item.end_time ||
+          !item.start_time ||
           !item.nationality_id
         ) {
           return res.status(403).json({
@@ -42,6 +43,7 @@ router.post(
             message: "Required parameters are not available in request.",
           });
         }
+
 
         /* let address = item.addressLine1;
         if (item.addressLine2 && item.addressLine2.length > 0) {
@@ -79,11 +81,11 @@ router.post(
             createdByAdmin = true;
           }
 
-          const food_sample_details = {
-            food_sample_creater_user_id: db_user.tasttlig_user_id,
-            title: item.title,
-            start_date: item.start_date.substring(0, 10),
-            end_date: item.end_date.substring(0, 10),
+          const all_product_details = {
+            product_user_id: db_user.tasttlig_user_id,
+            title: item.name,
+            // start_date: item.start_date.substring(0, 10),
+            // end_date: item.end_date.substring(0, 10),
             start_time:
               item.start_time.length === 5
                 ? item.start_time
@@ -93,13 +95,13 @@ router.post(
                 ? item.end_time
                 : formatTime(item.end_time),
             description: item.description,
-            address: item.address ? item.address : address,
-            city: item.city,
-            state: item.state ? item.state : item.provinceTerritory,
-            country: "Canada",
-            postal_code: item.postal_code,
+            // address: item.address ? item.address : address,
+            // city: item.city,
+            // state: item.state ? item.state : item.provinceTerritory,
+            // country: "Canada",
+            // postal_code: item.postal_code,
             nationality_id: item.nationality_id,
-            sample_size: item.sample_size,
+            product_size: item.sample_size,
             is_available_on_monday:
               item.is_available_on_monday !== undefined
                 ? item.is_available_on_monday
@@ -150,16 +152,15 @@ router.post(
             quantity: parseInt(item.quantity),
             food_ad_code: generateRandomString(4),
             status: "ACTIVE",
-            festival_id: item.addToFestival ? 2 : null,
+            // festival_id: item.addToFestival ? 2 : null,
             festival_selected: item.festivals,
             claimed_total_quantity: 0,
             redeemed_total_quantity: 0,
           };
-          // console.log("req from food sample,", food_sample_details)
 
           const response = await food_sample_service.createNewFoodSample(
             db_user,
-            food_sample_details,
+            all_product_details,
             item.images,
             createdByAdmin
           );
@@ -185,7 +186,7 @@ router.post(
 router.post(
   "/food-sample/noUser/add",
   async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     try {
       req.body.map(async (item) => {
         if (
@@ -224,11 +225,9 @@ router.post(
               message: user_details_from_db.message,
             });
           } */
-          console.log(item.userEmail);
           const user_details_from_db = await user_profile_service.getUserByEmail(
             item.userEmail
           );
-          console.log(user_details_from_db);
           let createdByAdmin = false;
           let db_user = user_details_from_db.user;
           /* let user_role_object = db_user.role;
@@ -249,10 +248,10 @@ router.post(
           } */
 
           const food_sample_details = {
-            food_sample_creater_user_id: db_user.tasttlig_user_id,
+            product_user_id: db_user.tasttlig_user_id,
             title: item.title,
-            start_date: item.start_date.substring(0, 10),
-            end_date: item.end_date.substring(0, 10),
+            // start_date: item.start_date.substring(0, 10),
+            // end_date: item.end_date.substring(0, 10),
             start_time:
               item.start_time.length === 5
                 ? item.start_time
@@ -262,13 +261,13 @@ router.post(
                 ? item.end_time
                 : formatTime(item.end_time),
             description: item.description,
-            address: item.address ? item.address : address,
-            city: item.city,
-            state: item.state ? item.state : item.provinceTerritory,
-            country: "Canada",
-            postal_code: item.postal_code,
+            // address: item.address ? item.address : address,
+            // city: item.city,
+            // state: item.state ? item.state : item.provinceTerritory,
+            // country: "Canada",
+            // postal_code: item.postal_code,
             nationality_id: item.nationality_id,
-            sample_size: item.sample_size,
+            product_size: item.sample_size,
             is_available_on_monday:
               item.is_available_on_monday !== undefined
                 ? item.is_available_on_monday
@@ -319,7 +318,7 @@ router.post(
             quantity: parseInt(item.quantity),
             food_ad_code: generateRandomString(4),
             status: "ACTIVE",
-            festival_id: item.addToFestival ? 2 : null,
+            // festival_id: item.addToFestival ? 2 : null,
             festival_selected: item.festivals,
           };
           console.log("req from food sample,", food_sample_details)
@@ -650,6 +649,7 @@ router.get(
   token_service.authenticateToken,
   async (req, res) => {
     try {
+      // console.log("what is the request bro:", req)
       const current_page = req.query.page || 1;
       const keyword = req.query.keyword || "";
       const status_operator = "!=";
@@ -682,7 +682,7 @@ router.get(
         current_page,
         requestByAdmin
       );
-
+        console.log("response from food samples:", response)
       return res.send(response);
     } catch (error) {
       res.send({

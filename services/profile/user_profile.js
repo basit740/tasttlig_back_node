@@ -17,6 +17,7 @@ const EMAIL_SECRET = process.env.EMAIL_SECRET;
 
 // Get user by ID helper function
 const getUserById = async (id) => {
+  console.log("id from here:", id)
   return await db
     .select("tasttlig_users.*", db.raw("ARRAY_AGG(roles.role) as role"))
     .from("tasttlig_users")
