@@ -16,11 +16,14 @@ router.post(
     if (
       !req.body.service_name ||
       !req.body.service_nationality_id ||
-      !req.body.service_price ||
+      // !req.body.service_price ||
       !req.body.service_capacity ||
       !req.body.service_size_scope ||
       !req.body.service_description ||
-      !req.body.service_images
+      !req.body.service_images||
+      !req.body.service_type ||
+      !req.body.start_time ||
+      !req.body.end_time
       //||
       //!req.body.service_festival_id ||
       // !req.body.service_creator_type
@@ -74,8 +77,9 @@ router.post(
         service_price: req.body.service_price,
         service_capacity: req.body.service_capacity,
         service_size_scope: req.body.service_size_scope,
+        service_type: req.body.service_type,
         service_description: req.body.service_description,
-        service_festival_id: Array.isArray(req.body.service_festival_id)
+        festivals_selected: Array.isArray(req.body.service_festival_id)
           ? req.body.service_festival_id
           : req.body.service_festival_id
           ? [req.body.service_festival_id]
