@@ -205,7 +205,9 @@ router.get(
     try {
       const current_page = req.query.page || 1;
       const keyword = req.query.keyword || "";
+      const festival_id = req.query.festival || "";
       //console.log("request params", req.query);
+      console.log("festival_id", festival_id);
       const status_operator = "!=";
       const food_sample_status = "ARCHIVED";
 
@@ -234,7 +236,8 @@ router.get(
         food_sample_status,
         keyword,
         current_page,
-        requestByAdmin
+        requestByAdmin,
+        festival_id
       );
       return res.send(response);
     } catch (error) {

@@ -201,6 +201,7 @@ router.get(
   token_service.authenticateToken,
   async (req, res) => {
     try {
+      console.log(req.query);
       const current_page = req.query.page || 1;
       const keyword = req.query.keyword || "";
       const status_operator = "!=";
@@ -208,6 +209,7 @@ router.get(
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
       );
+      const festival_id = req.query.festival;
 
       if (!user_details_from_db.success) {
         return res.status(403).json({
@@ -230,11 +232,13 @@ router.get(
         experience_status,
         keyword,
         current_page,
-        requestByAdmin
+        requestByAdmin,
+        festival_id
       );
 
       return res.send(response);
     } catch (error) {
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -389,6 +393,57 @@ router.put(
         success: false,
         message: "Error.",
         response: error.message,
+      });
+    }
+  }
+);
+
+// POST experience into festival
+router.post(
+  "/experiences/festival/:festivalId",
+  token_service.authenticateToken,
+  async (req, res) => {
+    console.log(req.body);
+    if (!req.body.festivalId) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+
+    try {
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
+
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message,
+        });
+      }
+      let result = "";
+      const response = await experience_service.addExperienceToFestival(
+        req.body.festivalId,
+        req.body.ps
+      );
+      console.log(response);
+      if (response.success) {
+        result = response;
+      } else {
+        return res.send({
+          success: false,
+          message: "Error.",
+        });
+      }
+      console.log("new response", result);
+      return res.send(result);
+    } catch (error) {
+      console.log(error);
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
       });
     }
   }

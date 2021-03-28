@@ -428,6 +428,7 @@ router.post(
       }
       return res.send(result);
     } catch (error) {
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",
