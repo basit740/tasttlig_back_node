@@ -15,6 +15,7 @@ router.get("/orders/user/:userId", token_service.authenticateToken,  async (req,
     const userOrders = await order_service.getAllUserOrders(
       req.user.id
     );
+    console.log("data coming from the orders:", userOrders)
 
     return res.send(userOrders);
   } catch (error) {

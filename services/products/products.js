@@ -71,7 +71,7 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
     )
     .join(
       "festivals",
-      "products.product_festivals_id[1]",
+      "products.festival_selected[1]",
       "festivals.festival_id"
     )
     .leftJoin(
@@ -86,7 +86,7 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
     .groupBy("business_details.city")
     .groupBy("business_details.state")
     .groupBy("business_details.zip_postal_code")
-    .having("products.product_festivals_id", "@>", [festival_id]);
+    .having("products.festival_selected", "@>", [festival_id]);
   /*     .then((value) => {
         return { success: true, details: value };
       })
