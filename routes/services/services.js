@@ -15,12 +15,12 @@ router.post(
   async (req, res) => {
     if (
       !req.body.service_name ||
-      !req.body.service_nationality_id ||
+      //!req.body.service_nationality_id ||
       // !req.body.service_price ||
       !req.body.service_capacity ||
       !req.body.service_size_scope ||
       !req.body.service_description ||
-      !req.body.service_images||
+      !req.body.service_images ||
       !req.body.service_type ||
       !req.body.start_time ||
       !req.body.end_time
@@ -73,7 +73,9 @@ router.post(
           ? null
           : db_business_details.business_details_id,
         service_name: req.body.service_name,
-        service_nationality_id: req.body.service_nationality_id,
+        service_nationality_id: req.body.service_nationality_id
+          ? req.body.service_nationality_id
+          : null,
         service_price: req.body.service_price,
         service_capacity: req.body.service_capacity,
         service_size_scope: req.body.service_size_scope,
@@ -83,6 +85,12 @@ router.post(
           ? req.body.service_festival_id
           : req.body.service_festival_id
           ? [req.body.service_festival_id]
+          : null,
+        products_selected: req.body.products_selected
+          ? req.body.products_selected
+          : null,
+        experiences_selected: req.body.experiences_selected
+          ? req.body.experiences_selected
           : null,
         service_code: generateRandomString(4),
         service_status: "ACTIVE",

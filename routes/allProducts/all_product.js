@@ -37,7 +37,7 @@ router.get("/all-products/festival/:festivalId", async (req, res) => {
 
     return res.send(response);
   } catch (error) {
-    console.log(error);
+    //(error);
     res.send({
       success: false,
       message: "Error.",
@@ -51,7 +51,7 @@ router.post(
   "/all-products/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("im coming from here man:", req.body);
+    //console.log("im coming from here man:", req.body);
     try {
       req.body.map(async (item) => {
         if (
@@ -117,6 +117,7 @@ router.post(
 
             nationality_id: item.nationality_id,
             product_size: item.sample_size,
+            product_type: item.product_type,
             is_available_on_monday:
               item.is_available_on_monday !== undefined
                 ? item.is_available_on_monday
@@ -177,7 +178,7 @@ router.post(
             item.images,
             createdByAdmin
           );
-          console.log("response from food sample", response);
+          //console.log("response from food sample", response);
           return res.send(response);
         } catch (error) {
           res.send({
@@ -207,7 +208,7 @@ router.get(
       const keyword = req.query.keyword || "";
       const festival_id = req.query.festival || "";
       //console.log("request params", req.query);
-      console.log("festival_id", festival_id);
+      //console.log("festival_id", festival_id);
       const status_operator = "!=";
       const food_sample_status = "ARCHIVED";
 
