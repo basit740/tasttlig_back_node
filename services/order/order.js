@@ -8,7 +8,7 @@ const getAllUserOrders = async (user_id) => {
     .select(
       "orders.*",
       "order_items.*",
-      "products.product_name",
+      "products.title",
       "services.service_name",
       "f1.festival_name AS product_festival",
       "f2.festival_name AS service_festival"
@@ -27,12 +27,12 @@ const getAllUserOrders = async (user_id) => {
     )
     .leftJoin(
       "festivals AS f1",
-      "products.product_festivals_id[1]",
+      "products.festival_selected[1]",
       "f1.festival_id"
     )
     .leftJoin(
       "festivals AS f2",
-      "services.service_festival_id[1]",
+      "services.festivals_selected[1]",
       "f2.festival_id"
     )
     .groupBy(
@@ -42,11 +42,11 @@ const getAllUserOrders = async (user_id) => {
       "order_items.order_id",
       "order_items.order_item_id",
       "products.product_id",
-      "products.product_name",
-      "products.product_festivals_id[1]",
+      "products.title",
+      "products.festival_selected[1]",
       "services.service_id",
       "services.service_name",
-      "services.service_festival_id[1]",
+      "services.festivals_selected[1]",
       "f1.festival_name",
       "f2.festival_name",
       "f1.festival_id",
@@ -57,7 +57,10 @@ const getAllUserOrders = async (user_id) => {
       this.where("order_items.item_type", "product").orWhere(
         "order_items.item_type",
         "service"
-      );
+      ).orWhere(
+        "order_items.item_type",
+        "festival"
+      );;
       //.orWhere("order_items.subscription_code", "S_C3")
     });
 
