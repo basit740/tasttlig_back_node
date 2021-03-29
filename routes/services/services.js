@@ -15,7 +15,7 @@ router.post(
   async (req, res) => {
     if (
       !req.body.service_name ||
-      //!req.body.service_nationality_id ||
+      // !req.body.service_nationality_id ||
       // !req.body.service_price ||
       !req.body.service_capacity ||
       !req.body.service_size_scope ||
@@ -81,24 +81,19 @@ router.post(
         service_size_scope: req.body.service_size_scope,
         service_type: req.body.service_type,
         service_description: req.body.service_description,
-        festivals_selected: Array.isArray(req.body.service_festival_id)
-          ? req.body.service_festival_id
-          : req.body.service_festival_id
-          ? [req.body.service_festival_id]
-          : null,
-        products_selected: req.body.products_selected
-          ? req.body.products_selected
-          : null,
-        experiences_selected: req.body.experiences_selected
-          ? req.body.experiences_selected
-          : null,
+        festivals_selected: req.body.festival_selected,
+        products_selected: req.body.products_selected,
         service_code: generateRandomString(4),
         service_status: "ACTIVE",
+        start_date: req.body.start_date,
+        end_date: req.body.end_date,
+        tax_included_or_not: req.body.tax_included_or_not,
+        shipping_included_or_not: req.body.shipping_included_or_not,
         service_created_at_datetime: new Date(),
         service_updated_at_datetime: new Date(),
-        service_creator_type: req.body.service_creator_type
-          ? req.body.service_creator_type
-          : null,
+        // service_creator_type: req.body.service_creator_type
+        //   ? req.body.service_creator_type
+        //   : null,
         service_user_id: req.user.id,
       };
       const response = await services_service.createNewService(
@@ -108,6 +103,7 @@ router.post(
       );
       return res.send(response);
     } catch (error) {
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",

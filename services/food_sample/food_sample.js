@@ -382,7 +382,7 @@ const getAllFoodSamples = async (
   let endTime = formatTime(filters.endDate);
   let query = db
     .select(
-      "food_samples.*",
+      "products.*",
       "tasttlig_users.first_name",
       "tasttlig_users.last_name",
       "business_details.business_name",
@@ -390,31 +390,27 @@ const getAllFoodSamples = async (
       "nationalities.alpha_2_code",
       db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls"),
       db.raw(
-        "(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
+        "(select count(*)::integer from user_claims c where c.claimed_product_id=products.product_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
         [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay]
       )
     )
-    .from("food_samples")
+    .from("products")
     .leftJoin(
-      "food_sample_images",
-      "food_samples.food_sample_id",
-      "food_sample_images.food_sample_id"
+      "product_images",
+      "products.product_id",
+      "product_images.product_id"
     )
     .leftJoin(
       "tasttlig_users",
-      "food_samples.food_sample_creater_user_id",
+      "products.product_creater_user_id",
       "tasttlig_users.tasttlig_user_id"
     )
     .leftJoin(
       "business_details",
-      "food_samples.food_sample_creater_user_id",
+      "products.product_creater_user_id",
       "business_details.business_details_user_id"
     )
-    .leftJoin(
-      "nationalities",
-      "food_samples.nationality_id",
-      "nationalities.id"
-    )
+    .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .leftJoin("festivals", "food_samples.festival_id", "festivals.festival_id")
     .groupBy("food_samples.food_sample_id")
     .groupBy("tasttlig_users.first_name")
@@ -453,8 +449,8 @@ const getAllFoodSamples = async (
       //   "cast(concat(food_samples.start_date, ' ', food_samples.start_time) as date) >= ?",
       //   [filters.startDate]
       // );
-      .where("food_samples.start_date", ">=", startDate)
-      .andWhere("food_samples.start_time", ">=", startTime);
+      .where("products.start_date", ">=", startDate)
+      .andWhere("products.start_time", ">=", startTime);
   }
 
   if (filters.endDate) {
@@ -463,12 +459,12 @@ const getAllFoodSamples = async (
       //   "cast(concat(food_samples.end_date, ' ', food_samples.end_time) as date) <= ?",
       //   [filters.endDate]
       // );
-      .where("food_samples.end_date", "<=", endDate)
-      .andWhere("food_samples.end_time", "<=", endTime);
+      .where("products.end_date", "<=", endDate)
+      .andWhere("products.end_time", "<=", endTime);
   }
 
   if (filters.quantity) {
-    query.where("food_samples.quantity", ">=", filters.quantity);
+    query.where("products.quantity", ">=", filters.quantity);
   }
 
   if (food_ad_code) {
@@ -1027,22 +1023,22 @@ const deleteFoodSamplesFromUser = async (user_id, delete_items) => {
     for (let item of delete_items) {
       console.log("itemsssfddddds", item);
       await db.transaction(async (trx) => {
-        const productImagesDelete = await trx("food_sample_images")
+        const productImagesDelete = await trx("product_images")
           .where({
-            food_sample_id: item,
+            product_id: item,
           })
           .del();
-        const foodSampleClaimsDelete = await trx("food_sample_claims")
+        const foodSampleClaimsDelete = await trx("user_claims")
           .where({
-            food_sample_id: item,
+            claimed_product_id: item,
           })
           .delete()
           .then(() => {
             return { success: true };
           });
-        const foodSampleDelete = await trx("food_samples")
+        const foodSampleDelete = await trx("products")
           .where({
-            food_sample_id: item,
+            product_id: item,
           })
           .del()
           .catch((reason) => {
