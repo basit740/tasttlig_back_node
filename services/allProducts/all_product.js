@@ -27,15 +27,20 @@ const getAllProductsInFestival = async (
 ) => {
   const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
   const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
-  let startDate
-  let endDate
-  let startTime
-  let endTime
-  if (filters.startDate && filters.endDate && filters.startTime && filters.endDate) {
-     startDate = filters.startDate.substring(0, 10);
-     endDate = filters.endDate.substring(0, 10);
-     startTime = formatTime(filters.startDate);
-     endTime = formatTime(filters.endDate);
+  let startDate;
+  let endDate;
+  let startTime;
+  let endTime;
+  if (
+    filters.startDate &&
+    filters.endDate &&
+    filters.startTime &&
+    filters.endDate
+  ) {
+    startDate = filters.startDate.substring(0, 10);
+    endDate = filters.endDate.substring(0, 10);
+    startTime = formatTime(filters.startDate);
+    endTime = formatTime(filters.endDate);
   }
   let query = db
     .select(
@@ -46,8 +51,7 @@ const getAllProductsInFestival = async (
       "business_details.business_details_id",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
-      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls"),
-
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
     )
     .from("products")
     .leftJoin(
@@ -65,15 +69,12 @@ const getAllProductsInFestival = async (
       "products.product_user_id",
       "business_details.business_details_user_id"
     )
+    .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .leftJoin(
-      "nationalities",
-      "products.nationality_id",
-      "nationalities.id"
+      "festivals",
+      "products.festival_selected[1]",
+      "festivals.festival_id"
     )
-    .leftJoin(
-      "festivals", 
-      "products.festival_selected[1]", "festivals.festival_id"
-      )
     .groupBy("products.product_id")
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
@@ -83,21 +84,21 @@ const getAllProductsInFestival = async (
     .groupBy("nationalities.alpha_2_code")
     .groupBy("festivals.festival_id")
     .having("products.status", operator, status)
-    .having("products.festival_selected", "@>", [festival_id])
+    .having("products.festival_selected", "@>", [festival_id]);
 
-    let orderByArray = []
+  let orderByArray = [];
   if (filters.price) {
     if (filters.price === "lowest_to_highest") {
-      orderByArray.push({ column: "products.price", order: "asc" })
+      orderByArray.push({ column: "products.price", order: "asc" });
     } else if (filters.price === "highest_to_lowest") {
-      orderByArray.push({ column: "products.price", order: "desc" })
+      orderByArray.push({ column: "products.price", order: "desc" });
     }
   }
   if (filters.quantity) {
     if (filters.quantity === "lowest_to_highest") {
-      orderByArray.push({ column: "products.quantity", order: "asc" })
+      orderByArray.push({ column: "products.quantity", order: "asc" });
     } else if (filters.quantity === "highest_to_lowest") {
-      orderByArray.push({ column: "products.quantity", order: "desc" })
+      orderByArray.push({ column: "products.quantity", order: "desc" });
     }
   }
 
@@ -160,7 +161,7 @@ const createNewProduct = async (
   all_product_images,
   createdByAdmin
 ) => {
-  console.log("data coming from create new product:", all_product_details)
+  console.log("data coming from create new product:", all_product_details);
 
   try {
     await db.transaction(async (trx) => {
@@ -169,17 +170,12 @@ const createNewProduct = async (
         Math.random().toString(36).substring(2, 4);
       let user_role_object = db_user.role;
 
-      if (
-        user_role_object.includes("HOST") || createdByAdmin
-        
-      ) {
+      if (user_role_object.includes("HOST") || createdByAdmin) {
         all_product_details.status = "ACTIVE";
-      } 
-      else if (
-      user_role_object.includes("HOST_PENDING")) {
+      } else if (user_role_object.includes("HOST_PENDING")) {
         all_product_details.status = "INACTIVE";
       }
-      
+
       const db_all_product = await trx("products")
         .insert(all_product_details)
         .returning("*");
@@ -202,7 +198,6 @@ const createNewProduct = async (
       }));
 
       await trx("product_images").insert(images);
-
 
       if (createdByAdmin) {
         // Email to review the food sample from the owner
@@ -279,9 +274,14 @@ const getAllUserProducts = async (
   keyword,
   currentPage,
   requestByAdmin = false,
-  festival_name = ""
+  festival_id
 ) => {
-  console.log("coming into the get ll user food samples", user_id,operator, status)
+  console.log(
+    "coming into the get ll user food samples",
+    user_id,
+    operator,
+    status
+  );
   const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
   const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
   let query = db
@@ -289,7 +289,8 @@ const getAllUserProducts = async (
       "products.*",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
-      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls"),
+      "business_details.business_name",
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
       // db.raw(
       //   "(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
       //   [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay]
@@ -302,16 +303,19 @@ const getAllUserProducts = async (
       "product_images.product_id"
     )
     .leftJoin(
-      "festivals", 
-      "products.festival_selected[1]", "festivals.festival_id"
-      )
+      "festivals",
+      "products.festival_selected[1]",
+      "festivals.festival_id"
+    )
+    .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .leftJoin(
-      "nationalities",
-      "products.nationality_id",
-      "nationalities.id"
+      "business_details",
+      "products.product_business_id",
+      "business_details.business_details_id"
     )
     .groupBy("products.product_id")
     .groupBy("festivals.festival_id")
+    .groupBy("business_details.business_details_id")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code");
 
@@ -323,8 +327,14 @@ const getAllUserProducts = async (
     query = query.having("products.status", operator, status);
   }
 
-  if (festival_name !== "") {
-    query = query.having("festivals.festival_name", "=", festival_name);
+  if (festival_id) {
+    //console.log("festival_id", festival_id);
+    query = query.havingRaw(
+      "(? != ALL(coalesce(products.festival_selected, array[]::int[])))",
+      festival_id
+    );
+    // ('? = ANY(likes_received)', id);
+    //       .whereNotIn("products.festival_selected", [Number(festival_id)]);
   }
 
   if (keyword) {
@@ -356,6 +366,7 @@ const getAllUserProducts = async (
       .orderBy("rank", "desc");
   }
 
+  console.log(query.toSQL());
   query = query.paginate({
     perPage: 12,
     isLengthAware: true,
@@ -364,9 +375,11 @@ const getAllUserProducts = async (
 
   return await query
     .then((value) => {
+      //console.log("value", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
+      //console.log("reason", reason);
       return { success: false, details: reason };
     });
 };
@@ -398,11 +411,9 @@ const getProductById = async (id) => {
     });
 };
 
-
 module.exports = {
   createNewProduct,
   getAllProductsInFestival,
   getAllUserProducts,
-  getProductById
-  
+  getProductById,
 };
