@@ -14,23 +14,22 @@ const SITE_BASE = process.env.SITE_BASE;
 const createNewExperience = async (
   db_user,
   experience_details,
-  experience_images,
-  createdByAdmin
+  experience_images
 ) => {
   try {
     await db.transaction(async (trx) => {
-      experience_details.status = "INACTIVE";
+      /* experience_details.status = "INACTIVE";
       let user_role_object = db_user.role;
 
       if (user_role_object.includes("HOST")) {
         experience_details.status = "ACTIVE";
-      }
+      } */
 
-      experience_details = await setAddressCoordinates(
+      /* experience_details = await setAddressCoordinates(
         experience_details,
         true
-      );
-
+      ); */
+      //experience_details.status = "ACTIVE";
       const db_experience = await trx("experiences")
         .insert(experience_details)
         .returning("*");
@@ -41,12 +40,12 @@ const createNewExperience = async (
 
       const images = experience_images.map((experience_image) => ({
         experience_id: db_experience[0].experience_id,
-        image_url: experience_image,
+        experience_image_url: experience_image,
       }));
 
-      await trx("experience_images").insert(images);
+      await trx("experience_images").insert(images); //else { // Email to user on submitting the request to upgrade
 
-      if (createdByAdmin) {
+      /* if (createdByAdmin) {
         // Email to confirm the new experience by hosts
         jwt.sign(
           {
@@ -79,26 +78,27 @@ const createNewExperience = async (
             }
           }
         );
-      } else {
-        // Email to user on submitting the request to upgrade
-        await Mailer.sendMail({
+      } */ await Mailer.sendMail(
+        {
           from: process.env.SES_DEFAULT_FROM,
-          to: db_user.email,
+          to: db_user.user.email,
           bcc: ADMIN_EMAIL,
           subject: `[Tasttlig] New Experience Created`,
           template: "new_experience",
           context: {
-            first_name: db_user.first_name,
-            last_name: db_user.last_name,
+            first_name: db_user.user.first_name,
+            last_name: db_user.user.last_name,
             title: experience_details.title,
             status: experience_details.status,
           },
-        });
-      }
+        }
+      );
+      //}
     });
 
     return { success: true, details: "Success." };
   } catch (error) {
+    console.log("*******err", error);
     return { success: false, details: error.message };
   }
 };
@@ -221,13 +221,15 @@ const getAllUserExperience = async (
   status,
   keyword,
   currentPage,
-  requestByAdmin
+  requestByAdmin,
+  festival_id
 ) => {
   let query = db
     .select(
       "experiences.*",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
+      "business_details.business_name",
       db.raw("ARRAY_AGG(experience_images.experience_image_url) as image_urls")
     )
     .from("experiences")
@@ -236,16 +238,45 @@ const getAllUserExperience = async (
       "experiences.experience_id",
       "experience_images.experience_id"
     )
-    .leftJoin("nationalities", "experiences.experience_nationality_id", "nationalities.id")
+    .leftJoin(
+      "nationalities",
+      "experiences.experience_nationality_id",
+      "nationalities.id"
+    )
+    .leftJoin(
+      "business_details",
+      "experiences.experience_business_id",
+      "business_details.business_details_id"
+    )
+    .leftJoin(
+      "festivals",
+      "experiences.festival_selected[1]",
+      "festivals.festival_id"
+    )
     .groupBy("experiences.experience_id")
+    .groupBy("business_details.business_details_id")
     .groupBy("nationalities.nationality")
-    .groupBy("nationalities.alpha_2_code");
+    .groupBy("nationalities.alpha_2_code")
+    .groupBy("festivals.festival_id")
+    .groupBy("experiences.festival_selected");
 
   if (!requestByAdmin) {
     query = query
-      .having("experiences.experience_status", operator, status);
+      .having("experiences.experience_status", operator, status)
+      .having(
+        "business_details.business_details_user_id",
+        "=",
+        Number(user_id)
+      );
   } else {
     query = query.having("experiences.experience_status", operator, status);
+  }
+
+  if (festival_id) {
+    query = query.havingRaw(
+      "(? != ALL(coalesce(experiences.festival_selected, array[]::int[])))",
+      festival_id
+    );
   }
 
   if (keyword) {
@@ -285,9 +316,46 @@ const getAllUserExperience = async (
 
   return await query
     .then((value) => {
+      console.log("value from experience", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log(reason);
+      return { success: false, details: reason };
+    });
+};
+
+// Get all experiences by user id helper function
+const getUserExperiencesById = async (user_id) => {
+  console.log("functttttttt", user_id);
+  return await db
+    .select(
+      "experiences.*",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
+      db.raw("ARRAY_AGG(experience_images.experience_image_url) as image_urls")
+    )
+    .from("experiences")
+    .leftJoin(
+      "experience_images",
+      "experiences.experience_id",
+      "experience_images.experience_id"
+    )
+    .leftJoin(
+      "nationalities",
+      "experiences.experience_nationality_id",
+      "nationalities.id"
+    )
+    .groupBy("experiences.experience_id")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code")
+    .having("experiences.experience_business_id", "=", Number(user_id))
+    .then((value) => {
+      console.log("*******************************", value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log("err*******************************", reason);
       return { success: false, details: reason };
     });
 };
@@ -467,6 +535,55 @@ const getDistinctNationalities = async (operator, status) => {
     });
 };
 
+const addExperienceToFestival = async (festival_id, experience_id) => {
+  try {
+    await db.transaction(async (trx) => {
+      console.log("experienceId", experience_id);
+      if (Array.isArray(experience_id)) {
+        for (let experience of experience_id) {
+          const db_experience = await trx("experiences")
+            .where({ experience_id: experience })
+            .update({
+              festival_selected: trx.raw("array_append(festival_selected, ?)", [
+                festival_id,
+              ]),
+            })
+            .returning("*");
+
+          if (!db_experience) {
+            return {
+              success: false,
+              details: "Inserting new product guest failed.",
+            };
+          }
+        }
+      } else {
+        const db_service = await trx("experiences")
+          .where({ experience_id })
+          .update({
+            festival_selected: trx.raw(
+              "array_append(experience_festival_selected, ?)",
+              [festival_id]
+            ),
+          })
+          .returning("*");
+
+        if (!db_service) {
+          return {
+            success: false,
+            details: "Inserting new product guest failed.",
+          };
+        }
+      }
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
 module.exports = {
   createNewExperience,
   getAllExperience,
@@ -476,4 +593,6 @@ module.exports = {
   updateExperience,
   getExperience,
   getDistinctNationalities,
+  addExperienceToFestival,
+  getUserExperiencesById,
 };

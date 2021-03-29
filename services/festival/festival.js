@@ -8,12 +8,13 @@ const { formatTime } = require("../../functions/functions");
 const getAllFestivals = async (currentPage, keyword, filters) => {
   let startDate;
   let startTime;
-    if (filters.startDate) {
-       startDate = filters.startDate.substring(0, 10);
-    }
-    if (filters.startTime) {
-       startTime = formatTime(filters.startTime);
-    }
+
+  if (filters.startDate) {
+    startDate = filters.startDate.substring(0, 10);
+  }
+  if (filters.startTime) {
+    startTime = formatTime(filters.startTime);
+  }
   let query = db
     .select(
       "festivals.*",
@@ -34,7 +35,7 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
   }
 
   if (filters.startDate) {
-    query.where("festivals.festival_start_date", ">=", startDate);
+    query.where("festivals.festival_start_date", "=", startDate);
   }
 
   if (filters.startTime) {
@@ -44,6 +45,13 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
   if (filters.cityLocation) {
     query.where("festivals.festival_city", "=", filters.cityLocation);
   }
+
+  //if (filters.dayOfWeek) {
+  /* query.whereRaw("Day(festivals.festival_start_time) = ?", [
+      filters.dayOfWeek,
+    ]); */
+  //query.where(knex.datePart("dow", "festivals.festival_start_date"), "=", 0);
+  //}
 
   if (keyword) {
     query = db
@@ -87,33 +95,33 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log(reason);
       return { success: false, details: reason };
     });
 };
 
 const getAllFestivalsPresent = async () => {
-  
   return await db
-  .select(
-    "festivals.*",
-    db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
-  )
-  .from("festivals")
-  .leftJoin(
-    "festival_images",
-    "festivals.festival_id",
-    "festival_images.festival_id"
-  )
-  .where("festivals.festival_id", ">", 3)
-  .groupBy("festivals.festival_id")
-  .then((value) => {
-    return { success: true, festival_list: value };
-  })
-  .catch((reason) => {
-    return { success: false, data: reason };
-  });
-}
-  
+    .select(
+      "festivals.*",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("festivals")
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    )
+    .where("festivals.festival_id", ">", 3)
+    .groupBy("festivals.festival_id")
+    .then((value) => {
+      return { success: true, festival_list: value };
+    })
+    .catch((reason) => {
+      return { success: false, data: reason };
+    });
+};
+
 const getThreeFestivals = async (currentPage, keyword, filters) => {
   let startDate = filters.startDate.substring(0, 10);
   let startTime = formatTime(filters.startTime);
@@ -251,7 +259,12 @@ const createNewFestival = async (festival_details, festival_images) => {
   }
 };
 
+<<<<<<< HEAD
 /* const updateFestival = async (data, festival_images) => {
+=======
+const updateFestival = async (data, festival_images) => {
+  console.log("body from the festival:", festival_images)
+>>>>>>> master
   try {
     await db.transaction(async (trx) => {
       const db_festival = await trx("festivals")
@@ -269,10 +282,17 @@ const createNewFestival = async (festival_details, festival_images) => {
         })
         .returning("*");
 
-      await trx("festival_images")
+        await trx("festival_images")
         .where({ festival_id: data.festival_id })
-        .update({ festival_image_url: festival_images[0] })
-        .returning("*");
+        .delete()
+  
+        for(let image of festival_images) {
+          await trx("festival_images")
+          // .where({ festival_id: data.festival_id })
+          .insert({ festival_image_url: image, festival_id: data.festival_id })
+          .returning("*");
+          
+        }
     });
 
     return { success: true, details: "Success." };
@@ -284,9 +304,6 @@ const createNewFestival = async (festival_details, festival_images) => {
 // Add host ID to festivals table helper function
 const hostToFestival = async (festival_id, festival_vendor_id, foodSamplePreference) => {
   try {
-    console.log(festival_id, "festival_id");
-    console.log(foodSamplePreference, "Food sample preferen<e");
-    console.log(festival_vendor_id, "festival vendor id");
     await db.transaction(async (trx) => {
       if (typeof festival_id === "object") {
         for (let item of festival_id) {

@@ -131,13 +131,13 @@ const postBusinessPassportDetails = async (data) => {
         business_phone_number: data["user_business_phone_number"]
       };
 
-      console.log(business_details)
+      // console.log(business_details)
 
       var business_details_id = await trx("business_details")
         .insert(business_details)
         .returning("business_details_id");
 
-        console.log("detail id",business_details_id[0]);
+        // console.log("detail id",business_details_id[0]);
 
       const business_details_images = {
         business_details_logo: data["user_business_logo"],
@@ -148,7 +148,7 @@ const postBusinessPassportDetails = async (data) => {
       await trx("business_details_images")
         .insert(business_details_images);
 
-        console.log("inserted business images")
+        // console.log("inserted business images")
         
         return { success: true };
     });

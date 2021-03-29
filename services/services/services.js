@@ -54,41 +54,62 @@ const addServiceToFestival = async (festival_id, service_id) => {
   try {
     await db.transaction(async (trx) => {
       console.log("serviceId", service_id);
-      let query = await db
-        .select("services.*")
-        .from("services")
-        .where("service_id", "=", service_id);
-      console.log(query);
-      if (query[0].service_festival_id) {
-        const db_service = await trx("services")
-          .where({ service_id })
-          .update({
-            service_festival_id: trx.raw(
-              "array_append(service_festival_id, ?)",
-              [festival_id]
-            ),
-          })
-          .returning("*");
+      if (Array.isArray(service_id)) {
+        for (let service of service_id) {
+          const db_service = await trx("services")
+            .where({ service_id: service })
+            .update({
+              festivals_selected: trx.raw(
+                "array_append(festivals_selected, ?)",
+                [festival_id]
+              ),
+            })
+            .returning("*");
 
-        if (!db_service) {
-          return {
-            success: false,
-            details: "Inserting new product guest failed.",
-          };
+          if (!db_service) {
+            return {
+              success: false,
+              details: "Inserting new product guest failed.",
+            };
+          }
         }
       } else {
-        const db_service = await trx("services")
-          .where({ service_id })
-          .update({
-            service_festival_id: [festival_id],
-          })
-          .returning("*");
+        let query = await db
+          .select("services.*")
+          .from("services")
+          .where("service_id", "=", service_id);
+        console.log(query);
+        if (query[0].service_festival_id) {
+          const db_service = await trx("services")
+            .where({ service_id })
+            .update({
+              festivals_selected: trx.raw(
+                "array_append(service_festivals_selected, ?)",
+                [festival_id]
+              ),
+            })
+            .returning("*");
 
-        if (!db_service) {
-          return {
-            success: false,
-            details: "Inserting new product guest failed.",
-          };
+          if (!db_service) {
+            return {
+              success: false,
+              details: "Inserting new product guest failed.",
+            };
+          }
+        } else {
+          const db_service = await trx("services")
+            .where({ service_id })
+            .update({
+              festivals_selected: [festival_id],
+            })
+            .returning("*");
+
+          if (!db_service) {
+            return {
+              success: false,
+              details: "Inserting new product guest failed.",
+            };
+          }
         }
       }
     });
@@ -237,8 +258,8 @@ const getUserServiceDetails = async (user_id) => {
     });
 };
 
-const getServicesFromUser = async (user_id) => {
-  return await db
+const getServicesFromUser = async (user_id, keyword, festival_id) => {
+  let query = db
     .select(
       "services.*",
       "business_details.business_name",
@@ -266,7 +287,13 @@ const getServicesFromUser = async (user_id) => {
       "services.service_nationality_id",
       "nationalities.id"
     )
+    .leftJoin(
+      "festivals",
+      "services.festivals_selected[1]",
+      "festivals.festival_id"
+    )
     .groupBy("services.service_id")
+    .groupBy("festivals.festival_id")
     .groupBy("business_details.business_name")
     .groupBy("business_details.business_address_1")
     .groupBy("business_details.business_address_2")
@@ -275,11 +302,55 @@ const getServicesFromUser = async (user_id) => {
     .groupBy("business_details.zip_postal_code")
     .groupBy("business_details.business_details_user_id")
     .groupBy("nationalities.nationality")
-    .having("business_details.business_details_user_id", "=", Number(user_id))
+    .groupBy("services.festivals_selected")
+    //.having("business_details.business_details_user_id", "=", Number(user_id));
+    .having("services.service_user_id", "=", Number(user_id));
+
+  if (festival_id) {
+    //console.log("hello from festivalid", festival_id);
+    query = query.havingRaw(
+      "(? != ALL(coalesce(services.festivals_selected, array[]::int[])))",
+      festival_id
+    );
+  }
+
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                //"main.business_name, " +
+                "main.service_name, " +
+                "main.service_capacity, " +
+                "main.service_price, " +
+                //"main.business_city, " +
+                "main.service_description)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+  return await query
     .then((value) => {
+      //console.log("serviceValue", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
+      //console.log(reason);
       return { success: false, details: reason };
     });
 };

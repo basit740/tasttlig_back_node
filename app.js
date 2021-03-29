@@ -21,6 +21,7 @@ const services_router = require("./routes/services/services");
 const orders_router = require("./routes/order/order")
 const experiences_router = require("./routes/experiences/experiences");
 const food_sample_router = require("./routes/food_sample/food_sample");
+const all_product_router = require("./routes/allProducts/all_product");
 const festival_router = require("./routes/festival/festival");
 const vendor_router = require("./routes/vendor/vendor");
 const sponsor_router = require("./routes/sponsor/sponsor");
@@ -66,6 +67,7 @@ app.use(services_router);
 app.use(orders_router);
 app.use(experiences_router);
 app.use(food_sample_router);
+app.use(all_product_router);
 app.use(food_sample_claim_router);
 app.use(s3UploaderRouter);
 app.use(payment_router);

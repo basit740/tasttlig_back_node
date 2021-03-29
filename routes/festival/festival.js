@@ -52,6 +52,7 @@ router.get("/festival/all", async (req, res) => {
       radius: req.query.radius,
       latitude: req.query.latitude,
       longitude: req.query.longitude,
+      dayOfWeek: req.query.dayOfWeek,
     };
 
     const response = await festival_service.getAllFestivals(
@@ -59,7 +60,7 @@ router.get("/festival/all", async (req, res) => {
       keyword,
       filters
     );
-
+    console.log("filter", filters);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -317,6 +318,7 @@ router.put(
   "/festival/update/:festival_id",
   token_service.authenticateToken,
   async (req, res) => {
+   
     const {
       images,
       festival_name,

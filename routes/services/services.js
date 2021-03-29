@@ -15,12 +15,15 @@ router.post(
   async (req, res) => {
     if (
       !req.body.service_name ||
-      !req.body.service_nationality_id ||
-      !req.body.service_price ||
+      //!req.body.service_nationality_id ||
+      // !req.body.service_price ||
       !req.body.service_capacity ||
       !req.body.service_size_scope ||
       !req.body.service_description ||
-      !req.body.service_images
+      !req.body.service_images ||
+      !req.body.service_type ||
+      !req.body.start_time ||
+      !req.body.end_time
       //||
       //!req.body.service_festival_id ||
       // !req.body.service_creator_type
@@ -70,15 +73,24 @@ router.post(
           ? null
           : db_business_details.business_details_id,
         service_name: req.body.service_name,
-        service_nationality_id: req.body.service_nationality_id,
+        service_nationality_id: req.body.service_nationality_id
+          ? req.body.service_nationality_id
+          : null,
         service_price: req.body.service_price,
         service_capacity: req.body.service_capacity,
         service_size_scope: req.body.service_size_scope,
+        service_type: req.body.service_type,
         service_description: req.body.service_description,
-        service_festival_id: Array.isArray(req.body.service_festival_id)
+        festivals_selected: Array.isArray(req.body.service_festival_id)
           ? req.body.service_festival_id
           : req.body.service_festival_id
           ? [req.body.service_festival_id]
+          : null,
+        products_selected: req.body.products_selected
+          ? req.body.products_selected
+          : null,
+        experiences_selected: req.body.experiences_selected
+          ? req.body.experiences_selected
           : null,
         service_code: generateRandomString(4),
         service_status: "ACTIVE",
@@ -239,10 +251,11 @@ router.get("/services/user/:user_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
-
   try {
     const response = await services_service.getServicesFromUser(
-      req.params.user_id
+      req.query.user_id,
+      req.query.keyword,
+      req.query.festival
     );
 
     return res.send(response);
