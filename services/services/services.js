@@ -46,6 +46,7 @@ const createNewService = async (
 
     return { success: true, details: "Success." };
   } catch (error) {
+    console.log(error)
     return { success: false, details: error.message };
   }
 };
