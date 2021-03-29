@@ -25,7 +25,7 @@ const createNewFoodSampleClaim = async (
   console.log("data coming from here :" , product_claim_details)
   try {
     await db.transaction(async (trx) => {
-      const db_food_sample_claim = await trx("food_sample_claims")
+      const db_food_sample_claim = await trx("user_claims")
         .insert(product_claim_details)
         .returning("*");
 
@@ -39,7 +39,7 @@ const createNewFoodSampleClaim = async (
 
       if(quantityAfterClaim>=0) {
         await db("products")
-        .where({ product_id: db_food_sample_claim[0].food_sample_id})
+        .where({ product_id: db_food_sample_claim[0].product_id})
         .update(
          { claimed_total_quantity: quantityAfterClaim}
           )
@@ -73,10 +73,10 @@ const userCanClaimFoodSample = async (email, food_sample_id) => {
     );
 
     const claimIds = await db
-      .pluck("food_sample_id")
-      .from("food_sample_claims")
-      .where("food_sample_claim_email", email)
-      .where("food_sample_id", food_sample_id);
+      .pluck("claimed_product_id")
+      .from("user_claims")
+      .where("user_claim_email", email)
+      .where("claimed_product_id", food_sample_id);
 
     if (claimIds.length) {
       if (user == null && claimIds.length > MAX_CLAIMS) {
@@ -108,11 +108,11 @@ const getFoodClaimCount = async (email, food_sample_id) => {
   try {
     const query = db
       .select("count(*)")
-      .from("food_sample_claims")
-      .where("food_sample_claim_email", email);
+      .from("user_claims")
+      .where("user_claim_email", email);
 
     if (food_sample_id) {
-      query.where("food_sample_id", food_sample_id);
+      query.where("claimed_product_id", food_sample_id);
     }
 
     const count = await query;
@@ -127,11 +127,11 @@ const getFoodClaimCount = async (email, food_sample_id) => {
 const confirmProductClaim = async (claimId, quantityAfterRedeem, totalRedeemQuantity) => {
   try {
     await db.transaction(async (trx) => {
-      const db_food_sample_claim = await trx("food_sample_claims")
+      const db_food_sample_claim = await trx("user_claims")
         .where({ claim_viewable_id: claimId })
         .update({
-          status: Food_Sample_Claim_Status.CONFIRMED,
-          current_status: "Redeemed",
+          stamp_status: Food_Sample_Claim_Status.CONFIRMED,
+          current_stamp_status: "Redeemed",
         })
         .returning("*");
 
@@ -263,17 +263,17 @@ const getUserProductsClaims = async (user_id) => {
     const db_food_sample_claim = await db
       .select(
         "products.*",
-        "food_sample_claims.*",
+        "user_claims.*",
         "tasttlig_users.first_name",
         "tasttlig_users.last_name",
         "nationalities.nationality",
         "nationalities.alpha_2_code",
         db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
       )
-      .from("food_sample_claims")
+      .from("user_claims")
       .leftJoin(
         "products",
-        "food_sample_claims.food_sample_id",
+        "user_claims.claimed_product_id",
         "products.product_id"
       )
       .leftJoin(
@@ -283,7 +283,7 @@ const getUserProductsClaims = async (user_id) => {
       )
       .leftJoin(
         "tasttlig_users",
-        "food_sample_claims.food_sample_claim_user_id",
+        "user_claims.claim_user_id",
         "tasttlig_users.tasttlig_user_id"
       )
       .leftJoin(
@@ -291,13 +291,13 @@ const getUserProductsClaims = async (user_id) => {
         "products.nationality_id",
         "nationalities.id"
       )
-      .groupBy("food_sample_claims.food_sample_claim_id")
+      .groupBy("user_claims.food_sample_claim_id")
       .groupBy("products.product_id")
       .groupBy("tasttlig_users.first_name")
       .groupBy("tasttlig_users.last_name")
       .groupBy("nationalities.nationality")
       .groupBy("nationalities.alpha_2_code")
-      .having("food_sample_claim_user_id", "=", user_id);
+      .having("claim_user_id", "=", user_id);
 
     return { success: true, details: db_food_sample_claim };
   } catch (error) {
@@ -310,17 +310,17 @@ const getUserProductsRedeems = async (user_id, keyword) => {
   let query = db
       .select(
         "products.*",
-        "food_sample_claims.*",
+        "user_claims.*",
         "tasttlig_users.first_name",
         "tasttlig_users.last_name",
         "nationalities.nationality",
         "nationalities.alpha_2_code",
         db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
       )
-      .from("food_sample_claims")
+      .from("user_claims")
       .leftJoin(
         "products",
-        "food_sample_claims.food_sample_id",
+        "user_claims.claimed_product_id",
         "products.product_id"
       )
       .leftJoin(
@@ -330,7 +330,7 @@ const getUserProductsRedeems = async (user_id, keyword) => {
       )
       .leftJoin(
         "tasttlig_users",
-        "food_sample_claims.food_sample_claim_user_id",
+        "user_claims.claim_user_id",
         "tasttlig_users.tasttlig_user_id"
       )
       .leftJoin(
@@ -338,7 +338,7 @@ const getUserProductsRedeems = async (user_id, keyword) => {
         "products.nationality_id",
         "nationalities.id"
       )
-      .groupBy("food_sample_claims.food_sample_claim_id")
+      .groupBy("user_claims.food_sample_claim_id")
       .groupBy("products.product_id")
       .groupBy("tasttlig_users.first_name")
       .groupBy("tasttlig_users.last_name")
