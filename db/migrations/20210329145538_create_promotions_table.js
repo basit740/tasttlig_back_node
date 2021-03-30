@@ -1,6 +1,6 @@
 exports.up = function(knex) {
     return knex.schema.createTable("promotions", table => {
-    table.integer("promotion_id").unsigned().primary();
+    table.increments("promotion_id").unsigned().primary();
     table.integer("promotion_business_id").unsigned().index()
     .references("business_details_id").inTable("business_details").onDelete("CASCADE");
     table.string("promtion_name");
