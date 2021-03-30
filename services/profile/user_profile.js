@@ -1155,7 +1155,7 @@ const getUserByPassportIdOrEmail = async (passport_id_or_email) => {
 // Save application from multi-step form to applications table helper function
 const saveHostApplication = async (hostDto, user) => {
   let dbUser = null;
-  console.log("user", user);
+  console.log("user from save application", user);
   if (user) {
     dbUser = await getUserById(user.id);
   }

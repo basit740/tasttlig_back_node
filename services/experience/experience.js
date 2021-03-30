@@ -243,16 +243,6 @@ const getAllUserExperience = async (
       "experiences.experience_nationality_id",
       "nationalities.id"
     )
-    .leftJoin(
-      "business_details",
-      "experiences.experience_business_id",
-      "business_details.business_details_id"
-    )
-    .leftJoin(
-      "festivals",
-      "experiences.festival_selected[1]",
-      "festivals.festival_id"
-    )
     .groupBy("experiences.experience_id")
     .groupBy("business_details.business_details_id")
     .groupBy("nationalities.nationality")
@@ -261,13 +251,7 @@ const getAllUserExperience = async (
     .groupBy("experiences.festival_selected");
 
   if (!requestByAdmin) {
-    query = query
-      .having("experiences.experience_status", operator, status)
-      .having(
-        "business_details.business_details_user_id",
-        "=",
-        Number(user_id)
-      );
+    query = query.having("experiences.experience_status", operator, status);
   } else {
     query = query.having("experiences.experience_status", operator, status);
   }
@@ -535,54 +519,6 @@ const getDistinctNationalities = async (operator, status) => {
     });
 };
 
-const addExperienceToFestival = async (festival_id, experience_id) => {
-  try {
-    await db.transaction(async (trx) => {
-      console.log("experienceId", experience_id);
-      if (Array.isArray(experience_id)) {
-        for (let experience of experience_id) {
-          const db_experience = await trx("experiences")
-            .where({ experience_id: experience })
-            .update({
-              festival_selected: trx.raw("array_append(festival_selected, ?)", [
-                festival_id,
-              ]),
-            })
-            .returning("*");
-
-          if (!db_experience) {
-            return {
-              success: false,
-              details: "Inserting new product guest failed.",
-            };
-          }
-        }
-      } else {
-        const db_service = await trx("experiences")
-          .where({ experience_id })
-          .update({
-            festival_selected: trx.raw(
-              "array_append(experience_festival_selected, ?)",
-              [festival_id]
-            ),
-          })
-          .returning("*");
-
-        if (!db_service) {
-          return {
-            success: false,
-            details: "Inserting new product guest failed.",
-          };
-        }
-      }
-    });
-
-    return { success: true, details: "Success." };
-  } catch (error) {
-    console.log(error);
-    return { success: false, details: error.message };
-  }
-};
 
 module.exports = {
   createNewExperience,
@@ -593,6 +529,6 @@ module.exports = {
   updateExperience,
   getExperience,
   getDistinctNationalities,
-  addExperienceToFestival,
   getUserExperiencesById,
+  
 };

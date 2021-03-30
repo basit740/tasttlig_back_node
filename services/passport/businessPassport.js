@@ -3,6 +3,7 @@
 // Libraries
 const { db } = require("../../db/db-config");
 const { generateRandomString } = require("../../functions/functions");
+const user_order_service = require("../payment/user_orders");
 
 // Get user by ID helper function
 const getUserById = async (id) => {
@@ -131,13 +132,12 @@ const postBusinessPassportDetails = async (data) => {
         business_phone_number: data["user_business_phone_number"]
       };
 
-      // console.log(business_details)
 
       var business_details_id = await trx("business_details")
         .insert(business_details)
         .returning("business_details_id");
 
-        // console.log("detail id",business_details_id[0]);
+        console.log("details from business passport", data);
 
       const business_details_images = {
         business_details_logo: data["user_business_logo"],
@@ -147,9 +147,7 @@ const postBusinessPassportDetails = async (data) => {
 
       await trx("business_details_images")
         .insert(business_details_images);
-
-        // console.log("inserted business images")
-        
+      
         return { success: true };
     });
   } catch (error) {
@@ -175,10 +173,8 @@ const approveOrDeclineBusinessMemberApplication = async (
       return { success: false, message: db_user_row.message };
     }
 
-    console.log("here")
     const db_user = db_user_row.user;
 
-    console.log("here 1")
     // // Get pending role which has been approved
     // let role_pending = "";
     // db_user.role.map((role) => {
