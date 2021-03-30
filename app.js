@@ -18,6 +18,7 @@ const user_authentication_router = require("./routes/user/authentication");
 const experience_router = require("./routes/experience/experience");
 const products_router = require("./routes/products/products");
 const services_router = require("./routes/services/services");
+const promotions_router = require("./routes/promotions/promotions");
 const orders_router = require("./routes/order/order")
 const experiences_router = require("./routes/experiences/experiences");
 const food_sample_router = require("./routes/food_sample/food_sample");
@@ -63,6 +64,7 @@ app.use(user_authentication_router);
 app.use(profile_router);
 app.use(experience_router);
 app.use(products_router);
+app.use(promotions_router);
 app.use(services_router);
 app.use(orders_router);
 app.use(experiences_router);
