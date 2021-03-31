@@ -1059,12 +1059,12 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      if (!req.user.role.includes("GUEST")) {
+      /* if (!req.user.role.includes("GUEST")) {
         return res.status(403).json({
           success: false,
           message: response.message,
         });
-      }
+      } */
       const response = await user_profile_service.upgradeToGuestAmbassador(
         req.body
       );
