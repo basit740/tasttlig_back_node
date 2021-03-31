@@ -4,7 +4,8 @@
 const router = require("express").Router();
 const token_service = require("../../services/authentication/token");
 const authentication_service = require("../../services/authentication/authenticate_user");
-
+const user_profile_service = require("../../services/profile/user_profile");
+const reviews_service = require("../../services/reviews/reviews");
 // POST review
 router.post(
   "/reviews/add",
@@ -64,20 +65,20 @@ router.post(
         review_experience_id: req.body.experience_id
           ? req.body.experience_id
           : null,
-        festival_id: req.body.festival_id ? req.body_festival_id : null,
+        review_festival_id: req.body.festival_id ? req.body_festival_id : null,
         review_status: "REVIEWED",
         review_ask_count: 1,
-        //change this one
-        food_quality_rating: req.body.authenticity,
+        authenticity_of_food_rating: req.body.authenticity,
         location_accessibility_rating: req.body.transit,
-        //change this one
+        overall_service_of_restauant_rating: req.body.service,
         overall_user_experience_rating: req.body.finalScore,
         taste_of_food_rating: req.body.foodTaste,
         venue_ambience_rating: req.body.appearance,
-        additonal_comments: req.body.additional_comments,
-        //need service column
+        additional_comments: req.body.additionalInfo,
+        review_date_time: new Date(),
       };
-      const response = await products_service.updateReview(
+      let result = "";
+      const response = await reviews_service.updateReview(
         user_details_from_db,
         review_information
       );
@@ -91,6 +92,7 @@ router.post(
       }
       return res.send(result);
     } catch (error) {
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",
