@@ -77,7 +77,7 @@ router.post(
         promotion_start_date_time: req.body.promotion_start_date,
         promotion_end_date_time: req.body.promotion_end_date,
         promotion_status: "ACTIVE",
-        promotion_start_date_time: req.body.start_date,
+        
       };
       const response = await services_promotions.createNewPromotion(
         user_details_from_db,
