@@ -17,7 +17,7 @@ const EMAIL_SECRET = process.env.EMAIL_SECRET;
 
 // Get user by ID helper function
 const getUserById = async (id) => {
-  console.log("id from here:", id)
+  console.log("id from here:", id);
   return await db
     .select("tasttlig_users.*", db.raw("ARRAY_AGG(roles.role) as role"))
     .from("tasttlig_users")
@@ -400,6 +400,31 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
     role_name = "VENDOR_PENDING";
   }
+  if (applications.length == 0 && hostDto.is_guest_amb) {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: hostDto.is_influencer
+        ? "I am an influencer. " + hostDto.ambassador_intent_description
+        : "I am not an influencer. " + hostDto.ambassador_intent_description,
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "guest",
+      status: "Pending",
+      youtube_link: hostDto.youtube_link,
+      linkedin_link: hostDto.linkedin_link,
+      facebook_link: hostDto.facebook_link,
+      instagram_link: hostDto.instagram_link,
+      twitter_link: hostDto.twitter_link,
+    });
+    //role_name = "GUEST_AMBASSADOR_PENDING";
+
+    return trx("applications")
+      .insert(applications)
+      .returning("*")
+      .catch((reason) => {
+        console.log(reason);
+      });
+  }
   if (applications.length === 0) {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -422,7 +447,6 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
     role_name = "SPONSOR_PENDING";
   }
-
   /*   if (applications.length == 0 && hostDto.is_host === "no") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -1322,6 +1346,39 @@ const getSubscriptionsByUserId = async (userId) => {
     });
 };
 
+const upgradeToGuestAmbassador = async (guest_details) => {
+  try {
+    await db.transaction(async (trx) => {
+      let dbUser;
+      console.log(dbUser);
+      //hostDto.dbUser.user.tasttlig_user_id
+      await saveApplicationInformation(guest_details, trx);
+
+      //change to update tattlig user table
+      data = {
+        linkedin_link: guest_details.linkedin_link,
+        facebook_link: guest_details.facebook_link,
+        youtube_link: guest_details.youtube_link,
+        instagram_link: guest_details.instagram_link,
+        twitter_link: guest_details.twitter_link,
+        ambassador_intent_description:
+          guest_details.ambassador_intent_description,
+        is_influencer: guest_details.is_influencer,
+      };
+      await updateUserProfile(data);
+
+      if (!db_preference) {
+        return { success: false, details: "Inserting new preference failed." };
+      }
+    });
+    console.log("hello");
+    return { success: true, details: "Success." };
+  } catch (error) {
+    console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
@@ -1357,4 +1414,5 @@ module.exports = {
   //createPreferences
   getBusinessDetailsByUserId,
   getSubscriptionsByUserId,
+  upgradeToGuestAmbassador,
 };

@@ -1052,4 +1052,30 @@ router.post(
     } catch (error) {}
   }
 );
+
+//guest ambassador application
+router.post(
+  "/guest-ambassador-application",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      if (!req.user.role.includes("GUEST")) {
+        return res.status(403).json({
+          success: false,
+          message: response.message,
+        });
+      }
+      const response = await user_profile_service.upgradeToGuestAmbassador(
+        req.body
+      );
+      if (!response.success) {
+        return res.status(403).json({
+          success: false,
+          message: response.message,
+        });
+      }
+      res.send(response);
+    } catch (error) {}
+  }
+);
 module.exports = router;

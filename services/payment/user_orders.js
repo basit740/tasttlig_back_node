@@ -419,8 +419,11 @@ const createOrder = async (order_details, db_order_details) => {
         let subscription_end_datetime = null;
 
         if (db_order_details.item.validity_in_months) {
-          subscription_end_datetime = new Date().setMonth(
-            new Date().getMonth() + db_order_details.item.validity_in_months
+          subscription_end_datetime = new Date(
+            new Date().setMonth(
+              new Date().getMonth() +
+                Number(db_order_details.item.validity_in_months)
+            )
           );
         } else {
           subscription_end_datetime = db_order_details.item.date_of_expiry;

@@ -410,11 +410,7 @@ const getAllFoodSamples = async (
       "products.product_creater_user_id",
       "business_details.business_details_user_id"
     )
-    .leftJoin(
-      "nationalities",
-      "products.nationality_id",
-      "nationalities.id"
-    )
+    .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .leftJoin("festivals", "food_samples.festival_id", "festivals.festival_id")
     .groupBy("food_samples.food_sample_id")
     .groupBy("tasttlig_users.first_name")
@@ -1025,7 +1021,6 @@ const getNationalities = async (keyword) => {
 const deleteFoodSamplesFromUser = async (user_id, delete_items) => {
   try {
     for (let item of delete_items) {
-<<<<<<< HEAD
       console.log("itemsssfddddds", item);
       await db.transaction(async (trx) => {
         const productImagesDelete = await trx("food_sample_images")
@@ -1051,33 +1046,6 @@ const deleteFoodSamplesFromUser = async (user_id, delete_items) => {
             return { success: false, details: reason };
           });
       });
-=======
-      console.log("itemsssfddddds", item)
-      await db.transaction(async(trx) => {
-         const productImagesDelete = await trx("product_images")
-         .where({
-           product_id: item
-         })
-         .del() 
-         const foodSampleClaimsDelete = await trx("user_claims")
-         .where({
-           claimed_product_id: item,
-         })
-         .delete()
-         .then(() => {
-           return { success: true };
-         })
-        const foodSampleDelete = await trx("products")
-        .where({
-          product_id: item,
-        })
-        .del()
-        .catch((reason) => {
-          console.log(reason);
-          return { success: false, details: reason };
-        });
-      })
->>>>>>> 91539a3257e4a433529d0bbdf4b8ba7a38f8ce6b
     }
   } catch (error) {
     return { success: false, details: error };
