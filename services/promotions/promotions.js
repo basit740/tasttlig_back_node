@@ -5,6 +5,31 @@ const { db } = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 
 
+// Create service helper function
+const createNewPromotion = async (
+  user_details_from_db,
+  promotion_information,
+  ) => {
+  try {
+    await db.transaction(async (trx) => {
+      const db_service = await trx("promotions")
+        .insert(promotion_information)
+        .returning("*");
+
+      if (!db_service) {
+        return { success: false, details: "Inserting new promotion failed." };
+      }
+
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    console.log(error)
+    return { success: false, details: error.message };
+  }
+};
+
+
 //get promotions details and images by user id
 const getPromotionsByUser = async (user_id) => {
     console.log(user_id)
@@ -64,5 +89,6 @@ const getPromotionsByUser = async (user_id) => {
 
 module.exports = {
     getPromotionsByUser,
+    createNewPromotion,
     deletePromotionsOfUser
   };
