@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const hosts_service = require("../../services/hosts/hosts");
 const business_passport_service = require("../../services/passport/businessPassport");
 const user_profile_service = require("../../services/profile/user_profile");
+const user_order_service = require("../../services/payment/user_orders");
 
 // GET applications
 router.get(
@@ -34,9 +35,10 @@ router.get(
       const application = await hosts_service.getHostApplication(
         req.params.userId
       );
-
+      console.log("response from application host:", application)
       return res.send(application);
     } catch (error) {
+      console.log("response from application host:", error)
       res.status(500).send({
         success: false,
         message: error.message,
@@ -155,7 +157,8 @@ router.post("/request-host", /* token_service.authenticateToken, */ async (req, 
    able_to_abide_by_health_safety_regulations,
    hosted_tasttlig_festival_before,
    able_to_provide_excellent_customer_service,
-   able_to_provide_games_about_culture_cuisine } = req.body;
+   able_to_provide_games_about_culture_cuisine,
+   subscriptionResponse } = req.body;
    console.log(req.body);
   try {
     
@@ -190,9 +193,16 @@ router.post("/request-host", /* token_service.authenticateToken, */ async (req, 
       able_to_abide_by_health_safety_regulations,
       hosted_tasttlig_festival_before,
       able_to_provide_excellent_customer_service,
-      able_to_provide_games_about_culture_cuisine
+      able_to_provide_games_about_culture_cuisine,
     };
-
+    console.log("subscriptionResponse",subscriptionResponse)
+    const creatingFreeOrder = await user_order_service.createFreeOrder(subscriptionResponse, host_user_id )
+    if (!creatingFreeOrder.success) {
+      return res.status(200).json({
+        success: false,
+        message: creatingFreeOrder.details,
+      });
+    }
     const response = await hosts_service.createHost(
       host_details, 
       is_host, req.body.email

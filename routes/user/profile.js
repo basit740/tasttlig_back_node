@@ -855,7 +855,6 @@ router.post(
           message: creatingFreeOrder.details,
         });
       }
-  // console.log("inserted business images")
       // return res.send(saveHost);
       const saveHost = await user_profile_service.saveHostApplication(
         hostDto,
