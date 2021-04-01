@@ -1017,6 +1017,154 @@ const approveOrDeclineHostApplication = async (
   }
 };
 
+const approveOrDeclineHostAmbassadorApplication = async (
+  userId,
+  status,
+  declineReason
+) => {
+  console.log("userID:", userId)
+  console.log("status:", status)
+  console.log("declineReason:", declineReason)
+  try {
+    const db_user_row = await getUserById(userId);
+
+    if (!db_user_row.success) {
+      return { success: false, message: db_user_row.message };
+    }
+
+    const db_user = db_user_row.user;
+
+ 
+    console.log("role_pending:", db_user)
+
+    // Depends on status, we do different things:
+    // If status is approved
+    if (status === "APPROVED") {
+
+      await db("products")
+        .where({
+          product_user_id: db_user.tasttlig_user_id,
+          status: "INACTIVE",
+        })
+        .update("status", "ACTIVE");
+
+       
+        await db("user_subscriptions")
+        .where({
+          user_id: db_user.tasttlig_user_id,
+          user_subscription_status: "INACTIVE",
+        })
+        .update("user_subscription_status", "ACTIVE")
+   
+      // STEP 3: Update all Food Samples to Active state if the user agreed to participate in festival
+      if (db_user.is_participating_in_festival) {
+        await db("products")
+          .where({
+            product_user_id: db_user.tasttlig_user_id,
+            status: "INACTIVE",
+          })
+          .update("status", "ACTIVE");
+      }
+
+      // STEP 4: Update all documents belongs to this user which is in Pending state become APPROVED
+      await db("documents")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("status", "Pending")
+        .update("status", "APPROVED")
+        .returning("*")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
+
+      // STEP 5: Update applications table status
+      await db("applications")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("status", "Pending")
+        .update("status", "APPROVED")
+        .returning("*")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
+
+      let active_item = "Products";
+
+      /*       if (role_name_in_title_case === "Host") {
+        active_item = "Experiences";
+      } */
+
+      // STEP 6: Email the user that their application is approved
+      await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: db_user.email,
+        subject: `[Tasttlig] Your request for upgradation to becoming Host Ambassador is accepted`,
+        template: "user_upgrade_approve",
+        context: {
+          first_name: db_user.first_name,
+          last_name: db_user.last_name,
+          role_name: 'Host Ambassador',
+          active_item: active_item,
+        },
+      });
+
+      return { success: true, message: status };
+    } else {
+      // Status is failed
+     
+
+      // STEP 2: Update all documents belongs to this user which is in Pending state become REJECT
+      await db("documents")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("status", "Pending")
+        .update("status", "REJECT")
+        .returning("*")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
+
+        //mark the status to rejected if it has been rejected.
+        await db("user_subscriptions")
+        .where({
+          user_id: db_user.tasttlig_user_id,
+          user_subscription_status: "INACTIVE",
+        })
+        .update("user_subscription_status", "REJECTED")
+        .returning("*")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
+
+      // STEP 3: Update applications table status
+      await db("applications")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("status", "Pending")
+        .update("status", "REJECT")
+        .returning("*")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
+
+ 
+
+      // STEP 4: Notify user their application is rejected
+      await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: db_user.email,
+        subject: `[Tasttlig] Your request for upgradation to Host Ambassador is rejected`,
+        template: "user_upgrade_reject",
+        context: {
+          first_name: db_user.first_name,
+          last_name: db_user.last_name,
+          declineReason,
+        },
+      });
+
+      return { success: true, message: status };
+    }
+  } catch (error) {
+    return { success: false, message: error };
+  }
+};
+
 // Get user by email helper function
 const getUserByEmail = async (email) => {
   return await db
@@ -1341,6 +1489,7 @@ module.exports = {
   sendNewUserEmail,
   handleAction,
   approveOrDeclineHostApplication,
+  approveOrDeclineHostAmbassadorApplication,
   saveHostApplication,
   saveSponsorForUser,
   saveBusinessForUser,

@@ -1,6 +1,6 @@
 exports.up = function(knex) {
     return knex.schema.alterTable("user_subscriptions", table => {
-      table.string("user_subscription_status").defaultTo("Inactive");
+      table.string("user_subscription_status").defaultTo(null);
       
  
     });

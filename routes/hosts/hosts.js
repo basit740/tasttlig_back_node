@@ -15,7 +15,7 @@ router.get(
   async (req, res) => {
     try {
       const applications = await hosts_service.getHostApplications();
-
+console.log("response from here:", applications)
       return res.send(applications);
     } catch (error) {
       res.status(500).send({
@@ -35,6 +35,8 @@ router.get(
       const application = await hosts_service.getHostApplication(
         req.params.userId
       );
+    
+
       console.log("response from application host:", application)
       return res.send(application);
     } catch (error) {
@@ -53,13 +55,14 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      const response = await user_profile_service.approveOrDeclineHostApplication(
+      const response = await user_profile_service.approveOrDeclineHostAmbassadorApplication(
         req.params.userId,
         "APPROVED"
       );
-      
+      console.log("response", response)
       return res.send(response);
     } catch (error) {
+      console.log(error)
       res.status(500).send({
         success: false,
         message: error.message,
@@ -119,14 +122,15 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      const response = await user_profile_service.approveOrDeclineHostApplication(
+      const response = await user_profile_service.approveOrDeclineHostAmbassadorApplication(
         req.params.userId,
         "DECLINED",
         req.body.declineReason
       );
-
+      console.log("response", response)
       return res.send(response);
     } catch (error) {
+      console.log("error", error)
       res.status(500).send({
         success: false,
         message: error.message,
