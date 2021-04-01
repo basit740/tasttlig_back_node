@@ -87,8 +87,65 @@ const getPromotionsByUser = async (user_id) => {
     }
   };
 
+  const applyPromotionToProducts = async (promotion, products) => {
+    try{
+      for(let product of products) {
+        // promotion percentage or discount
+        // product price
+        if(product.price > 0) {
+          console.log("percentage")
+          if(promotion.promotion_discount_percentage) {
+            var promotional_discount_id = promotion.promotion_id
+            var discounted_price = product.price - ((product.price * promotion.promotion_discount_percentage) / 100)
+            const update_data = {
+              "promotional_discount_id": promotional_discount_id,
+              "discounted_price": discounted_price
+            }
+            // update in db
+            await db.transaction(async (trx) => {
+              const update_product = await trx("products")
+              .where("product_id", "=", product.product_id)
+              .update(update_data);
+            });
+          } else {
+            console.log("price")
+            var promotional_discount_id = promotion.promotion_id
+            var discounted_price = product.price -  promotion.promotion_discount_price
+            if(discounted_price < 0) {
+              return {
+                success: false,
+                message: "Promotion price cannot be greater than the price of product"
+              }
+            }
+            const update_data = {
+              "promotional_discount_id": promotional_discount_id,
+              "discounted_price": discounted_price
+            }
+            console.log(update_data)
+            // update in db
+            await db.transaction(async (trx) => {
+              const update_product = await trx("products")
+              .where("product_id", "=", product.product_id)
+              .update(update_data);
+            });
+          }
+        } else {
+            return {
+              success: false,
+              message: "Product ".concat(product.title).concat(" is already free. Cannot apply promotion on a free product")
+            }
+        }
+      }
+      return { success: true };
+    } catch (error) {
+      console.log(error)
+      return { success: false, details: error };
+    }
+  }
+
 module.exports = {
     getPromotionsByUser,
     createNewPromotion,
-    deletePromotionsOfUser
+    deletePromotionsOfUser,
+    applyPromotionToProducts
   };

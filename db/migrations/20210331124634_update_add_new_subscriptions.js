@@ -43,7 +43,7 @@ exports.up = function(knex) {
             validity_in_months: "1"
         },{
             subscription_code: "G_MSHIP1",
-            subscription_name: "Gues_Membership_1",
+            subscription_name: "Guest_Membership_1",
             price: "10",
             status: "ACTIVE",
             description: "Guest Membership level 1",
@@ -55,7 +55,7 @@ exports.up = function(knex) {
             // can_sell_food_experiences_to_guests: "FALSE"
         },{
             subscription_code: "G_MSHIP2",
-            subscription_name: "Gues_Membership_2",
+            subscription_name: "Guest_Membership_2",
             price: "20",
             status: "ACTIVE",
             description: "Guest Membership level 2",
@@ -67,7 +67,7 @@ exports.up = function(knex) {
             // can_sell_food_experiences_to_guests: "FALSE"
         },{
             subscription_code: "G_MSHIP3",
-            subscription_name: "Gues_Membership_3",
+            subscription_name: "Guest_Membership_3",
             price: "30",
             status: "ACTIVE",
             description: "Guest Membership level 3",
