@@ -22,7 +22,6 @@ const createNewFoodSampleClaim = async (
   quantityAfterClaim,
   product_claim_details
 ) => {
-  console.log("data coming from here :" , product_claim_details)
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
@@ -35,11 +34,10 @@ const createNewFoodSampleClaim = async (
           details: "Inserting new food sample claim failed.",
         };
       }
-      console.log("food sample claim result:", db_food_sample_claim)
 
       if(quantityAfterClaim>=0) {
         await db("products")
-        .where({ product_id: db_food_sample_claim[0].product_id})
+        .where({ product_id: db_food_sample_claim[0].claimed_product_id})
         .update(
          { claimed_total_quantity: quantityAfterClaim}
           )
