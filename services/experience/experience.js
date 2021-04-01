@@ -261,13 +261,7 @@ const getAllUserExperience = async (
     .groupBy("experiences.festival_selected");
 
   if (!requestByAdmin) {
-    query = query
-      .having("experiences.experience_status", operator, status)
-      .having(
-        "business_details.business_details_user_id",
-        "=",
-        Number(user_id)
-      );
+    query = query.having("experiences.experience_status", operator, status);
   } else {
     query = query.having("experiences.experience_status", operator, status);
   }
