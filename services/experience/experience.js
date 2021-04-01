@@ -243,19 +243,6 @@ const getAllUserExperience = async (
       "experiences.experience_nationality_id",
       "nationalities.id"
     )
-<<<<<<< HEAD
-    .leftJoin(
-      "business_details",
-      "experiences.experience_business_id",
-      "business_details.business_details_id"
-    )
-    .leftJoin(
-      "festivals",
-      "experiences.festival_selected[1]",
-      "festivals.festival_id"
-    )
-=======
->>>>>>> 6586c5f1ea7be9135c49dbad5d18f96a4c787de5
     .groupBy("experiences.experience_id")
     .groupBy("business_details.business_details_id")
     .groupBy("nationalities.nationality")
@@ -538,58 +525,6 @@ const getDistinctNationalities = async (operator, status) => {
     });
 };
 
-<<<<<<< HEAD
-const addExperienceToFestival = async (festival_id, experience_id) => {
-  try {
-    await db.transaction(async (trx) => {
-      console.log("experienceId", experience_id);
-      if (Array.isArray(experience_id)) {
-        for (let experience of experience_id) {
-          const db_experience = await trx("experiences")
-            .where({ experience_id: experience })
-            .update({
-              festival_selected: trx.raw("array_append(festival_selected, ?)", [
-                festival_id,
-              ]),
-            })
-            .returning("*");
-
-          if (!db_experience) {
-            return {
-              success: false,
-              details: "Inserting new product guest failed.",
-            };
-          }
-        }
-      } else {
-        const db_service = await trx("experiences")
-          .where({ experience_id })
-          .update({
-            festival_selected: trx.raw(
-              "array_append(experience_festival_selected, ?)",
-              [festival_id]
-            ),
-          })
-          .returning("*");
-
-        if (!db_service) {
-          return {
-            success: false,
-            details: "Inserting new product guest failed.",
-          };
-        }
-      }
-    });
-
-    return { success: true, details: "Success." };
-  } catch (error) {
-    console.log(error);
-    return { success: false, details: error.message };
-  }
-};
-=======
->>>>>>> 6586c5f1ea7be9135c49dbad5d18f96a4c787de5
-
 module.exports = {
   createNewExperience,
   getAllExperience,
@@ -599,11 +534,5 @@ module.exports = {
   updateExperience,
   getExperience,
   getDistinctNationalities,
-<<<<<<< HEAD
-  addExperienceToFestival,
   getUserExperiencesById,
-=======
-  getUserExperiencesById,
-  
->>>>>>> 6586c5f1ea7be9135c49dbad5d18f96a4c787de5
 };

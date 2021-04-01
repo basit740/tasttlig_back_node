@@ -415,10 +415,5 @@ module.exports = {
   createNewProduct,
   getAllProductsInFestival,
   getAllUserProducts,
-<<<<<<< HEAD
   getProductById,
-=======
-  getProductById
-  
->>>>>>> 6586c5f1ea7be9135c49dbad5d18f96a4c787de5
 };

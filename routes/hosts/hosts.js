@@ -246,26 +246,67 @@ router.post(
       hosted_tasttlig_festival_before,
       able_to_provide_excellent_customer_service,
       able_to_provide_games_about_culture_cuisine,
-    };
-    console.log("subscriptionResponse", subscriptionResponse);
-    const creatingFreeOrder = await user_order_service.createFreeOrder(
       subscriptionResponse,
-      host_user_id
-    );
-    if (!creatingFreeOrder.success) {
-      return res.status(200).json({
+    } = req.body;
+    console.log(req.body);
+    try {
+      if (!host_video_url || !host_description) {
+        return res.status(403).json({
+          success: false,
+          message: "Required parameters are not available in request.",
+        });
+      }
+
+      const host_details = {
+        host_user_id: host_user_id ? host_user_id : null,
+        host_video_url,
+        host_description,
+        has_hosted_anything_before,
+        have_a_restaurant,
+        cuisine_type,
+        seating_option,
+        want_people_to_discover_your_cuisine,
+        able_to_provide_food_samples,
+        has_hosted_other_things_before,
+        able_to_explain_the_origins_of_tasting_samples,
+        able_to_proudly_showcase_your_culture,
+        able_to_provie_private_dining_experience,
+        able_to_provide_3_or_more_course_meals_to_guests,
+        able_to_provide_live_entertainment,
+        able_to_provide_other_form_of_entertainment,
+        able_to_abide_by_health_safety_regulations,
+        hosted_tasttlig_festival_before,
+        able_to_provide_excellent_customer_service,
+        able_to_provide_games_about_culture_cuisine,
+      };
+      console.log("subscriptionResponse", subscriptionResponse);
+      const creatingFreeOrder = await user_order_service.createFreeOrder(
+        subscriptionResponse,
+        host_user_id
+      );
+      if (!creatingFreeOrder.success) {
+        return res.status(200).json({
+          success: false,
+          message: creatingFreeOrder.details,
+        });
+      }
+      const response = await hosts_service.createHost(
+        host_details,
+        is_host,
+        req.body.email
+      );
+      if (response.success) {
+        console.log(response);
+        return res.send(response);
+      }
+      console.log("non-success", response);
+      return res.status(500).send(response);
+    } catch (error) {
+      console.log(error);
+      return res.status(403).json({
         success: false,
-        message: creatingFreeOrder.details,
+        message: error,
       });
-    }
-    const response = await hosts_service.createHost(
-      host_details,
-      is_host,
-      req.body.email
-    );
-    if (response.success) {
-      console.log(response);
-      return res.send(response);
     }
   }
 );
