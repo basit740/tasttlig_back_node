@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const hosts_service = require("../../services/hosts/hosts");
 const business_passport_service = require("../../services/passport/businessPassport");
 const user_profile_service = require("../../services/profile/user_profile");
+const user_order_service = require("../../services/payment/user_orders");
 
 // GET applications
 router.get(
@@ -14,7 +15,7 @@ router.get(
   async (req, res) => {
     try {
       const applications = await hosts_service.getHostApplications();
-
+      console.log("response from here:", applications);
       return res.send(applications);
     } catch (error) {
       res.status(500).send({
@@ -53,8 +54,10 @@ router.get(
         req.params.userId
       );
 
+      console.log("response from application host:", application);
       return res.send(application);
     } catch (error) {
+      console.log("response from application host:", error);
       res.status(500).send({
         success: false,
         message: error.message,
@@ -88,13 +91,14 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      const response = await user_profile_service.approveOrDeclineHostApplication(
+      const response = await user_profile_service.approveOrDeclineHostAmbassadorApplication(
         req.params.userId,
         "APPROVED"
       );
-
+      console.log("response", response);
       return res.send(response);
     } catch (error) {
+      console.log(error);
       res.status(500).send({
         success: false,
         message: error.message,
@@ -154,14 +158,15 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      const response = await user_profile_service.approveOrDeclineHostApplication(
+      const response = await user_profile_service.approveOrDeclineHostAmbassadorApplication(
         req.params.userId,
         "DECLINED",
         req.body.declineReason
       );
-
+      console.log("response", response);
       return res.send(response);
     } catch (error) {
+      console.log("error", error);
       res.status(500).send({
         success: false,
         message: error.message,
@@ -241,56 +246,26 @@ router.post(
       hosted_tasttlig_festival_before,
       able_to_provide_excellent_customer_service,
       able_to_provide_games_about_culture_cuisine,
-    } = req.body;
-    console.log(req.body);
-    try {
-      if (!host_video_url || !host_description) {
-        return res.status(403).json({
-          success: false,
-          message: "Required parameters are not available in request.",
-        });
-      }
-
-      const host_details = {
-        host_user_id: host_user_id ? host_user_id : null,
-        host_video_url,
-        host_description,
-        has_hosted_anything_before,
-        have_a_restaurant,
-        cuisine_type,
-        seating_option,
-        want_people_to_discover_your_cuisine,
-        able_to_provide_food_samples,
-        has_hosted_other_things_before,
-        able_to_explain_the_origins_of_tasting_samples,
-        able_to_proudly_showcase_your_culture,
-        able_to_provie_private_dining_experience,
-        able_to_provide_3_or_more_course_meals_to_guests,
-        able_to_provide_live_entertainment,
-        able_to_provide_other_form_of_entertainment,
-        able_to_abide_by_health_safety_regulations,
-        hosted_tasttlig_festival_before,
-        able_to_provide_excellent_customer_service,
-        able_to_provide_games_about_culture_cuisine,
-      };
-
-      const response = await hosts_service.createHost(
-        host_details,
-        is_host,
-        req.body.email
-      );
-      if (response.success) {
-        console.log(response);
-        return res.send(response);
-      }
-      console.log("non-success", response);
-      return res.status(500).send(response);
-    } catch (error) {
-      console.log(error);
-      return res.status(403).json({
+    };
+    console.log("subscriptionResponse", subscriptionResponse);
+    const creatingFreeOrder = await user_order_service.createFreeOrder(
+      subscriptionResponse,
+      host_user_id
+    );
+    if (!creatingFreeOrder.success) {
+      return res.status(200).json({
         success: false,
-        message: error,
+        message: creatingFreeOrder.details,
       });
+    }
+    const response = await hosts_service.createHost(
+      host_details,
+      is_host,
+      req.body.email
+    );
+    if (response.success) {
+      console.log(response);
+      return res.send(response);
     }
   }
 );
