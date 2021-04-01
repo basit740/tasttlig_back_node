@@ -1045,9 +1045,9 @@ const approveOrDeclineHostAmbassadorApplication = async (
   status,
   declineReason
 ) => {
-  console.log("userID:", userId)
-  console.log("status:", status)
-  console.log("declineReason:", declineReason)
+  console.log("userID:", userId);
+  console.log("status:", status);
+  console.log("declineReason:", declineReason);
   try {
     const db_user_row = await getUserById(userId);
 
@@ -1057,13 +1057,11 @@ const approveOrDeclineHostAmbassadorApplication = async (
 
     const db_user = db_user_row.user;
 
- 
-    console.log("role_pending:", db_user)
+    console.log("role_pending:", db_user);
 
     // Depends on status, we do different things:
     // If status is approved
     if (status === "APPROVED") {
-
       await db("products")
         .where({
           product_user_id: db_user.tasttlig_user_id,
@@ -1071,14 +1069,13 @@ const approveOrDeclineHostAmbassadorApplication = async (
         })
         .update("status", "ACTIVE");
 
-       
-        await db("user_subscriptions")
+      await db("user_subscriptions")
         .where({
           user_id: db_user.tasttlig_user_id,
           user_subscription_status: "INACTIVE",
         })
-        .update("user_subscription_status", "ACTIVE")
-   
+        .update("user_subscription_status", "ACTIVE");
+
       // STEP 3: Update all Food Samples to Active state if the user agreed to participate in festival
       if (db_user.is_participating_in_festival) {
         await db("products")
@@ -1124,7 +1121,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
         context: {
           first_name: db_user.first_name,
           last_name: db_user.last_name,
-          role_name: 'Host Ambassador',
+          role_name: "Host Ambassador",
           active_item: active_item,
         },
       });
@@ -1132,7 +1129,6 @@ const approveOrDeclineHostAmbassadorApplication = async (
       return { success: true, message: status };
     } else {
       // Status is failed
-     
 
       // STEP 2: Update all documents belongs to this user which is in Pending state become REJECT
       await db("documents")
@@ -1144,8 +1140,8 @@ const approveOrDeclineHostAmbassadorApplication = async (
           return { success: false, message: reason };
         });
 
-        //mark the status to rejected if it has been rejected.
-        await db("user_subscriptions")
+      //mark the status to rejected if it has been rejected.
+      await db("user_subscriptions")
         .where({
           user_id: db_user.tasttlig_user_id,
           user_subscription_status: "INACTIVE",
@@ -1165,8 +1161,6 @@ const approveOrDeclineHostAmbassadorApplication = async (
         .catch((reason) => {
           return { success: false, message: reason };
         });
-
- 
 
       // STEP 4: Notify user their application is rejected
       await Mailer.sendMail({
@@ -1531,7 +1525,6 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
   body
 ) => {
   try {
-    console.log("subs", body);
     const db_user_row = await getUserById(userId);
 
     if (!db_user_row.success) {
@@ -1541,7 +1534,6 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
     const db_user = db_user_row.user;
 
     if (status === "APPROVED") {
-      console.log("subs", body.subscription_code);
       //do subscription for userreturn await db("subscriptions")
       const subDetails = await db("subscriptions")
         .where({
@@ -1581,11 +1573,24 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
             cash_payment_received: subDetails.item.price,
           });
         });
+
+        const app = await db("applications")
+          .where("user_id", db_user.tasttlig_user_id)
+          .andWhere("status", "Pending")
+          .andWhere("type", "guest")
+          .andWhere("application_id", appId)
+          .update("status", status)
+          .returning("*")
+          .catch((reason) => {
+            return { success: false, message: reason };
+          });
+
         // Email to user on submitting the request to upgrade
         const package_plan_name = _.startCase(
           subDetails.item.subscription_name
         );
 
+        console.log("subs", body.subscription_code);
         await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,
           to: body.email,
@@ -1596,22 +1601,24 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
             package_plan_name,
           },
         });
+        console.log("subs", body.subscription_code);
+        return { success: true, message: status };
       }
     }
-
-    const declineReason = body.declineReason;
-    await db("applications")
-      .where("user_id", db_user.tasttlig_user_id)
-      .andWhere("status", "Pending")
-      .andWhere("type", "guest")
-      .andWhere("application_id", appId)
-      .update("status", status)
-      .update("reason", declineReason)
-      .returning("*")
-      .catch((reason) => {
-        return { success: false, message: reason };
-      });
     if (status === "DECLINED") {
+      const declineReason = body.declineReason;
+      await db("applications")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("status", "Pending")
+        .andWhere("type", "guest")
+        .andWhere("application_id", appId)
+        .update("status", status)
+        .update("reason", declineReason)
+        .returning("*")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
+
       // Email to user on submitting the request to upgrade
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
