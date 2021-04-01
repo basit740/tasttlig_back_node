@@ -32,15 +32,15 @@ const createNewFoodSample = async (
       let user_role_object = db_user.role;
 
       if (user_role_object.includes("HOST") || createdByAdmin) {
-        food_sample_details.status = "ACTIVE";
+        all_product_details.status = "ACTIVE";
       } else if (user_role_object.includes("HOST_PENDING")) {
-        food_sample_details.status = "INACTIVE";
+        all_product_details.status = "INACTIVE";
       }
 
       // food_sample_details = await setAddressCoordinates(food_sample_details);
 
-      const db_food_sample = await trx("food_samples")
-        .insert(food_sample_details)
+      const db_all_product = await trx("products")
+        .insert(all_product_details)
         .returning("*");
 
       await trx("products")

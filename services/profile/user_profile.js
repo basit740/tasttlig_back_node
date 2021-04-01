@@ -17,7 +17,7 @@ const EMAIL_SECRET = process.env.EMAIL_SECRET;
 
 // Get user by ID helper function
 const getUserById = async (id) => {
-  console.log("id from here:", id)
+  console.log("id from here:", id);
   return await db
     .select("tasttlig_users.*", db.raw("ARRAY_AGG(roles.role) as role"))
     .from("tasttlig_users")
@@ -297,7 +297,7 @@ const saveBusinessForUser = async (hostDto, user_id) => {
       //instagram: hostDto.instagram,
       //facebook: hostDto.facebook,
       //in_current_festival: hostDto.in_current_festival,
-      business_details_created_at_datetime: new Date(),
+      business_details_registration_date: new Date(),
       business_details_updated_at_datetime: new Date(),
     };
     console.log("hello");
