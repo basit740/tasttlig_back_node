@@ -1065,8 +1065,14 @@ router.post(
           message: response.message,
         });
       } */
+
+      //console.log("body", req.body);
+      let ambData = req.body;
+      let dbUser = await user_profile_service.getUserByEmail(req.user.email);
+      ambData.dbUser = dbUser;
+      //console.log("ambData", ambData);
       const response = await user_profile_service.upgradeToGuestAmbassador(
-        req.body
+        ambData
       );
       if (!response.success) {
         return res.status(403).json({

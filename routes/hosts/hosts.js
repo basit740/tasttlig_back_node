@@ -25,6 +25,24 @@ router.get(
   }
 );
 
+// GET guest ambassador applications
+router.get(
+  "/guest/amb/applications",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const applications = await hosts_service.getGuestAmbassadorApplications();
+
+      return res.send(applications);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
 // GET all applications by user ID
 router.get(
   "/applications/:userId",
@@ -45,6 +63,25 @@ router.get(
   }
 );
 
+// GET all guest amb applications by user ID
+router.get(
+  "/guest-amb-application/:appId",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const application = await hosts_service.getGuestAmbassadorApplication(
+        req.params.appId
+      );
+
+      return res.send(application);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
 // POST application approval from admin
 router.post(
   "/applications/:userId/approve",
@@ -55,7 +92,7 @@ router.post(
         req.params.userId,
         "APPROVED"
       );
-      
+
       return res.send(response);
     } catch (error) {
       res.status(500).send({
@@ -72,13 +109,13 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      console.log("here rest")
+      console.log("here rest");
       const response = await business_passport_service.approveOrDeclineBusinessMemberApplication(
         req.params.userId,
         "APPROVED",
         ""
       );
-      
+
       return res.send(response);
     } catch (error) {
       res.status(500).send({
@@ -133,45 +170,57 @@ router.post(
   }
 );
 
-// POST application from multi-step form
-router.post("/request-host", /* token_service.authenticateToken, */ async (req, res) => {
-  const {  host_user_id,
-    host_video_url,
-   host_description,
-   has_hosted_anything_before,
-   have_a_restaurant,
-   cuisine_type,
-   seating_option,
-   want_people_to_discover_your_cuisine,
-   able_to_provide_food_samples,
-   is_host,
-   has_hosted_other_things_before,
-   able_to_explain_the_origins_of_tasting_samples,
-   able_to_proudly_showcase_your_culture,
-   able_to_provie_private_dining_experience,
-   able_to_provide_3_or_more_course_meals_to_guests,
-   able_to_provide_live_entertainment,
-   able_to_provide_other_form_of_entertainment,
-   able_to_abide_by_health_safety_regulations,
-   hosted_tasttlig_festival_before,
-   able_to_provide_excellent_customer_service,
-   able_to_provide_games_about_culture_cuisine } = req.body;
-   console.log(req.body);
-  try {
-    
-    if (
-      !host_video_url ||
-      !host_description 
-      
-    ) {
-      return res.status(403).json({
+router.post(
+  "/applications/:userId/:appId/approve",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const response = await user_profile_service.approveOrDeclineGuestAmbassadorSubscription(
+        req.params.userId,
+        req.params.appId,
+        "APPROVED",
+        req.body
+      );
+
+      return res.send(response);
+    } catch (error) {
+      res.status(500).send({
         success: false,
-        message: "Required parameters are not available in request.",
+        message: error.message,
       });
     }
-    
-    const host_details = {
-      host_user_id: host_user_id ? host_user_id : null,
+  }
+);
+
+router.post(
+  "/applications/:userId/:appId/decline",
+  token_service.authenticateToken,
+  async (req, res) => {
+    console.log("decline", req.params);
+    try {
+      const response = await user_profile_service.approveOrDeclineGuestAmbassadorSubscription(
+        req.params.userId,
+        req.params.appId,
+        "DECLINED",
+        req.body
+      );
+      console.log("decline", response);
+      return res.send(response);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// POST application from multi-step form
+router.post(
+  "/request-host",
+  /* token_service.authenticateToken, */ async (req, res) => {
+    const {
+      host_user_id,
       host_video_url,
       host_description,
       has_hosted_anything_before,
@@ -180,6 +229,7 @@ router.post("/request-host", /* token_service.authenticateToken, */ async (req, 
       seating_option,
       want_people_to_discover_your_cuisine,
       able_to_provide_food_samples,
+      is_host,
       has_hosted_other_things_before,
       able_to_explain_the_origins_of_tasting_samples,
       able_to_proudly_showcase_your_culture,
@@ -190,35 +240,70 @@ router.post("/request-host", /* token_service.authenticateToken, */ async (req, 
       able_to_abide_by_health_safety_regulations,
       hosted_tasttlig_festival_before,
       able_to_provide_excellent_customer_service,
-      able_to_provide_games_about_culture_cuisine
-    };
+      able_to_provide_games_about_culture_cuisine,
+    } = req.body;
+    console.log(req.body);
+    try {
+      if (!host_video_url || !host_description) {
+        return res.status(403).json({
+          success: false,
+          message: "Required parameters are not available in request.",
+        });
+      }
 
-    const response = await hosts_service.createHost(
-      host_details, 
-      is_host, req.body.email
-    );
-    if (response.success) {
-      console.log(response);
-      return res.send(response);
+      const host_details = {
+        host_user_id: host_user_id ? host_user_id : null,
+        host_video_url,
+        host_description,
+        has_hosted_anything_before,
+        have_a_restaurant,
+        cuisine_type,
+        seating_option,
+        want_people_to_discover_your_cuisine,
+        able_to_provide_food_samples,
+        has_hosted_other_things_before,
+        able_to_explain_the_origins_of_tasting_samples,
+        able_to_proudly_showcase_your_culture,
+        able_to_provie_private_dining_experience,
+        able_to_provide_3_or_more_course_meals_to_guests,
+        able_to_provide_live_entertainment,
+        able_to_provide_other_form_of_entertainment,
+        able_to_abide_by_health_safety_regulations,
+        hosted_tasttlig_festival_before,
+        able_to_provide_excellent_customer_service,
+        able_to_provide_games_about_culture_cuisine,
+      };
+
+      const response = await hosts_service.createHost(
+        host_details,
+        is_host,
+        req.body.email
+      );
+      if (response.success) {
+        console.log(response);
+        return res.send(response);
+      }
+      console.log("non-success", response);
+      return res.status(500).send(response);
+    } catch (error) {
+      console.log(error);
+      return res.status(403).json({
+        success: false,
+        message: error,
+      });
     }
-    console.log("non-success", response)
-    return res.status(500).send(response);
-  } catch (error) {
-    console.log(error);
-    return res.status(403).json({
-      success: false,
-      message: error,
-    });
   }
-});
+);
 
 router.get(
   "/business-member-applications",
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      const applications = await business_passport_service.getBusinessApplications(req.params.userId);
-      
+      const applications = await business_passport_service.getBusinessApplications(
+        req.params.userId
+      );
+
       return res.send(applications);
     } catch (error) {
       res.status(500).send({
@@ -234,8 +319,10 @@ router.get(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      const applications = await business_passport_service.getBusinessApplicantDetails(req.params.userId);
-      
+      const applications = await business_passport_service.getBusinessApplicantDetails(
+        req.params.userId
+      );
+
       return res.send(applications);
     } catch (error) {
       console.log(error);
@@ -246,6 +333,5 @@ router.get(
     }
   }
 );
-
 
 module.exports = router;

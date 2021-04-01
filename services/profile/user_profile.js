@@ -410,11 +410,12 @@ const saveApplicationInformation = async (hostDto, trx) => {
       updated_at: new Date(),
       type: "guest",
       status: "Pending",
-      youtube_link: hostDto.youtube_link,
-      linkedin_link: hostDto.linkedin_link,
-      facebook_link: hostDto.facebook_link,
-      instagram_link: hostDto.instagram_link,
-      twitter_link: hostDto.twitter_link,
+      resume: hostDto.resume,
+      //youtube_link: hostDto.youtube_link,
+      //linkedin_link: hostDto.linkedin_link,
+      //facebook_link: hostDto.facebook_link,
+      //instagram_link: hostDto.instagram_link,
+      //twitter_link: hostDto.twitter_link,
     });
     //role_name = "GUEST_AMBASSADOR_PENDING";
 
@@ -1349,13 +1350,11 @@ const getSubscriptionsByUserId = async (userId) => {
 const upgradeToGuestAmbassador = async (guest_details) => {
   try {
     await db.transaction(async (trx) => {
-      let dbUser;
-      console.log(dbUser);
-      //hostDto.dbUser.user.tasttlig_user_id
       await saveApplicationInformation(guest_details, trx);
 
       //change to update tattlig user table
-      data = {
+      let data = {
+        tasttlig_user_id: guest_details.dbUser.user.tasttlig_user_id,
         linkedin_link: guest_details.linkedin_link,
         facebook_link: guest_details.facebook_link,
         youtube_link: guest_details.youtube_link,
@@ -1365,9 +1364,9 @@ const upgradeToGuestAmbassador = async (guest_details) => {
           guest_details.ambassador_intent_description,
         is_influencer: guest_details.is_influencer,
       };
-      await updateUserProfile(data);
+      const update = await updateUserProfile(data);
 
-      if (!db_preference) {
+      if (!update) {
         return { success: false, details: "Inserting new preference failed." };
       }
     });
@@ -1376,6 +1375,85 @@ const upgradeToGuestAmbassador = async (guest_details) => {
   } catch (error) {
     console.log(error);
     return { success: false, details: error.message };
+  }
+};
+
+const approveOrDeclineGuestAmbassadorSubscription = async (
+  userId,
+  appId,
+  status,
+  body
+) => {
+  try {
+    const db_user_row = await getUserById(userId);
+
+    if (!db_user_row.success) {
+      return { success: false, message: db_user_row.message };
+    }
+
+    const db_user = db_user_row.user;
+
+    if (status === "APPROVED") {
+      console.log("subs", body.subscription_code);
+      //do subscription for userreturn await db("subscriptions")
+      const subDetails = await db("subscriptions")
+        .where({
+          subscription_code: body.subscription_code,
+          //status: "ACTIVE",
+        })
+        .first()
+        .then((value) => {
+          if (!value) {
+            return { success: false, message: "No plan found." };
+          }
+
+          return { success: true, item: value };
+        })
+        .catch((error) => {
+          return { success: false, message: error };
+        });
+      if (subDetails.success) {
+        let subscription_end_datetime = null;
+
+        if (subDetails.item.validity_in_months) {
+          subscription_end_datetime = new Date(
+            new Date().setMonth(
+              new Date().getMonth() + Number(subDetails.item.validity_in_months)
+            )
+          );
+        } else {
+          subscription_end_datetime = subDetails.item.date_of_expiry;
+        }
+
+        await db.transaction(async (trx) => {
+          await trx("user_subscriptions").insert({
+            subscription_code: subDetails.item.subscription_code,
+            user_id: db_user.tasttlig_user_id,
+            subscription_start_datetime: new Date(),
+            subscription_end_datetime: subscription_end_datetime,
+            cash_payment_received: subDetails.item.price,
+          });
+        });
+        /* if (!userSub) {
+          return { success: false, message: "No plan found." };
+        }
+        console.log("userSub", userSub); */
+      }
+    }
+
+    await db("applications")
+      .where("user_id", db_user.tasttlig_user_id)
+      .andWhere("status", "Pending")
+      .andWhere("type", "guest")
+      .andWhere("application_id", appId)
+      .update("status", status)
+      .returning("*")
+      .catch((reason) => {
+        return { success: false, message: reason };
+      });
+    return { success: true, message: status };
+  } catch (error) {
+    return { success: false, message: error };
   }
 };
 
@@ -1415,4 +1493,5 @@ module.exports = {
   getBusinessDetailsByUserId,
   getSubscriptionsByUserId,
   upgradeToGuestAmbassador,
+  approveOrDeclineGuestAmbassadorSubscription,
 };

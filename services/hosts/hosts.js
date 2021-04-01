@@ -16,19 +16,71 @@ const getHostApplications = async () => {
         "tasttlig_users",
         "applications.user_id",
         "tasttlig_users.tasttlig_user_id"
-      ).where("applications.type", "=", "host")
+      )
+      .where("applications.type", "=", "host")
       .orWhere("applications.type", "=", "sponsor")
       .orWhere("applications.type", "=", "vendor")
-       .groupBy("applications.application_id")
+      .groupBy("applications.application_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
       .having("applications.status", "=", "Pending");
-      
 
     return {
       success: true,
       applications,
     };
   } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+// Get all guest ambassador applications helper function
+const getGuestAmbassadorApplications = async () => {
+  try {
+    const applications = await db
+      .select("*")
+      .from("applications")
+      .leftJoin(
+        "tasttlig_users",
+        "applications.user_id",
+        "tasttlig_users.tasttlig_user_id"
+      )
+      .where("applications.type", "=", "guest")
+      .groupBy("applications.application_id")
+      .groupBy("tasttlig_users.tasttlig_user_id")
+      .having("applications.status", "=", "Pending");
+
+    return {
+      success: true,
+      applications,
+    };
+  } catch (error) {
+    console.log("why", error);
+    return { success: false, error: error.message };
+  }
+};
+// Get all guest ambassador applications helper function
+const getGuestAmbassadorApplication = async (appId) => {
+  try {
+    const application = await db
+      .select("*")
+      .from("applications")
+      .leftJoin(
+        "tasttlig_users",
+        "applications.user_id",
+        "tasttlig_users.tasttlig_user_id"
+      )
+      .where("applications.type", "=", "guest")
+      .groupBy("applications.application_id")
+      .groupBy("tasttlig_users.tasttlig_user_id")
+      .having("applications.status", "=", "Pending")
+      .having("applications.application_id", "=", appId);
+
+    return {
+      success: true,
+      application,
+    };
+  } catch (error) {
+    console.log("why", error);
     return { success: false, error: error.message };
   }
 };
@@ -85,7 +137,11 @@ const getHostApplication = async (userId) => {
         "user_role_lookup.user_id"
       )
       .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
-      .leftJoin("food_sample_images", "food_samples.food_sample_id", "food_sample_images.food_sample_id")
+      .leftJoin(
+        "food_sample_images",
+        "food_samples.food_sample_id",
+        "food_sample_images.food_sample_id"
+      )
       .groupBy("food_sample_images.food_sample_image_id")
       .groupBy("food_samples.food_sample_id")
       .groupBy("hosts.host_id")
@@ -180,15 +236,17 @@ const getHostApplication = async (userId) => {
 };
 
 const saveApplicationInformation = async (hostDto, is_host, trx) => {
-  console.log("is_host", is_host)
+  console.log("is_host", is_host);
   let applications = [];
   let role_name = "";
 
-console.log('hello')
+  console.log("hello");
   if (is_host === "yes") {
-    console.log("im in is_host", is_host)
+    console.log("im in is_host", is_host);
     applications.push({
-      user_id:  hostDto.host_user_id ? hostDto.host_user_id : hostDto.dbUser.user.tasttlig_user_id,
+      user_id: hostDto.host_user_id
+        ? hostDto.host_user_id
+        : hostDto.dbUser.user.tasttlig_user_id,
       video_link: hostDto.host_video_url,
       // youtube_link: hostDto.host_youtube_link,
       reason: hostDto.host_description,
@@ -200,7 +258,7 @@ console.log('hello')
     });
     role_name = "HOST_PENDING";
   }
-  console.log("role name",  role_name);
+  console.log("role name", role_name);
 
   // Save sponsor application to applications table
   // if (applications.length == 0 && hostDto.is_sponsor) {
@@ -215,17 +273,17 @@ console.log('hello')
   //   role_name = "SPONSOR_PENDING";
   // }
 
-    if (applications.length == 0 && hostDto.is_host === "no") {
+  if (applications.length == 0 && hostDto.is_host === "no") {
     applications.push({
-       user_id: hostDto.dbUser.user.tasttlig_user_id,
-       reason: "",
-     created_at: new Date(),
-       updated_at: new Date(),
-       type: "vendor",
-       status: "Pending",
-     });
-     role_name = "VENDOR_PENDING";
-   } 
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "vendor",
+      status: "Pending",
+    });
+    role_name = "VENDOR_PENDING";
+  }
 
   // Get role code of new role to be added
   const new_role_code = await trx("roles")
@@ -234,14 +292,16 @@ console.log('hello')
     .then((value) => {
       return value[0].role_code;
     });
-    console.log("new role: ", new_role_code)
+  console.log("new role: ", new_role_code);
 
   // Insert new role for this user
   await trx("user_role_lookup").insert({
-    user_id: hostDto.host_user_id ? hostDto.host_user_id : hostDto.dbUser.user.tasttlig_user_id,
+    user_id: hostDto.host_user_id
+      ? hostDto.host_user_id
+      : hostDto.dbUser.user.tasttlig_user_id,
     role_code: new_role_code,
   });
-  console.log("applications:", applications)
+  console.log("applications:", applications);
 
   return trx("applications")
     .insert(applications)
@@ -251,36 +311,41 @@ console.log('hello')
     });
 };
 
-
 const createHost = async (host_details, is_host, email) => {
   try {
     await db.transaction(async (trx) => {
-      let dbUser
+      let dbUser;
       if (email) {
         await authenticate_user_service.createDummyUser(email);
         dbUser = await user_profile_service.getUserByEmail(email);
-        host_details.dbUser = dbUser
+        host_details.dbUser = dbUser;
         await saveApplicationInformation(host_details, is_host, trx);
         delete host_details.dbUser;
         const db_preference = await trx("hosts")
-        .insert(host_details)
-        .returning("*");
+          .insert(host_details)
+          .returning("*");
 
-      if (!db_preference) {
-        return { success: false, details: "Inserting new preference failed." };
-      }
+        if (!db_preference) {
+          return {
+            success: false,
+            details: "Inserting new preference failed.",
+          };
+        }
       } else {
-      console.log(dbUser);
-      //hostDto.dbUser.user.tasttlig_user_id
-      await  saveApplicationInformation(host_details, is_host, trx);
-      const db_preference = await trx("hosts")
-        .insert(host_details)
-        .returning("*");
+        console.log(dbUser);
+        //hostDto.dbUser.user.tasttlig_user_id
+        await saveApplicationInformation(host_details, is_host, trx);
+        const db_preference = await trx("hosts")
+          .insert(host_details)
+          .returning("*");
 
-      if (!db_preference) {
-        return { success: false, details: "Inserting new preference failed." };
+        if (!db_preference) {
+          return {
+            success: false,
+            details: "Inserting new preference failed.",
+          };
+        }
       }
-    }
     });
     console.log("hello");
     return { success: true, details: "Success." };
@@ -290,9 +355,10 @@ const createHost = async (host_details, is_host, email) => {
   }
 };
 
-
 module.exports = {
   getHostApplications,
   getHostApplication,
-  createHost
+  createHost,
+  getGuestAmbassadorApplications,
+  getGuestAmbassadorApplication,
 };
