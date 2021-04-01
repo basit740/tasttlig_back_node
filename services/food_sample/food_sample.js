@@ -1023,22 +1023,22 @@ const deleteFoodSamplesFromUser = async (user_id, delete_items) => {
     for (let item of delete_items) {
       console.log("itemsssfddddds", item);
       await db.transaction(async (trx) => {
-        const productImagesDelete = await trx("food_sample_images")
+        const productImagesDelete = await trx("product_images")
           .where({
-            food_sample_id: item,
+            product_id: item,
           })
           .del();
-        const foodSampleClaimsDelete = await trx("food_sample_claims")
+        const foodSampleClaimsDelete = await trx("user_claims")
           .where({
-            food_sample_id: item,
+            claimed_product_id: item,
           })
           .delete()
           .then(() => {
             return { success: true };
           });
-        const foodSampleDelete = await trx("food_samples")
+        const foodSampleDelete = await trx("products")
           .where({
-            food_sample_id: item,
+            product_id: item,
           })
           .del()
           .catch((reason) => {

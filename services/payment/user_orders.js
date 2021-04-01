@@ -822,6 +822,48 @@ const createOrder = async (order_details, db_order_details) => {
 };
 
 // Create shopping cart order helper function
+const createFreeOrder = async (subscriptionResponse, userId) => {
+
+  try {
+    await db.transaction(async (trx) => {
+
+
+      let subscription_end_datetime = null;
+
+        if (subscriptionResponse.validity_in_months) {
+          subscription_end_datetime = new Date(
+            new Date().setMonth(
+              new Date().getMonth() +
+                Number(subscriptionResponse.validity_in_months)
+            )
+          );
+        } else {
+          subscription_end_datetime = subscriptionResponse.date_of_expiry;
+        }
+
+      const db_subscription_details = await trx("user_subscriptions").insert({
+        subscription_code: subscriptionResponse.subscription_code,
+        user_id: userId,
+        subscription_start_datetime: new Date(),
+        subscription_end_datetime: subscription_end_datetime,
+        // suscribed_festivals: db_order_details.subscribed_festivals,
+        cash_payment_received: subscriptionResponse.price,
+      })
+        .returning("*");
+
+      if (!db_subscription_details) {
+        return { success: false, details: "Inserting new subscription failed." };
+      }
+    });
+    // Email to user on successful purchase
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
+
+// Create shopping cart order helper function
 const createCartOrder = async (order_details, db_order_details) => {
   try {
     await db.transaction(async (trx) => {
@@ -993,4 +1035,5 @@ module.exports = {
   getAllUserOrders,
   getVendorSubscriptionDetails,
   getUserOrders,
+  createFreeOrder
 };

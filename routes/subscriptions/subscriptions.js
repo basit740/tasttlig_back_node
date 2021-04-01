@@ -11,6 +11,7 @@ const festival_service = require("../../services/festival/festival");
 
 // GET subscription details
 router.get("/subscription/details", async (req, res) => {
+  console.log("body from subsrcitpion", req.query)
   const { item_type, item_id } = req.query;
 
   if (!item_type || !item_id) {

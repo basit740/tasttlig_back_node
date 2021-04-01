@@ -243,6 +243,7 @@ const getAllUserExperience = async (
       "experiences.experience_nationality_id",
       "nationalities.id"
     )
+<<<<<<< HEAD
     .leftJoin(
       "business_details",
       "experiences.experience_business_id",
@@ -253,6 +254,8 @@ const getAllUserExperience = async (
       "experiences.festival_selected[1]",
       "festivals.festival_id"
     )
+=======
+>>>>>>> 6586c5f1ea7be9135c49dbad5d18f96a4c787de5
     .groupBy("experiences.experience_id")
     .groupBy("business_details.business_details_id")
     .groupBy("nationalities.nationality")
@@ -535,6 +538,7 @@ const getDistinctNationalities = async (operator, status) => {
     });
 };
 
+<<<<<<< HEAD
 const addExperienceToFestival = async (festival_id, experience_id) => {
   try {
     await db.transaction(async (trx) => {
@@ -583,6 +587,8 @@ const addExperienceToFestival = async (festival_id, experience_id) => {
     return { success: false, details: error.message };
   }
 };
+=======
+>>>>>>> 6586c5f1ea7be9135c49dbad5d18f96a4c787de5
 
 module.exports = {
   createNewExperience,
@@ -593,6 +599,11 @@ module.exports = {
   updateExperience,
   getExperience,
   getDistinctNationalities,
+<<<<<<< HEAD
   addExperienceToFestival,
   getUserExperiencesById,
+=======
+  getUserExperiencesById,
+  
+>>>>>>> 6586c5f1ea7be9135c49dbad5d18f96a4c787de5
 };

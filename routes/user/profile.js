@@ -8,6 +8,7 @@ const authenticate_user_service = require("../../services/authentication/authent
 const point_system_service = require("../../services/profile/points_system");
 const menu_item_service = require("../../services/menu_items/menu_items");
 const authentication_service = require("../../services/authentication/authenticate_user");
+const user_order_service = require("../../services/payment/user_orders");
 
 //get user subscription by user id
 router.get(
@@ -848,6 +849,16 @@ router.post(
         is_business: req.body.is_business,
         email: req.user.email,
       };
+
+      const creatingFreeOrder = await user_order_service.createFreeOrder(req.body.subscriptionResponse, req.user.id )
+
+      if (!creatingFreeOrder.success) {
+        return res.status(200).json({
+          success: false,
+          message: creatingFreeOrder.details,
+        });
+      }
+      // return res.send(saveHost);
       const saveHost = await user_profile_service.saveHostApplication(
         hostDto,
         req.user
@@ -855,9 +866,10 @@ router.post(
 
       return res.send(saveHost);
     } catch (error) {
+      console.log("error from catch:",error)
       return res.status(403).json({
         success: false,
-        message: response.details,
+        message: error.details,
       });
     }
   }

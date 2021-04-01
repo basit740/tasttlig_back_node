@@ -20,4 +20,14 @@ exports.up = function(knex) {
           .del();
       });
   };
+
+
+
+  
+
+
+
+  
+
+
   
