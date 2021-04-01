@@ -403,9 +403,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
   if (applications.length == 0 && hostDto.is_guest_amb) {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
-      reason: hostDto.is_influencer
-        ? "I am an influencer. " + hostDto.ambassador_intent_description
-        : "I am not an influencer. " + hostDto.ambassador_intent_description,
+      reason: "",
       created_at: new Date(),
       updated_at: new Date(),
       type: "guest",
@@ -1385,6 +1383,7 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
   body
 ) => {
   try {
+    console.log("subs", body);
     const db_user_row = await getUserById(userId);
 
     if (!db_user_row.success) {
@@ -1434,23 +1433,50 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
             cash_payment_received: subDetails.item.price,
           });
         });
-        /* if (!userSub) {
-          return { success: false, message: "No plan found." };
-        }
-        console.log("userSub", userSub); */
+        // Email to user on submitting the request to upgrade
+        const package_plan_name = _.startCase(
+          subDetails.item.subscription_name
+        );
+
+        await Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
+          to: body.email,
+          bcc: ADMIN_EMAIL,
+          subject: "[Tasttlig] Package Purchase",
+          template: "package_purchase",
+          context: {
+            package_plan_name,
+          },
+        });
       }
     }
 
+    const declineReason = body.declineReason;
     await db("applications")
       .where("user_id", db_user.tasttlig_user_id)
       .andWhere("status", "Pending")
       .andWhere("type", "guest")
       .andWhere("application_id", appId)
       .update("status", status)
+      .update("reason", declineReason)
       .returning("*")
       .catch((reason) => {
         return { success: false, message: reason };
       });
+    if (status === "DECLINED") {
+      // Email to user on submitting the request to upgrade
+      await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: body.email,
+        bcc: ADMIN_EMAIL,
+        subject: "[Tasttlig] Package Purchase",
+        template: "user_upgrade_reject",
+        context: {
+          declineReason,
+        },
+      });
+    }
+
     return { success: true, message: status };
   } catch (error) {
     return { success: false, message: error };
