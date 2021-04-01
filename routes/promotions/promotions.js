@@ -77,7 +77,7 @@ router.post(
         promotion_start_date_time: req.body.promotion_start_date,
         promotion_end_date_time: req.body.promotion_end_date,
         promotion_status: "ACTIVE",
-        promotion_start_date_time: req.body.start_date,
+        
       };
       const response = await services_promotions.createNewPromotion(
         user_details_from_db,
@@ -142,5 +142,36 @@ router.get("/promotions/user/:user_id", async (req, res) => {
       });
     }
   });
+
+  router.put("/promotions/apply/product", async (req, res) => {
+    // check if body is null, then no promotion/ products return error
+    console.log(req.body)
+    if(!req.body.promotion ) {
+        return res.status(200).json({
+          success: false,
+          message: "Please choose a promotion",
+        });
+    }
+    if(!req.body.products || req.body.products.length == 0) {
+      return res.status(200).json({
+        success: false,
+        message: "Please choose atleast one product",
+      });
+    }
+    try {
+      const response = await services_promotions.applyPromotionToProducts(
+        req.body.promotion,
+        req.body.products
+      );
+      return res.send(response)
+    } catch(error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+  );
 
   module.exports = router;
