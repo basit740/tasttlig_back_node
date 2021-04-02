@@ -122,12 +122,11 @@ router.post("/all-products-claim/confirm", async (req, res) => {
       message: "Id not present in request.",
     });
   }
-
   const response = await food_sample_claim_service.confirmProductClaim(
     req.body.claim_viewable_id,
     req.body.quantity,
     req.body.redeemed_total_quantity,
-  );
+    );
 
   return res.status(response.error ? 500 : 200).json(response);
 });
@@ -159,14 +158,12 @@ router.get(
   "/all-product-redeem/user/reservations",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("requset from food sample redeem:", req.query)
     const keyword = req.query.keyword || "";
     try {
       const db_food_claims = await food_sample_claim_service.getUserProductsRedeems(
         req.user.id,
         keyword
       );
-
       return res.send(db_food_claims);
     } catch (error) {
       res.send({
