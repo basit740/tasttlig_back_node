@@ -243,6 +243,16 @@ const getAllUserExperience = async (
       "experiences.experience_nationality_id",
       "nationalities.id"
     )
+    .leftJoin(
+      "business_details",
+      "experiences.experience_business_id",
+      "business_details.business_details_id"
+    )
+    .leftJoin(
+      "festivals",
+      "experiences.festival_selected[1]",
+      "festivals.festival_id"
+    )
     .groupBy("experiences.experience_id")
     .groupBy("business_details.business_details_id")
     .groupBy("nationalities.nationality")

@@ -196,7 +196,7 @@ router.get("/experience/:experience_id", async (req, res) => {
 });
 
 // GET all experiences from a user
-router.get(
+/* router.get(
   "/experience/user/all",
   token_service.authenticateToken,
   async (req, res) => {
@@ -246,7 +246,7 @@ router.get(
       });
     }
   }
-);
+); */
 
 // GET experience owner
 router.get("/experience/owner/:id", async (req, res) => {
@@ -528,7 +528,6 @@ router.delete(
   }
 );
 
-
 // GET all experiences from a user
 router.get(
   "/experience/user/all",
@@ -576,6 +575,5 @@ router.get(
     }
   }
 );
-
 
 module.exports = router;

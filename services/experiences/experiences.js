@@ -71,7 +71,7 @@ const getExperiencesInFestival = async (festival_id) => {
     )
     .leftJoin(
       "festivals",
-      "experiences.experience_festival_id",
+      "experiences.festival_selected[1]",
       "festivals.festival_id"
     )
     .leftJoin(
@@ -86,11 +86,13 @@ const getExperiencesInFestival = async (festival_id) => {
     .groupBy("business_details.city")
     .groupBy("business_details.state")
     .groupBy("business_details.zip_postal_code")
-    .having("experiences.experience_festival_id", "=", festival_id)
+    .having("experiences.festival_selected", "@>", [festival_id])
     .then((value) => {
+      console.log("value", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log("reason", reason);
       return { success: false, details: reason };
     });
 };
