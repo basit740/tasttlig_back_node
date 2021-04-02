@@ -16,11 +16,20 @@ const getHostApplications = async () => {
         "tasttlig_users",
         "applications.user_id",
         "tasttlig_users.tasttlig_user_id"
-      ).where("applications.type", "=", "host")
+      )
+      .leftJoin(
+        "user_subscriptions",
+        "tasttlig_users.tasttlig_user_id",
+        "user_subscriptions.user_id"
+      )
+      .where("applications.type", "=", "host")
       .orWhere("applications.type", "=", "sponsor")
       .orWhere("applications.type", "=", "vendor")
+      .orWhere("user_subscriptions.subscription_code", "=", "H_AMB")
        .groupBy("applications.application_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
+      .groupBy("user_subscriptions.user_subscription_id")
+      // .having("user_subscriptions.user_subscription_status", "=", "INACTIVE")
       .having("applications.status", "=", "Pending");
       
 
@@ -35,6 +44,7 @@ const getHostApplications = async () => {
 
 // Get specific application helper function
 const getHostApplication = async (userId) => {
+  console.log("user id from get host application", userId)
   try {
     let application = await db
       .select(
@@ -42,10 +52,11 @@ const getHostApplication = async (userId) => {
         "business_details.*",
         "sponsors.*",
         "hosts.*",
-        "food_samples.*",
+        "products.*",
         "payment_info.*",
         "business_details_images.*",
-        "food_sample_images.image_url",
+        "user_subscriptions.*",
+        "product_images.product_image_url",
         db.raw("ARRAY_AGG(roles.role) as role")
       )
       .from("tasttlig_users")
@@ -55,14 +66,19 @@ const getHostApplication = async (userId) => {
         "business_details.business_details_user_id"
       )
       .leftJoin(
+        "user_subscriptions",
+        "tasttlig_users.tasttlig_user_id",
+        "user_subscriptions.user_id"
+      )
+      .leftJoin(
         "hosts",
         "tasttlig_users.tasttlig_user_id",
         "hosts.host_user_id"
       )
       .leftJoin(
-        "food_samples",
+        "products",
         "tasttlig_users.tasttlig_user_id",
-        "food_samples.food_sample_creater_user_id"
+        "products.product_user_id"
       )
       .leftJoin(
         "business_details_images",
@@ -85,15 +101,16 @@ const getHostApplication = async (userId) => {
         "user_role_lookup.user_id"
       )
       .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
-      .leftJoin("food_sample_images", "food_samples.food_sample_id", "food_sample_images.food_sample_id")
-      .groupBy("food_sample_images.food_sample_image_id")
-      .groupBy("food_samples.food_sample_id")
+      .leftJoin("product_images", "products.product_id", "product_images.product_id")
+      .groupBy("product_images.product_image_id")
+      .groupBy("products.product_id")
       .groupBy("hosts.host_id")
       .groupBy("business_details_images.business_details_image_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
       .groupBy("business_details.business_details_id")
       .groupBy("sponsors.sponsor_id")
       .groupBy("payment_info.payment_bank_id")
+      .groupBy("user_subscriptions.user_subscription_id")
       .having("tasttlig_users.tasttlig_user_id", "=", userId)
       .first();
 

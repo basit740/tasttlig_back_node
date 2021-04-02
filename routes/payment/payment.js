@@ -143,6 +143,7 @@ router.post("/payment/stripe/success", async (req, res) => {
   }
 });
 
+
 // POST Stripe payment in shopping cart
 router.post("/payment/stripe/cart", async (req, res) => {
   if (!req.body.cartItems || !req.body.email) {
