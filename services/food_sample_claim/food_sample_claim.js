@@ -22,7 +22,6 @@ const createNewFoodSampleClaim = async (
   quantityAfterClaim,
   product_claim_details
 ) => {
-  console.log("data coming from here :" , product_claim_details)
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
@@ -35,15 +34,11 @@ const createNewFoodSampleClaim = async (
           details: "Inserting new food sample claim failed.",
         };
       }
-      console.log("food sample claim result:", db_food_sample_claim)
 
-      if(quantityAfterClaim>=0) {
+      if (quantityAfterClaim >= 0) {
         await db("products")
-        .where({ product_id: db_food_sample_claim[0].product_id})
-        .update(
-         { claimed_total_quantity: quantityAfterClaim}
-          )
-
+          .where({ product_id: db_food_sample_claim[0].claimed_product_id })
+          .update({ claimed_total_quantity: quantityAfterClaim });
       }
 
       await sendClaimedEmailToUser(
@@ -124,35 +119,35 @@ const getFoodClaimCount = async (email, food_sample_id) => {
 };
 
 // Confirm food sample claim helper function
-const confirmProductClaim = async (claimId, quantityAfterRedeem, totalRedeemQuantity) => {
+const confirmProductClaim = async (
+  claimId,
+  quantityAfterRedeem,
+  totalRedeemQuantity
+) => {
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
-        .where({ claim_viewable_id: claimId })
+        .where({ claim_viewable_id: parseInt(claimId) })
         .update({
           stamp_status: Food_Sample_Claim_Status.CONFIRMED,
           current_stamp_status: "Redeemed",
         })
         .returning("*");
-
-        if(quantityAfterRedeem>=0) {
-          await db("products")
-          .where({ product_id: db_food_sample_claim[0].food_sample_id})
-          .update(
-           { quantity: quantityAfterRedeem,
-              redeemed_total_quantity: totalRedeemQuantity
-          }
-            )
-            // .returning("*")
-
-        }
+      if (quantityAfterRedeem >= 0) {
+        await db("products")
+          .where({ product_id: db_food_sample_claim[0].claimed_product_id })
+          .update({
+            quantity: quantityAfterRedeem,
+            redeemed_total_quantity: totalRedeemQuantity,
+          });
+        // .returning("*")
+      }
     });
 
     return { success: true, details: "Success." };
   } catch (error) {
     return { success: false, details: error.message };
   }
-   
 };
 
 // const sendPendingClaimedEmailToUser = async (db_user, db_food_sample) => {
@@ -286,12 +281,9 @@ const getUserProductsClaims = async (user_id) => {
         "user_claims.claim_user_id",
         "tasttlig_users.tasttlig_user_id"
       )
-      .leftJoin(
-        "nationalities",
-        "products.nationality_id",
-        "nationalities.id"
-      )
-      .groupBy("user_claims.food_sample_claim_id")
+      .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
+      .groupBy("user_claims.claim_user_id")
+      .groupBy("user_claims.claim_id")
       .groupBy("products.product_id")
       .groupBy("tasttlig_users.first_name")
       .groupBy("tasttlig_users.last_name")
@@ -301,6 +293,7 @@ const getUserProductsClaims = async (user_id) => {
 
     return { success: true, details: db_food_sample_claim };
   } catch (error) {
+    console.log(error);
     return { success: false, error: error.message };
   }
 };
@@ -308,80 +301,79 @@ const getUserProductsClaims = async (user_id) => {
 // Get user food sample claims helper function
 const getUserProductsRedeems = async (user_id, keyword) => {
   let query = db
-      .select(
-        "products.*",
-        "user_claims.*",
-        "tasttlig_users.first_name",
-        "tasttlig_users.last_name",
-        "nationalities.nationality",
-        "nationalities.alpha_2_code",
-        db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
-      )
-      .from("user_claims")
-      .leftJoin(
-        "products",
-        "user_claims.claimed_product_id",
-        "products.product_id"
-      )
-      .leftJoin(
-        "product_images",
-        "products.product_id",
-        "product_images.product_id"
-      )
-      .leftJoin(
-        "tasttlig_users",
-        "user_claims.claim_user_id",
-        "tasttlig_users.tasttlig_user_id"
-      )
-      .leftJoin(
-        "nationalities",
-        "products.nationality_id",
-        "nationalities.id"
-      )
-      .groupBy("user_claims.food_sample_claim_id")
-      .groupBy("products.product_id")
-      .groupBy("tasttlig_users.first_name")
-      .groupBy("tasttlig_users.last_name")
-      .groupBy("nationalities.nationality")
-      .groupBy("nationalities.alpha_2_code")
-      .having("product_user_id", "=", user_id);
+    .select(
+      "products.*",
+      "user_claims.*",
+      "tasttlig_users.first_name",
+      "tasttlig_users.last_name",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
+    )
+    .from("user_claims")
+    .leftJoin(
+      "products",
+      "user_claims.claimed_product_id",
+      "products.product_id"
+    )
+    .leftJoin(
+      "product_images",
+      "products.product_id",
+      "product_images.product_id"
+    )
+    .leftJoin(
+      "tasttlig_users",
+      "user_claims.claim_user_id",
+      "tasttlig_users.tasttlig_user_id"
+    )
+    .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
+    .groupBy("products.product_id")
+    .groupBy("user_claims.claim_id")
+    .groupBy("products.product_user_id")
 
-      if (keyword) {
-        // keyword=parseInt(keyword)
-        // console.log("keyword from condfition: ", keyword)
-        query = db
+    .groupBy("tasttlig_users.first_name")
+    .groupBy("tasttlig_users.last_name")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code")
+    .having("user_claims.claim_user_id", "=", user_id);
+
+  console.log("keyword from condfition: ", user_id);
+  if (keyword) {
+    // keyword=parseInt(keyword)
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
           .select(
-            "*",
+            "main.*",
             db.raw(
-              "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-                "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-                "END rank",
-              [keyword, keyword]
+              "to_tsvector(concat_ws(' '," +
+                "main.title, " +
+                "main.claim_viewable_id, " +
+                "main.first_name)) as search_text"
             )
           )
-          .from(
-            db
-              .select(
-                "main.*",
-                db.raw(
-                  "to_tsvector(concat_ws(' '," +
-                  "main.title, " +
-                  "main.claim_viewable_id, " +
-                  "main.first_name)) as search_text"
-                )
-              )
-              .from(query.as("main"))
-              .as("main")
-          )
-          .orderBy("rank", "desc");
-      }
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
 
-      return await query
+  return await query
     .then((value) => {
+      console.log("value from redeem>>.>>>", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("service", reason);
+      console.log("service problem>>>>>>", reason);
       return { success: false, details: reason };
     });
 };
@@ -392,5 +384,5 @@ module.exports = {
   userCanClaimFoodSample,
   confirmProductClaim,
   getUserProductsClaims,
-  getUserProductsRedeems
+  getUserProductsRedeems,
 };

@@ -43,23 +43,23 @@ const getInKindUserSponsorships = async(user_id) => {
   return await db
   .select(
     "festivals.*",
-    "products.product_name"
+    "products.title"
   )
   .from("festivals")
   .leftJoin(
     "products",
     "festivals.festival_id",
-    "products.product_festivals_id[1]"
+    "products.festival_selected[1]"
   )
   .groupBy("festivals.*")
   .groupBy("products.product_user_id")
   .groupBy("festivals.festival_business_sponsor_id")
-  .groupBy("products.product_name")
-  .groupBy("products.product_creator_type")
-  .groupBy("products.product_festivals_id[1]")
+  .groupBy("products.title")
+  .groupBy("products.product_type")
+  .groupBy("products.festival_selected[1]")
   .groupBy("festivals.festival_id")
   .having("products.product_user_id", "=", Number(user_id))
-  .andHaving("products.product_creator_type", "=", "SPONSOR")
+  .andHaving("products.product_type", "=", "SPONSOR")
   .then((value) => {
     console.log(value);
     return {success: true, details: value};

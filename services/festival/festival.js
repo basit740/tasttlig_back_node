@@ -483,7 +483,7 @@ const getFestivalRestaurants = async (host_id, festival_id) => {
       "product_images.product_id"
     )
     .groupBy("business_details.business_details_id")
-    .groupBy("products.product_name")
+    .groupBy("products.title")
     .having("products.product_business_id", "=", host_id[0]);
 
   return await productQuery
