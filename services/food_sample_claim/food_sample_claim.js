@@ -22,7 +22,6 @@ const createNewFoodSampleClaim = async (
   quantityAfterClaim,
   product_claim_details
 ) => {
-  console.log("data coming from here :" , product_claim_details)
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
@@ -35,11 +34,10 @@ const createNewFoodSampleClaim = async (
           details: "Inserting new food sample claim failed.",
         };
       }
-      console.log("food sample claim result:", db_food_sample_claim)
 
       if(quantityAfterClaim>=0) {
         await db("products")
-        .where({ product_id: db_food_sample_claim[0].product_id})
+        .where({ product_id: db_food_sample_claim[0].claimed_product_id})
         .update(
          { claimed_total_quantity: quantityAfterClaim}
           )
@@ -128,16 +126,15 @@ const confirmProductClaim = async (claimId, quantityAfterRedeem, totalRedeemQuan
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
-        .where({ claim_viewable_id: claimId })
+        .where({ claim_viewable_id: parseInt(claimId) })
         .update({
           stamp_status: Food_Sample_Claim_Status.CONFIRMED,
           current_stamp_status: "Redeemed",
         })
         .returning("*");
-
         if(quantityAfterRedeem>=0) {
           await db("products")
-          .where({ product_id: db_food_sample_claim[0].food_sample_id})
+          .where({ product_id: db_food_sample_claim[0].claimed_product_id})
           .update(
            { quantity: quantityAfterRedeem,
               redeemed_total_quantity: totalRedeemQuantity
@@ -291,7 +288,7 @@ const getUserProductsClaims = async (user_id) => {
         "products.nationality_id",
         "nationalities.id"
       )
-      .groupBy("user_claims.food_sample_claim_id")
+      .groupBy("user_claims.claim_user_id")
       .groupBy("products.product_id")
       .groupBy("tasttlig_users.first_name")
       .groupBy("tasttlig_users.last_name")
@@ -307,6 +304,8 @@ const getUserProductsClaims = async (user_id) => {
 
 // Get user food sample claims helper function
 const getUserProductsRedeems = async (user_id, keyword) => {
+
+
   let query = db
       .select(
         "products.*",
@@ -338,17 +337,20 @@ const getUserProductsRedeems = async (user_id, keyword) => {
         "products.nationality_id",
         "nationalities.id"
       )
-      .groupBy("user_claims.food_sample_claim_id")
       .groupBy("products.product_id")
+      .groupBy("user_claims.claim_id")
+      .groupBy("products.product_user_id")
+
       .groupBy("tasttlig_users.first_name")
       .groupBy("tasttlig_users.last_name")
       .groupBy("nationalities.nationality")
       .groupBy("nationalities.alpha_2_code")
-      .having("product_user_id", "=", user_id);
+      .having("user_claims.claim_user_id", "=", user_id);
 
+
+      console.log("keyword from condfition: ", user_id)
       if (keyword) {
         // keyword=parseInt(keyword)
-        // console.log("keyword from condfition: ", keyword)
         query = db
           .select(
             "*",
@@ -378,10 +380,11 @@ const getUserProductsRedeems = async (user_id, keyword) => {
 
       return await query
     .then((value) => {
+      console.log("value from redeem>>.>>>", value)
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("service", reason);
+      console.log("service problem>>>>>>", reason);
       return { success: false, details: reason };
     });
 };
