@@ -41,58 +41,6 @@ const getHostApplications = async () => {
   }
 };
 
-// Get all guest ambassador applications helper function
-const getGuestAmbassadorApplications = async () => {
-  try {
-    const applications = await db
-      .select("*")
-      .from("applications")
-      .leftJoin(
-        "tasttlig_users",
-        "applications.user_id",
-        "tasttlig_users.tasttlig_user_id"
-      )
-      .where("applications.type", "=", "guest")
-      .groupBy("applications.application_id")
-      .groupBy("tasttlig_users.tasttlig_user_id")
-      .having("applications.status", "=", "Pending");
-
-    return {
-      success: true,
-      applications,
-    };
-  } catch (error) {
-    console.log("why", error);
-    return { success: false, error: error.message };
-  }
-};
-// Get all guest ambassador applications helper function
-const getGuestAmbassadorApplication = async (appId) => {
-  try {
-    const application = await db
-      .select("*")
-      .from("applications")
-      .leftJoin(
-        "tasttlig_users",
-        "applications.user_id",
-        "tasttlig_users.tasttlig_user_id"
-      )
-      .where("applications.type", "=", "guest")
-      .groupBy("applications.application_id")
-      .groupBy("tasttlig_users.tasttlig_user_id")
-      .having("applications.status", "=", "Pending")
-      .having("applications.application_id", "=", appId);
-
-    return {
-      success: true,
-      application,
-    };
-  } catch (error) {
-    console.log("why", error);
-    return { success: false, error: error.message };
-  }
-};
-
 // Get specific application helper function
 const getHostApplication = async (userId) => {
   console.log("user id from get host application", userId);
@@ -368,6 +316,58 @@ const createHost = async (host_details, is_host, email) => {
   } catch (error) {
     console.log(error);
     return { success: false, details: error.message };
+  }
+};
+
+// Get all guest ambassador applications helper function
+const getGuestAmbassadorApplications = async () => {
+  try {
+    const applications = await db
+      .select("*")
+      .from("applications")
+      .leftJoin(
+        "tasttlig_users",
+        "applications.user_id",
+        "tasttlig_users.tasttlig_user_id"
+      )
+      .where("applications.type", "=", "guest")
+      .groupBy("applications.application_id")
+      .groupBy("tasttlig_users.tasttlig_user_id")
+      .having("applications.status", "=", "Pending");
+
+    return {
+      success: true,
+      applications,
+    };
+  } catch (error) {
+    console.log("why", error);
+    return { success: false, error: error.message };
+  }
+};
+// Get all guest ambassador applications helper function
+const getGuestAmbassadorApplication = async (appId) => {
+  try {
+    const application = await db
+      .select("*")
+      .from("applications")
+      .leftJoin(
+        "tasttlig_users",
+        "applications.user_id",
+        "tasttlig_users.tasttlig_user_id"
+      )
+      .where("applications.type", "=", "guest")
+      .groupBy("applications.application_id")
+      .groupBy("tasttlig_users.tasttlig_user_id")
+      .having("applications.status", "=", "Pending")
+      .having("applications.application_id", "=", appId);
+
+    return {
+      success: true,
+      application,
+    };
+  } catch (error) {
+    console.log("why", error);
+    return { success: false, error: error.message };
   }
 };
 

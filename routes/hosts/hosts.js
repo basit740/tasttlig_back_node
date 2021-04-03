@@ -26,24 +26,6 @@ router.get(
   }
 );
 
-// GET guest ambassador applications
-router.get(
-  "/guest/amb/applications",
-  token_service.authenticateToken,
-  async (req, res) => {
-    try {
-      const applications = await hosts_service.getGuestAmbassadorApplications();
-
-      return res.send(applications);
-    } catch (error) {
-      res.status(500).send({
-        success: false,
-        message: error.message,
-      });
-    }
-  }
-);
-
 // GET all applications by user ID
 router.get(
   "/applications/:userId",
@@ -66,25 +48,6 @@ router.get(
   }
 );
 
-// GET all guest amb applications by user ID
-router.get(
-  "/guest-amb-application/:appId",
-  token_service.authenticateToken,
-  async (req, res) => {
-    try {
-      const application = await hosts_service.getGuestAmbassadorApplication(
-        req.params.appId
-      );
-
-      return res.send(application);
-    } catch (error) {
-      res.status(500).send({
-        success: false,
-        message: error.message,
-      });
-    }
-  }
-);
 // POST application approval from admin
 router.post(
   "/applications/:userId/approve",
@@ -342,6 +305,44 @@ router.get(
       return res.send(applications);
     } catch (error) {
       console.log(error);
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// GET guest ambassador applications
+router.get(
+  "/guest/amb/applications",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const applications = await hosts_service.getGuestAmbassadorApplications();
+
+      return res.send(applications);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// GET all guest amb applications by user ID
+router.get(
+  "/guest-amb-application/:appId",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const application = await hosts_service.getGuestAmbassadorApplication(
+        req.params.appId
+      );
+
+      return res.send(application);
+    } catch (error) {
       res.status(500).send({
         success: false,
         message: error.message,
