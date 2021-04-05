@@ -335,7 +335,7 @@ const getUserProductsRedeems = async (user_id, keyword) => {
     .groupBy("tasttlig_users.last_name")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
-    .having("user_claims.claim_user_id", "=", user_id);
+    .having("product_user_id", "=", user_id);
 
   console.log("keyword from condfition: ", user_id);
   if (keyword) {
