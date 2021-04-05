@@ -138,51 +138,6 @@ router.post(
   }
 );
 
-router.post(
-  "/applications/:userId/:appId/approve",
-  token_service.authenticateToken,
-  async (req, res) => {
-    try {
-      const response = await user_profile_service.approveOrDeclineGuestAmbassadorSubscription(
-        req.params.userId,
-        req.params.appId,
-        "APPROVED",
-        req.body
-      );
-
-      return res.send(response);
-    } catch (error) {
-      res.status(500).send({
-        success: false,
-        message: error.message,
-      });
-    }
-  }
-);
-
-router.post(
-  "/applications/:userId/:appId/decline",
-  token_service.authenticateToken,
-  async (req, res) => {
-    console.log("decline", req.params);
-    try {
-      const response = await user_profile_service.approveOrDeclineGuestAmbassadorSubscription(
-        req.params.userId,
-        req.params.appId,
-        "DECLINED",
-        req.body
-      );
-      console.log("decline", response);
-      return res.send(response);
-    } catch (error) {
-      res.status(500).send({
-        success: false,
-        message: error.message,
-      });
-    }
-  }
-);
-
 // POST application from multi-step form
 router.post(
   "/request-host",
@@ -342,6 +297,51 @@ router.get(
       );
 
       return res.send(application);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+router.post(
+  "/applications/:userId/:appId/approve",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const response = await user_profile_service.approveOrDeclineGuestAmbassadorSubscription(
+        req.params.userId,
+        req.params.appId,
+        "APPROVED",
+        req.body
+      );
+      console.log("approve response", response);
+      return res.send(response);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+router.post(
+  "/applications/:userId/:appId/decline",
+  token_service.authenticateToken,
+  async (req, res) => {
+    console.log("decline", req.params);
+    try {
+      const response = await user_profile_service.approveOrDeclineGuestAmbassadorSubscription(
+        req.params.userId,
+        req.params.appId,
+        "DECLINED",
+        req.body
+      );
+      console.log("decline", response);
+      return res.send(response);
     } catch (error) {
       res.status(500).send({
         success: false,

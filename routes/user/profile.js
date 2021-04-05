@@ -850,7 +850,10 @@ router.post(
         email: req.user.email,
       };
 
-      const creatingFreeOrder = await user_order_service.createFreeOrder(req.body.subscriptionResponse, req.user.id )
+      const creatingFreeOrder = await user_order_service.createFreeOrder(
+        req.body.subscriptionResponse,
+        req.user.id
+      );
 
       if (!creatingFreeOrder.success) {
         return res.status(200).json({
@@ -866,7 +869,7 @@ router.post(
 
       return res.send(saveHost);
     } catch (error) {
-      console.log("error from catch:",error)
+      console.log("error from catch:", error);
       return res.status(403).json({
         success: false,
         message: error.details,
@@ -1049,7 +1052,7 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      const response = await user_profile_service.getSubscriptionsByUserId(
+      const response = await user_profile_service.getAllSubscriptionsByUserId(
         req.user.id
       );
       if (!response.success) {
@@ -1058,9 +1061,18 @@ router.post(
           message: response.message,
         });
       }
-      console.log("*******", req.user.role[0]);
-      console.log("*******", response.user);
-      res.send(response);
+      const manageSub = async (subId) => {
+        await user_profile_service.manageUserSubscriptionValidity(subId);
+      };
+      response.user.map((sub) => {
+        if (
+          sub.subscription_end_datetime &&
+          sub.subscription_end_datetime < new Date()
+        ) {
+          console.log("IN*******", sub.subscription_end_datetime);
+          const res = manageSub(sub.user_subscription_id);
+        }
+      });
     } catch (error) {}
   }
 );

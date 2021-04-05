@@ -9,6 +9,7 @@ const menu_items_service = require("../menu_items/menu_items");
 const assets_service = require("../assets/assets");
 const external_api_service = require("../../services/external_api_service");
 const auth_server_service = require("../../services/authentication/auth_server_service");
+const _ = require("lodash");
 
 // Environment variables
 const SITE_BASE = process.env.SITE_BASE;
@@ -1534,7 +1535,7 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
     const db_user = db_user_row.user;
 
     if (status === "APPROVED") {
-      //do subscription for userreturn await db("subscriptions")
+      //do subscription for user
       const subDetails = await db("subscriptions")
         .where({
           subscription_code: body.subscription_code,
@@ -1571,6 +1572,7 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
             subscription_start_datetime: new Date(),
             subscription_end_datetime: subscription_end_datetime,
             cash_payment_received: subDetails.item.price,
+            user_subscription_status: "ACTIVE",
           });
         });
 
@@ -1590,8 +1592,8 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
           subDetails.item.subscription_name
         );
 
-        console.log("subs", body.subscription_code);
-        await Mailer.sendMail({
+        console.log("app", app);
+        const eml = await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,
           to: body.email,
           bcc: ADMIN_EMAIL,
@@ -1601,8 +1603,8 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
             package_plan_name,
           },
         });
-        console.log("subs", body.subscription_code);
-        return { success: true, message: status };
+        console.log("email", eml);
+        //return { success: true, message: status };
       }
     }
     if (status === "DECLINED") {
@@ -1636,6 +1638,39 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
   } catch (error) {
     return { success: false, message: error };
   }
+};
+
+const manageUserSubscriptionValidity = async (subId) => {
+  await db("user_subscriptions")
+    .where({
+      user_subscription_id: subId,
+    })
+    .update("user_subscription_status", "INACTIVE")
+    .returning("*")
+    .catch((reason) => {
+      return { success: false, message: reason };
+    });
+};
+
+// Get user by subscription ID helper function
+const getAllSubscriptionsByUserId = async (userId) => {
+  return await db
+    .select("user_subscriptions.*")
+    .from("user_subscriptions")
+    .andWhere(function () {
+      this.where("user_subscriptions.user_id", "=", userId);
+    })
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+
+      return { success: true, user: value };
+    })
+    .catch((error) => {
+      console.log("subscr", error);
+      return { success: false, message: error };
+    });
 };
 
 module.exports = {
@@ -1676,4 +1711,6 @@ module.exports = {
   getSubscriptionsByUserId,
   upgradeToGuestAmbassador,
   approveOrDeclineGuestAmbassadorSubscription,
+  manageUserSubscriptionValidity,
+  getAllSubscriptionsByUserId,
 };
