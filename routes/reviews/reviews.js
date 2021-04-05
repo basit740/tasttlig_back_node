@@ -102,4 +102,27 @@ router.post(
   }
 );
 
+//Get services from user
+router.get("/reviews/user/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    const response = await reviews_service.getNonReviewedFromUser(
+      req.params.user_id
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 module.exports = router;
