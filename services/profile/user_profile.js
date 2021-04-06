@@ -1674,6 +1674,27 @@ const getAllSubscriptionsByUserId = async (userId) => {
     });
 };
 
+const getValidSubscriptionsByUserId = async (userId) => {
+  return await db
+    .select("user_subscriptions.*")
+    .from("user_subscriptions")
+    .where({
+      "user_subscriptions.user_id": userId,
+      "user_subscriptions.user_subscription_status": "ACTIVE",
+    })
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+
+      return { success: true, user: value };
+    })
+    .catch((error) => {
+      console.log("subscr", error);
+      return { success: false, message: error };
+    });
+};
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
@@ -1714,4 +1735,5 @@ module.exports = {
   approveOrDeclineGuestAmbassadorSubscription,
   manageUserSubscriptionValidity,
   getAllSubscriptionsByUserId,
+  getValidSubscriptionsByUserId,
 };

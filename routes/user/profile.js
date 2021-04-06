@@ -1069,7 +1069,7 @@ router.post(
           sub.subscription_end_datetime &&
           sub.subscription_end_datetime < new Date()
         ) {
-          console.log("IN*******", sub.subscription_end_datetime);
+          //console.log("IN*******", sub.subscription_end_datetime);
           const res = manageSub(sub.user_subscription_id);
         }
       });
@@ -1077,6 +1077,26 @@ router.post(
   }
 );
 
+//get all user subscriptions by user id
+router.get(
+  "/valid-user-subscriptions/:id",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const response = await user_profile_service.getValidSubscriptionsByUserId(
+        req.params.id
+      );
+      if (!response.success) {
+        return res.status(403).json({
+          success: false,
+          message: response.message,
+        });
+      }
+      //response.user
+      return res.send(response);
+    } catch (error) {}
+  }
+);
 //guest ambassador application
 router.post(
   "/guest-ambassador-application",
