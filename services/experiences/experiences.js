@@ -79,6 +79,16 @@ const getExperiencesInFestival = async (festival_id) => {
       "experiences.experience_business_id",
       "business_details.business_details_id"
     )
+    .leftJoin(
+      "products",
+      "experiences.products_selected[1]",
+      "products.product_id"
+    )
+    .leftJoin(
+      "services",
+      "experiences.services_selected[1]",
+      "services.service_id"
+    )
     .groupBy("experiences.experience_id")
     .groupBy("business_details.business_name")
     .groupBy("business_details.business_address_1")
@@ -86,6 +96,8 @@ const getExperiencesInFestival = async (festival_id) => {
     .groupBy("business_details.city")
     .groupBy("business_details.state")
     .groupBy("business_details.zip_postal_code")
+    .groupBy("products.product_id")
+    .groupBy("services.service_id")
     .having("experiences.festival_selected", "@>", [festival_id])
     .then((value) => {
       console.log("value", value);

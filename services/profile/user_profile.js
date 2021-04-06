@@ -1644,6 +1644,7 @@ const manageUserSubscriptionValidity = async (subId) => {
   await db("user_subscriptions")
     .where({
       user_subscription_id: subId,
+      user_subscription_status: "ACTIVE",
     })
     .update("user_subscription_status", "INACTIVE")
     .returning("*")
