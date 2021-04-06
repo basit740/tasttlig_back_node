@@ -80,6 +80,7 @@ const getUserBySubscriptionId = async (id) => {
       return { success: true, user: value };
     })
     .catch((error) => {
+      console.log("error from here:", error)
       return { success: false, message: error };
     });
 };
@@ -1330,7 +1331,7 @@ const saveHostApplication = async (hostDto, user) => {
 //create passport preferences helper function
 const createPreferences = async (preference_details, user_id) => {
   try {
-    console.log(preference_details);
+    console.log("preference_details",preference_details, user_id);
     return await db("tasttlig_users")
       .where("tasttlig_user_id", user_id)
       .first()

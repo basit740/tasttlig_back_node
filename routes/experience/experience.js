@@ -542,10 +542,8 @@ router.delete("/experience/delete/user/:user_id", async (req, res) => {
       req.params.user_id,
       req.body.delete_items
     );
-    console.log("response coming from expereineces:", response)
     return res.send(response);
   } catch (error) {
-    console.log("error coming from expereineces:",error);
     res.send({
       success: false,
       message: "Error.",

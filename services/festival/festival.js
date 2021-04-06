@@ -313,9 +313,8 @@ const hostToFestival = async (festival_id, festival_vendor_id, foodSamplePrefere
             })
             .returning("*");
             for (let sample of foodSamplePreference) {
-              console.log("itemm>>>>>>", sample)
-              const db_host = await trx("food_samples")
-                .where({ food_sample_id: sample })
+              const db_host = await trx("products")
+                .where({ product_id: sample })
                 .update({
                   festival_selected: trx.raw(
                     "array_append(festival_selected, ?)",
@@ -339,9 +338,8 @@ const hostToFestival = async (festival_id, festival_vendor_id, foodSamplePrefere
           })
           .returning("*");
           for (let sample of foodSamplePreference) {
-        console.log("itemm>>>>>>", sample)
-        const db_host = await trx("food_samples")
-          .where({ food_sample_id: sample })
+        const db_host = await trx("products")
+          .where({ product_id: sample })
           .update({
             festival_selected: trx.raw(
               "array_append(festival_selected, ?)",
