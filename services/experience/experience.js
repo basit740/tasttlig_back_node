@@ -578,6 +578,31 @@ const addExperienceToFestival = async (festival_id, experience_id) => {
   }
 };
 
+const deleteFoodExperiences = async (user_id, delete_items) => {
+  try {
+    for (let item of delete_items) {
+
+      await db.transaction(async (trx) => {
+       
+        const ExperienceDelete = await trx("experiences")
+          .where({
+            experience_id: item.experience_id,
+          })
+          .del()
+          .then(() => {
+            return { success: true };
+          })
+          .catch((reason) => {
+            return { success: false, details: reason };
+          });
+      });
+    }
+  } catch (error) {
+    return { success: false, details: error };
+  }
+};
+
+
 module.exports = {
   createNewExperience,
   getAllExperience,
@@ -589,4 +614,5 @@ module.exports = {
   getDistinctNationalities,
   addExperienceToFestival,
   getUserExperiencesById,
+  deleteFoodExperiences
 };

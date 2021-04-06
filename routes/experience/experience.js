@@ -528,6 +528,33 @@ router.delete(
   }
 );
 
+// For multiple deletions of experiences
+router.delete("/experience/delete/user/:user_id", async (req, res) => {
+  // console.log("delete items coming from expereineces:", req.body.delete_items)
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    const response = await experience_service.deleteFoodExperiences(
+      req.params.user_id,
+      req.body.delete_items
+    );
+    console.log("response coming from expereineces:", response)
+    return res.send(response);
+  } catch (error) {
+    console.log("error coming from expereineces:",error);
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+
 
 // GET all experiences from a user
 router.get(
