@@ -58,7 +58,8 @@ const getNonReviewedFromUser = async (user_id) => {
       .select(
         "user_reviews.*",
         "business_details.business_name",
-        "products.title"
+        "products.title",
+        db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
       )
       .from("user_reviews")
       .leftJoin(
@@ -70,6 +71,11 @@ const getNonReviewedFromUser = async (user_id) => {
         "business_details",
         "user_reviews.review_user_id",
         "business_details.business_details_user_id"
+      )
+      .leftJoin(
+        "product_images",
+        "products.product_id",
+        "product_images.product_id"
       )
       /* .where("user_reviews.review_user_id", "=", user_id)
       .andWhere("user_reviews.review_status", "=", "NOT REVIEWED") */
@@ -85,7 +91,9 @@ const getNonReviewedFromUser = async (user_id) => {
         "business_details.business_details_user_id",
         "user_reviews.review_user_id",
         "user_reviews.review_product_id",
-        "user_reviews.review_id"
+        "user_reviews.review_id",
+        "products.product_id",
+        "product_images.product_id"
       )
       .first()
       .then((value) => {
