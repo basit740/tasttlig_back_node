@@ -454,13 +454,14 @@ router.put(
   "/experience/update/:experience_id",
   token_service.authenticateToken,
   async (req, res) => {
-    if (!req.params.experience_id || !req.body.experience_update_data) {
+    console.log("exp******", req.body);
+    if (!req.params.experience_id || !req.body) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
       });
     }
-
+    const experience_update_data = req.body;
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -484,7 +485,7 @@ router.put(
       const response = await experience_service.updateExperience(
         db_user,
         req.params.experience_id,
-        req.body.experience_update_data,
+        experience_update_data,
         updatedByAdmin
       );
 

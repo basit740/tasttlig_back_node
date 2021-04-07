@@ -415,17 +415,7 @@ const updateExperience = async (
   update_data,
   updatedByAdmin
 ) => {
-  const { images, ...experience_update_data } = update_data;
-
-  if (!experience_update_data.status) {
-    let user_role_object = db_user.role;
-
-    if (user_role_object.includes("RESTAURANT") && !updatedByAdmin) {
-      experience_update_data.status = "ACTIVE";
-    } else {
-      experience_update_data.status = "INACTIVE";
-    }
-  }
+  const { experience_images, ...experience_update_data } = update_data;
 
   try {
     await db("experiences")
@@ -437,25 +427,25 @@ const updateExperience = async (
         } else {
           return builder.where({
             experience_id,
-            experience_creator_user_id: db_user.tasttlig_user_id,
           });
         }
       })
       .update(experience_update_data);
 
-    if (images && images.length) {
+    if (experience_images && experience_images.length) {
       await db("experience_images").where("experience_id", experience_id).del();
 
       await db("experience_images").insert(
-        images.map((image_url) => ({
+        experience_images.map((experience_image_url) => ({
           experience_id,
-          image_url,
+          experience_image_url,
         }))
       );
     }
 
     return { success: true };
   } catch (error) {
+    console.log(error);
     return { success: false, details: error };
   }
 };
