@@ -292,7 +292,13 @@ authRouter.post(
   "/user/create-new-multi-step-user",
   createAccountLimiter,
   async (req, res) => {
-    const { first_name, last_name, email, phone_number } = req.body;
+    const {
+      first_name,
+      last_name,
+      email,
+      phone_number,
+      created_by_admin,
+    } = req.body;
 
     if (!email) {
       return res.status(403).json({
@@ -307,6 +313,7 @@ authRouter.post(
       email,
       password: generateRandomString(8),
       phone_number,
+      created_by_admin,
     };
 
     const response = await authenticate_user_service.createBecomeFoodProviderUser(

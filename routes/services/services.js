@@ -99,6 +99,7 @@ router.post(
       );
       return res.send(response);
     } catch (error) {
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",

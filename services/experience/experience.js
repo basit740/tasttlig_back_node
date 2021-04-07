@@ -535,6 +535,77 @@ const getDistinctNationalities = async (operator, status) => {
     });
 };
 
+const addExperienceToFestival = async (festival_id, experience_id) => {
+  try {
+    await db.transaction(async (trx) => {
+      console.log("experienceId", experience_id);
+      if (Array.isArray(experience_id)) {
+        for (let experience of experience_id) {
+          const db_experience = await trx("experiences")
+            .where({ experience_id: experience })
+            .update({
+              festival_selected: trx.raw("array_append(festival_selected, ?)", [
+                festival_id,
+              ]),
+            })
+            .returning("*");
+
+          if (!db_experience) {
+            return {
+              success: false,
+              details: "Inserting new product guest failed.",
+            };
+          }
+        }
+      } else {
+        const db_service = await trx("experiences")
+          .where({ experience_id })
+          .update({
+            festival_selected: trx.raw(
+              "array_append(experience_festival_selected, ?)",
+              [festival_id]
+            ),
+          })
+          .returning("*");
+
+        if (!db_service) {
+          return {
+            success: false,
+            details: "Inserting new product guest failed.",
+          };
+        }
+      }
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
+const deleteFoodExperiences = async (user_id, delete_items) => {
+  try {
+    for (let item of delete_items) {
+      await db.transaction(async (trx) => {
+        const ExperienceDelete = await trx("experiences")
+          .where({
+            experience_id: item.experience_id,
+          })
+          .del()
+          .then(() => {
+            return { success: true };
+          })
+          .catch((reason) => {
+            return { success: false, details: reason };
+          });
+      });
+    }
+  } catch (error) {
+    return { success: false, details: error };
+  }
+};
+
 module.exports = {
   createNewExperience,
   getAllExperience,
@@ -544,5 +615,7 @@ module.exports = {
   updateExperience,
   getExperience,
   getDistinctNationalities,
+  addExperienceToFestival,
   getUserExperiencesById,
+  deleteFoodExperiences,
 };

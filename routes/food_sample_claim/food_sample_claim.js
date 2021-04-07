@@ -94,6 +94,7 @@ router.post("/all-products-claim", async (req, res) => {
       claimed_quantity: req.body.claimed_quantity,
       claim_viewable_id: req.body.claim_viewable_id,
       festival_name: req.body.foodsample_festival_name,
+      reserved_on: new Date(),
       
     };
 

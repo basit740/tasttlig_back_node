@@ -298,7 +298,7 @@ const saveBusinessForUser = async (hostDto, user_id) => {
       //instagram: hostDto.instagram,
       //facebook: hostDto.facebook,
       //in_current_festival: hostDto.in_current_festival,
-      business_details_created_at_datetime: new Date(),
+      business_details_registration_date: new Date(),
       business_details_updated_at_datetime: new Date(),
     };
     console.log("hello");

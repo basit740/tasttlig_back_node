@@ -32,15 +32,15 @@ const createNewFoodSample = async (
       let user_role_object = db_user.role;
 
       if (user_role_object.includes("HOST") || createdByAdmin) {
-        food_sample_details.status = "ACTIVE";
+        all_product_details.status = "ACTIVE";
       } else if (user_role_object.includes("HOST_PENDING")) {
-        food_sample_details.status = "INACTIVE";
+        all_product_details.status = "INACTIVE";
       }
 
       // food_sample_details = await setAddressCoordinates(food_sample_details);
 
-      const db_food_sample = await trx("food_samples")
-        .insert(food_sample_details)
+      const db_all_product = await trx("products")
+        .insert(all_product_details)
         .returning("*");
 
       await trx("products")
@@ -1021,16 +1021,15 @@ const getNationalities = async (keyword) => {
 const deleteFoodSamplesFromUser = async (user_id, delete_items) => {
   try {
     for (let item of delete_items) {
-      console.log("itemsssfddddds", item);
       await db.transaction(async (trx) => {
         const productImagesDelete = await trx("product_images")
           .where({
-            product_id: item,
+            product_id: item.product_id,
           })
           .del();
         const foodSampleClaimsDelete = await trx("user_claims")
           .where({
-            claimed_product_id: item,
+            claimed_product_id: item.product_id,
           })
           .delete()
           .then(() => {
@@ -1038,7 +1037,7 @@ const deleteFoodSamplesFromUser = async (user_id, delete_items) => {
           });
         const foodSampleDelete = await trx("products")
           .where({
-            product_id: item,
+            product_id: item.product_id,
           })
           .del()
           .catch((reason) => {

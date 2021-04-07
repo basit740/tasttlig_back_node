@@ -428,6 +428,7 @@ const createBecomeFoodProviderUser = async (become_food_provider_user) => {
           status: "ACTIVE",
           passport_id: user.passport_id,
           auth_user_id: user.id,
+          created_by_admin: become_food_provider_user.created_by_admin,
           created_at_datetime: new Date(),
           updated_at_datetime: new Date(),
         })
@@ -437,7 +438,7 @@ const createBecomeFoodProviderUser = async (become_food_provider_user) => {
           let role_code = await db("roles")
             .select()
             .where({
-              role: "MEMBER",
+              role: "GUEST",
             })
             .then((value) => {
               return value[0].role_code;

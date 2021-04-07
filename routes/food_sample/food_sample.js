@@ -21,9 +21,10 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
+      console.log(req.body[0].festivals);
       req.body.map(async (item) => {
         if (
-          !item.name ||
+          !item.title ||
           !item.festivals ||
           !item.sample_size ||
           !item.quantity ||
@@ -81,7 +82,7 @@ router.post(
 
           const all_product_details = {
             product_user_id: db_user.tasttlig_user_id,
-            title: item.name,
+            title: item.title,
             // start_date: item.start_date.substring(0, 10),
             // end_date: item.end_date.substring(0, 10),
             start_time:
@@ -1055,14 +1056,11 @@ router.delete("/food-sample/delete/user/:user_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
-  // console.log("req params",req.body)
-  console.log(req.body);
   try {
     const response = await food_sample_service.deleteFoodSamplesFromUser(
       req.params.user_id,
       req.body.delete_items
     );
-    console.log("responsssss", response);
     return res.send(response);
   } catch (error) {
     console.log(error);
