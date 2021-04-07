@@ -418,19 +418,36 @@ const updateExperience = async (
   const { experience_images, ...experience_update_data } = update_data;
 
   try {
-    await db("experiences")
-      .where((builder) => {
-        if (updatedByAdmin) {
-          return builder.where({
-            experience_id,
-          });
-        } else {
-          return builder.where({
-            experience_id,
-          });
-        }
-      })
-      .update(experience_update_data);
+    if (
+      experience_update_data.experience_id &&
+      Array.isArray(experience_update_data.experience_id)
+    ) {
+      const id = experience_update_data.experience_id;
+      delete experience_update_data.experience_id;
+      await db("experiences")
+        .where((builder) => {
+          if (updatedByAdmin) {
+            return builder.whereIn("experience_id", id);
+          } else {
+            return builder.whereIn("experience_id", id);
+          }
+        })
+        .update(experience_update_data);
+    } else {
+      await db("experiences")
+        .where((builder) => {
+          if (updatedByAdmin) {
+            return builder.where({
+              experience_id,
+            });
+          } else {
+            return builder.where({
+              experience_id,
+            });
+          }
+        })
+        .update(experience_update_data);
+    }
 
     if (experience_images && experience_images.length) {
       await db("experience_images").where("experience_id", experience_id).del();
@@ -575,7 +592,36 @@ const addExperienceToFestival = async (festival_id, experience_id) => {
 };
 
 const deleteFoodExperiences = async (user_id, delete_items) => {
-  try {
+  if (Array.isArray(delete_items)) {
+    return await db("experience_images")
+      .whereIn("experience_id", delete_items)
+      .del()
+      .then(async () => {
+        await db("experiences").whereIn("experience_id", delete_items).del();
+        return { success: true };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  } else {
+    return await db("experience_images")
+      .where({
+        experience_id: delete_items,
+      })
+      .del()
+      .then(async () => {
+        await db("experiences")
+          .where({
+            experience_id: delete_items,
+          })
+          .del();
+        return { success: true };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  }
+  /* try {
     for (let item of delete_items) {
       await db.transaction(async (trx) => {
         const ExperienceDelete = await trx("experiences")
@@ -587,13 +633,14 @@ const deleteFoodExperiences = async (user_id, delete_items) => {
             return { success: true };
           })
           .catch((reason) => {
+            console.log(reason);
             return { success: false, details: reason };
           });
       });
     }
   } catch (error) {
     return { success: false, details: error };
-  }
+  } */
 };
 
 module.exports = {

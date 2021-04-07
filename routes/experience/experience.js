@@ -539,6 +539,7 @@ router.delete("/experience/delete/user/:user_id", async (req, res) => {
     });
   }
   try {
+    console.log("fe bdy", req.body);
     const response = await experience_service.deleteFoodExperiences(
       req.params.user_id,
       req.body.delete_items
