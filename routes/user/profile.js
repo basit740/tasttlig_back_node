@@ -31,11 +31,13 @@ router.get(
 
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
+  console.log("data from the user get",req.user.id )
   const response = await user_profile_service.getUserBySubscriptionId(
     req.user.id
   );
-
+ 
   if (!response.success) {
+    console.log("error from get user:", response.message)
     return res.status(403).json({
       success: false,
       message: response.message,
@@ -54,12 +56,11 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     phone_number: response.user.phone_number,
     age: response.user.age,
     role: response.user.role,
-    profile_image_link: response.user.profile_image_link,
+    // profile_image_link: response.user.profile_image_link,
     banner_image_link: response.user.banner_image_link,
     bio: response.user.bio_text,
     profile_tag_line: response.user.profile_tag_line,
-    address_line_1: response.user.user_address_line_1,
-    address_line_2: response.user.user_address_line_2,
+  
     street_number: response.user.street_number,
     street_name: response.user.street_name,
     occupation: response.user.occupation,
@@ -89,8 +90,12 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     verified: response.user.is_email_verified,
     passport_id: response.user.passport_id,
     points: points_total.data[0].sum ? points_total.data[0].sum : 0,
+    food_allergies:response.user.food_allergies,
+    preferred_country_cuisine:response.user.preferred_country_cuisine,
+    food_preferences:response.user.food_preferences,
+    date_of_birth:response.user.date_of_birth,
   };
-
+  
   res.status(200).json({
     success: true,
     user,
