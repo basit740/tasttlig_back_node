@@ -9,6 +9,7 @@ const menu_items_service = require("../menu_items/menu_items");
 const assets_service = require("../assets/assets");
 const external_api_service = require("../../services/external_api_service");
 const auth_server_service = require("../../services/authentication/auth_server_service");
+const _ = require("lodash");
 
 // Environment variables
 const SITE_BASE = process.env.SITE_BASE;
@@ -401,6 +402,30 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
     role_name = "VENDOR_PENDING";
   }
+  if (applications.length == 0 && hostDto.is_guest_amb) {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "guest",
+      status: "Pending",
+      resume: hostDto.resume,
+      //youtube_link: hostDto.youtube_link,
+      //linkedin_link: hostDto.linkedin_link,
+      //facebook_link: hostDto.facebook_link,
+      //instagram_link: hostDto.instagram_link,
+      //twitter_link: hostDto.twitter_link,
+    });
+    //role_name = "GUEST_AMBASSADOR_PENDING";
+
+    return trx("applications")
+      .insert(applications)
+      .returning("*")
+      .catch((reason) => {
+        console.log(reason);
+      });
+  }
   if (applications.length === 0) {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -423,7 +448,6 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
     role_name = "SPONSOR_PENDING";
   }
-
   /*   if (applications.length == 0 && hostDto.is_host === "no") {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
@@ -1023,9 +1047,9 @@ const approveOrDeclineHostAmbassadorApplication = async (
   status,
   declineReason
 ) => {
-  console.log("userID:", userId)
-  console.log("status:", status)
-  console.log("declineReason:", declineReason)
+  console.log("userID:", userId);
+  console.log("status:", status);
+  console.log("declineReason:", declineReason);
   try {
     const db_user_row = await getUserById(userId);
 
@@ -1035,13 +1059,11 @@ const approveOrDeclineHostAmbassadorApplication = async (
 
     const db_user = db_user_row.user;
 
- 
-    console.log("role_pending:", db_user)
+    console.log("role_pending:", db_user);
 
     // Depends on status, we do different things:
     // If status is approved
     if (status === "APPROVED") {
-
       await db("products")
         .where({
           product_user_id: db_user.tasttlig_user_id,
@@ -1049,14 +1071,13 @@ const approveOrDeclineHostAmbassadorApplication = async (
         })
         .update("status", "ACTIVE");
 
-       
-        await db("user_subscriptions")
+      await db("user_subscriptions")
         .where({
           user_id: db_user.tasttlig_user_id,
           user_subscription_status: "INACTIVE",
         })
-        .update("user_subscription_status", "ACTIVE")
-   
+        .update("user_subscription_status", "ACTIVE");
+
       // STEP 3: Update all Food Samples to Active state if the user agreed to participate in festival
       if (db_user.is_participating_in_festival) {
         await db("products")
@@ -1102,7 +1123,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
         context: {
           first_name: db_user.first_name,
           last_name: db_user.last_name,
-          role_name: 'Host Ambassador',
+          role_name: "Host Ambassador",
           active_item: active_item,
         },
       });
@@ -1110,7 +1131,6 @@ const approveOrDeclineHostAmbassadorApplication = async (
       return { success: true, message: status };
     } else {
       // Status is failed
-     
 
       // STEP 2: Update all documents belongs to this user which is in Pending state become REJECT
       await db("documents")
@@ -1122,8 +1142,8 @@ const approveOrDeclineHostAmbassadorApplication = async (
           return { success: false, message: reason };
         });
 
-        //mark the status to rejected if it has been rejected.
-        await db("user_subscriptions")
+      //mark the status to rejected if it has been rejected.
+      await db("user_subscriptions")
         .where({
           user_id: db_user.tasttlig_user_id,
           user_subscription_status: "INACTIVE",
@@ -1143,8 +1163,6 @@ const approveOrDeclineHostAmbassadorApplication = async (
         .catch((reason) => {
           return { success: false, message: reason };
         });
-
- 
 
       // STEP 4: Notify user their application is rejected
       await Mailer.sendMail({
@@ -1471,6 +1489,211 @@ const getSubscriptionsByUserId = async (userId) => {
     });
 };
 
+const upgradeToGuestAmbassador = async (guest_details) => {
+  try {
+    await db.transaction(async (trx) => {
+      await saveApplicationInformation(guest_details, trx);
+
+      //change to update tattlig user table
+      let data = {
+        tasttlig_user_id: guest_details.dbUser.user.tasttlig_user_id,
+        linkedin_link: guest_details.linkedin_link,
+        facebook_link: guest_details.facebook_link,
+        youtube_link: guest_details.youtube_link,
+        instagram_link: guest_details.instagram_link,
+        twitter_link: guest_details.twitter_link,
+        ambassador_intent_description:
+          guest_details.ambassador_intent_description,
+        is_influencer: guest_details.is_influencer,
+      };
+      const update = await updateUserProfile(data);
+
+      if (!update) {
+        return { success: false, details: "Inserting new preference failed." };
+      }
+    });
+    console.log("hello");
+    return { success: true, details: "Success." };
+  } catch (error) {
+    console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
+const approveOrDeclineGuestAmbassadorSubscription = async (
+  userId,
+  appId,
+  status,
+  body
+) => {
+  try {
+    const db_user_row = await getUserById(userId);
+
+    if (!db_user_row.success) {
+      return { success: false, message: db_user_row.message };
+    }
+
+    const db_user = db_user_row.user;
+
+    if (status === "APPROVED") {
+      //do subscription for user
+      const subDetails = await db("subscriptions")
+        .where({
+          subscription_code: body.subscription_code,
+          //status: "ACTIVE",
+        })
+        .first()
+        .then((value) => {
+          if (!value) {
+            return { success: false, message: "No plan found." };
+          }
+
+          return { success: true, item: value };
+        })
+        .catch((error) => {
+          return { success: false, message: error };
+        });
+      if (subDetails.success) {
+        let subscription_end_datetime = null;
+
+        if (subDetails.item.validity_in_months) {
+          subscription_end_datetime = new Date(
+            new Date().setMonth(new Date().getMonth() + Number(60))
+          );
+        } else {
+          subscription_end_datetime = subDetails.item.date_of_expiry;
+        }
+
+        await db.transaction(async (trx) => {
+          await trx("user_subscriptions").insert({
+            subscription_code: subDetails.item.subscription_code,
+            user_id: db_user.tasttlig_user_id,
+            subscription_start_datetime: new Date(),
+            subscription_end_datetime: subscription_end_datetime,
+            cash_payment_received: subDetails.item.price,
+            user_subscription_status: "ACTIVE",
+          });
+        });
+
+        const app = await db("applications")
+          .where("user_id", db_user.tasttlig_user_id)
+          .andWhere("status", "Pending")
+          .andWhere("type", "guest")
+          .andWhere("application_id", appId)
+          .update("status", status)
+          .returning("*")
+          .catch((reason) => {
+            return { success: false, message: reason };
+          });
+
+        // Email to user on submitting the request to upgrade
+        const package_plan_name = _.startCase(
+          subDetails.item.subscription_name
+        );
+
+        console.log("app", app);
+        const eml = await Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
+          to: body.email,
+          bcc: ADMIN_EMAIL,
+          subject: "[Tasttlig] Package Purchase",
+          template: "package_purchase",
+          context: {
+            package_plan_name,
+          },
+        });
+        console.log("email", eml);
+        //return { success: true, message: status };
+      }
+    }
+    if (status === "DECLINED") {
+      const declineReason = body.declineReason;
+      await db("applications")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("status", "Pending")
+        .andWhere("type", "guest")
+        .andWhere("application_id", appId)
+        .update("status", status)
+        .update("reason", declineReason)
+        .returning("*")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
+
+      // Email to user on submitting the request to upgrade
+      await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: body.email,
+        bcc: ADMIN_EMAIL,
+        subject: "[Tasttlig] Package Purchase",
+        template: "user_upgrade_reject",
+        context: {
+          declineReason,
+        },
+      });
+    }
+
+    return { success: true, message: status };
+  } catch (error) {
+    return { success: false, message: error };
+  }
+};
+
+const manageUserSubscriptionValidity = async (subId) => {
+  await db("user_subscriptions")
+    .where({
+      user_subscription_id: subId,
+      user_subscription_status: "ACTIVE",
+    })
+    .update("user_subscription_status", "INACTIVE")
+    .returning("*")
+    .catch((reason) => {
+      return { success: false, message: reason };
+    });
+};
+
+// Get user by subscription ID helper function
+const getAllSubscriptionsByUserId = async (userId) => {
+  return await db
+    .select("user_subscriptions.*")
+    .from("user_subscriptions")
+    .andWhere(function () {
+      this.where("user_subscriptions.user_id", "=", userId);
+    })
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+
+      return { success: true, user: value };
+    })
+    .catch((error) => {
+      console.log("subscr", error);
+      return { success: false, message: error };
+    });
+};
+
+const getValidSubscriptionsByUserId = async (userId) => {
+  return await db
+    .select("user_subscriptions.*")
+    .from("user_subscriptions")
+    .where({
+      "user_subscriptions.user_id": userId,
+      "user_subscriptions.user_subscription_status": "ACTIVE",
+    })
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+
+      return { success: true, user: value };
+    })
+    .catch((error) => {
+      console.log("subscr", error);
+      return { success: false, message: error };
+    });
+};
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
@@ -1507,4 +1730,9 @@ module.exports = {
   //createPreferences
   getBusinessDetailsByUserId,
   getSubscriptionsByUserId,
+  upgradeToGuestAmbassador,
+  approveOrDeclineGuestAmbassadorSubscription,
+  manageUserSubscriptionValidity,
+  getAllSubscriptionsByUserId,
+  getValidSubscriptionsByUserId,
 };

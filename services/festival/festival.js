@@ -27,6 +27,7 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
       "festival_images.festival_id"
     )
     .where("festivals.festival_id", ">", 3)
+    .where("festivals.festival_end_date", ">=", new Date())
     .groupBy("festivals.festival_id")
     .orderBy("festival_start_date");
 
@@ -113,6 +114,7 @@ const getAllFestivalsPresent = async () => {
       "festival_images.festival_id"
     )
     .where("festivals.festival_id", ">", 3)
+    .where("festivals.festival_end_date", ">=", new Date())
     .groupBy("festivals.festival_id")
     .then((value) => {
       return { success: true, festival_list: value };
@@ -137,6 +139,7 @@ const getThreeFestivals = async (currentPage, keyword, filters) => {
       "festival_images.festival_id"
     )
     .where("festivals.festival_id", ">", 3)
+    .where("festivals.festival_end_date", ">=", new Date())
     .groupBy("festivals.festival_id");
 
   if (filters.nationalities && filters.nationalities.length) {
@@ -223,6 +226,7 @@ const getFestivalList = async () => {
     .select("festivals.*")
     .from("festivals")
     .where("festivals.festival_id", ">", 3)
+    .where("festivals.festival_end_date", ">=", new Date())
     .groupBy("festivals.festival_id")
     .then((value) => {
       return { success: true, festival_list: value };
@@ -260,7 +264,7 @@ const createNewFestival = async (festival_details, festival_images) => {
 };
 
 const updateFestival = async (data, festival_images) => {
-  console.log("body from the festival:", festival_images)
+  console.log("body from the festival:", festival_images);
   try {
     await db.transaction(async (trx) => {
       const db_festival = await trx("festivals")
@@ -278,17 +282,16 @@ const updateFestival = async (data, festival_images) => {
         })
         .returning("*");
 
-        await trx("festival_images")
+      await trx("festival_images")
         .where({ festival_id: data.festival_id })
-        .delete()
-  
-        for(let image of festival_images) {
-          await trx("festival_images")
+        .delete();
+
+      for (let image of festival_images) {
+        await trx("festival_images")
           // .where({ festival_id: data.festival_id })
           .insert({ festival_image_url: image, festival_id: data.festival_id })
           .returning("*");
-          
-        }
+      }
     });
 
     return { success: true, details: "Success." };
@@ -298,7 +301,11 @@ const updateFestival = async (data, festival_images) => {
 };
 
 // Add host ID to festivals table helper function
-const hostToFestival = async (festival_id, festival_vendor_id, foodSamplePreference) => {
+const hostToFestival = async (
+  festival_id,
+  festival_vendor_id,
+  foodSamplePreference
+) => {
   try {
     await db.transaction(async (trx) => {
       if (typeof festival_id === "object") {
@@ -353,8 +360,6 @@ const hostToFestival = async (festival_id, festival_vendor_id, foodSamplePrefere
           return { success: false, details: "Inserting new host failed." };
         }
       }
-      
-
     });
     return { success: true, details: "Success." };
   } catch (error) {
@@ -422,6 +427,7 @@ const getFestivalDetails = async (festival_id) => {
     .groupBy("b1.business_name")
     .groupBy("b2.business_name")
     .having("festivals.festival_id", "=", festival_id)
+    .having("festivals.festival_end_date", ">=", new Date())
     .then((value) => {
       return {
         success: true,

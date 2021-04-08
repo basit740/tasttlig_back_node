@@ -85,15 +85,11 @@ router.post(
         products_selected: req.body.products_selected,
         service_code: generateRandomString(4),
         service_status: "ACTIVE",
-        start_date: req.body.start_date,
-        end_date: req.body.end_date,
-        tax_included_or_not: req.body.tax_included_or_not,
-        shipping_included_or_not: req.body.shipping_included_or_not,
         service_created_at_datetime: new Date(),
         service_updated_at_datetime: new Date(),
-        // service_creator_type: req.body.service_creator_type
-        //   ? req.body.service_creator_type
-        //   : null,
+        service_creator_type: req.body.service_creator_type
+          ? req.body.service_creator_type
+          : null,
         service_user_id: req.user.id,
       };
       const response = await services_service.createNewService(

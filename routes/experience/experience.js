@@ -196,7 +196,7 @@ router.get("/experience/:experience_id", async (req, res) => {
 });
 
 // GET all experiences from a user
-router.get(
+/* router.get(
   "/experience/user/all",
   token_service.authenticateToken,
   async (req, res) => {
@@ -246,7 +246,7 @@ router.get(
       });
     }
   }
-);
+); */
 
 // GET experience owner
 router.get("/experience/owner/:id", async (req, res) => {
@@ -454,13 +454,14 @@ router.put(
   "/experience/update/:experience_id",
   token_service.authenticateToken,
   async (req, res) => {
-    if (!req.params.experience_id || !req.body.experience_update_data) {
+    console.log("exp******", req.body);
+    if (!req.params.experience_id || !req.body) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
       });
     }
-
+    const experience_update_data = req.body;
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -484,7 +485,7 @@ router.put(
       const response = await experience_service.updateExperience(
         db_user,
         req.params.experience_id,
-        req.body.experience_update_data,
+        experience_update_data,
         updatedByAdmin
       );
 
@@ -538,6 +539,7 @@ router.delete("/experience/delete/user/:user_id", async (req, res) => {
     });
   }
   try {
+    console.log("fe bdy", req.body);
     const response = await experience_service.deleteFoodExperiences(
       req.params.user_id,
       req.body.delete_items
@@ -551,8 +553,6 @@ router.delete("/experience/delete/user/:user_id", async (req, res) => {
     });
   }
 });
-
-
 
 // GET all experiences from a user
 router.get(
@@ -601,6 +601,5 @@ router.get(
     }
   }
 );
-
 
 module.exports = router;

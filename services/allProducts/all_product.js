@@ -292,7 +292,7 @@ const getAllUserProducts = async (
       "business_details.business_name",
       db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
       // db.raw(
-      //   "(select count(*)::integer from user_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
+      //   "(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
       //   [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay]
       // )
     )
