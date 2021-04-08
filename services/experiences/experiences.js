@@ -56,8 +56,8 @@ const getExperiencesInFestival = async (festival_id) => {
     .select(
       "experiences.*",
       "business_details.business_name",
-      "business_details.business_address_1",
-      "business_details.business_address_2",
+      // "business_details.business_address_1",
+      // "business_details.business_address_2",
       "business_details.city",
       "business_details.state",
       "business_details.zip_postal_code",
@@ -71,7 +71,7 @@ const getExperiencesInFestival = async (festival_id) => {
     )
     .leftJoin(
       "festivals",
-      "experiences.experience_festival_id",
+      "experiences.festivals_selected[1]",
       "festivals.festival_id"
     )
     .leftJoin(

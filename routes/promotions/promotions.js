@@ -133,6 +133,7 @@ router.get("/promotions/user/:user_id", async (req, res) => {
         req.params.user_id,
         req.body.delete_items
       );
+      console.log(response)
       return res.send(response);
     } catch (error) {
       res.send({

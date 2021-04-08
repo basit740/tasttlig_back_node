@@ -57,8 +57,8 @@ const getPromotionsByUser = async (user_id) => {
       });
   };
 
-  const deletePromotionsOfUser = async (user_id, delete_items) => {
-    try {
+  const deletePromotionsOfUser = async (user_id, delete_items) => { 
+      try {
         var promotionDelete;
         for (let item of delete_items) {
           await db.transaction(async (trx) => {
@@ -66,26 +66,40 @@ const getPromotionsByUser = async (user_id) => {
               .select("business_details_id")
               .where("business_details_user_id", "=", user_id)
               .first();
-            promotionDelete = await trx("promotions")
-              .where({
+            promotionDelete = await trx("products")
+              .where("promotional_discount_id", "=", item)
+              .andWhere("product_user_id", "=", user_id)
+              .update(
+                {promotional_discount_id:null,
+                discounted_price:null}
+                )
+                .then(async () => { 
+                  return await trx("promotions")
+                .where({
                 promotion_id: item,
                 promotion_business_id: business_details_id.business_details_id,
-              })
-              .del()
-              .then(() => {
-                return { success: true };
-              })
-              .catch((reason) => {
-                return { success: false, details: reason };
-              });
-          });
-        }
-        return promotionDelete;
+                  })
+                  .del()
+                  .then(() => {
+                    return { success: true };
+                   }).catch((reason) => {
+                    return { success: false, details: reason };
+                  });
+                })
+                .catch((reason) => {
+                  return { success: false, details: reason };
+                });
+        });
+      } 
+      return promotionDelete;
     } catch (error) {
         console.log(error.message)
       return { success: false, details: error };
     }
   };
+  
+   
+    
 
   const applyPromotionToProducts = async (promotion, products) => {
     try{

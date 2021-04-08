@@ -1,6 +1,6 @@
 exports.up = function(knex) {
       return knex.schema.createTable("user_claims", table => {
-      table.integer("claim_id").unsigned().primary();
+      table.increments("claim_id").unsigned().primary();
       table.integer("claim_user_id").unsigned().index()
       .references("tasttlig_user_id").inTable("tasttlig_users");
       table.string("user_claim_email");
