@@ -8,12 +8,13 @@ const { formatTime } = require("../../functions/functions");
 const getAllFestivals = async (currentPage, keyword, filters) => {
   let startDate;
   let startTime;
-    if (filters.startDate) {
-       startDate = filters.startDate.substring(0, 10);
-    }
-    if (filters.startTime) {
-       startTime = formatTime(filters.startTime);
-    }
+
+  if (filters.startDate) {
+    startDate = filters.startDate.substring(0, 10);
+  }
+  if (filters.startTime) {
+    startTime = formatTime(filters.startTime);
+  }
   let query = db
     .select(
       "festivals.*",
@@ -34,7 +35,7 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
   }
 
   if (filters.startDate) {
-    query.where("festivals.festival_start_date", ">=", startDate);
+    query.where("festivals.festival_start_date", "=", startDate);
   }
 
   if (filters.startTime) {
@@ -44,6 +45,13 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
   if (filters.cityLocation) {
     query.where("festivals.festival_city", "=", filters.cityLocation);
   }
+
+  //if (filters.dayOfWeek) {
+  /* query.whereRaw("Day(festivals.festival_start_time) = ?", [
+      filters.dayOfWeek,
+    ]); */
+  //query.where(knex.datePart("dow", "festivals.festival_start_date"), "=", 0);
+  //}
 
   if (keyword) {
     query = db
@@ -87,33 +95,33 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log(reason);
       return { success: false, details: reason };
     });
 };
 
 const getAllFestivalsPresent = async () => {
-  
   return await db
-  .select(
-    "festivals.*",
-    db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
-  )
-  .from("festivals")
-  .leftJoin(
-    "festival_images",
-    "festivals.festival_id",
-    "festival_images.festival_id"
-  )
-  .where("festivals.festival_id", ">", 3)
-  .groupBy("festivals.festival_id")
-  .then((value) => {
-    return { success: true, festival_list: value };
-  })
-  .catch((reason) => {
-    return { success: false, data: reason };
-  });
-}
-  
+    .select(
+      "festivals.*",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("festivals")
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    )
+    .where("festivals.festival_id", ">", 3)
+    .groupBy("festivals.festival_id")
+    .then((value) => {
+      return { success: true, festival_list: value };
+    })
+    .catch((reason) => {
+      return { success: false, data: reason };
+    });
+};
+
 const getThreeFestivals = async (currentPage, keyword, filters) => {
   let startDate = filters.startDate.substring(0, 10);
   let startTime = formatTime(filters.startTime);
@@ -446,7 +454,7 @@ const getFestivalRestaurants = async (host_id, festival_id) => {
       "product_images.product_id"
     )
     .groupBy("business_details.business_details_id")
-    .groupBy("products.product_name")
+    .groupBy("products.title")
     .having("products.product_business_id", "=", host_id[0]);
 
   return await productQuery

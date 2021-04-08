@@ -84,17 +84,16 @@ router.post("/all-products-claim", async (req, res) => {
         message: product_details_from_db.message,
       });
     }
-
     let db_all_products = product_details_from_db.food_sample;
 
     const product_claim_details = {
-      food_sample_claim_email: db_user.email,
-      food_sample_claim_user_id: db_user.tasttlig_user_id,
-      food_sample_id: db_all_products.product_id,
-      current_status: "Claimed",
+      user_claim_email: db_user.email,
+      claim_user_id: db_user.tasttlig_user_id,
+      claimed_product_id: db_all_products.product_id,
+      current_stamp_status: "Claimed",
       claimed_quantity: req.body.claimed_quantity,
       claim_viewable_id: req.body.claim_viewable_id,
-      foodsample_festival_name: req.body.foodsample_festival_name,
+      festival_name: req.body.foodsample_festival_name,
       
     };
 
@@ -104,10 +103,8 @@ router.post("/all-products-claim", async (req, res) => {
       claimed_total_quantity,
       product_claim_details
     );
-      console.log("response from here", response)
     return res.send(response);
   } catch (error) {
-    console.log("error comin", error)
     res.send({
       success: false,
       message:
@@ -125,12 +122,11 @@ router.post("/all-products-claim/confirm", async (req, res) => {
       message: "Id not present in request.",
     });
   }
-
   const response = await food_sample_claim_service.confirmProductClaim(
     req.body.claim_viewable_id,
     req.body.quantity,
     req.body.redeemed_total_quantity,
-  );
+    );
 
   return res.status(response.error ? 500 : 200).json(response);
 });
@@ -162,14 +158,12 @@ router.get(
   "/all-product-redeem/user/reservations",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("requset from food sample redeem:", req.query)
     const keyword = req.query.keyword || "";
     try {
       const db_food_claims = await food_sample_claim_service.getUserProductsRedeems(
         req.user.id,
         keyword
       );
-
       return res.send(db_food_claims);
     } catch (error) {
       res.send({

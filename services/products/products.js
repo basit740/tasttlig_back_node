@@ -316,21 +316,40 @@ const findProduct = async (product_id) => {
 const addProductToFestival = async (festival_id, product_id) => {
   try {
     await db.transaction(async (trx) => {
-      const db_product = await trx("products")
-        .where({ product_id })
-        .update({
-          product_festivals_id: trx.raw(
-            "array_append(product_festivals_id, ?)",
-            [festival_id]
-          ),
-        })
-        .returning("*");
+      if (Array.isArray(product_id)) {
+        for (let product of product_id) {
+          const db_product = await trx("products")
+            .where({ product_id: product })
+            .update({
+              festival_selected: trx.raw("array_append(festival_selected, ?)", [
+                festival_id,
+              ]),
+            })
+            .returning("*");
 
-      if (!db_product) {
-        return {
-          success: false,
-          details: "Inserting new product guest failed.",
-        };
+          if (!db_product) {
+            return {
+              success: false,
+              details: "Inserting new product guest failed.",
+            };
+          }
+        }
+      } else {
+        const db_product = await trx("products")
+          .where({ product_id })
+          .update({
+            festival_selected: trx.raw("array_append(festival_selected, ?)", [
+              festival_id,
+            ]),
+          })
+          .returning("*");
+
+        if (!db_product) {
+          return {
+            success: false,
+            details: "Inserting new product guest failed.",
+          };
+        }
       }
     });
 

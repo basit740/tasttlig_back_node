@@ -274,7 +274,7 @@ const getAllUserProducts = async (
   keyword,
   currentPage,
   requestByAdmin = false,
-  festival_name = ""
+  festival_id
 ) => {
   console.log(
     "coming into the get ll user food samples",
@@ -327,8 +327,14 @@ const getAllUserProducts = async (
     query = query.having("products.status", operator, status);
   }
 
-  if (festival_name !== "") {
-    query = query.having("festivals.festival_name", "=", festival_name);
+  if (festival_id) {
+    //console.log("festival_id", festival_id);
+    query = query.havingRaw(
+      "(? != ALL(coalesce(products.festival_selected, array[]::int[])))",
+      festival_id
+    );
+    // ('? = ANY(likes_received)', id);
+    //       .whereNotIn("products.festival_selected", [Number(festival_id)]);
   }
 
   if (keyword) {
@@ -360,6 +366,7 @@ const getAllUserProducts = async (
       .orderBy("rank", "desc");
   }
 
+  console.log(query.toSQL());
   query = query.paginate({
     perPage: 12,
     isLengthAware: true,
@@ -368,9 +375,11 @@ const getAllUserProducts = async (
 
   return await query
     .then((value) => {
+      //console.log("value", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
+      //console.log("reason", reason);
       return { success: false, details: reason };
     });
 };
@@ -402,11 +411,9 @@ const getProductById = async (id) => {
     });
 };
 
-
 module.exports = {
   createNewProduct,
   getAllProductsInFestival,
   getAllUserProducts,
-  getProductById
-  
+  getProductById,
 };

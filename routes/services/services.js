@@ -20,7 +20,7 @@ router.post(
       !req.body.service_capacity ||
       !req.body.service_size_scope ||
       !req.body.service_description ||
-      !req.body.service_images||
+      !req.body.service_images ||
       !req.body.service_type ||
       !req.body.start_time ||
       !req.body.end_time
@@ -73,7 +73,9 @@ router.post(
           ? null
           : db_business_details.business_details_id,
         service_name: req.body.service_name,
-        service_nationality_id: req.body.service_nationality_id,
+        service_nationality_id: req.body.service_nationality_id
+          ? req.body.service_nationality_id
+          : null,
         service_price: req.body.service_price,
         service_capacity: req.body.service_capacity,
         service_size_scope: req.body.service_size_scope,
@@ -102,7 +104,7 @@ router.post(
       );
       return res.send(response);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -250,7 +252,8 @@ router.get("/services/user/:user_id", async (req, res) => {
   try {
     const response = await services_service.getServicesFromUser(
       req.query.user_id,
-      req.query.keyword
+      req.query.keyword,
+      req.query.festival
     );
 
     return res.send(response);
