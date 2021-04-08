@@ -40,7 +40,7 @@ const createNewFoodSampleClaim = async (
           .where({ product_id: db_food_sample_claim[0].claimed_product_id })
           .update({ claimed_total_quantity: quantityAfterClaim });
 
-        const subs = await user_profile_service.getValidSubscriptionsByUserId(
+        /* const subs = await user_profile_service.getValidSubscriptionsByUserId(
           product_claim_details.claim_user_id
         );
 
@@ -55,7 +55,7 @@ const createNewFoodSampleClaim = async (
             ) {
               let subscription_end_datetime = null;
 
-              const getSub = async (subId, subDate) => {
+              const updateSub = async (subId, subDate) => {
                 await db("user_subscriptions")
                   .where({
                     user_subscription_id: subId,
@@ -71,9 +71,9 @@ const createNewFoodSampleClaim = async (
                 new Date().setMonth(new Date().getMonth() + Number(1))
               );
 
-              getSub(sub.user_subscription_id, subscription_end_datetime);
+              updateSub(sub.user_subscription_id, subscription_end_datetime);
             }
-          });
+          }); */
       }
 
       await sendClaimedEmailToUser(
