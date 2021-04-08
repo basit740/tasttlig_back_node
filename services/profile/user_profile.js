@@ -1557,9 +1557,7 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
 
         if (subDetails.item.validity_in_months) {
           subscription_end_datetime = new Date(
-            new Date().setMonth(
-              new Date().getMonth() + Number(subDetails.item.validity_in_months)
-            )
+            new Date().setMonth(new Date().getMonth() + Number(60))
           );
         } else {
           subscription_end_datetime = subDetails.item.date_of_expiry;
