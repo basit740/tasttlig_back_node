@@ -118,6 +118,7 @@ router.post("/all-products-claim", async (req, res) => {
 
 // POST confirm product redeem status
 router.post("/all-products-claim/confirm", async (req, res) => {
+  console.log("req.body", req.body);
   if (!req.body.claim_viewable_id) {
     return res.status(403).json({
       success: false,
