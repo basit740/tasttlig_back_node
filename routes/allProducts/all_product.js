@@ -240,6 +240,7 @@ router.get(
         requestByAdmin,
         festival_id
       );
+      console.log("Products details",response);
       return res.send(response);
     } catch (error) {
       res.send({

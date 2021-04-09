@@ -103,8 +103,10 @@ router.post("/all-products-claim", async (req, res) => {
       claimed_total_quantity,
       product_claim_details
     );
+    console.log("response", response);
     return res.send(response);
   } catch (error) {
+    console.log("error", error);
     res.send({
       success: false,
       message:
