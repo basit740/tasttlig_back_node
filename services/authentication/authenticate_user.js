@@ -103,11 +103,18 @@ const userRegister = async (new_user, sendEmail = true) => {
   }
 };
 
+  var d = new Date();
+  var year = d.getFullYear();
+  var month = d.getMonth();
+  var day = d.getDate();
 // Verify user account helper function
 const verifyAccount = async (user_id) => {
   return await db("tasttlig_users")
     .where("tasttlig_user_id", user_id)
-    .update("is_email_verified", true)
+    .update({"is_email_verified":true,
+              "email_verified_date_time": new Date(),
+              "passport_expiry_date": new Date(year + 5, month, day),  
+  })
     .returning("*")
     .then((value) => {
       return {

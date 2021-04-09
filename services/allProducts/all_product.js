@@ -51,6 +51,7 @@ const getAllProductsInFestival = async (
       "business_details.business_details_id",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
+      "promotions.promotion_name",
       db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
     )
     .from("products")
@@ -74,6 +75,10 @@ const getAllProductsInFestival = async (
       "festivals",
       "products.festival_selected[1]",
       "festivals.festival_id"
+    ).leftJoin(
+      "promotions",
+      "products.promotional_discount_id",
+      "promotions.promotion_id"
     )
     .groupBy("products.product_id")
     .groupBy("tasttlig_users.first_name")
@@ -83,6 +88,7 @@ const getAllProductsInFestival = async (
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
     .groupBy("festivals.festival_id")
+    .groupBy("promotions.promotion_id")
     .having("products.status", operator, status)
     .having("products.festival_selected", "@>", [festival_id]);
 
@@ -290,6 +296,7 @@ const getAllUserProducts = async (
       "nationalities.nationality",
       "nationalities.alpha_2_code",
       "business_details.business_name",
+      "promotions.promotion_name",
       db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
       // db.raw(
       //   "(select count(*)::integer from user_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
@@ -307,6 +314,11 @@ const getAllUserProducts = async (
       "products.festival_selected[1]",
       "festivals.festival_id"
     )
+    .leftJoin(
+      "promotions",
+      "promotions.promotion_id",
+      "products.promotional_discount_id"
+    )
     .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .leftJoin(
       "business_details",
@@ -316,6 +328,7 @@ const getAllUserProducts = async (
     .groupBy("products.product_id")
     .groupBy("festivals.festival_id")
     .groupBy("business_details.business_details_id")
+    .groupBy("promotions.promotion_id")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code");
 
@@ -375,7 +388,7 @@ const getAllUserProducts = async (
 
   return await query
     .then((value) => {
-      //console.log("value", value);
+      console.log("Products value", value);
       return { success: true, details: value };
     })
     .catch((reason) => {

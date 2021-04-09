@@ -7,7 +7,7 @@ exports.up = async function (knex) {
       const new_tasttlig_users_details = tasttlig_users.map((user) => {
         return {
           tasttlig_user_id: user.tasttlig_user_id,
-          passport_id: "M" + generateRandomString(6),
+          passport_id: "GP" + generateRandomString(6),
         };
       });
       return knex.transaction((trx) => {
