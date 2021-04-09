@@ -125,8 +125,12 @@ const confirmProductClaim = async (
   totalRedeemQuantity
 ) => {
   try {
+    let db_product;
+    let db_food_sample_claim;
+    let db_business;
+    let db_user;
     await db.transaction(async (trx) => {
-      const db_food_sample_claim = await trx("user_claims")
+      db_food_sample_claim = await trx("user_claims")
         .where({ claim_viewable_id: parseInt(claimId) })
         .update({
           stamp_status: Food_Sample_Claim_Status.CONFIRMED,
@@ -134,15 +138,15 @@ const confirmProductClaim = async (
         })
         .returning("*");
       if (quantityAfterRedeem >= 0) {
-        await db("products")
+        db_product = await db("products")
           .where({ product_id: db_food_sample_claim[0].claimed_product_id })
           .update({
             quantity: quantityAfterRedeem,
             redeemed_total_quantity: totalRedeemQuantity,
-          });
-        // .returning("*")
+          })
+          .returning("*");
       }
-      console.log(db_food_sample_claim);
+      //console.log(db_food_sample_claim);
       //insert data to user_reviews
       await db("user_reviews").insert({
         review_user_id: db_food_sample_claim[0].claim_user_id,
@@ -152,6 +156,21 @@ const confirmProductClaim = async (
         review_ask_count: 0,
       });
     });
+    if (db_product && db_food_sample_claim) {
+      db_business = await user_profile_service.getBusinessDetailsByUserId(
+        db_product[0].product_user_id
+      );
+      db_user = await user_profile_service.getUserById(
+        db_food_sample_claim[0].claim_user_id
+      );
+    }
+
+    sendRedeemedEmailToUser(
+      db_user,
+      db_food_sample_claim[0],
+      db_product[0],
+      db_business
+    );
 
     return { success: true, details: "Success." };
   } catch (error) {
@@ -257,6 +276,49 @@ const sendClaimedEmailToProvider = async (
       email: db_user.email,
       title: db_food_sample.title,
       food_ad_code: db_food_sample.food_ad_code,
+      url,
+    },
+  });
+};
+// Send claimed food sample email to owner helper function
+const sendRedeemedEmailToUser = async (
+  db_user,
+  db_food_sample_claim,
+  db_product,
+  db_business
+) => {
+  console.log("db_food_sample", db_food_sample_claim);
+  console.log("db_product", db_product);
+  console.log("db_user", db_user);
+  console.log("db_business", db_business);
+  const token = jwt.sign(
+    {
+      claim_id: db_food_sample_claim.claim_id,
+      food_sample_id: db_food_sample_claim.claimed_product_id,
+      db_user: {
+        email: db_user.email,
+        first_name: db_user.first_name,
+        last_name: db_user.last_name,
+      },
+    },
+    process.env.EMAIL_SECRET
+  );
+
+  const url = `${process.env.SITE_BASE}/dashboard?token=${token}`;
+
+  return Mailer.sendMail({
+    from: process.env.SES_DEFAULT_FROM,
+    to: db_food_sample_claim.user_claim_email,
+    bcc: ADMIN_EMAIL,
+    subject: `[Tasttlig] Food sample has been redeemed - ${db_product.title}`,
+    template: "redeemed_food_sample",
+    context: {
+      business_name: db_business.business_details_all.business_name,
+      first_name: db_user.first_name === "NA" ? "" : db_user.first_name,
+      last_name: db_user.last_name === "NA" ? "" : db_user.last_name,
+      email: db_user.email,
+      title: db_product.title,
+      //food_ad_code: db_food_sample_claim.food_ad_code,
       url,
     },
   });
