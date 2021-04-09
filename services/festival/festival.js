@@ -319,17 +319,18 @@ const hostToFestival = async (
               ),
             })
             .returning("*");
-          for (let sample of foodSamplePreference) {
-            const db_host = await trx("products")
-              .where({ product_id: sample })
-              .update({
-                festival_selected: trx.raw(
-                  "array_append(festival_selected, ?)",
-                  item
-                ),
-              })
-              .returning("*");
-          }
+            for (let sample of foodSamplePreference) {
+              const db_host = await trx("products")
+                .where({ product_id: sample })
+                .update({
+                  festival_selected: trx.raw(
+                    "array_append(festival_selected, ?)",
+                    item
+                  ),
+                })
+                .returning("*");
+      
+              }
           if (!db_host) {
             return { success: false, details: "Inserting new host failed." };
           }
@@ -343,16 +344,17 @@ const hostToFestival = async (
             ]),
           })
           .returning("*");
-        for (let sample of foodSamplePreference) {
-          const db_host = await trx("products")
-            .where({ product_id: sample })
-            .update({
-              festival_selected: trx.raw(
-                "array_append(festival_selected, ?)",
-                festival_id
-              ),
-            })
-            .returning("*");
+          for (let sample of foodSamplePreference) {
+        const db_host = await trx("products")
+          .where({ product_id: sample })
+          .update({
+            festival_selected: trx.raw(
+              "array_append(festival_selected, ?)",
+              festival_id
+            ),
+          })
+          .returning("*");
+
         }
         if (!db_host) {
           return { success: false, details: "Inserting new host failed." };
