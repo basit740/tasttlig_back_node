@@ -18,7 +18,8 @@ router.post(
       !req.body.service ||
       !req.body.transit ||
       !req.body.appearance ||
-      !req.body.finalScore
+      !req.body.finalScore ||
+      !req.query.review_id
     ) {
       return res.status(403).json({
         success: false,
@@ -103,7 +104,8 @@ router.post(
 
 //Get non-reviewed from user
 router.get("/reviews/user/:user_id", async (req, res) => {
-  if (!req.params.user_id) {
+  console.log(req.query.productId);
+  if (!req.params.user_id || !req.query.productId) {
     return res.status(403).json({
       success: false,
       message: "Required parameters are not available in request.",
@@ -111,7 +113,8 @@ router.get("/reviews/user/:user_id", async (req, res) => {
   }
   try {
     const response = await reviews_service.getNonReviewedFromUser(
-      req.params.user_id
+      req.params.user_id,
+      req.query.productId
     );
 
     return res.send(response);

@@ -52,7 +52,7 @@ const updatePopUpCount = async (user_id, review_id) => {
 };
 
 //search for non reviewed entries for user
-const getNonReviewedFromUser = async (user_id) => {
+const getNonReviewedFromUser = async (user_id, product_id) => {
   try {
     return await db
       .select(
@@ -82,8 +82,9 @@ const getNonReviewedFromUser = async (user_id) => {
       .where({
         review_user_id: user_id,
         review_status: "NOT REVIEWED",
+        //review_product_id: product_id,
       })
-      .andWhere("user_reviews.review_ask_count", "<", "3")
+      //.andWhere("user_reviews.review_ask_count", "<", "3")
       .groupBy(
         "business_details.business_name",
         "products.title",
@@ -95,7 +96,7 @@ const getNonReviewedFromUser = async (user_id) => {
         "products.product_id",
         "product_images.product_id"
       )
-      .first()
+      //.first()
       .then((value) => {
         return { success: true, details: value };
       })
