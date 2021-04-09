@@ -133,6 +133,7 @@ router.get("/promotions/user/:user_id", async (req, res) => {
         req.params.user_id,
         req.body.delete_items
       );
+      console.log(response)
       return res.send(response);
     } catch (error) {
       res.send({
@@ -172,6 +173,76 @@ router.get("/promotions/user/:user_id", async (req, res) => {
       });
     }
   }
+  );
+
+
+  router.put("/promotions/remove-from-product", async (req, res) => {
+    // check if body is null, then no promotion/ products return error
+    console.log(req.body)
+    if(!req.body.products ) {
+        return res.status(200).json({
+          success: false,
+          message: "Please choose a promotion",
+        });
+    }
+    if(!req.body.products || req.body.products.length == 0) {
+      return res.status(200).json({
+        success: false,
+        message: "Please choose atleast one product",
+      });
+    }
+    try {
+      const response = await services_promotions.removePromotionFromProducts(
+        req.body.products
+      );
+      return res.send(response)
+    } catch(error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+  );
+
+
+  router.put(
+    "/promotion/update/:promotion_id",
+    token_service.authenticateToken,
+    async (req, res) => {
+      if (!req.body) {
+        return res.status(403).json({
+          success: false,
+          message: "Required parameters are not available in request.",
+        });
+      }
+  
+      try {
+        // const user_details_from_db = await user_profile_service.getUserById(
+        //   req.user.id
+        // );
+  
+        // if (!user_details_from_db.success) {
+        //   return res.status(403).json({
+        //     success: false,
+        //     message: user_details_from_db.message,
+        //   });
+        // }
+  
+        // let db_user = user_details_from_db.user;
+        console.log(req.body)
+        const response = await services_promotions.updatePromotion(req.body);
+        console.log('update promo', response)
+        return res.send(response);
+      } catch (error) {
+        res.send({
+          success: false,
+          message: "Error.",
+          response: error.message,
+        });
+      }
+    }
   );
 
   module.exports = router;

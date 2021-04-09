@@ -239,14 +239,14 @@ const getAllUserExperience = async (
       "experience_images.experience_id"
     )
     .leftJoin(
-      "nationalities",
-      "experiences.experience_nationality_id",
-      "nationalities.id"
-    )
-    .leftJoin(
       "business_details",
       "experiences.experience_business_id",
       "business_details.business_details_id"
+    )
+    .leftJoin(
+      "nationalities",
+      "experiences.experience_nationality_id",
+      "nationalities.id"
     )
     .leftJoin(
       "festivals",

@@ -56,8 +56,8 @@ const getExperiencesInFestival = async (festival_id) => {
     .select(
       "experiences.*",
       "business_details.business_name",
-      "business_details.business_address_1",
-      "business_details.business_address_2",
+      // "business_details.business_address_1",
+      // "business_details.business_address_2",
       "business_details.city",
       "business_details.state",
       "business_details.zip_postal_code",

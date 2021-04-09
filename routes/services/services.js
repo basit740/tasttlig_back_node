@@ -83,6 +83,7 @@ router.post(
         service_description: req.body.service_description,
         festivals_selected: req.body.festival_selected,
         products_selected: req.body.products_selected,
+        experiences_selected: req.body.experiences_selected,
         service_code: generateRandomString(4),
         service_status: "ACTIVE",
         service_created_at_datetime: new Date(),
@@ -129,6 +130,7 @@ router.get("/services/festival/:festival_id", async (req, res) => {
       filters,
       req.query.keyword
     );
+    // console.log('services in festival response', response);
     return res.send(response);
   } catch (error) {
     res.send({
