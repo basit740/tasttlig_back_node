@@ -839,6 +839,19 @@ const createFreeOrder = async (subscriptionResponse, userId) => {
         subscription_end_datetime = subscriptionResponse.date_of_expiry;
       }
 
+      /* //host also accesses guest basic
+      await trx("user_subscriptions")
+        .insert({
+          subscription_code: "G_BASIC",
+          user_id: userId,
+          subscription_start_datetime: new Date(),
+          subscription_end_datetime: subscription_end_datetime,
+          // suscribed_festivals: db_order_details.subscribed_festivals,
+          cash_payment_received: subscriptionResponse.price,
+          user_subscription_status: "Pending",
+        })
+        .returning("*"); */
+
       const db_subscription_details = await trx("user_subscriptions")
         .insert({
           subscription_code: subscriptionResponse.subscription_code,

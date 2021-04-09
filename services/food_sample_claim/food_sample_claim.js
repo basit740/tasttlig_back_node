@@ -10,6 +10,7 @@ const {
   formatDate,
   formatMilitaryToStandardTime,
 } = require("../../functions/functions");
+const festival_service = require("../festival/festival");
 
 // Environment variables
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -39,41 +40,6 @@ const createNewFoodSampleClaim = async (
         await db("products")
           .where({ product_id: db_food_sample_claim[0].claimed_product_id })
           .update({ claimed_total_quantity: quantityAfterClaim });
-
-        /* const subs = await user_profile_service.getValidSubscriptionsByUserId(
-          product_claim_details.claim_user_id
-        );
-
-        subs &&
-          subs.user.map((sub) => {
-            if (
-              sub.subscription_code === "G_BASIC" ||
-              sub.subscription_code === "G_MSHIP1" ||
-              sub.subscription_code === "G_MSHIP2" ||
-              sub.subscription_code === "G_MSHIP3" ||
-              sub.subscription_code === "G_AMB"
-            ) {
-              let subscription_end_datetime = null;
-
-              const updateSub = async (subId, subDate) => {
-                await db("user_subscriptions")
-                  .where({
-                    user_subscription_id: subId,
-                    user_subscription_status: "ACTIVE",
-                  })
-                  .update("subscription_end_datetime", subDate)
-                  .returning("*")
-                  .catch((reason) => {
-                    return { success: false, message: reason };
-                  });
-              };
-              subscription_end_datetime = new Date(
-                new Date().setMonth(new Date().getMonth() + Number(1))
-              );
-
-              updateSub(sub.user_subscription_id, subscription_end_datetime);
-            }
-          }); */
       }
 
       await sendClaimedEmailToUser(
@@ -87,6 +53,58 @@ const createNewFoodSampleClaim = async (
         db_all_products,
         db_food_sample_claim[0]
       );
+
+      //assign festival end-date and festival to guest subscription package after product claim
+      const subs = await user_profile_service.getValidSubscriptionsByUserId(
+        product_claim_details.claim_user_id
+      );
+
+      const response = await festival_service.getFestivalDetails(
+        product_claim_details.festival_id
+      );
+      const getFestivalEndDate = response.details[0].festival_end_date;
+      console.log("subs", subs);
+      subs &&
+        subs.user.map((sub) => {
+          if (
+            sub.subscription_code === "G_BASIC" ||
+            sub.subscription_code === "G_MSHIP1" ||
+            sub.subscription_code === "G_MSHIP2" ||
+            sub.subscription_code === "G_MSHIP3" ||
+            (sub.subscription_code === "G_AMB" &&
+              sub.suscribed_festivals == null)
+          ) {
+            /* let subscription_end_datetime = null;
+            subscription_end_datetime = new Date(
+              new Date().setMonth(new Date().getMonth() + Number(1))
+            );
+            console.log("sub date", subscription_end_datetime); */
+
+            const updateSub = async (subId, subDate, festivalId) => {
+              await db("user_subscriptions")
+                .where({
+                  user_subscription_id: subId,
+                  user_subscription_status: "ACTIVE",
+                })
+                .update({
+                  subscription_end_datetime: subDate,
+                  suscribed_festivals: [festivalId],
+                })
+                .returning("*")
+                .catch((reason) => {
+                  console.log(reason);
+                  return { success: false, message: reason };
+                });
+            };
+
+            updateSub(
+              sub.user_subscription_id,
+              getFestivalEndDate,
+              product_claim_details.festival_id
+            );
+          }
+        });
+      //assign festival end-date and festival to guest subscription package after product claim ended
     });
 
     return { success: true, details: "Success." };

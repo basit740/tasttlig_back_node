@@ -39,10 +39,9 @@ router.post("/all-products-claim", async (req, res) => {
       });
     }
   }
-  
-  
+
   db_user = db_user.user;
-  
+
   try {
     if (!new_user) {
       const {
@@ -95,7 +94,7 @@ router.post("/all-products-claim", async (req, res) => {
       claim_viewable_id: req.body.claim_viewable_id,
       festival_name: req.body.foodsample_festival_name,
       reserved_on: new Date(),
-      
+      festival_id: req.body.festival_id,
     };
 
     const response = await food_sample_claim_service.createNewFoodSampleClaim(
@@ -126,8 +125,8 @@ router.post("/all-products-claim/confirm", async (req, res) => {
   const response = await food_sample_claim_service.confirmProductClaim(
     req.body.claim_viewable_id,
     req.body.quantity,
-    req.body.redeemed_total_quantity,
-    );
+    req.body.redeemed_total_quantity
+  );
 
   return res.status(response.error ? 500 : 200).json(response);
 });
@@ -137,7 +136,6 @@ router.get(
   "/all-product-claim/user/reservations",
   token_service.authenticateToken,
   async (req, res) => {
-
     try {
       const db_food_claims = await food_sample_claim_service.getUserProductsClaims(
         req.user.id
