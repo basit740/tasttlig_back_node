@@ -177,10 +177,20 @@ const confirmProductClaim = async (
           });
         // .returning("*")
       }
+      console.log(db_food_sample_claim);
+      //insert data to user_reviews
+      await db("user_reviews").insert({
+        review_user_id: db_food_sample_claim[0].claim_user_id,
+        review_user_email: db_food_sample_claim[0].user_claim_email,
+        review_product_id: db_food_sample_claim[0].claimed_product_id,
+        review_status: "NOT REVIEWED",
+        review_ask_count: 0,
+      });
     });
 
     return { success: true, details: "Success." };
   } catch (error) {
+    console.log(error);
     return { success: false, details: error.message };
   }
 };
