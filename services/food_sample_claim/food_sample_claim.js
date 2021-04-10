@@ -722,4 +722,6 @@ module.exports = {
   createNewExperienceClaim,
   sendClaimedExperienceEmailToUser,
   sendClaimedExperienceEmailToProvider,
+  getExperienceClaimCount,
+  confirmExperienceClaim,
 };
