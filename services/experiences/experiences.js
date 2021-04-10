@@ -112,9 +112,23 @@ const getExperiencesInFestival = async (festival_id) => {
 // Find experience helper function
 const findExperience = async (experience_id) => {
   return await db
-    .select("experiences.*")
+    .select("experiences.*", "business_details.*", "tasttlig_users.*")
     .from("experiences")
-    .where("experiences.experience_id", "=", experience_id)
+    .leftJoin(
+      "business_details",
+      "experiences.experience_business_id",
+      "business_details.business_details_id"
+    )
+    .leftJoin(
+      "tasttlig_users",
+      "business_details.business_details_user_id",
+      "tasttlig_users.tasttlig_user_id"
+    )
+    .groupBy("experiences.experience_id")
+    .groupBy("business_details.business_details_id")
+    .groupBy("business_details.business_details_user_id")
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .having("experiences.experience_id", "=", experience_id)
     .first()
     .then((value) => {
       return { success: true, details: value };
