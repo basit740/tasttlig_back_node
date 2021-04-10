@@ -12,21 +12,22 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     console.log(req.body);
+    console.log(req.query);
     if (
-      !req.body.foodTaste ||
-      !req.body.authenticity ||
-      !req.body.service ||
-      !req.body.transit ||
-      !req.body.appearance ||
+      !req.body.tasteRating ||
+      !req.body.authenticityRating ||
+      !req.body.serviceRating ||
+      !req.body.transitRating ||
+      !req.body.environmentRating ||
       !req.body.finalScore ||
-      !req.query.review_id
+      !req.body.review_id
     ) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
       });
     }
-
+    console.log("im going thorugh");
     try {
       let user_details_from_db;
       if (req.user) {
@@ -67,12 +68,12 @@ router.post(
           : null,
         review_festival_id: req.body.festival_id ? req.body_festival_id : null,
         review_status: "REVIEWED",
-        authenticity_of_food_rating: req.body.authenticity,
-        location_accessibility_rating: req.body.transit,
-        overall_service_of_restauant_rating: req.body.service,
+        authenticity_of_food_rating: req.body.authenticityRating,
+        location_accessibility_rating: req.body.transitRating,
+        overall_service_of_restauant_rating: req.body.serviceRating,
         overall_user_experience_rating: req.body.finalScore,
-        taste_of_food_rating: req.body.foodTaste,
-        venue_ambience_rating: req.body.appearance,
+        taste_of_food_rating: req.body.tasteRating,
+        venue_ambience_rating: req.body.environmentRating,
         additional_comments: req.body.additionalInfo,
         review_date_time: new Date(),
       };
@@ -80,7 +81,7 @@ router.post(
       const response = await reviews_service.updateReview(
         user_details_from_db,
         review_information,
-        req.query.review_id
+        req.body.review_id
       );
       if (response.success) {
         result = response;
@@ -105,7 +106,7 @@ router.post(
 //Get non-reviewed from user
 router.get("/reviews/user/:user_id", async (req, res) => {
   console.log(req.query.productId);
-  if (!req.params.user_id || !req.query.productId) {
+  if (!req.params.user_id) {
     return res.status(403).json({
       success: false,
       message: "Required parameters are not available in request.",
