@@ -11,27 +11,33 @@ const authentication_service = require("../../services/authentication/authentica
 const user_order_service = require("../../services/payment/user_orders");
 
 //get user subscription by user id
-router.get("/user-subscription", token_service.authenticateToken, async (req, res) => {
-  const response = await user_profile_service.getSubscriptionsByUserId(
-    req.user.id
-  );
+router.get(
+  "/user-subscription",
+  token_service.authenticateToken,
+  async (req, res) => {
+    const response = await user_profile_service.getSubscriptionsByUserId(
+      req.user.id
+    );
 
-  if (!response.success) {
-    return res.status(403).json({
-      success: false,
-      message: response.message,
-    });
+    if (!response.success) {
+      return res.status(403).json({
+        success: false,
+        message: response.message,
+      });
+    }
+    res.send(response);
   }
-  res.send(response);
-})
+);
 
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
+  console.log("data from the user get", req.user.id);
   const response = await user_profile_service.getUserBySubscriptionId(
     req.user.id
   );
 
   if (!response.success) {
+    console.log("error from get user:", response.message);
     return res.status(403).json({
       success: false,
       message: response.message,
@@ -50,12 +56,11 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     phone_number: response.user.phone_number,
     age: response.user.age,
     role: response.user.role,
-    profile_image_link: response.user.profile_image_link,
+    // profile_image_link: response.user.profile_image_link,
     banner_image_link: response.user.banner_image_link,
     bio: response.user.bio_text,
     profile_tag_line: response.user.profile_tag_line,
-    address_line_1: response.user.user_address_line_1,
-    address_line_2: response.user.user_address_line_2,
+
     street_number: response.user.street_number,
     street_name: response.user.street_name,
     occupation: response.user.occupation,
@@ -85,6 +90,12 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     verified: response.user.is_email_verified,
     passport_id: response.user.passport_id,
     points: points_total.data[0].sum ? points_total.data[0].sum : 0,
+    food_allergies: response.user.food_allergies,
+    preferred_country_cuisine: response.user.preferred_country_cuisine,
+    food_preferences: response.user.food_preferences,
+    date_of_birth: response.user.date_of_birth,
+    created_at_datetime: response.user.created_at_datetime,
+    sex: response.user.sex,
   };
 
   res.status(200).json({
@@ -391,7 +402,6 @@ router.put(
   "/user/user-info/:id",
   token_service.authenticateToken,
   async (req, res) => {
-
     const {
       // user_age,
       user_date_of_birth,
@@ -847,7 +857,10 @@ router.post(
         email: req.user.email,
       };
 
-      const creatingFreeOrder = await user_order_service.createFreeOrder(req.body.subscriptionResponse, req.user.id )
+      const creatingFreeOrder = await user_order_service.createFreeOrder(
+        req.body.subscriptionResponse,
+        req.user.id
+      );
 
       if (!creatingFreeOrder.success) {
         return res.status(200).json({
@@ -863,7 +876,7 @@ router.post(
 
       return res.send(saveHost);
     } catch (error) {
-      console.log("error from catch:",error)
+      console.log("error from catch:", error);
       return res.status(403).json({
         success: false,
         message: error.details,
@@ -872,34 +885,32 @@ router.post(
   }
 );
 
-    //get business details with images by user id
+//get business details with images by user id
 router.get(
   "/get-business-details-all",
   token_service.authenticateToken,
   async (req, res) => {
+    try {
+      const business_details_all = await user_profile_service.getBusinessDetailsByUserId(
+        req.user.id
+      );
+      if (!business_details_all.success) {
+        return res.status(403).json({
+          success: false,
+          message: business_details_all.message,
+        });
+      }
 
-    try{
-    const business_details_all = await user_profile_service.getBusinessDetailsByUserId(
-      req.user.id
-    );
-    if (!business_details_all.success) {
-      return res.status(403).json({
+      res.send(business_details_all);
+    } catch (error) {
+      res.send({
         success: false,
-        message: business_details_all.message,
+        message: "Error",
+        response: error.message,
       });
     }
-    
-    res.send(business_details_all);
-  } catch (error) {
-    res.send({
-      success: false,
-      message: "Error",
-      response: error.message,
-    });
   }
-
-  }
-)
+);
 
 // become sponsor in kind
 router.post(
@@ -907,66 +918,66 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-  // save sponsor application
-  const hostDto = {
-    is_sponsor: req.body.is_sponsor,
-    email: req.user.email,
-  };
-  const saveHost = await user_profile_service.saveHostApplication(
-    hostDto,
-    req.user
-  );
+      // save sponsor application
+      const hostDto = {
+        is_sponsor: req.body.is_sponsor,
+        email: req.user.email,
+      };
+      const saveHost = await user_profile_service.saveHostApplication(
+        hostDto,
+        req.user
+      );
 
-  //save sponsor for user
-  if (saveHost.success) {
-    try{
-    const db_user = await authenticate_user_service.findUserByEmail(
-      req.user.email
-    );
+      //save sponsor for user
+      if (saveHost.success) {
+        try {
+          const db_user = await authenticate_user_service.findUserByEmail(
+            req.user.email
+          );
 
-    if (!db_user.success) {
-      return res.status(403).json({
-        success: false,
-        message: "error",
-      });
-    }
+          if (!db_user.success) {
+            return res.status(403).json({
+              success: false,
+              message: "error",
+            });
+          }
 
-    const business_details = await authentication_service.getUserByBusinessDetails(
-      req.user.id
-    );
-    if (!business_details.success) {
-      return res.status(403).json({
-        success: false,
-        message: business_details.message,
-      });
-    }
+          const business_details = await authentication_service.getUserByBusinessDetails(
+            req.user.id
+          );
+          if (!business_details.success) {
+            return res.status(403).json({
+              success: false,
+              message: business_details.message,
+            });
+          }
 
-    const sponsorData = {
-      sponsor_business_id:
-        business_details.business_details.business_details_id,
-    };
-    const saveSponsorUser = await user_profile_service.saveSponsorForUser(
-      sponsorData,
-      db_user.user.tasttlig_user_id
-    ); //end
+          const sponsorData = {
+            sponsor_business_id:
+              business_details.business_details.business_details_id,
+          };
+          const saveSponsorUser = await user_profile_service.saveSponsorForUser(
+            sponsorData,
+            db_user.user.tasttlig_user_id
+          ); //end
 
-    if (!saveSponsorUser.success) {
-      return res.status(403).json({
-        success: false,
-        message: "error",
-      });
-    }
-    
-    return res.send(saveSponsorUser);
-} catch (error) {
-  res.send({
-    success: false,
-    message: "Error.",
-    response: error.message,
-  });
-}
-    //catch
-  }
+          if (!saveSponsorUser.success) {
+            return res.status(403).json({
+              success: false,
+              message: "error",
+            });
+          }
+
+          return res.send(saveSponsorUser);
+        } catch (error) {
+          res.send({
+            success: false,
+            message: "Error.",
+            response: error.message,
+          });
+        }
+        //catch
+      }
     } catch (error) {
       res.send({
         success: false,
@@ -976,7 +987,6 @@ router.post(
     }
   }
 );
-
 
 const saveUserApplicationToSponsor = async (req, res) => {
   console.log("inside d funct", req.user);
@@ -992,10 +1002,10 @@ const saveUserApplicationToSponsor = async (req, res) => {
 
   //save sponsor for user
   if (saveHost.success) {
-    try{
-    const db_user = await authenticate_user_service.findUserByEmail(
-      req.user.email
-    );
+    try {
+      const db_user = await authenticate_user_service.findUserByEmail(
+        req.user.email
+      );
 
       if (!db_user.success) {
         return res.status(403).json({
@@ -1004,42 +1014,125 @@ const saveUserApplicationToSponsor = async (req, res) => {
         });
       }
 
-    const business_details = await authentication_service.getUserByBusinessDetails(
-      req.user.id
-    );
-    if (!business_details.success) {
-      return res.status(403).json({
-        success: false,
-        message: business_details.message,
-      });
-    }
+      const business_details = await authentication_service.getUserByBusinessDetails(
+        req.user.id
+      );
+      if (!business_details.success) {
+        return res.status(403).json({
+          success: false,
+          message: business_details.message,
+        });
+      }
 
-    const sponsorData = {
-      sponsor_business_id:
-        business_details.business_details.business_details_id,
-    };
-    const saveSponsorUser = await user_profile_service.saveSponsorForUser(
-      sponsorData,
-      db_user.user.tasttlig_user_id
-    ); //end
+      const sponsorData = {
+        sponsor_business_id:
+          business_details.business_details.business_details_id,
+      };
+      const saveSponsorUser = await user_profile_service.saveSponsorForUser(
+        sponsorData,
+        db_user.user.tasttlig_user_id
+      ); //end
 
-    if (!saveSponsorUser.success) {
-      return res.status(403).json({
+      if (!saveSponsorUser.success) {
+        return res.status(403).json({
+          success: false,
+          message: "Error.",
+          response: error.message,
+        });
+      }
+
+      return res.send(saveSponsorUser);
+    } catch (error) {
+      res.send({
         success: false,
         message: "Error.",
         response: error.message,
       });
     }
-    
-    return res.send(saveSponsorUser);
-} catch (error) {
-  res.send({
-    success: false,
-    message: "Error.",
-    response: error.message,
-  });
-}
     //catch
   }
 };
+
+//manage user subscription
+router.post(
+  "/manage-user-subscription",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const response = await user_profile_service.getAllSubscriptionsByUserId(
+        req.user.id
+      );
+      if (!response.success) {
+        return res.status(403).json({
+          success: false,
+          message: response.message,
+        });
+      }
+      const manageSub = async (subId) => {
+        await user_profile_service.manageUserSubscriptionValidity(subId);
+      };
+      response.user.map((sub) => {
+        if (
+          sub.subscription_end_datetime &&
+          sub.subscription_end_datetime < new Date()
+        ) {
+          //console.log("IN*******", sub.subscription_end_datetime);
+          const res = manageSub(sub.user_subscription_id);
+        }
+      });
+    } catch (error) {}
+  }
+);
+
+//get all user subscriptions by user id
+router.get(
+  "/valid-user-subscriptions/:id",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const response = await user_profile_service.getValidSubscriptionsByUserId(
+        req.params.id
+      );
+      if (!response.success) {
+        return res.status(403).json({
+          success: false,
+          message: response.message,
+        });
+      }
+      //response.user
+      return res.send(response);
+    } catch (error) {}
+  }
+);
+//guest ambassador application
+router.post(
+  "/guest-ambassador-application",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      /* if (!req.user.role.includes("GUEST")) {
+        return res.status(403).json({
+          success: false,
+          message: response.message,
+        });
+      } */
+
+      //console.log("body", req.body);
+      let ambData = req.body;
+      let dbUser = await user_profile_service.getUserByEmail(req.user.email);
+      ambData.dbUser = dbUser;
+      //console.log("ambData", ambData);
+      const response = await user_profile_service.upgradeToGuestAmbassador(
+        ambData
+      );
+      if (!response.success) {
+        return res.status(403).json({
+          success: false,
+          message: response.message,
+        });
+      }
+      res.send(response);
+    } catch (error) {}
+  }
+);
 module.exports = router;

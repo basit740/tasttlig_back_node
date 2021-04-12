@@ -46,7 +46,7 @@ const createNewService = async (
 
     return { success: true, details: "Success." };
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return { success: false, details: error.message };
   }
 };
@@ -128,8 +128,8 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
     .select(
       "services.*",
       "business_details.business_name",
-      "business_details.business_address_1",
-      "business_details.business_address_2",
+      // "business_details.business_address_1",
+      // "business_details.business_address_2",
       "business_details.city",
       "business_details.state",
       "business_details.zip_postal_code",
@@ -143,7 +143,7 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
     )
     .join(
       "festivals",
-      "services.service_festival_id[1]",
+      "services.festivals_selected[1]",
       "festivals.festival_id"
     )
     .leftJoin(
@@ -153,12 +153,12 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
     )
     .groupBy("services.service_id")
     .groupBy("business_details.business_name")
-    .groupBy("business_details.business_address_1")
-    .groupBy("business_details.business_address_2")
+    // .groupBy("business_details.business_address_1")
+    // .groupBy("business_details.business_address_2")
     .groupBy("business_details.city")
     .groupBy("business_details.state")
     .groupBy("business_details.zip_postal_code")
-    .having("services.service_festival_id", "@>", [festival_id]);
+    .having("services.festivals_selected", "@>", [festival_id]);
 
   let orderByArray = [];
   if (filters.price) {
@@ -228,6 +228,7 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log(reason);
       return { success: false, details: reason };
     });
 };
@@ -264,8 +265,8 @@ const getServicesFromUser = async (user_id, keyword, festival_id) => {
     .select(
       "services.*",
       "business_details.business_name",
-      "business_details.business_address_1",
-      "business_details.business_address_2",
+      // "business_details.business_address_1",
+      // "business_details.business_address_2",
       "business_details.city",
       "business_details.state",
       "business_details.zip_postal_code",
@@ -296,8 +297,8 @@ const getServicesFromUser = async (user_id, keyword, festival_id) => {
     .groupBy("services.service_id")
     .groupBy("festivals.festival_id")
     .groupBy("business_details.business_name")
-    .groupBy("business_details.business_address_1")
-    .groupBy("business_details.business_address_2")
+    // .groupBy("business_details.business_address_1")
+    // .groupBy("business_details.business_address_2")
     .groupBy("business_details.city")
     .groupBy("business_details.state")
     .groupBy("business_details.zip_postal_code")

@@ -436,6 +436,7 @@ const createOrder = async (order_details, db_order_details) => {
           subscription_end_datetime: subscription_end_datetime,
           suscribed_festivals: db_order_details.subscribed_festivals,
           cash_payment_received: db_order_details.item.price,
+          user_subscription_status: "ACTIVE",
         });
 
         // await point_system_service.addUserPoints(
@@ -823,36 +824,51 @@ const createOrder = async (order_details, db_order_details) => {
 
 // Create shopping cart order helper function
 const createFreeOrder = async (subscriptionResponse, userId) => {
-
   try {
     await db.transaction(async (trx) => {
-
-
       let subscription_end_datetime = null;
 
-        if (subscriptionResponse.validity_in_months) {
-          subscription_end_datetime = new Date(
-            new Date().setMonth(
-              new Date().getMonth() +
-                Number(subscriptionResponse.validity_in_months)
-            )
-          );
-        } else {
-          subscription_end_datetime = subscriptionResponse.date_of_expiry;
-        }
+      if (subscriptionResponse.validity_in_months) {
+        subscription_end_datetime = new Date(
+          new Date().setMonth(
+            new Date().getMonth() +
+              Number(subscriptionResponse.validity_in_months)
+          )
+        );
+      } else {
+        subscription_end_datetime = subscriptionResponse.date_of_expiry;
+      }
 
-      const db_subscription_details = await trx("user_subscriptions").insert({
-        subscription_code: subscriptionResponse.subscription_code,
-        user_id: userId,
-        subscription_start_datetime: new Date(),
-        subscription_end_datetime: subscription_end_datetime,
-        // suscribed_festivals: db_order_details.subscribed_festivals,
-        cash_payment_received: subscriptionResponse.price,
-      })
+      /* //host also accesses guest basic
+      await trx("user_subscriptions")
+        .insert({
+          subscription_code: "G_BASIC",
+          user_id: userId,
+          subscription_start_datetime: new Date(),
+          subscription_end_datetime: subscription_end_datetime,
+          // suscribed_festivals: db_order_details.subscribed_festivals,
+          cash_payment_received: subscriptionResponse.price,
+          user_subscription_status: "Pending",
+        })
+        .returning("*"); */
+
+      const db_subscription_details = await trx("user_subscriptions")
+        .insert({
+          subscription_code: subscriptionResponse.subscription_code,
+          user_id: userId,
+          subscription_start_datetime: new Date(),
+          subscription_end_datetime: subscription_end_datetime,
+          // suscribed_festivals: db_order_details.subscribed_festivals,
+          cash_payment_received: subscriptionResponse.price,
+          user_subscription_status: "Pending",
+        })
         .returning("*");
 
       if (!db_subscription_details) {
-        return { success: false, details: "Inserting new subscription failed." };
+        return {
+          success: false,
+          details: "Inserting new subscription failed.",
+        };
       }
     });
     // Email to user on successful purchase
@@ -1035,5 +1051,5 @@ module.exports = {
   getAllUserOrders,
   getVendorSubscriptionDetails,
   getUserOrders,
-  createFreeOrder
+  createFreeOrder,
 };

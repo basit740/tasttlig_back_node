@@ -239,14 +239,14 @@ const getAllUserExperience = async (
       "experience_images.experience_id"
     )
     .leftJoin(
-      "nationalities",
-      "experiences.experience_nationality_id",
-      "nationalities.id"
-    )
-    .leftJoin(
       "business_details",
       "experiences.experience_business_id",
       "business_details.business_details_id"
+    )
+    .leftJoin(
+      "nationalities",
+      "experiences.experience_nationality_id",
+      "nationalities.id"
     )
     .leftJoin(
       "festivals",
@@ -261,7 +261,13 @@ const getAllUserExperience = async (
     .groupBy("experiences.festival_selected");
 
   if (!requestByAdmin) {
-    query = query.having("experiences.experience_status", operator, status);
+    query = query
+      .having("experiences.experience_status", operator, status)
+      .having(
+        "business_details.business_details_user_id",
+        "=",
+        Number(user_id)
+      );
   } else {
     query = query.having("experiences.experience_status", operator, status);
   }
@@ -409,47 +415,54 @@ const updateExperience = async (
   update_data,
   updatedByAdmin
 ) => {
-  const { images, ...experience_update_data } = update_data;
-
-  if (!experience_update_data.status) {
-    let user_role_object = db_user.role;
-
-    if (user_role_object.includes("RESTAURANT") && !updatedByAdmin) {
-      experience_update_data.status = "ACTIVE";
-    } else {
-      experience_update_data.status = "INACTIVE";
-    }
-  }
+  const { experience_images, ...experience_update_data } = update_data;
 
   try {
-    await db("experiences")
-      .where((builder) => {
-        if (updatedByAdmin) {
-          return builder.where({
-            experience_id,
-          });
-        } else {
-          return builder.where({
-            experience_id,
-            experience_creator_user_id: db_user.tasttlig_user_id,
-          });
-        }
-      })
-      .update(experience_update_data);
+    if (
+      experience_update_data.experience_id &&
+      Array.isArray(experience_update_data.experience_id)
+    ) {
+      const id = experience_update_data.experience_id;
+      delete experience_update_data.experience_id;
+      await db("experiences")
+        .where((builder) => {
+          if (updatedByAdmin) {
+            return builder.whereIn("experience_id", id);
+          } else {
+            return builder.whereIn("experience_id", id);
+          }
+        })
+        .update(experience_update_data);
+    } else {
+      await db("experiences")
+        .where((builder) => {
+          if (updatedByAdmin) {
+            return builder.where({
+              experience_id,
+            });
+          } else {
+            return builder.where({
+              experience_id,
+            });
+          }
+        })
+        .update(experience_update_data);
+    }
 
-    if (images && images.length) {
+    if (experience_images && experience_images.length) {
       await db("experience_images").where("experience_id", experience_id).del();
 
       await db("experience_images").insert(
-        images.map((image_url) => ({
+        experience_images.map((experience_image_url) => ({
           experience_id,
-          image_url,
+          experience_image_url,
         }))
       );
     }
 
     return { success: true };
   } catch (error) {
+    console.log(error);
     return { success: false, details: error };
   }
 };
@@ -578,6 +591,58 @@ const addExperienceToFestival = async (festival_id, experience_id) => {
   }
 };
 
+const deleteFoodExperiences = async (user_id, delete_items) => {
+  if (Array.isArray(delete_items)) {
+    return await db("experience_images")
+      .whereIn("experience_id", delete_items)
+      .del()
+      .then(async () => {
+        await db("experiences").whereIn("experience_id", delete_items).del();
+        return { success: true };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  } else {
+    return await db("experience_images")
+      .where({
+        experience_id: delete_items,
+      })
+      .del()
+      .then(async () => {
+        await db("experiences")
+          .where({
+            experience_id: delete_items,
+          })
+          .del();
+        return { success: true };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      });
+  }
+  /* try {
+    for (let item of delete_items) {
+      await db.transaction(async (trx) => {
+        const ExperienceDelete = await trx("experiences")
+          .where({
+            experience_id: item.experience_id,
+          })
+          .del()
+          .then(() => {
+            return { success: true };
+          })
+          .catch((reason) => {
+            console.log(reason);
+            return { success: false, details: reason };
+          });
+      });
+    }
+  } catch (error) {
+    return { success: false, details: error };
+  } */
+};
+
 module.exports = {
   createNewExperience,
   getAllExperience,
@@ -589,4 +654,5 @@ module.exports = {
   getDistinctNationalities,
   addExperienceToFestival,
   getUserExperiencesById,
+  deleteFoodExperiences,
 };

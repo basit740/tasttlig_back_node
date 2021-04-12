@@ -10,6 +10,7 @@ const {
   formatDate,
   formatMilitaryToStandardTime,
 } = require("../../functions/functions");
+const festival_service = require("../festival/festival");
 
 // Environment variables
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -52,6 +53,58 @@ const createNewFoodSampleClaim = async (
         db_all_products,
         db_food_sample_claim[0]
       );
+
+      //assign festival end-date and festival to guest subscription package after product claim
+      const subs = await user_profile_service.getValidSubscriptionsByUserId(
+        product_claim_details.claim_user_id
+      );
+
+      const response = await festival_service.getFestivalDetails(
+        product_claim_details.festival_id
+      );
+      const getFestivalEndDate = response.details[0].festival_end_date;
+      console.log("subs", subs);
+      subs &&
+        subs.user.map((sub) => {
+          if (
+            sub.subscription_code === "G_BASIC" ||
+            sub.subscription_code === "G_MSHIP1" ||
+            sub.subscription_code === "G_MSHIP2" ||
+            sub.subscription_code === "G_MSHIP3" ||
+            (sub.subscription_code === "G_AMB" &&
+              sub.suscribed_festivals == null)
+          ) {
+            /* let subscription_end_datetime = null;
+            subscription_end_datetime = new Date(
+              new Date().setMonth(new Date().getMonth() + Number(1))
+            );
+            console.log("sub date", subscription_end_datetime); */
+
+            const updateSub = async (subId, subDate, festivalId) => {
+              await db("user_subscriptions")
+                .where({
+                  user_subscription_id: subId,
+                  user_subscription_status: "ACTIVE",
+                })
+                .update({
+                  subscription_end_datetime: subDate,
+                  suscribed_festivals: [festivalId],
+                })
+                .returning("*")
+                .catch((reason) => {
+                  console.log(reason);
+                  return { success: false, message: reason };
+                });
+            };
+
+            updateSub(
+              sub.user_subscription_id,
+              getFestivalEndDate,
+              product_claim_details.festival_id
+            );
+          }
+        });
+      //assign festival end-date and festival to guest subscription package after product claim ended
     });
 
     return { success: true, details: "Success." };
@@ -125,8 +178,12 @@ const confirmProductClaim = async (
   totalRedeemQuantity
 ) => {
   try {
+    let db_product;
+    let db_food_sample_claim;
+    let db_business;
+    let db_user;
     await db.transaction(async (trx) => {
-      const db_food_sample_claim = await trx("user_claims")
+      db_food_sample_claim = await trx("user_claims")
         .where({ claim_viewable_id: parseInt(claimId) })
         .update({
           stamp_status: Food_Sample_Claim_Status.CONFIRMED,
@@ -134,18 +191,43 @@ const confirmProductClaim = async (
         })
         .returning("*");
       if (quantityAfterRedeem >= 0) {
-        await db("products")
+        db_product = await db("products")
           .where({ product_id: db_food_sample_claim[0].claimed_product_id })
           .update({
             quantity: quantityAfterRedeem,
             redeemed_total_quantity: totalRedeemQuantity,
-          });
-        // .returning("*")
+          })
+          .returning("*");
       }
+      //console.log(db_food_sample_claim);
+      //insert data to user_reviews
+      await db("user_reviews").insert({
+        review_user_id: db_food_sample_claim[0].claim_user_id,
+        review_user_email: db_food_sample_claim[0].user_claim_email,
+        review_product_id: db_food_sample_claim[0].claimed_product_id,
+        review_status: "NOT REVIEWED",
+        review_ask_count: 0,
+      });
     });
+    if (db_product && db_food_sample_claim) {
+      db_business = await user_profile_service.getBusinessDetailsByUserId(
+        db_product[0].product_user_id
+      );
+      db_user = await user_profile_service.getUserById(
+        db_food_sample_claim[0].claim_user_id
+      );
+    }
+
+    sendRedeemedEmailToUser(
+      db_user,
+      db_food_sample_claim[0],
+      db_product[0],
+      db_business
+    );
 
     return { success: true, details: "Success." };
   } catch (error) {
+    console.log(error);
     return { success: false, details: error.message };
   }
 };
@@ -251,6 +333,49 @@ const sendClaimedEmailToProvider = async (
     },
   });
 };
+// Send claimed food sample email to owner helper function
+const sendRedeemedEmailToUser = async (
+  db_user,
+  db_food_sample_claim,
+  db_product,
+  db_business
+) => {
+  console.log("db_food_sample", db_food_sample_claim);
+  console.log("db_product", db_product);
+  console.log("db_user", db_user);
+  console.log("db_business", db_business);
+  const token = jwt.sign(
+    {
+      claim_id: db_food_sample_claim.claim_id,
+      food_sample_id: db_food_sample_claim.claimed_product_id,
+      db_user: {
+        email: db_user.email,
+        first_name: db_user.first_name,
+        last_name: db_user.last_name,
+      },
+    },
+    process.env.EMAIL_SECRET
+  );
+
+  const url = `${process.env.SITE_BASE}/dashboard?token=${token}`;
+
+  return Mailer.sendMail({
+    from: process.env.SES_DEFAULT_FROM,
+    to: db_food_sample_claim.user_claim_email,
+    bcc: ADMIN_EMAIL,
+    subject: `[Tasttlig] Food sample has been redeemed - ${db_product.title}`,
+    template: "redeemed_food_sample",
+    context: {
+      business_name: db_business.business_details_all.business_name,
+      first_name: db_user.first_name === "NA" ? "" : db_user.first_name,
+      last_name: db_user.last_name === "NA" ? "" : db_user.last_name,
+      email: db_user.email,
+      title: db_product.title,
+      //food_ad_code: db_food_sample_claim.food_ad_code,
+      url,
+    },
+  });
+};
 
 // Get user food sample claims helper function
 const getUserProductsClaims = async (user_id) => {
@@ -335,7 +460,7 @@ const getUserProductsRedeems = async (user_id, keyword) => {
     .groupBy("tasttlig_users.last_name")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
-    .having("user_claims.claim_user_id", "=", user_id);
+    .having("product_user_id", "=", user_id);
 
   console.log("keyword from condfition: ", user_id);
   if (keyword) {

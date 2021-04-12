@@ -64,6 +64,49 @@ const userRegister = async (new_user, sendEmail = true) => {
               });
             });
 
+          //basic guest subscription
+          const subDetails = await db("subscriptions")
+            .where({
+              subscription_code: "G_BASIC",
+              //status: "ACTIVE",
+            })
+            .first()
+            .then((value) => {
+              if (!value) {
+                return { success: false, message: "No plan found." };
+              }
+
+              return { success: true, item: value };
+            })
+            .catch((error) => {
+              return { success: false, message: error };
+            });
+          console.log("sub deets", subDetails);
+          if (subDetails.success) {
+            let subscription_end_datetime = null;
+
+            if (subDetails.item.validity_in_months) {
+              subscription_end_datetime = new Date(
+                new Date().setMonth(
+                  new Date().getMonth() +
+                    Number(subDetails.item.validity_in_months)
+                )
+              );
+            } else {
+              subscription_end_datetime = subDetails.item.date_of_expiry;
+            }
+
+            await trx("user_subscriptions").insert({
+              subscription_code: subDetails.item.subscription_code,
+              user_id: value1[0].tasttlig_user_id,
+              subscription_start_datetime: new Date(),
+              subscription_end_datetime: subscription_end_datetime,
+              cash_payment_received: subDetails.item.price,
+              user_subscription_status: "ACTIVE",
+            });
+            console.log("sub deets1", "done basic sub");
+          }
+
           // Send sign up email confirmation to the user
           if (sendEmail) {
             jwt.sign(
@@ -103,11 +146,18 @@ const userRegister = async (new_user, sendEmail = true) => {
   }
 };
 
+  var d = new Date();
+  var year = d.getFullYear();
+  var month = d.getMonth();
+  var day = d.getDate();
 // Verify user account helper function
 const verifyAccount = async (user_id) => {
   return await db("tasttlig_users")
     .where("tasttlig_user_id", user_id)
-    .update("is_email_verified", true)
+    .update({"is_email_verified":true,
+              "email_verified_date_time": new Date(),
+              "passport_expiry_date": new Date(year + 5, month, day),  
+  })
     .returning("*")
     .then((value) => {
       return {

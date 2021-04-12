@@ -56,8 +56,8 @@ const getExperiencesInFestival = async (festival_id) => {
     .select(
       "experiences.*",
       "business_details.business_name",
-      "business_details.business_address_1",
-      "business_details.business_address_2",
+      // "business_details.business_address_1",
+      // "business_details.business_address_2",
       "business_details.city",
       "business_details.state",
       "business_details.zip_postal_code",
@@ -71,13 +71,23 @@ const getExperiencesInFestival = async (festival_id) => {
     )
     .leftJoin(
       "festivals",
-      "experiences.experience_festival_id",
+      "experiences.festival_selected[1]",
       "festivals.festival_id"
     )
     .leftJoin(
       "business_details",
       "experiences.experience_business_id",
       "business_details.business_details_id"
+    )
+    .leftJoin(
+      "products",
+      "experiences.products_selected[1]",
+      "products.product_id"
+    )
+    .leftJoin(
+      "services",
+      "experiences.services_selected[1]",
+      "services.service_id"
     )
     .groupBy("experiences.experience_id")
     .groupBy("business_details.business_name")
@@ -86,11 +96,15 @@ const getExperiencesInFestival = async (festival_id) => {
     .groupBy("business_details.city")
     .groupBy("business_details.state")
     .groupBy("business_details.zip_postal_code")
-    .having("experiences.experience_festival_id", "=", festival_id)
+    .groupBy("products.product_id")
+    .groupBy("services.service_id")
+    .having("experiences.festival_selected", "@>", [festival_id])
     .then((value) => {
+      console.log("value", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log("reason", reason);
       return { success: false, details: reason };
     });
 };
