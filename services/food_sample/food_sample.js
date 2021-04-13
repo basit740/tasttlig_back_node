@@ -291,12 +291,12 @@ const getAllUserFoodSamplesNotInFestival = async (
 // Update food sample helper function
 const updateFoodSample = async (
   db_user,
-  food_sample_id,
+  product_id,
   update_data,
   updatedByAdmin
 ) => {
   const { images, ...food_sample_update_data } = update_data;
-
+  console.log(update_data);
   if (!food_sample_update_data.status) {
     // let user_role_object = db_user.role;
     // if (
@@ -312,30 +312,54 @@ const updateFoodSample = async (
   }
 
   try {
-    await db("food_samples")
+    // await db("food_samples")
+    await db("products")
       .where((builder) => {
         if (updatedByAdmin) {
           return builder.where({
-            food_sample_id,
+            product_id,
           });
         } else {
           return builder.where({
-            food_sample_id,
-            food_sample_creater_user_id: db_user.tasttlig_user_id,
+            product_id,
+            product_user_id: db_user.tasttlig_user_id,
           });
         }
       })
-      .update(food_sample_update_data);
+      // .update(food_sample_update_data);
+      .update({
+        title: food_sample_update_data.title,
+        product_size: food_sample_update_data.sample_size,
+        quantity: food_sample_update_data.quantity,
+        spice_level: food_sample_update_data.spice_level,  
+        description:food_sample_update_data.description ,
+        start_time: food_sample_update_data.start_time,
+        end_time: food_sample_update_data.end_time,
+        nationality_id: food_sample_update_data.nationality_id,
+        festival_selected: food_sample_update_data.festivals,
+        is_vegetarian: food_sample_update_data.is_vegetarian,
+        is_vegan: food_sample_update_data.is_vegan,
+        is_gluten_free: food_sample_update_data.is_gluten_free,
+        is_halal: food_sample_update_data.is_halal,
+        is_available_on_monday: food_sample_update_data.is_available_on_monday,
+        is_available_on_tuesday: food_sample_update_data.is_available_on_tuesday,
+        is_available_on_wednesday: food_sample_update_data.is_available_on_wednesday,
+        is_available_on_thursday: food_sample_update_data.is_available_on_thursday,
+        is_available_on_friday: food_sample_update_data.is_available_on_friday,
+        is_available_on_saturday: food_sample_update_data.is_available_on_saturday,
+        is_available_on_sunday: food_sample_update_data.is_available_on_sunday,
+        
+      });
 
     if (images && images.length) {
-      await db("food_sample_images")
-        .where("food_sample_id", food_sample_id)
+      await db("product_images")
+        .where("product_id", product_id)
         .del();
 
-      await db("food_sample_images").insert(
-        images.map((image_url) => ({
-          food_sample_id,
-          image_url,
+      await db("product_images").insert(
+        images.map((product_image_url) => ({
+          product_id,
+          product_image_url,
         }))
       );
     }
