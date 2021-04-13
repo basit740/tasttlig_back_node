@@ -164,7 +164,7 @@ const postBusinessPassportDetails = async (data) => {
 const approveOrDeclineBusinessMemberApplication = async (
   userId,
   status,
-  declineReason
+  declineReason, businessDetails
 ) => {
   try {
     console.log("here entry");
@@ -218,7 +218,8 @@ const approveOrDeclineBusinessMemberApplication = async (
         });
 
       // Remove if necessary, just to mock the host_guest, where the user is able to insert into festival for free after business membership approval
-      await db("user_role_lookup")
+      if(businessDetails.application.food_business_type === "Restaurant") {
+        await db("user_role_lookup")
         .insert({
           user_id: db_user.tasttlig_user_id,
           role_code: "KJ7D",
@@ -226,6 +227,8 @@ const approveOrDeclineBusinessMemberApplication = async (
         .catch((reason) => {
           return { success: false, message: reason };
         });
+      }
+  
 
       // STEP 5: Update applications table status
       console.log("updated role");
@@ -264,6 +267,23 @@ const approveOrDeclineBusinessMemberApplication = async (
         });
 
       console.log("updated business details");
+
+      await db("user_subscriptions")
+      .where("user_id", db_user.tasttlig_user_id)
+      .update({
+        user_subscription_status: "ACTIVE",
+        subscription_start_datetime: new Date(),
+        subscription_end_datetime: new Date(
+          new Date().setMonth(new Date().getMonth() + Number(30))
+        ),
+      })
+      .returning("*")
+      .catch((reason) => {
+        return { success: false, message: reason };
+      });
+
+    console.log("updated business details");
+
       return { success: true, message: status };
     } else {
       // Remove the role for this user

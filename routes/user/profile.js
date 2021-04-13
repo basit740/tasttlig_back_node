@@ -842,6 +842,7 @@ router.post(
   "/business-passport",
   token_service.authenticateToken,
   async (req, res) => {
+    console.log("body from business passport: ", req.body)
     try {
       const response = await passport_service.postBusinessPassportDetails(
         req.body
