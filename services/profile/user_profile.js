@@ -1074,7 +1074,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
       await db("user_subscriptions")
         .where({
           user_id: db_user.tasttlig_user_id,
-          user_subscription_status: "INACTIVE",
+          user_subscription_status: "Pending",
         })
         .update("user_subscription_status", "ACTIVE");
 
@@ -1146,7 +1146,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
       await db("user_subscriptions")
         .where({
           user_id: db_user.tasttlig_user_id,
-          user_subscription_status: "INACTIVE",
+          user_subscription_status: "Pending",
         })
         .update("user_subscription_status", "REJECTED")
         .returning("*")

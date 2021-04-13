@@ -178,6 +178,10 @@ const confirmProductClaim = async (
   totalRedeemQuantity
 ) => {
   try {
+    console.log("claimId",claimId)
+    console.log("quantityAfterRedeem",quantityAfterRedeem)
+    console.log("totalRedeemQuantity",totalRedeemQuantity)
+    
     let db_product;
     let db_food_sample_claim;
     let db_business;
