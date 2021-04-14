@@ -151,7 +151,7 @@ router.get("/experiences/festival/:festival_id", async (req, res) => {
     const response = await experiences_service.getExperiencesInFestival(
       req.params.festival_id
     );
-
+      console.log(response);
     return res.send(response);
   } catch (error) {
     res.send({
