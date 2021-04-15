@@ -417,12 +417,12 @@ router.put(
     console.log(user_date_of_birth);
     try {
       if (
-        !user_date_of_birth //||
-        //!user_occupation ||
-        //!user_marital_status ||
+        !user_date_of_birth ||
+        !user_occupation ||
+        !user_marital_status ||
         // !user_country ||
-        //!user_city ||
-        //!user_zip_code
+        !user_city ||
+        !user_zip_code
         //!user_gender||
         //!user_street_name ||
         //!user_gender
