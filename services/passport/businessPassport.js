@@ -40,15 +40,9 @@ const getBusinessApplications = async () => {
         "tasttlig_users",
         "applications.user_id",
         "tasttlig_users.tasttlig_user_id"
-      )
-      // .leftJoin(
-      //   "food_samples",
-      //   "applications.user_id",
-      //   "food_samples.food_sample_creater_user_id"
-      // )
+      )     
       .groupBy("applications.application_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
-      // .groupBy("food_samples.food_sample_creater_user_id")
       .having("applications.status", "=", "Pending")
       .having("applications.type", "=", "business_member");
 
@@ -178,35 +172,7 @@ const approveOrDeclineBusinessMemberApplication = async (
 
     // If status is approved
     if (status === "APPROVED") {
-      // Get role code of old role to be removed
-      // const old_role_code = await db("roles")
-      //   .select()
-      //   .where({ role: "BMP1" })
-      //   .then((value) => {
-      //     return value[0].role_code;
-      //   });
-
-      // // Remove the role for this user
-      // await db("user_role_lookup")
-      //   .where({
-      //     user_id: db_user.tasttlig_user_id,
-      //     role_code: old_role_code,
-      //   })
-      //   .del();
-
-      // // Get role code of new role to be added
-
-      // const new_role_code = "BMA1"
-
-      // console.log(new_role_code)
-
-      // // Insert new role for this user
-      // await db("user_role_lookup").insert({
-      //   user_id: db_user.tasttlig_user_id,
-      //   role_code: new_role_code,
-
-      // });
-
+      
       // update role
       console.log("updating");
       await db("user_role_lookup")
@@ -219,12 +185,15 @@ const approveOrDeclineBusinessMemberApplication = async (
 
       // Remove if necessary, just to mock the host_guest, where the user is able to insert into festival for free after business membership approval
       if(businessDetails.application.food_business_type === "Restaurant") {
+        console.log(businessDetails.application.food_business_type);
         await db("user_role_lookup")
         .insert({
           user_id: db_user.tasttlig_user_id,
           role_code: "KJ7D",
         })
+        .returning("*")
         .catch((reason) => {
+          console.log('Reason', reason);
           return { success: false, message: reason };
         });
       }

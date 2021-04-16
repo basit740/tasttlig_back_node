@@ -296,18 +296,8 @@ const updateFoodSample = async (
   updatedByAdmin
 ) => {
   const { images, ...food_sample_update_data } = update_data;
-  console.log(update_data);
+  console.log('product data', update_data);
   if (!food_sample_update_data.status) {
-    // let user_role_object = db_user.role;
-    // if (
-    //   user_role_object.includes("RESTAURANT") &&
-    //   db_user.is_participating_in_festival &&
-    //   !updatedByAdmin
-    // ) {
-    //   food_sample_update_data.status = "ACTIVE";
-    // } else {
-    //   food_sample_update_data.status = "INACTIVE";
-    // }
     food_sample_update_data.status = "ACTIVE";
   }
 
@@ -336,7 +326,7 @@ const updateFoodSample = async (
         start_time: food_sample_update_data.start_time,
         end_time: food_sample_update_data.end_time,
         nationality_id: food_sample_update_data.nationality_id,
-        festival_selected: food_sample_update_data.festivals,
+        festival_selected: food_sample_update_data.festival_selected,
         is_vegetarian: food_sample_update_data.is_vegetarian,
         is_vegan: food_sample_update_data.is_vegan,
         is_gluten_free: food_sample_update_data.is_gluten_free,
@@ -366,6 +356,7 @@ const updateFoodSample = async (
 
     return { success: true };
   } catch (error) {
+    console.log(error);
     return { success: false, details: error };
   }
 };
