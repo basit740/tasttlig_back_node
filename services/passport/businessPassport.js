@@ -239,6 +239,7 @@ const approveOrDeclineBusinessMemberApplication = async (
 
       await db("user_subscriptions")
       .where("user_id", db_user.tasttlig_user_id)
+      .andWhere("subscription_code", "H_BASIC")
       .update({
         user_subscription_status: "ACTIVE",
         subscription_start_datetime: new Date(),
