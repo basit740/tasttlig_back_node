@@ -20,7 +20,7 @@ const EMAIL_SECRET = process.env.EMAIL_SECRET;
 const getUserById = async (id) => {
   console.log("id from here:", id);
   return await db
-    .select("tasttlig_users.*", db.raw("ARRAY_AGG(roles.role) as role"))
+    .select("tasttlig_users.*", "business_details.*", db.raw("ARRAY_AGG(roles.role) as role"))
     .from("tasttlig_users")
     .leftJoin(
       "user_role_lookup",
@@ -28,7 +28,13 @@ const getUserById = async (id) => {
       "user_role_lookup.user_id"
     )
     .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+    .leftJoin(
+      "business_details",
+      "tasttlig_users.tasttlig_user_id",
+      "business_details.business_details_user_id"
+    )
     .groupBy("tasttlig_users.tasttlig_user_id")
+    .groupBy("business_details.business_details_id")
     .having("tasttlig_users.tasttlig_user_id", "=", id)
     .first()
     .then((value) => {

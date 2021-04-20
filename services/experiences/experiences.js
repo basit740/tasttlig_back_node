@@ -56,8 +56,8 @@ const getExperiencesInFestival = async (festival_id) => {
     .select(
       "experiences.*",
       "business_details.business_name",
-      // "business_details.business_address_1",
-      // "business_details.business_address_2",
+      "business_details.business_address_1",
+      "business_details.business_address_2",
       "business_details.city",
       "business_details.state",
       "business_details.zip_postal_code",
@@ -91,8 +91,8 @@ const getExperiencesInFestival = async (festival_id) => {
     )
     .groupBy("experiences.experience_id")
     .groupBy("business_details.business_name")
-    // .groupBy("business_details.business_address_1")
-    // .groupBy("business_details.business_address_2")
+    .groupBy("business_details.business_address_1")
+    .groupBy("business_details.business_address_2")
     .groupBy("business_details.city")
     .groupBy("business_details.state")
     .groupBy("business_details.zip_postal_code")
@@ -112,9 +112,23 @@ const getExperiencesInFestival = async (festival_id) => {
 // Find experience helper function
 const findExperience = async (experience_id) => {
   return await db
-    .select("experiences.*")
+    .select("experiences.*", "business_details.*", "tasttlig_users.*")
     .from("experiences")
-    .where("experiences.experience_id", "=", experience_id)
+    .leftJoin(
+      "business_details",
+      "experiences.experience_business_id",
+      "business_details.business_details_id"
+    )
+    .leftJoin(
+      "tasttlig_users",
+      "business_details.business_details_user_id",
+      "tasttlig_users.tasttlig_user_id"
+    )
+    .groupBy("experiences.experience_id")
+    .groupBy("business_details.business_details_id")
+    .groupBy("business_details.business_details_user_id")
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .having("experiences.experience_id", "=", experience_id)
     .first()
     .then((value) => {
       return { success: true, details: value };

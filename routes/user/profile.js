@@ -94,8 +94,6 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     preferred_country_cuisine: response.user.preferred_country_cuisine,
     food_preferences: response.user.food_preferences,
     date_of_birth: response.user.date_of_birth,
-    created_at_datetime: response.user.created_at_datetime,
-    sex: response.user.sex,
   };
 
   res.status(200).json({

@@ -36,7 +36,7 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
   }
 
   if (filters.startDate) {
-    query.where("festivals.festival_start_date", "=", startDate);
+    query.where("festivals.festival_start_date", ">=", startDate);
   }
 
   if (filters.startTime) {

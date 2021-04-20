@@ -758,7 +758,7 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
 
-    const food_sample_response = await food_sample_service.getAllUserFoodSamples(
+    const food_sample_response = await food_sample_service.getproductOwnerInfo(
       req.params.owner_id,
       status_operator,
       food_sample_status,
@@ -767,6 +767,7 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
     );
 
     const db_food_samples = food_sample_response.details;
+    console.log("db_food_samples", db_food_samples)
 
     const user_details_response = await user_profile_service.getUserById(
       req.params.owner_id
