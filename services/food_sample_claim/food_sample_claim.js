@@ -627,7 +627,7 @@ const createNewExperienceClaim = async (
         })
         .update({ claimed_total_quantity: quantityAfterClaim });
       }
-      console.log("db_all_products", db_all_products)
+      console.log("db_food_sample_claim", db_food_sample_claim)
 
       await sendClaimedExperienceEmailToUser(
         db_user,
@@ -707,7 +707,6 @@ const sendClaimedExperienceEmailToUser = async (
   db_food_sample,
   db_food_sample_claim
 ) => {
-  console.log("user from the send claim experience email:", db_user)
   const token = jwt.sign(
     {
       claim_id: db_food_sample_claim.claim_id,
@@ -731,7 +730,7 @@ const sendClaimedExperienceEmailToUser = async (
     template: "new_food_sample_claim",
     context: {
       first_name: db_user.first_name === "NA" ? "" : db_user.first_name,
-      // host_first_name: db_food_sample.first_name,
+      host_first_name: db_food_sample.first_name,
       title: db_food_sample.experience_name,
       business_name: db_food_sample.business_name,
       address: db_food_sample.address,
