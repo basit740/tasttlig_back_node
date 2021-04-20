@@ -2,9 +2,15 @@
 
 // Libraries
 const { db } = require("../../db/db-config");
-const Mailer = require("../../email/nodemailer").nodemailer_transporter;
+const Mailer = require("../../services/email/nodemailer")
+  .nodemailer_transporter;
+const jwt = require("jsonwebtoken");
 const user_profile_service = require("../../services/profile/user_profile");
 const festival_service = require("../../services/festival/festival");
+const {
+  formatDate,
+  formatMilitaryToStandardTime,
+} = require("../../functions/functions");
 
 // Environment variables
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -16,10 +22,10 @@ const userCanClaimService = async (email, food_sample_id) => {
     );
 
     const claimIds = await db
-      .pluck("claimed_science_id")
+      .pluck("claimed_service_id")
       .from("user_claims")
       .where("user_claim_email", email)
-      .where("claimed_science_id", food_sample_id);
+      .where("claimed_service_id", food_sample_id);
 
     if (claimIds.length) {
       if (user == null && claimIds.length > 3) {
@@ -208,10 +214,18 @@ const sendClaimedServiceEmailToUser = async (
       city: db_food_sample.city,
       state: db_food_sample.state,
       postal_code: db_food_sample.postal_code,
-      start_date: formatDate(db_food_sample.start_date),
-      end_date: formatDate(db_food_sample.end_date),
-      start_time: formatMilitaryToStandardTime(db_food_sample.start_time),
-      end_time: formatMilitaryToStandardTime(db_food_sample.end_time),
+      start_date: db_food_sample.start_date
+        ? formatDate(db_food_sample.start_date)
+        : null,
+      end_date: db_food_sample.end_date
+        ? formatDate(db_food_sample.end_date)
+        : null,
+      start_time: db_food_sample.start_time
+        ? formatMilitaryToStandardTime(db_food_sample.start_time)
+        : null,
+      end_time: db_food_sample.end_time
+        ? formatMilitaryToStandardTime(db_food_sample.end_time)
+        : null,
       description: db_food_sample.service_description,
       //frequency: db_food_sample.frequency,
       code: db_food_sample.service_code,
