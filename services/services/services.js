@@ -14,6 +14,7 @@ const createNewService = async (
   service_images
 ) => {
   try {
+    service_information.claimed_total_quantity = 0;
     await db.transaction(async (trx) => {
       const db_service = await trx("services")
         .insert(service_information)

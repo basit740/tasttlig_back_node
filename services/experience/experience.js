@@ -30,6 +30,7 @@ const createNewExperience = async (
         true
       ); */
       //experience_details.status = "ACTIVE";
+      experience_details.claimed_total_quantity = 0;
       const db_experience = await trx("experiences")
         .insert(experience_details)
         .returning("*");
