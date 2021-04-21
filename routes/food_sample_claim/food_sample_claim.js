@@ -136,12 +136,31 @@ router.post("/all-products-claim/confirm", async (req, res) => {
   return res.status(response.error ? 500 : 200).json(response);
 });
 
+// POST confirm product redeem status
+router.post("/all-experience-claim/confirm", async (req, res) => {
+  console.log("req.body", req.body);
+  if (!req.body.claim_viewable_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Id not present in request.",
+    });
+  }
+  const response = await food_sample_claim_service.confirmExperienceClaim(
+    req.body.claim_viewable_id,
+    req.body.quantity,
+    req.body.redeemed_total_quantity
+  );
+
+  return res.status(response.error ? 500 : 200).json(response);
+});
+
 // GET user food sample claim
 router.get(
   "/all-product-claim/user/reservations",
   token_service.authenticateToken,
   async (req, res) => {
     try {
+     
       const db_food_claims = await food_sample_claim_service.getUserProductsClaims(
         req.user.id
       );
@@ -162,12 +181,20 @@ router.get(
   "/all-product-redeem/user/reservations",
   token_service.authenticateToken,
   async (req, res) => {
+    console.log("req.user:", req.user)
     const keyword = req.query.keyword || "";
     try {
+     const db_user = await user_profile_service.getUserById(
+        req.user.id
+      );
+      console.log("<<<<<<<<<<<<<<<<db_user coming from redeem fetch:>>>>>>?????", db_user)
+
       const db_food_claims = await food_sample_claim_service.getUserProductsRedeems(
         req.user.id,
-        keyword
+        keyword, 
+        db_user
       );
+
       return res.send(db_food_claims);
     } catch (error) {
       res.send({
@@ -178,6 +205,36 @@ router.get(
     }
   }
 );
+
+// GET Host food sample Redeems
+router.get(
+  "/all-experience-redeem/user/reservations",
+  token_service.authenticateToken,
+  async (req, res) => {
+    console.log("req.user:", req.user)
+    const keyword = req.query.keyword || "";
+    try {
+     const db_user = await user_profile_service.getUserById(
+        req.user.id
+      );
+      console.log("<<<<<<<<<<<<<<<<db_user coming from redeem fetch:>>>>>>?????", db_user)
+
+      const db_experience_claims = await food_sample_claim_service.getUserExperiencesRedeems(
+        req.user.id,
+        keyword, 
+        db_user
+      );
+      return res.send(db_experience_claims);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
+
 
 // POST food sample claim
 router.post("/all-experiences-claim", async (req, res) => {

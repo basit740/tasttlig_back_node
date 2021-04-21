@@ -430,7 +430,7 @@ const getUserProductsClaims = async (user_id) => {
 };
 
 // Get user food sample claims helper function
-const getUserProductsRedeems = async (user_id, keyword) => {
+const getUserProductsRedeems = async (user_id, keyword, db_user) => {
   let query = db
     .select(
       "products.*",
@@ -457,16 +457,16 @@ const getUserProductsRedeems = async (user_id, keyword) => {
       "user_claims.claim_user_id",
       "tasttlig_users.tasttlig_user_id"
     )
+   
     .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .groupBy("products.product_id")
     .groupBy("user_claims.claim_id")
     .groupBy("products.product_user_id")
-
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
-    .having("product_user_id", "=", user_id);
+    .having("product_user_id", "=", user_id,  );
 
   console.log("keyword from condfition: ", user_id);
   if (keyword) {
@@ -508,6 +508,90 @@ const getUserProductsRedeems = async (user_id, keyword) => {
       return { success: false, details: reason };
     });
 };
+
+// Get user food sample claims helper function
+const getUserExperiencesRedeems = async (user_id, keyword, db_user) => {
+  console.log("db_user", db_user)
+  let query = db
+    .select(
+      "experiences.*",
+      "user_claims.*",
+      "tasttlig_users.first_name",
+      "tasttlig_users.last_name",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
+      db.raw("ARRAY_AGG(experience_images.experience_image_url) as image_urls")
+    )
+    .from("user_claims")
+    .leftJoin(
+      "experiences",
+      "user_claims.claimed_experience_id",
+      "experiences.experience_id"
+    )
+    .leftJoin(
+      "experience_images",
+      "experiences.experience_id",
+      "experience_images.experience_id"
+    )
+    .leftJoin(
+      "tasttlig_users",
+      "user_claims.claim_user_id",
+      "tasttlig_users.tasttlig_user_id"
+    )
+
+    .leftJoin("nationalities",
+     "experiences.experience_nationality_id", 
+     "nationalities.id"
+     )
+    .groupBy("user_claims.claim_id")
+    .groupBy("experiences.experience_id")
+    .groupBy("tasttlig_users.first_name")
+    .groupBy("tasttlig_users.last_name")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code")
+    .having("experience_business_id", "=", db_user.user.business_details_id, )
+
+  if (keyword) {
+    // keyword=parseInt(keyword)
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                "main.title, " +
+                "main.claim_viewable_id, " +
+                "main.first_name)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+  console.log("query from condfition: ", query);
+
+  return await query
+    .then((value) => {
+      console.log("value from redeem>>.>>>", value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log("service problem>>>>>>", reason);
+      return { success: false, details: reason };
+    });
+};
+
 
 // Confirm food sample claim helper function
 const confirmExperienceClaim = async (
@@ -1092,4 +1176,5 @@ module.exports = {
   sendClaimedServiceEmailToProvider,
   getServiceClaimCount,
   confirmServiceClaim,
+  getUserExperiencesRedeems
 };
