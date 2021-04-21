@@ -251,8 +251,9 @@ router.get("/services/user/:user_id", async (req, res) => {
       req.query.keyword,
       req.query.festival
     );
-
+    console.log('fecthing services', response);
     return res.send(response);
+    
   } catch (error) {
     res.send({
       success: false,

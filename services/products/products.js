@@ -193,15 +193,16 @@ const getUserProductDetails = async (user_id) => {
 };
 
 const getProductsFromUser = async (user_id, keyword) => {
+  // console.log('USER ID', user_id);
   let query = db
     .select(
       "products.*",
-      "business_details.business_name",
-      "business_details.business_address_1",
-      "business_details.business_address_2",
-      "business_details.city",
-      "business_details.state",
-      "business_details.zip_postal_code",
+      "business_details.*",
+      // "business_details.business_address_1",
+      // "business_details.business_address_2",
+      // "business_details.city",
+      // "business_details.state",
+      // "business_details.zip_postal_code",
       "nationalities.nationality",
       db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
     )
@@ -213,22 +214,22 @@ const getProductsFromUser = async (user_id, keyword) => {
     )
     .leftJoin(
       "business_details",
-      "products.product_business_id",
-      "business_details.business_details_id"
+      "products.product_user_id",
+      "business_details.business_details_user_id"
     )
     .leftJoin(
       "nationalities",
-      "products.product_made_in_nationality_id",
+      "products.nationality_id",
       "nationalities.id"
     )
     .groupBy("products.product_id")
-    .groupBy("business_details.business_name")
-    .groupBy("business_details.business_address_1")
-    .groupBy("business_details.business_address_2")
-    .groupBy("business_details.city")
-    .groupBy("business_details.state")
-    .groupBy("business_details.zip_postal_code")
-    .groupBy("business_details.business_details_user_id")
+    .groupBy("business_details.business_details_id")
+    // .groupBy("business_details.business_address_1")
+    // .groupBy("business_details.business_address_2")
+    // .groupBy("business_details.city")
+    // .groupBy("business_details.state")
+    // .groupBy("business_details.zip_postal_code")
+    // .groupBy("business_details.business_details_user_id")
     .groupBy("nationalities.nationality")
     .having("business_details.business_details_user_id", "=", Number(user_id));
 
@@ -264,6 +265,7 @@ const getProductsFromUser = async (user_id, keyword) => {
   }
   return await query
     .then((value) => {
+      // console.log('products fetched', value);
       return { success: true, details: value };
     })
     .catch((reason) => {

@@ -205,6 +205,7 @@ const createUserInfo = async (user) => {
       .update({
         // age: user["user_age"],
         sex: user["user_gender"],
+        user_profile_image_link: user["user_profile_image"],
         date_of_birth: user["user_date_of_birth"],
         occupation: user["user_occupation"],
         marital_status: user["user_marital_status"],

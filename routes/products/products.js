@@ -502,9 +502,11 @@ router.get("/products/user/:user_id", async (req, res) => {
   }
   try {
     const response = await products_service.getProductsFromUser(
-      req.params.user_id,
+      req.query.user_id,
       req.body.keyword
     );
+    // console.log('products fetched', response);
+    // console.log('userrrr', req.query.user_id);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -514,6 +516,7 @@ router.get("/products/user/:user_id", async (req, res) => {
     });
   }
 });
+
 router.delete("/products/delete/user/:user_id", async (req, res) => {
   if (!req.params.user_id) {
     return res.status(403).json({
