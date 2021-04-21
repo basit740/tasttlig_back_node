@@ -319,13 +319,15 @@ router.put("/user/update-profile/:id", async (req, res) => {
       user_zip_postal_code: req.body.postalCode,
       user_country: req.body.country,
       occupation: req.body.occupation,
-      date_of_birth: req.body.birthDate,
+      date_of_birth: req.body.birthdate,
       user_profile_image_link: req.body.profileImage,
       // address_type: req.body.address_type,
       // business_name: req.body.business_name,
       // business_type: req.body.business_type,
       // profile_status: req.body.profile_status,
     };
+
+    console.log("user update", req.body)
 
     const response = await user_profile_service.updateUserProfile(user);
 

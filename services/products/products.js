@@ -55,9 +55,9 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
   let query = db
     .select(
       "products.*",
-      "business_details.business_name",
-      "business_details.business_address_1",
-      "business_details.business_address_2",
+      "business_details.*",
+      // "business_details.business_address_1",
+      // "business_details.business_address_2",
       "business_details.city",
       "business_details.state",
       "business_details.zip_postal_code",
@@ -80,9 +80,9 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
       "business_details.business_details_id"
     )
     .groupBy("products.product_id")
-    .groupBy("business_details.business_name")
-    .groupBy("business_details.business_address_1")
-    .groupBy("business_details.business_address_2")
+    .groupBy("business_details.business_details_id")
+    // .groupBy("business_details.business_address_1")
+    // .groupBy("business_details.business_address_2")
     .groupBy("business_details.city")
     .groupBy("business_details.state")
     .groupBy("business_details.zip_postal_code")
@@ -158,6 +158,7 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
 
   return await query
     .then((value) => {
+      // console.log(value);
       return { success: true, details: value };
     })
     .catch((reason) => {

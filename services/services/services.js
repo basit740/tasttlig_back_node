@@ -128,7 +128,7 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
   let query = db
     .select(
       "services.*",
-      "business_details.business_name",
+      "business_details.*",
       // "business_details.business_address_1",
       // "business_details.business_address_2",
       "business_details.city",
@@ -149,11 +149,11 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
     )
     .leftJoin(
       "business_details",
-      "services.service_business_id",
-      "business_details.business_details_id"
+      "services.service_user_id",
+      "business_details.business_details_user_id"
     )
     .groupBy("services.service_id")
-    .groupBy("business_details.business_name")
+    .groupBy("business_details.business_details_id")
     // .groupBy("business_details.business_address_1")
     // .groupBy("business_details.business_address_2")
     .groupBy("business_details.city")
@@ -226,6 +226,7 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
   }
   return await query
     .then((value) => {
+      // console.log(value);
       return { success: true, details: value };
     })
     .catch((reason) => {
