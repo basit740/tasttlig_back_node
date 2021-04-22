@@ -41,7 +41,7 @@ const userCanClaimService = async (email, food_sample_id) => {
         return {
           success: true,
           canClaim: false,
-          message: "Food sample has already been claimed.",
+          message: "Service has already been claimed.",
         };
       }
     }
