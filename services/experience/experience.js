@@ -328,7 +328,7 @@ const getAllUserExperience = async (
 
 // Get all experiences by user id helper function
 const getUserExperiencesById = async (user_id) => {
-  console.log("functttttttt", user_id);
+  // console.log("functttttttt", user_id);
   return await db
     .select(
       "experiences.*",
@@ -359,11 +359,11 @@ const getUserExperiencesById = async (user_id) => {
     .groupBy("nationalities.alpha_2_code")
     .having("experiences.experience_business_id", "=", Number(user_id))
     .then((value) => {
-      console.log("*******************************", value);
+      // console.log("*******************************", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("err*******************************", reason);
+      // console.log("err*******************************", reason);
       return { success: false, details: reason };
     });
 };

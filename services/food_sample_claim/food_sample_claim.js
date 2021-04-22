@@ -253,6 +253,72 @@ const confirmProductClaim = async (
 //   });
 // }
 
+// Confirm service claim helper function
+const confirmServiceClaim = async (
+  claimId,
+  quantityAfterRedeem,
+  totalRedeemQuantity
+) => {
+  try {
+    console.log("claimId",claimId)
+    console.log("quantityAfterRedeem",quantityAfterRedeem)
+    console.log("totalRedeemQuantity",totalRedeemQuantity)
+    
+    let db_product;
+    let db_food_sample_claim;
+    let db_business;
+    let db_user;
+    await db.transaction(async (trx) => {
+      db_food_sample_claim = await trx("user_claims")
+        .where({ claim_viewable_id: parseInt(claimId) })
+        .update({
+          stamp_status: Food_Sample_Claim_Status.CONFIRMED,
+          current_stamp_status: "Redeemed",
+        })
+        .returning("*");
+      if (quantityAfterRedeem >= 0) {
+        db_product = await db("services")
+          .where({ service_id: db_food_sample_claim[0].claimed_service_id })
+          .update({
+            service_capacity: quantityAfterRedeem,
+            redeemed_total_quantity: totalRedeemQuantity,
+          })
+          .returning("*");
+      }
+      //console.log(db_food_sample_claim);
+      //insert data to user_reviews
+      await db("user_reviews").insert({
+        review_user_id: db_food_sample_claim[0].claim_user_id,
+        review_user_email: db_food_sample_claim[0].user_claim_email,
+        review_product_id: db_food_sample_claim[0].claimed_product_id,
+        review_status: "NOT REVIEWED",
+        review_ask_count: 0,
+      });
+    });
+    if (db_product && db_food_sample_claim) {
+      db_business = await user_profile_service.getBusinessDetailsByUserId(
+        db_product[0].product_user_id
+      );
+      db_user = await user_profile_service.getUserById(
+        db_food_sample_claim[0].claim_user_id
+      );
+    }
+
+    sendRedeemedEmailToUser(
+      db_user,
+      db_food_sample_claim[0],
+      db_product[0],
+      db_business
+    );
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
+
 // Send claimed food sample email to user helper function
 const sendClaimedEmailToUser = async (
   db_user,
@@ -500,7 +566,88 @@ const getUserProductsRedeems = async (user_id, keyword, db_user) => {
 
   return await query
     .then((value) => {
-      console.log("value from redeem>>.>>>", value);
+      // console.log("value from redeem>>.>>>", value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log("service problem>>>>>>", reason);
+      return { success: false, details: reason };
+    });
+};
+
+
+// Get user service redeeming helper function
+const getUserServiceRedeems = async (user_id, keyword, db_user) => {
+  let query = db
+    .select(
+      "services.*",
+      "user_claims.*",
+      "tasttlig_users.first_name",
+      "tasttlig_users.last_name",
+      // "nationalities.nationality",
+      // "nationalities.alpha_2_code",
+      db.raw("ARRAY_AGG(service_images.service_image_url) as image_urls")
+    )
+    .from("user_claims")
+    .leftJoin(
+      "services",
+      "user_claims.claimed_service_id",
+      "services.service_id"
+    )
+    .leftJoin(
+      "service_images",
+      "services.service_id",
+      "service_images.service_id"
+    )
+    .leftJoin(
+      "tasttlig_users",
+      "user_claims.claim_user_id",
+      "tasttlig_users.tasttlig_user_id"
+    )
+   
+    // .leftJoin("nationalities", "services.nationality_id", "nationalities.id")
+    .groupBy("services.service_id")
+    .groupBy("user_claims.claim_id")
+    .groupBy("services.service_user_id")
+    .groupBy("tasttlig_users.first_name")
+    .groupBy("tasttlig_users.last_name")
+    // .groupBy("nationalities.nationality")
+    // .groupBy("nationalities.alpha_2_code")
+    .having("services.service_user_id", "=", user_id,  );
+
+  console.log("keyword from condition: ", user_id);
+  if (keyword) {
+    // keyword=parseInt(keyword)
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                "main.title, " +
+                "main.claim_viewable_id, " +
+                "main.first_name)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+
+  return await query
+    .then((value) => {
+      // console.log("value from redeem>>.>>>", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
@@ -583,7 +730,7 @@ const getUserExperiencesRedeems = async (user_id, keyword, db_user) => {
 
   return await query
     .then((value) => {
-      console.log("value from redeem>>.>>>", value);
+      // console.log("value from redeem>>.>>>", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
@@ -629,38 +776,38 @@ const confirmExperienceClaim = async (
 
 
 // Confirm service claim helper function
-const confirmServiceClaim = async (
-  claimId,
-  quantityAfterRedeem,
-  totalRedeemQuantity
-) => {
-  try {
-    await db.transaction(async (trx) => {
-      const db_food_sample_claim = await trx("user_claims")
-        .where({ claim_viewable_id: parseInt(claimId) })
-        .update({
-          stamp_status: Food_Sample_Claim_Status.CONFIRMED,
-          current_stamp_status: "Redeemed",
-        })
-        .returning("*");
-      if (quantityAfterRedeem >= 0) {
-        await db("services")
-          .where({
-            service_id: db_food_sample_claim[0].claimed_service_id,
-          })
-          .update({
-            service_capacity: quantityAfterRedeem,
-            redeemed_total_quantity: totalRedeemQuantity,
-          });
-        // .returning("*")
-      }
-    });
+// const confirmServiceClaim = async (
+//   claimId,
+//   quantityAfterRedeem,
+//   totalRedeemQuantity
+// ) => {
+//   try {
+//     await db.transaction(async (trx) => {
+//       const db_food_sample_claim = await trx("user_claims")
+//         .where({ claim_viewable_id: parseInt(claimId) })
+//         .update({
+//           stamp_status: Food_Sample_Claim_Status.CONFIRMED,
+//           current_stamp_status: "Redeemed",
+//         })
+//         .returning("*");
+//       if (quantityAfterRedeem >= 0) {
+//         await db("services")
+//           .where({
+//             service_id: db_food_sample_claim[0].claimed_service_id,
+//           })
+//           .update({
+//             service_capacity: quantityAfterRedeem,
+//             redeemed_total_quantity: totalRedeemQuantity,
+//           });
+//         // .returning("*")
+//       }
+//     });
 
-    return { success: true, details: "Success." };
-  } catch (error) {
-    return { success: false, details: error.message };
-  }
-};
+//     return { success: true, details: "Success." };
+//   } catch (error) {
+//     return { success: false, details: error.message };
+//   }
+// };
 
 // Get experience claim count helper function
 const getExperienceClaimCount = async (email, food_sample_id) => {
@@ -1176,5 +1323,6 @@ module.exports = {
   sendClaimedServiceEmailToProvider,
   getServiceClaimCount,
   confirmServiceClaim,
+  getUserServiceRedeems,
   getUserExperiencesRedeems
 };
