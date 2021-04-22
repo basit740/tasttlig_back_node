@@ -455,6 +455,8 @@ const getUserProductsClaims = async (user_id) => {
     const db_food_sample_claim = await db
       .select(
         "products.*",
+        "services.*",
+        "experiences.*",
         "user_claims.*",
         "tasttlig_users.first_name",
         "tasttlig_users.last_name",
@@ -474,6 +476,16 @@ const getUserProductsClaims = async (user_id) => {
         "product_images.product_id"
       )
       .leftJoin(
+        "services",
+        "user_claims.claimed_service_id",
+        "services.service_id"
+      )
+      .leftJoin(
+        "experiences",
+        "user_claims.claimed_experience_id",
+        "experiences.experience_id"
+      )
+      .leftJoin(
         "tasttlig_users",
         "user_claims.claim_user_id",
         "tasttlig_users.tasttlig_user_id"
@@ -482,6 +494,8 @@ const getUserProductsClaims = async (user_id) => {
       .groupBy("user_claims.claim_user_id")
       .groupBy("user_claims.claim_id")
       .groupBy("products.product_id")
+      .groupBy("services.service_id")
+      .groupBy("experiences.experience_id")
       .groupBy("tasttlig_users.first_name")
       .groupBy("tasttlig_users.last_name")
       .groupBy("nationalities.nationality")
