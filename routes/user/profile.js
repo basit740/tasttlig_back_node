@@ -56,6 +56,7 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     phone_number: response.user.phone_number,
     age: response.user.age,
     role: response.user.role,
+    profile_image: response.user.user_profile_image_link,
     // profile_image_link: response.user.profile_image_link,
     banner_image_link: response.user.banner_image_link,
     bio: response.user.bio_text,
@@ -76,7 +77,7 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     business_street_name: response.user.business_street_name,
     business_unit: response.user.business_unit,
     business_registered: response.user.business_registered,
-    retail_business: response.user.retail_business,
+    retail_business: response.user.retail_business, 
     food_business_type: response.user.food_business_type,
     food_handlers_certificate: response.user.food_handlers_certificate,
     business_registered_location: response.user.business_registered_location,
@@ -94,8 +95,6 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     preferred_country_cuisine: response.user.preferred_country_cuisine,
     food_preferences: response.user.food_preferences,
     date_of_birth: response.user.date_of_birth,
-    created_at_datetime: response.user.created_at_datetime,
-    sex: response.user.sex,
   };
 
   res.status(200).json({
@@ -320,11 +319,15 @@ router.put("/user/update-profile/:id", async (req, res) => {
       user_zip_postal_code: req.body.postalCode,
       user_country: req.body.country,
       occupation: req.body.occupation,
+      date_of_birth: req.body.birthdate,
+      user_profile_image_link: req.body.profileImage,
       // address_type: req.body.address_type,
       // business_name: req.body.business_name,
       // business_type: req.body.business_type,
       // profile_status: req.body.profile_status,
     };
+
+    console.log("user update", req.body)
 
     const response = await user_profile_service.updateUserProfile(user);
 
@@ -404,6 +407,7 @@ router.put(
   async (req, res) => {
     const {
       // user_age,
+      user_profile_image,
       user_date_of_birth,
       user_occupation,
       user_marital_status,
@@ -416,7 +420,7 @@ router.put(
       user_gender,
       user_state,
     } = req.body;
-    console.log(user_date_of_birth);
+    // console.log(user_date_of_birth);
     try {
       if (
         !user_date_of_birth ||
@@ -452,6 +456,7 @@ router.put(
         const user_info = {
           user_gender,
           // user_age,
+          user_profile_image,
           user_date_of_birth,
           user_occupation,
           user_marital_status,
@@ -842,6 +847,7 @@ router.post(
   "/business-passport",
   token_service.authenticateToken,
   async (req, res) => {
+    console.log("body from business passport: ", req.body)
     try {
       const response = await passport_service.postBusinessPassportDetails(
         req.body

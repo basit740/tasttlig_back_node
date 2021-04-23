@@ -51,7 +51,7 @@ router.post(
   "/all-products/add",
   token_service.authenticateToken,
   async (req, res) => {
-    //console.log("im coming from here man:", req.body);
+    console.log("im coming from all products add:", req.body);
     try {
       req.body.map(async (item) => {
         if (
@@ -163,7 +163,7 @@ router.post(
                 ? item.is_halal
                 : item.dietaryRestrictions.includes("halal"),
             spice_level: item.spice_level,
-            price: 2.0,
+            price: item.price,
             quantity: parseInt(item.quantity),
             food_ad_code: generateRandomString(4),
             status: "ACTIVE",

@@ -77,10 +77,17 @@ router.post(
   async (req, res) => {
     try {
       console.log("here rest");
+      const businessDetails = await business_passport_service.getBusinessApplicantDetails(
+        req.params.userId
+      );
+
+      console.log("business details after approval:", businessDetails.application)
+
       const response = await business_passport_service.approveOrDeclineBusinessMemberApplication(
         req.params.userId,
         "APPROVED",
-        ""
+        "",
+        businessDetails
       );
 
       return res.send(response);
@@ -99,6 +106,8 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
+
+
       const response = await business_passport_service.approveOrDeclineBusinessMemberApplication(
         req.params.userId,
         "DECLINED",

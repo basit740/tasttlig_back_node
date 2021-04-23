@@ -47,7 +47,7 @@ const getAllProductsInFestival = async (
       "products.*",
       "tasttlig_users.first_name",
       "tasttlig_users.last_name",
-      "business_details.business_name",
+      "business_details.*",
       "business_details.business_details_id",
       "nationalities.nationality",
       "nationalities.alpha_2_code",

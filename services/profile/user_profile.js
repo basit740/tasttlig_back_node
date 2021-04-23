@@ -20,7 +20,7 @@ const EMAIL_SECRET = process.env.EMAIL_SECRET;
 const getUserById = async (id) => {
   console.log("id from here:", id);
   return await db
-    .select("tasttlig_users.*", db.raw("ARRAY_AGG(roles.role) as role"))
+    .select("tasttlig_users.*", "business_details.*", db.raw("ARRAY_AGG(roles.role) as role"))
     .from("tasttlig_users")
     .leftJoin(
       "user_role_lookup",
@@ -28,7 +28,13 @@ const getUserById = async (id) => {
       "user_role_lookup.user_id"
     )
     .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
+    .leftJoin(
+      "business_details",
+      "tasttlig_users.tasttlig_user_id",
+      "business_details.business_details_user_id"
+    )
     .groupBy("tasttlig_users.tasttlig_user_id")
+    .groupBy("business_details.business_details_id")
     .having("tasttlig_users.tasttlig_user_id", "=", id)
     .first()
     .then((value) => {
@@ -205,6 +211,7 @@ const createUserInfo = async (user) => {
       .update({
         // age: user["user_age"],
         sex: user["user_gender"],
+        user_profile_image_link: user["user_profile_image"],
         date_of_birth: user["user_date_of_birth"],
         occupation: user["user_occupation"],
         marital_status: user["user_marital_status"],
@@ -1074,7 +1081,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
       await db("user_subscriptions")
         .where({
           user_id: db_user.tasttlig_user_id,
-          user_subscription_status: "INACTIVE",
+          user_subscription_status: "Pending",
         })
         .update("user_subscription_status", "ACTIVE");
 
@@ -1146,7 +1153,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
       await db("user_subscriptions")
         .where({
           user_id: db_user.tasttlig_user_id,
-          user_subscription_status: "INACTIVE",
+          user_subscription_status: "Pending",
         })
         .update("user_subscription_status", "REJECTED")
         .returning("*")

@@ -14,6 +14,7 @@ const createNewService = async (
   service_images
 ) => {
   try {
+    service_information.claimed_total_quantity = 0;
     await db.transaction(async (trx) => {
       const db_service = await trx("services")
         .insert(service_information)
@@ -127,7 +128,7 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
   let query = db
     .select(
       "services.*",
-      "business_details.business_name",
+      "business_details.*",
       // "business_details.business_address_1",
       // "business_details.business_address_2",
       "business_details.city",
@@ -148,11 +149,11 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
     )
     .leftJoin(
       "business_details",
-      "services.service_business_id",
-      "business_details.business_details_id"
+      "services.service_user_id",
+      "business_details.business_details_user_id"
     )
     .groupBy("services.service_id")
-    .groupBy("business_details.business_name")
+    .groupBy("business_details.business_details_id")
     // .groupBy("business_details.business_address_1")
     // .groupBy("business_details.business_address_2")
     .groupBy("business_details.city")
@@ -225,6 +226,7 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
   }
   return await query
     .then((value) => {
+      // console.log(value);
       return { success: true, details: value };
     })
     .catch((reason) => {
@@ -239,7 +241,8 @@ const getUserServiceDetails = async (user_id) => {
     .select(
       "services.*",
       db.raw("ARRAY_AGG(service_images.service_image_url) as image_urls"),
-      "nationalities.country"
+      "nationalities.country",
+      "business_details.*"
     )
     .from("service_images")
     .rightJoin("services", "service_images.service_id", "services.service_id")
@@ -248,8 +251,14 @@ const getUserServiceDetails = async (user_id) => {
       "services.service_nationality_id",
       "nationalities.id"
     )
+    .leftJoin(
+        "business_details",
+        "services.service_user_id",
+        "business_details.business_details_user_id"
+      )
     .groupBy("services.service_id")
     .groupBy("services.service_nationality_id")
+    .groupBy("business_details.business_details_id")
     .groupBy("nationalities.id")
     .having("services.service_user_id", "=", Number(user_id))
     .then((value) => {
@@ -261,6 +270,7 @@ const getUserServiceDetails = async (user_id) => {
 };
 
 const getServicesFromUser = async (user_id, keyword, festival_id) => {
+  console.log('user of this service', user_id);
   let query = db
     .select(
       "services.*",
@@ -348,7 +358,7 @@ const getServicesFromUser = async (user_id, keyword, festival_id) => {
   }
   return await query
     .then((value) => {
-      //console.log("serviceValue", value);
+      console.log("serviceValue", value.data);
       return { success: true, details: value };
     })
     .catch((reason) => {

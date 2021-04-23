@@ -30,6 +30,7 @@ const createNewExperience = async (
         true
       ); */
       //experience_details.status = "ACTIVE";
+      experience_details.claimed_total_quantity = 0;
       const db_experience = await trx("experiences")
         .insert(experience_details)
         .returning("*");
@@ -327,10 +328,11 @@ const getAllUserExperience = async (
 
 // Get all experiences by user id helper function
 const getUserExperiencesById = async (user_id) => {
-  console.log("functttttttt", user_id);
+  // console.log("functttttttt", user_id);
   return await db
     .select(
       "experiences.*",
+      "business_details.*",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
       db.raw("ARRAY_AGG(experience_images.experience_image_url) as image_urls")
@@ -342,20 +344,26 @@ const getUserExperiencesById = async (user_id) => {
       "experience_images.experience_id"
     )
     .leftJoin(
+      "business_details",
+      "experiences.experience_business_id",
+      "business_details.business_details_id"
+    )
+    .leftJoin(
       "nationalities",
       "experiences.experience_nationality_id",
       "nationalities.id"
     )
     .groupBy("experiences.experience_id")
+    .groupBy("business_details.business_details_id")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
     .having("experiences.experience_business_id", "=", Number(user_id))
     .then((value) => {
-      console.log("*******************************", value);
+      // console.log("*******************************", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("err*******************************", reason);
+      // console.log("err*******************************", reason);
       return { success: false, details: reason };
     });
 };
