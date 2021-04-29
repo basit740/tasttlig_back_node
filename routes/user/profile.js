@@ -206,13 +206,13 @@ router.post(
   "/complete-profile/preference/:id",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("here");
     console.log(req.body);
-    console.log(req.params);
     const {
       preferred_country_cuisine,
       food_preferences,
       food_allergies,
+      socialmedia_reference,
+
     } = req.body;
     try {
       if (!food_preferences || !food_allergies || !preferred_country_cuisine) {
@@ -238,6 +238,7 @@ router.post(
           food_preferences,
           food_allergies,
           preferred_country_cuisine,
+          socialmedia_reference
         };
 
         const response = await user_profile_service.createPreferences(
