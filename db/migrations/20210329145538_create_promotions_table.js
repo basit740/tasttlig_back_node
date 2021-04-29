@@ -3,7 +3,7 @@ exports.up = function(knex) {
     table.increments("promotion_id").unsigned().primary();
     table.integer("promotion_business_id").unsigned().index()
     .references("business_details_id").inTable("business_details").onDelete("CASCADE");
-    table.string("promtion_name");
+    table.string("promotion_name");
     table.text("promotion_description");
     table.integer("promotion_discount_percentage");
     table.double("promotion_discount_price"); 
