@@ -33,12 +33,12 @@ router.post(
         message: "Required parameters are not available in request.",
       });
     }
+    console.log("req body from experinces/add", req.body)
 
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
       );
-
       if (!user_details_from_db.success) {
         return res.status(403).json({
           success: false,
@@ -46,21 +46,21 @@ router.post(
         });
       }
 
-      let createdByAdmin = true;
+      let createdByAdmin = false;
 
       const business_details_from_db = await authentication_service.getUserByBusinessDetails(
         req.user.id
       );
+      console.log("business_details_from_db", business_details_from_db)
+      if (!business_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: business_details_from_db.message,
+        });
+      }
 
-      if (user_details_from_db.user.role.includes("HOST")) {
-        if (!business_details_from_db.success) {
-          return res.status(403).json({
-            success: false,
-            message: business_details_from_db.message,
-          });
-        }
-
-        createdByAdmin = false;
+      if (user_details_from_db.user.role.includes("ADMIN")) {
+        createdByAdmin = true;
       }
 
       let db_business_details = business_details_from_db.business_details;
@@ -120,7 +120,7 @@ router.post(
         experience_updated_at_datetime: new Date(),
       };
 
-      console.log("*******", req.body);
+      console.log("experience_information",experience_information);
       const response = await experience_service.createNewExperience(
         user_details_from_db,
         experience_information,
@@ -129,6 +129,7 @@ router.post(
 
       return res.send(response);
     } catch (error) {
+      console.log("error: ", error)
       res.send({
         success: false,
         message: "Error.",
@@ -172,6 +173,7 @@ router.get("/experiences/:user_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
+  
 
   let user_details_from_db;
   if (req.params.user_id) {
@@ -204,15 +206,18 @@ router.get("/experiences/:user_id", async (req, res) => {
       message: business_details_from_db.message,
     });
   }
+
   let business_details_id =
     business_details_from_db.business_details.business_details_id;
+    console.log("business_details_id from expereiences get:", business_details_id)
   try {
     const response = await experience_service.getUserExperiencesById(
       business_details_id
     );
-
+    console.log("response from expereiences get:", response)
     return res.send(response);
   } catch (error) {
+    console.log("error from expereiences get:", error)
     res.send({
       success: false,
       message: "Error.",
