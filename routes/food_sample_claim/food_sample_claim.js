@@ -105,10 +105,10 @@ router.post("/all-products-claim", async (req, res) => {
       claimed_total_quantity,
       product_claim_details
     );
-    console.log("response", response);
+    // console.log("response", response);
     return res.send(response);
   } catch (error) {
-    console.log("error", error);
+    // console.log("error", error);
     res.send({
       success: false,
       message:
@@ -120,7 +120,7 @@ router.post("/all-products-claim", async (req, res) => {
 
 // POST confirm product redeem status
 router.post("/all-products-claim/confirm", async (req, res) => {
-  console.log("req.body", req.body);
+  // console.log("req.body", req.body);
   if (!req.body.claim_viewable_id) {
     return res.status(403).json({
       success: false,
@@ -136,9 +136,27 @@ router.post("/all-products-claim/confirm", async (req, res) => {
   return res.status(response.error ? 500 : 200).json(response);
 });
 
-// POST confirm product redeem status
+// POST confirm service redeem status
+router.post("/all-services-claim/confirm", async (req, res) => {
+  console.log("service claim body", req.body);
+  if (!req.body.claim_viewable_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Id not present in request.",
+    });
+  }
+  const response = await food_sample_claim_service.confirmServiceClaim(
+    req.body.claim_viewable_id,
+    req.body.quantity,
+    req.body.redeemed_total_quantity
+  );
+
+  return res.status(response.error ? 500 : 200).json(response);
+});
+
+// POST confirm experience redeem status
 router.post("/all-experience-claim/confirm", async (req, res) => {
-  console.log("req.body", req.body);
+  // console.log("req.body", req.body);
   if (!req.body.claim_viewable_id) {
     return res.status(403).json({
       success: false,
@@ -181,13 +199,13 @@ router.get(
   "/all-product-redeem/user/reservations",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("req.user:", req.user)
+    // console.log("req.user:", req.user)
     const keyword = req.query.keyword || "";
     try {
      const db_user = await user_profile_service.getUserById(
         req.user.id
       );
-      console.log("<<<<<<<<<<<<<<<<db_user coming from redeem fetch:>>>>>>?????", db_user)
+      // console.log("<<<<<<<<<<<<<<<<db_user coming from redeem fetch:>>>>>>?????", db_user)
 
       const db_food_claims = await food_sample_claim_service.getUserProductsRedeems(
         req.user.id,
@@ -206,18 +224,48 @@ router.get(
   }
 );
 
-// GET Host food sample Redeems
+// GET Host Service Redeems
 router.get(
-  "/all-experience-redeem/user/reservations",
+  "/all-service-redeem/user/reservations",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("req.user:", req.user)
+    // console.log("req.user:", req.user)
     const keyword = req.query.keyword || "";
     try {
      const db_user = await user_profile_service.getUserById(
         req.user.id
       );
-      console.log("<<<<<<<<<<<<<<<<db_user coming from redeem fetch:>>>>>>?????", db_user)
+      // console.log("<<<<<<<<<<<<<<<<db_user coming from redeem fetch:>>>>>>?????", db_user)
+
+      const db_food_claims = await food_sample_claim_service.getUserServiceRedeems(
+        req.user.id,
+        keyword, 
+        db_user
+      );
+      // console.log('service redeem list', db_food_claims );
+      return res.send(db_food_claims);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
+
+// GET Host experienceRedeems
+router.get(
+  "/all-experience-redeem/user/reservations",
+  token_service.authenticateToken,
+  async (req, res) => {
+    // console.log("req.user:", req.user)
+    const keyword = req.query.keyword || "";
+    try {
+     const db_user = await user_profile_service.getUserById(
+        req.user.id
+      );
+      // console.log("<<<<<<<<<<<<<<<<db_user coming from redeem fetch:>>>>>>?????", db_user)
 
       const db_experience_claims = await food_sample_claim_service.getUserExperiencesRedeems(
         req.user.id,
@@ -304,7 +352,7 @@ router.post("/all-experiences-claim", async (req, res) => {
     const product_details_from_db = await experiences_service.findExperience(
       req.body.food_sample_id
     );
-    console.log("db_all_products", product_details_from_db);
+    // console.log("db_all_products", product_details_from_db);
 
     if (!product_details_from_db.success) {
       return res.status(403).json({
@@ -330,10 +378,10 @@ router.post("/all-experiences-claim", async (req, res) => {
       claimed_total_quantity,
       product_claim_details
     );
-    console.log("response", response);
+    // console.log("response", response);
     return res.send(response);
   } catch (error) {
-    console.log("error", error);
+    // console.log("error", error);
     res.send({
       success: false,
       message:
@@ -412,7 +460,7 @@ router.post("/all-services-claim", async (req, res) => {
     const product_details_from_db = await services_service.findService(
       req.body.food_sample_id
     );
-    console.log("db_all_products", product_details_from_db);
+    // console.log("db_all_products", product_details_from_db);
 
     if (!product_details_from_db.success) {
       return res.status(403).json({
@@ -438,10 +486,10 @@ router.post("/all-services-claim", async (req, res) => {
       claimed_total_quantity,
       product_claim_details
     );
-    console.log("response", response);
+    // console.log("response", response);
     return res.send(response);
   } catch (error) {
-    console.log("error", error);
+    // console.log("error", error);
     res.send({
       success: false,
       message:
