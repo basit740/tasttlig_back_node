@@ -13,6 +13,8 @@ const createNewExperience = async (
   experience_information,
   experience_images
 ) => {
+  console.log("experience_information::", experience_information)
+  // console.log("experience_information::", experience_information)
   try {
     await db.transaction(async (trx) => {
       const db_experience = await trx("experiences")
@@ -46,6 +48,7 @@ const createNewExperience = async (
 
     return { success: true, details: "Success." };
   } catch (error) {
+    console.log("error::", error)
     return { success: false, details: error.message };
   }
 };

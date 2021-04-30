@@ -1365,6 +1365,8 @@ const createPreferences = async (preference_details, user_id) => {
         food_allergies: preference_details["food_allergies"],
         preferred_country_cuisine:
           preference_details["preferred_country_cuisine"],
+          socialmedia_reference:
+          preference_details["socialmedia_reference"],
       })
       .returning("*")
       .then((value) => {

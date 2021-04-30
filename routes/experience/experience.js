@@ -35,6 +35,7 @@ router.post(
         message: "Required parameters are not available in request.",
       });
     }
+    console.log("req body from experinces/add", req.body)
 
     try {
       const user_details_from_db = await user_profile_service.getUserById(
