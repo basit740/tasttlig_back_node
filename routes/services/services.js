@@ -190,7 +190,8 @@ router.post(
       let result = "";
       const response = await services_service.addServiceToFestival(
         req.body.festivalId,
-        req.body.ps
+        req.body.ps, 
+        req.user.id
       );
       console.log(response);
       if (response.success) {

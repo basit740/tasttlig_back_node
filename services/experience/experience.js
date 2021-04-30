@@ -550,7 +550,7 @@ const getDistinctNationalities = async (operator, status) => {
     });
 };
 
-const addExperienceToFestival = async (festival_id, experience_id) => {
+const addExperienceToFestival = async (festival_id, experience_id, experience_user_id) => {
   try {
     await db.transaction(async (trx) => {
       console.log("experienceId", experience_id);
@@ -572,6 +572,15 @@ const addExperienceToFestival = async (festival_id, experience_id) => {
             };
           }
         }
+        await trx("festivals")
+        .where({ festival_id: festival_id })
+        // .whereRaw('? = ANY(festival_host_id)', experience_user_id)
+        .update({
+          festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+            experience_user_id,
+          ]),
+        })
+
       } else {
         const db_service = await trx("experiences")
           .where({ experience_id })
@@ -582,6 +591,13 @@ const addExperienceToFestival = async (festival_id, experience_id) => {
             ),
           })
           .returning("*");
+          await trx("festivals")
+          .where({ festival_id: festival_id })
+          .update({
+            festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+              experience_user_id,
+            ]),
+          })
 
         if (!db_service) {
           return {
