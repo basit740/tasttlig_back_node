@@ -1,6 +1,6 @@
 exports.up = function(knex) {
     return knex.schema.alterTable("promotions", table => {
-      table.string("promtion_status");
+      table.string("promotion_status");
  
     });
   };

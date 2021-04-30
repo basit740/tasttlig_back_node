@@ -12,6 +12,7 @@ const services_service = require("../../services/services/services");
 
 // POST food sample claim
 router.post("/all-products-claim", async (req, res) => {
+  console.log("req coming from claiming the product:", )
   if (!req.body.food_sample_claim_user || !req.body.food_sample_id) {
     return res.status(403).json({
       success: false,
@@ -205,7 +206,6 @@ router.get(
      const db_user = await user_profile_service.getUserById(
         req.user.id
       );
-      // console.log("<<<<<<<<<<<<<<<<db_user coming from redeem fetch:>>>>>>?????", db_user)
 
       const db_food_claims = await food_sample_claim_service.getUserProductsRedeems(
         req.user.id,

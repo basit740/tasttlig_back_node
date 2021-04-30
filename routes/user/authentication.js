@@ -66,6 +66,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
 
 // GET user email address verification for registration
 authRouter.get("/user/confirmation/:token", async (req, res) => {
+  console.log("req.params.token coming from verifying:", req.params.token)
   if (!req.params.token) {
     return res.status(403).json({
       success: false,
@@ -75,10 +76,12 @@ authRouter.get("/user/confirmation/:token", async (req, res) => {
 
   try {
     const user_id = jwt.verify(req.params.token, process.env.EMAIL_SECRET).user;
+    console.log("token coming from verifying:",token)
     const response = await authenticate_user_service.verifyAccount(user_id);
-
+    console.log("success, response", response);
     res.send(response);
   } catch (error) {
+    console.log("error", error);
     return res.status(401).json({
       success: false,
       message: error.message,
