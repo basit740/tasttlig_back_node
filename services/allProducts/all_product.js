@@ -194,6 +194,15 @@ const createNewProduct = async (
           product_id: db_all_product[0].product_id,
         });
 
+        await trx("festivals")
+        .where({ festival_id: all_product_details.festival_selected[0] })
+        .whereRaw('? = ANY(festival_host_id)', all_product_details.product_user_id)
+        .update({
+          festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+            all_product_details.product_user_id,
+          ]),
+        })
+
       if (!db_all_product) {
         return { success: false, details: "Inserting new product failed." };
       }

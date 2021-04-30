@@ -52,7 +52,7 @@ const createNewService = async (
   }
 };
 
-const addServiceToFestival = async (festival_id, service_id) => {
+const addServiceToFestival = async (festival_id, service_id, service_user_id) => {
   try {
     await db.transaction(async (trx) => {
       console.log("serviceId", service_id);
@@ -75,6 +75,13 @@ const addServiceToFestival = async (festival_id, service_id) => {
             };
           }
         }
+        await trx("festivals")
+        .where({ festival_id: festival_id })
+        .update({
+          festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+            service_user_id,
+          ]),
+        })
       } else {
         let query = await db
           .select("services.*")
@@ -91,6 +98,13 @@ const addServiceToFestival = async (festival_id, service_id) => {
               ),
             })
             .returning("*");
+            await trx("festivals")
+            .where({ festival_id: festival_id })
+            .update({
+              festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+                service_user_id,
+              ]),
+            })
 
           if (!db_service) {
             return {
