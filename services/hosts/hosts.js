@@ -41,6 +41,45 @@ const getHostApplications = async () => {
   }
 };
 
+
+// Get all applications helper function
+const getAllHostApplications = async () => {
+  try {
+    const applications = await db
+      .select("*")
+      .from("applications")
+      .leftJoin(
+        "tasttlig_users",
+        "applications.user_id",
+        "tasttlig_users.tasttlig_user_id"
+      )
+      .leftJoin(
+        "business_details",
+        "applications.user_id",
+        "business_details.business_details_user_id"
+      )
+      // .leftJoin(
+      //   "user_subscriptions",
+      //   "tasttlig_users.tasttlig_user_id",
+      //   "user_subscriptions.user_id"
+      // )
+      .where("applications.type", "=", "host")
+      .groupBy("applications.application_id")
+      .groupBy("tasttlig_users.tasttlig_user_id")
+      // .groupBy("user_subscriptions.user_subscription_id")
+      .groupBy("business_details.business_details_id")
+      // .having("user_subscriptions.user_subscription_status", "=", "INACTIVE")
+      .having("applications.status", "=", "Pending");
+
+    return {
+      success: true,
+      applications,
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
 // Get specific application helper function
 const getHostApplication = async (userId) => {
   console.log("user id from get host application", userId);
@@ -195,6 +234,54 @@ const getHostApplication = async (userId) => {
       application,
     };
   } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+const getHostApplicantDetails = async (userId) => {
+  try {
+    console.log(userId);
+    let application = await db
+      .select(
+        "business_details.*",
+        "business_details_images.*",
+        "tasttlig_users.*"
+      )
+      .from("business_details")
+      .leftJoin(
+        "tasttlig_users",
+        "tasttlig_users.tasttlig_user_id",
+        "business_details.business_details_user_id"
+      )
+
+      .leftJoin(
+        "business_details_images",
+        "business_details.business_details_id",
+        "business_details_images.business_details_id"
+      )
+
+      .leftJoin(
+        "user_role_lookup",
+        "tasttlig_users.tasttlig_user_id",
+        "user_role_lookup.user_id"
+      )
+
+      .groupBy("business_details_images.business_details_image_id")
+      .groupBy("tasttlig_users.tasttlig_user_id")
+      .groupBy("business_details.business_details_id")
+      .groupBy("user_role_lookup.user_role_lookup_id")
+      .having("tasttlig_users.tasttlig_user_id", "=", Number(userId))
+      .having("user_role_lookup.role_code", "=", "JUCR")
+      .first();
+
+    console.log(application);
+
+    return {
+      success: true,
+      application,
+    };
+  } catch (error) {
+    console.log(error);
     return { success: false, error: error.message };
   }
 };
@@ -377,4 +464,6 @@ module.exports = {
   createHost,
   getGuestAmbassadorApplications,
   getGuestAmbassadorApplication,
+  getAllHostApplications,
+  getHostApplicantDetails,
 };

@@ -81,6 +81,7 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     food_business_type: response.user.food_business_type,
     food_handlers_certificate: response.user.food_handlers_certificate,
     business_registered_location: response.user.business_registered_location,
+    CRA_business_number: response.user.CRA_business_number,
     business_city: response.user.city,
     business_state: response.user.state,
     business_country: response.user.country,
@@ -862,7 +863,7 @@ router.post(
         is_business: req.body.is_business,
         email: req.user.email,
       };
-
+        console.log("host_info", hostDto);
       const creatingFreeOrder = await user_order_service.createFreeOrder(
         req.body.subscriptionResponse,
         req.user.id
