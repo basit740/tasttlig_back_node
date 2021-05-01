@@ -5,7 +5,7 @@ const router = require("express").Router();
 const token_service = require("../../services/authentication/token");
 const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
-const service_claim_service = require("../services/services");
+const mobile_services = require("../services/services");
 
 // POST service claim
 router.post("/all-services-claim", async (req, res) => {
@@ -47,7 +47,7 @@ router.post("/all-services-claim", async (req, res) => {
         canClaim,
         message,
         error,
-      } = await service_claim_service.userCanClaimService(
+      } = await mobile_services.userCanClaimService(
         db_user.email,
         req.body.food_sample_id
       );
@@ -72,7 +72,7 @@ router.post("/all-services-claim", async (req, res) => {
         });
       }
     }
-    const product_details_from_db = await service_claim_service.findService(
+    const product_details_from_db = await mobile_services.findService(
       req.body.food_sample_id
     );
 
@@ -94,7 +94,7 @@ router.post("/all-services-claim", async (req, res) => {
       reserved_on: new Date(),
       festival_id: req.body.festival_id,
     };
-    const response = await service_claim_service.createNewServiceClaim(
+    const response = await mobile_services.createNewServiceClaim(
       db_user,
       db_all_products,
       claimed_total_quantity,
@@ -108,6 +108,59 @@ router.post("/all-services-claim", async (req, res) => {
       message:
         "Email not found for user subscription. Enter new email or buy a festival pass.",
       response: error,
+    });
+  }
+});
+
+router.get(
+  "user/applications/:userId",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const application = await mobile_services.getUserApplications(
+        req.params.userId
+      );
+
+      return res.send(application);
+    } catch (error) {
+      console.log("err", error);
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+router.get("user/festival/:userId", async (req, res) => {
+  try {
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
+
+    const filters = {
+      nationalities: req.query.nationalities,
+      startDate: req.query.startDate,
+      startTime: new Date(req.query.startTime).getTime(),
+      cityLocation: req.query.cityLocation,
+      radius: req.query.radius,
+      latitude: req.query.latitude,
+      longitude: req.query.longitude,
+      dayOfWeek: req.query.dayOfWeek,
+    };
+
+    const response = await festival_service.getAllFestivals(
+      current_page,
+      keyword,
+      filters,
+      req.params.userId
+    );
+    console.log("filter", filters);
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
     });
   }
 });

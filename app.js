@@ -44,7 +44,8 @@ const order_router = require("./routes/user/order");
 const points_router = require("./routes/user/points_system");
 const business_router = require("./routes/helper_routes/businessFinderRoutes");
 const external_api_router = require("./routes/external_api/external_api");
-const mobile_router = require("./mobile/routes/services");
+const mobile_router = require("./mobile/routes/routes");
+const mobile_s3_uploader = require("./mobile/routes/mobileS3UploaderRoutes");
 
 // Set up CORS
 const app = express();
@@ -93,6 +94,7 @@ app.use("/points", points_router);
 app.use("/business", business_router);
 app.use("/external_api/", external_api_router);
 app.use(mobile_router);
+app.use(mobile_s3_uploader);
 
 // Cron Job scripts
 cron.schedule("0 0 1-31 * *", cron_job_functions.deleteInactiveItems);
