@@ -112,27 +112,23 @@ router.post("/all-services-claim", async (req, res) => {
   }
 });
 
-router.get(
-  "user/applications/:userId",
-  token_service.authenticateToken,
-  async (req, res) => {
-    try {
-      const application = await mobile_services.getUserApplications(
-        req.params.userId
-      );
+router.get("/user/applications/:userId", async (req, res) => {
+  try {
+    const application = await mobile_services.getUserApplications(
+      req.params.userId
+    );
 
-      return res.send(application);
-    } catch (error) {
-      console.log("err", error);
-      res.status(500).send({
-        success: false,
-        message: error.message,
-      });
-    }
+    return res.send(application);
+  } catch (error) {
+    console.log("err", error);
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
   }
-);
+});
 
-router.get("user/festival/:userId", async (req, res) => {
+router.get("/user/attended-festival/:userId", async (req, res) => {
   try {
     const current_page = req.query.page || 1;
     const keyword = req.query.keyword || "";
@@ -148,7 +144,40 @@ router.get("user/festival/:userId", async (req, res) => {
       dayOfWeek: req.query.dayOfWeek,
     };
 
-    const response = await festival_service.getAllFestivals(
+    const response = await mobile_services.getAttendedFestivalsForUser(
+      current_page,
+      keyword,
+      filters,
+      req.params.userId
+    );
+    console.log("filter", filters);
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+router.get("/user/hosted-festival/:userId", async (req, res) => {
+  try {
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
+
+    const filters = {
+      nationalities: req.query.nationalities,
+      startDate: req.query.startDate,
+      startTime: new Date(req.query.startTime).getTime(),
+      cityLocation: req.query.cityLocation,
+      radius: req.query.radius,
+      latitude: req.query.latitude,
+      longitude: req.query.longitude,
+      dayOfWeek: req.query.dayOfWeek,
+    };
+
+    const response = await mobile_services.getHostedFestivalsForUser(
       current_page,
       keyword,
       filters,
