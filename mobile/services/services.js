@@ -498,6 +498,66 @@ const getHostedFestivalsForUser = async (
     });
 };
 
+const getBusinessRevenue = async (business_details_id) => {
+  try {
+    console.log("revenue biz id", business_details_id);
+    const revenue = await db
+      .select("user_claims.*", "products.*", "services.*", "experiences.*")
+      .from("user_claims")
+      .leftJoin(
+        "products",
+        "user_claims.claimed_product_id",
+        "products.product_id"
+      )
+      /* .leftJoin(
+        "business_details",
+        "products.product_business_id",
+        "business_details.business_details_id"
+      ) */
+      .leftJoin(
+        "services",
+        "user_claims.claimed_service_id",
+        "services.service_id"
+      )
+      /* .leftJoin(
+        "business_details",
+        "services.service_business_id",
+        "business_details.business_details_id"
+      ) */
+      .leftJoin(
+        "experiences",
+        "user_claims.claimed_experience_id",
+        "experiences.experience_id"
+      )
+      /* .leftJoin(
+        "business_details",
+        "experiences.experience_business_id",
+        "business_details.business_details_id"
+      ) */
+      .where("products.product_business_id", "=", business_details_id)
+      .where("services.service_business_id", "=", business_details_id)
+      .where("experiences.experience_business_id", "=", business_details_id)
+      .groupBy("user_claims.claimed_product_id")
+      .groupBy("products.product_id")
+      .groupBy("products.product_business_id")
+      .groupBy("user_claims.claimed_service_id")
+      .groupBy("services.service_id")
+      .groupBy("services.service_business_id")
+      .groupBy("user_claims.claimed_experience_id")
+      .groupBy("user_claims.claim_id")
+      .groupBy("experiences.experience_id")
+      .groupBy("experiences.experience_business_id")
+      .having("user_claims.current_stamp_status", "=", "Claimed");
+
+    return {
+      success: true,
+      revenue,
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   userCanClaimService,
   findService,
@@ -507,4 +567,5 @@ module.exports = {
   getUserApplications,
   getAttendedFestivalsForUser,
   getHostedFestivalsForUser,
+  getBusinessRevenue,
 };

@@ -194,4 +194,29 @@ router.get("/user/hosted-festival/:userId", async (req, res) => {
   }
 });
 
+router.get("/business/revenue/:userId", async (req, res) => {
+  try {
+    const business_details_all = await user_profile_service.getBusinessDetailsByUserId(
+      req.params.userId
+    );
+    if (!business_details_all.success) {
+      return res.status(403).json({
+        success: false,
+        message: business_details_all.message,
+      });
+    }
+    const revenue = await mobile_services.getBusinessRevenue(
+      business_details_all.business_details_all.business_details_id
+    );
+    console.log("revenue", revenue);
+    return res.send(revenue);
+  } catch (error) {
+    console.log("err", error);
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;
