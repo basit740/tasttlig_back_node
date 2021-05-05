@@ -289,7 +289,7 @@ const getCartOrderDetails = async (cartItems) => {
 };
 
 // Create order helper function
-const createOrder = async (order_details, db_order_details) => {
+const createOrder = async (order_details, db_order_details, additionalEmail) => {
   if (
     order_details.item_type === "plan" ||
     order_details.item_type === "subscription"
@@ -371,6 +371,19 @@ const createOrder = async (order_details, db_order_details) => {
       });
 
       const membership_plan_name = _.startCase(order_details.item_id);
+
+      if(additionalEmail !== '') {
+        await Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
+          to: additionalEmail,
+          bcc: ADMIN_EMAIL,
+          subject: "[Tasttlig] Membership Plan Purchase",
+          template: "membership_plan_purchase",
+          context: {
+            membership_plan_name,
+          },
+        });
+      }
 
       // Email to user on submitting the request to upgrade
       await Mailer.sendMail({
@@ -465,6 +478,19 @@ const createOrder = async (order_details, db_order_details) => {
         db_order_details.item.subscription_name
       );
 
+      if(additionalEmail !== '') {
+        await Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
+          to: additionalEmail,
+          bcc: ADMIN_EMAIL,
+          subject: "[Tasttlig] Package Purchase",
+          template: "package_purchase",
+          context: {
+            package_plan_name,
+          },
+        });
+      }
+
       // Email to user on submitting the request to upgrade
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
@@ -523,6 +549,20 @@ const createOrder = async (order_details, db_order_details) => {
           total_amount_after_tax * 100
         );
       });
+
+      
+      if(additionalEmail !== '') {
+        await Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
+          to: additionalEmail,
+          bcc: ADMIN_EMAIL,
+          subject: "[Tasttlig] Purchase Successful",
+          template: "new_food_sample_purchase",
+          context: {
+            title: db_order_details.item.title,
+          },
+        });
+      }
 
       // Email to user on successful purchase
       await Mailer.sendMail({
@@ -597,6 +637,59 @@ const createOrder = async (order_details, db_order_details) => {
           return { success: false, details: "Inserting new host failed." };
         }
       });
+
+
+      if(additionalEmail !== '') {
+        await Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
+          to: additionalEmail,
+          bcc: ADMIN_EMAIL,
+          subject: "[Tasttlig] Festival Purchase Successful",
+          template: "festival/attend_festival",
+          context: {
+            title: db_order_details.item.festival_name,
+            items: [
+              {
+                title: db_order_details.item.festival_name,
+                address: db_order_details.item.festival_city,
+                day: moment(
+                  moment(
+                    new Date(db_order_details.item.festival_start_date)
+                      .toISOString()
+                      .split("T")[0] +
+                      "T" +
+                      db_order_details.item.festival_start_time +
+                      ".000Z"
+                  ).add(new Date().getTimezoneOffset(), "m")
+                ).format("MMM Do YYYY"),
+                time:
+                  moment(
+                    moment(
+                      new Date(db_order_details.item.festival_start_date)
+                        .toISOString()
+                        .split("T")[0] +
+                        "T" +
+                        db_order_details.item.festival_start_time +
+                        ".000Z"
+                    ).add(new Date().getTimezoneOffset(), "m")
+                  ).format("hh:mm a") +
+                  " - " +
+                  moment(
+                    moment(
+                      new Date(db_order_details.item.festival_start_date)
+                        .toISOString()
+                        .split("T")[0] +
+                        "T" +
+                        db_order_details.item.festival_end_time +
+                        ".000Z"
+                    ).add(new Date().getTimezoneOffset(), "m")
+                  ).format("hh:mm a"),
+                quantity: 1,
+              },
+            ],
+          },
+        });
+      }
 
       // Email to user on successful purchase
       await Mailer.sendMail({

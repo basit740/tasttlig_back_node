@@ -108,7 +108,8 @@ router.post("/payment/stripe/success", async (req, res) => {
       : null;
     const response = await user_order_service.createOrder(
       order_details,
-      db_order_details
+      db_order_details,
+      req.body.additionalEmail,
     );
 
     console.log("db_order_details from payment page:", db_order_details)
