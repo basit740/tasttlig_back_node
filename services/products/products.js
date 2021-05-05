@@ -316,7 +316,7 @@ const findProduct = async (product_id) => {
     });
 };
 // Find product helper function
-const addProductToFestival = async (festival_id, product_id, product_user_id ) => {
+const addProductToFestival = async (festival_id, product_id, product_user_id, user_details_from_db ) => {
   try {
     await db.transaction(async (trx) => {
       if (Array.isArray(product_id)) {
@@ -338,17 +338,27 @@ const addProductToFestival = async (festival_id, product_id, product_user_id ) =
             };
           }
         }
-        await trx("festivals")
-        .where({ festival_id: festival_id })
-        // .andWhere({festival_host_id: trx.raw('? = ANY(festival_host_id)',product_user_id)})
-        // .whereNotExists({
-        //   festival_host_id: trx.raw("festival_host_id", product_user_id),
-        // })
-        .update({
-          festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
-            product_user_id,
-          ]),
-        })
+
+        if (user_details_from_db.user.role.includes("HOST")) 
+        {
+            await trx("festivals")
+            .where({ festival_id: festival_id })
+            .update({
+              festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+                product_user_id,
+              ]),
+            })
+          }
+          else if (user_details_from_db.user.role.includes("VENDOR")) 
+          {
+              await trx("festivals")
+              .where({ festival_id: festival_id })
+              .update({
+                festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
+                  product_user_id,
+                ]),
+              })
+          }
 
       } else {
         const db_product = await trx("products")

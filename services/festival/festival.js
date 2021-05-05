@@ -427,11 +427,13 @@ const getFestivalDetails = async (festival_id) => {
     .having("festivals.festival_id", "=", festival_id)
     .having("festivals.festival_end_date", ">=", new Date())
     .then((value) => {
+      console.log('festival details', value);
       return {
         success: true,
         details: value,
       };
-    })
+    }   
+    )
     .catch((reason) => {
       return { success: false, details: reason };
     });

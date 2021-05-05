@@ -679,7 +679,7 @@ router.get(
         current_page,
         requestByAdmin
       );
-      console.log("response from food samples:", response);
+      // console.log("response from food samples:", response);
       return res.send(response);
     } catch (error) {
       res.send({
