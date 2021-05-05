@@ -167,8 +167,8 @@ const createNewProduct = async (
   all_product_images,
   createdByAdmin
 ) => {
-  console.log("data coming from create new product:", all_product_details);
-
+  // console.log("data coming from create new product:", all_product_details);
+  // console.log("db user details", db_user.role);
   try {
     await db.transaction(async (trx) => {
       all_product_details.food_ad_code =
@@ -194,23 +194,28 @@ const createNewProduct = async (
           product_id: db_all_product[0].product_id,
         });
 
-        await trx("festivals")
-        .where({ festival_id: all_product_details.festival_selected[0] })
-        .whereRaw('? = ANY(festival_host_id)', all_product_details.product_user_id)
-        .update({
-          festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
-            all_product_details.product_user_id,
-          ]),
-        });
-
-        await trx("festivals")
-        .where({ festival_id: all_product_details.festival_selected[0] })
-        .whereRaw('? = ANY(festival_vendor_id)', all_product_details.product_user_id)
-        .update({
-          festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
-            all_product_details.product_user_id,
-          ]),
-        })
+        if (user_role_object.includes("HOST"))
+        {
+          await trx("festivals")
+          .where({ festival_id: all_product_details.festival_selected[0] })
+          // .whereRaw('? = ANY(festival_host_id)', all_product_details.product_user_id)
+          .update({
+            festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+              all_product_details.product_user_id,
+            ]),
+          });
+        } 
+        else if (user_role_object.includes("VENDOR"))
+        {
+          await trx("festivals")
+          .where({ festival_id: all_product_details.festival_selected[0] })
+          // .whereRaw('? = ANY(festival_vendor_id)', all_product_details.product_user_id)
+          .update({
+            festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
+              all_product_details.product_user_id,
+            ]),
+          })
+        }
 
       if (!db_all_product) {
         return { success: false, details: "Inserting new product failed." };
