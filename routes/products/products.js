@@ -416,7 +416,9 @@ router.post(
       const response = await products_service.addProductToFestival(
         req.body.festivalId,
         req.body.ps,
-        req.user.id
+        req.user.id,
+        user_details_from_db
+
       );
       console.log(response);
       if (response.success) {

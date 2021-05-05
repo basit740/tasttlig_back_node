@@ -176,9 +176,9 @@ const createNewProduct = async (
         Math.random().toString(36).substring(2, 4);
       let user_role_object = db_user.role;
 
-      if (user_role_object.includes("HOST") || createdByAdmin) {
+      if (user_role_object.includes("HOST") || user_role_object.includes("VENDOR") || createdByAdmin) {
         all_product_details.status = "ACTIVE";
-      } else if (user_role_object.includes("HOST_PENDING")) {
+      } else if (user_role_object.includes("HOST_PENDING") || user_role_object.includes("VENDOR_PENDING")) {
         all_product_details.status = "INACTIVE";
       }
 
@@ -199,6 +199,15 @@ const createNewProduct = async (
         .whereRaw('? = ANY(festival_host_id)', all_product_details.product_user_id)
         .update({
           festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+            all_product_details.product_user_id,
+          ]),
+        });
+
+        await trx("festivals")
+        .where({ festival_id: all_product_details.festival_selected[0] })
+        .whereRaw('? = ANY(festival_vendor_id)', all_product_details.product_user_id)
+        .update({
+          festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
             all_product_details.product_user_id,
           ]),
         })
