@@ -196,7 +196,7 @@ const createNewProduct = async (
 
         await trx("festivals")
         .where({ festival_id: all_product_details.festival_selected[0] })
-        .whereRaw('? = ANY(festival_host_id)', all_product_details.product_user_id)
+        // .whereRaw('? = ANY(festival_host_id)', all_product_details.product_user_id)
         .update({
           festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
             all_product_details.product_user_id,

@@ -34,6 +34,7 @@ router.get("/all-products/festival/:festivalId", async (req, res) => {
       filters,
       req.params.festivalId
     );
+    console.log("response from all product:", response)
 
     return res.send(response);
   } catch (error) {
@@ -51,7 +52,7 @@ router.post(
   "/all-products/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("im coming from all products add:", req.body);
+    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>im coming from all products add:", req.body);
     try {
       req.body.map(async (item) => {
         if (

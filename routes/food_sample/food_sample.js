@@ -766,8 +766,8 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
       current_page
     );
 
-    const db_food_samples = food_sample_response.details;
-    console.log("db_food_samples", db_food_samples)
+    const db_products = food_sample_response.details;
+    console.log("db_products", db_products)
 
     const user_details_response = await user_profile_service.getUserById(
       req.params.owner_id
@@ -785,7 +785,7 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
     return res.send({
       success: true,
       owner_user: db_user,
-      food_samples: db_food_samples,
+      food_samples: db_products,
     });
   } catch (error) {
     res.send({

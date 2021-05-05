@@ -97,9 +97,9 @@ const getOrderDetails = async (order_details) => {
         return { success: false, message: error };
       });
   } else if (order_details.item_type === "food_sample") {
-    return await db("food_samples")
+    return await db("products")
       .where({
-        food_sample_id: order_details.item_id,
+        product_id: order_details.item_id,
         status: "ACTIVE",
       })
       .first()
@@ -149,7 +149,7 @@ const getOrderDetails = async (order_details) => {
     return await db("products")
       .where({
         product_id: order_details.item_id,
-        product_status: "ACTIVE",
+        status: "ACTIVE",
       })
       .first()
       .then((value) => {
@@ -196,8 +196,24 @@ const getOrderDetails = async (order_details) => {
       .catch((error) => {
         return { success: false, message: error };
       });
-  }
+  }else if (order_details.item_type === "service") {
+    return await db("services")
+      .where({
+        service_id: order_details.item_id,
+        service_status: "ACTIVE",
+      })
+      .first()
+      .then((value) => {
+        if (!value) {
+          return { success: false, message: "No experience found." };
+        }
 
+        return { success: true, item: value };
+      })
+      .catch((error) => {
+        return { success: false, message: error };
+      });
+    }
   return { success: false, message: "Item type not supported." };
 };
 

@@ -30,7 +30,7 @@ router.get("/subscription/details", async (req, res) => {
     const db_order_details = await user_order_service.getOrderDetails(
       order_details
     );
-
+    console.log("db_order_details from subsrcitpion", db_order_details)
     return res.send(db_order_details);
   } catch (error) {
     res.send({

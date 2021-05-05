@@ -173,14 +173,17 @@ router.get("/hosts/festival/:festival_id", async (req, res) => {
     const response = await festival_service.getFestivalDetails(
       req.params.festival_id
     );
-    for (let item of response.details[0].festival_host_id) {
+
+    const uniqueHostArray = [...new Set(response.details[0].festival_host_id)];
+
+    for (let item of uniqueHostArray) {
       const list = await user_profile_service.getUserById(item);
 
       if (list.user) {
         hosts.push(list.user);
       }
     }
-    console.log("hosts from host/festival:", hosts)
+    console.log(">>>>>>>>>>>><<<<<<<<<<<<<<<hosts from host/festival:", hosts)
 
     return res.send(hosts);
   } catch (error) {
