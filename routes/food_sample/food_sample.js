@@ -11,6 +11,7 @@ const {
   generateRandomString,
   formatTime,
 } = require("../../functions/functions");
+const auth_server_service = require("../../services/authentication/auth_server_service");
 
 // Environment variables
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
@@ -767,7 +768,7 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
     );
 
     const db_food_samples = food_sample_response.details;
-    console.log("db_food_samples", db_food_samples)
+    console.log("db_food_samples", db_food_samples);
 
     const user_details_response = await user_profile_service.getUserById(
       req.params.owner_id

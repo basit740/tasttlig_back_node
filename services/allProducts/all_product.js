@@ -75,7 +75,8 @@ const getAllProductsInFestival = async (
       "festivals",
       "products.festival_selected[1]",
       "festivals.festival_id"
-    ).leftJoin(
+    )
+    .leftJoin(
       "promotions",
       "products.promotional_discount_id",
       "promotions.promotion_id"
@@ -271,6 +272,36 @@ const createNewProduct = async (
     return { success: false, details: error.message };
   }
 };
+const createNewProductFromKodidi = async (
+  db_user,
+  all_product_details,
+  all_product_images
+) => {
+  console.log("data coming from create new product:", all_product_details);
+
+  try {
+    await db.transaction(async (trx) => {
+      const db_all_product = await trx("products")
+        .insert(all_product_details)
+        .returning("*");
+
+      if (!db_all_product) {
+        return { success: false, details: "Inserting new product failed." };
+      }
+
+      const images = all_product_images.map((all_product_image) => ({
+        product_id: db_all_product[0].product_id,
+        product_image_url: all_product_image,
+      }));
+
+      await trx("product_images").insert(images);
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
 
 // Get all user food samples helper function
 const getAllUserProducts = async (
@@ -429,4 +460,5 @@ module.exports = {
   getAllProductsInFestival,
   getAllUserProducts,
   getProductById,
+  createNewProductFromKodidi,
 };

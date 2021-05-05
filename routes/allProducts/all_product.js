@@ -5,6 +5,7 @@ const token_service = require("../../services/authentication/token");
 const all_product_service = require("../../services/allProducts/all_product");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
+const auth_server_service = require("../../services/authentication/auth_server_service");
 const festival_service = require("../../services/festival/festival");
 const {
   generateRandomString,
@@ -171,6 +172,12 @@ router.post(
             claimed_total_quantity: 0,
             redeemed_total_quantity: 0,
           };
+          // adding product to central server
+          const product_central_server = await auth_server_service.createNewProductInCentralServer(
+            db_user,
+            all_product_details,
+            item.images
+          );
 
           const response = await all_product_service.createNewProduct(
             db_user,
@@ -181,6 +188,7 @@ router.post(
           //console.log("response from food sample", response);
           return res.send(response);
         } catch (error) {
+          console.log(error);
           res.send({
             success: false,
             message: "Error.",
@@ -240,7 +248,7 @@ router.get(
         requestByAdmin,
         festival_id
       );
-      console.log("Products details",response);
+      console.log("Products details", response);
       return res.send(response);
     } catch (error) {
       res.send({
@@ -251,5 +259,55 @@ router.get(
     }
   }
 );
+
+router.post("/add-product-from-kodidi", async (req, res) => {
+  console.log(req.body);
+  if (!req.body.all_product_details || !req.body.db_user || !req.body.images) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    const user_details_from_db = await user_profile_service.getUserByEmail(
+      req.body.db_user.email
+    );
+    //console.log("user details", user_details_from_db);
+    let business_details_from_db;
+    if (user_details_from_db.success) {
+      business_details_from_db = await authentication_service.getUserByBusinessDetails(
+        user_details_from_db.user.id
+      );
+    }
+    //console.log(user_details_from_db);
+    const product_information = req.body.all_product_details;
+    const product_insertion = {
+      product_user_id: user_details_from_db.user
+        ? user_details_from_db.user.tasttlig_user_id
+        : null,
+      title: product_information.title,
+      start_time: formatTime(product_information.start_time),
+      end_time: formatTime(product_information.end_time),
+      description: product_information.description,
+      quantity: product_information.quantity,
+      price: product_information.price,
+      product_size: product_information.size,
+    };
+    const response = await all_product_service.createNewProductFromKodidi(
+      user_details_from_db,
+      product_insertion,
+      req.body.images
+    );
+    console.log(response);
+    return res.send(response);
+  } catch (error) {
+    console.log("error: ", error);
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error,
+    });
+  }
+});
 
 module.exports = router;

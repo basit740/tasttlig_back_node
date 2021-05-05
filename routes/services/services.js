@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const services_service = require("../../services/services/services");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
+const auth_service = require("../../services/authentication/auth_server_service");
 const { generateRandomString } = require("../../functions/functions");
 
 // POST services
@@ -93,6 +94,12 @@ router.post(
           : null,
         service_user_id: req.user.id,
       };
+      const service_central_server = await auth_service.createNewServiceInCentralServer(
+        user_details_from_db,
+        service_information,
+        req.body.service_images
+      );
+      console.log(service_central_server);
       const response = await services_service.createNewService(
         user_details_from_db,
         service_information,
@@ -255,7 +262,6 @@ router.get("/services/user/:user_id", async (req, res) => {
     // console.log('fecthing services', response);
     // console.log('fecthing service ID', req.query.user_id);
     return res.send(response);
-    
   } catch (error) {
     res.send({
       success: false,

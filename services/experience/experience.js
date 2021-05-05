@@ -79,8 +79,9 @@ const createNewExperience = async (
             }
           }
         );
-      } */ await Mailer.sendMail(
-        {
+      } */
+      if (db_user.user) {
+        await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,
           to: db_user.user.email,
           bcc: ADMIN_EMAIL,
@@ -92,8 +93,8 @@ const createNewExperience = async (
             title: experience_details.title,
             status: experience_details.status,
           },
-        }
-      );
+        });
+      }
       //}
     });
 
