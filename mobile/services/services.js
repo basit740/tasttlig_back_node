@@ -498,57 +498,80 @@ const getHostedFestivalsForUser = async (
     });
 };
 
-const getBusinessRevenue = async (business_details_id) => {
+const getBusinessServiceRevenue = async (business_details_id) => {
+  try {
+    console.log("revenue biz id", business_details_id);
+
+    const revenue = await db
+      .select("order_items.*", "orders.*", "services.*", "user_claims.*")
+      .from("orders")
+      .rightJoin("order_items", "order_items.order_id", "orders.order_id")
+      .leftJoin(
+        db.raw(
+          `services ON order_items.item_id = services.service_id::varchar 
+        LEFT JOIN user_claims ON services.service_id = user_claims.claimed_service_id
+        GROUP BY order_items.item_id, order_items.order_item_id, orders.order_id, 
+        services.service_id, user_claims.claimed_service_id, user_claims.claim_id
+        HAVING order_items.item_type = 'service' 
+        AND services.service_business_id = ${business_details_id}
+        AND user_claims.current_stamp_status = 'Redeemed'`
+        )
+      );
+    return {
+      success: true,
+      revenue,
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+const getBusinessProductRevenue = async (business_details_id) => {
   try {
     console.log("revenue biz id", business_details_id);
     const revenue = await db
-      .select("user_claims.*", "products.*", "services.*", "experiences.*")
-      .from("user_claims")
+      .select("order_items.*", "orders.*", "products.*", "user_claims.*")
+      .from("orders")
+      .rightJoin("order_items", "order_items.order_id", "orders.order_id")
       .leftJoin(
-        "products",
-        "user_claims.claimed_product_id",
-        "products.product_id"
-      )
-      /* .leftJoin(
-        "business_details",
-        "products.product_business_id",
-        "business_details.business_details_id"
-      ) */
-      .leftJoin(
-        "services",
-        "user_claims.claimed_service_id",
-        "services.service_id"
-      )
-      /* .leftJoin(
-        "business_details",
-        "services.service_business_id",
-        "business_details.business_details_id"
-      ) */
-      .leftJoin(
-        "experiences",
-        "user_claims.claimed_experience_id",
-        "experiences.experience_id"
-      )
-      /* .leftJoin(
-        "business_details",
-        "experiences.experience_business_id",
-        "business_details.business_details_id"
-      ) */
-      .where("products.product_business_id", "=", business_details_id)
-      .where("services.service_business_id", "=", business_details_id)
-      .where("experiences.experience_business_id", "=", business_details_id)
-      .groupBy("user_claims.claimed_product_id")
-      .groupBy("products.product_id")
-      .groupBy("products.product_business_id")
-      .groupBy("user_claims.claimed_service_id")
-      .groupBy("services.service_id")
-      .groupBy("services.service_business_id")
-      .groupBy("user_claims.claimed_experience_id")
-      .groupBy("user_claims.claim_id")
-      .groupBy("experiences.experience_id")
-      .groupBy("experiences.experience_business_id")
-      .having("user_claims.current_stamp_status", "=", "Claimed");
+        db.raw(
+          `products ON order_items.item_id = products.product_id::varchar 
+          LEFT JOIN user_claims ON products.product_id = user_claims.claimed_product_id
+          GROUP BY order_items.item_id, order_items.order_item_id, orders.order_id, 
+          products.product_id, user_claims.claimed_product_id, user_claims.claim_id
+          HAVING order_items.item_type = 'product' 
+          AND products.product_business_id = ${business_details_id}
+          AND user_claims.current_stamp_status = 'Redeemed'`
+        )
+      );
+    return {
+      success: true,
+      revenue,
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
 
+const getBusinessExperienceRevenue = async (business_details_id) => {
+  try {
+    console.log("revenue biz id", business_details_id);
+
+    const revenue = await db
+      .select("order_items.*", "orders.*", "experiences.*", "user_claims.*")
+      .from("orders")
+      .rightJoin("order_items", "order_items.order_id", "orders.order_id")
+      .leftJoin(
+        db.raw(
+          `experiences ON order_items.item_id = experiences.experience_id::varchar 
+          LEFT JOIN user_claims ON experiences.experience_id = user_claims.claimed_experience_id
+          GROUP BY order_items.item_id, order_items.order_item_id, orders.order_id, 
+          experiences.experience_id, user_claims.claimed_experience_id, user_claims.claim_id
+          HAVING order_items.item_type = 'experience' 
+          AND experiences.experience_business_id = ${business_details_id}
+          AND user_claims.current_stamp_status = 'Redeemed'`
+        )
+      );
     return {
       success: true,
       revenue,
@@ -567,5 +590,7 @@ module.exports = {
   getUserApplications,
   getAttendedFestivalsForUser,
   getHostedFestivalsForUser,
-  getBusinessRevenue,
+  getBusinessServiceRevenue,
+  getBusinessExperienceRevenue,
+  getBusinessProductRevenue,
 };

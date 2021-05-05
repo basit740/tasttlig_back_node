@@ -205,10 +205,50 @@ router.get("/business/revenue/:userId", async (req, res) => {
         message: business_details_all.message,
       });
     }
-    const revenue = await mobile_services.getBusinessRevenue(
+    const product_revenue = await mobile_services.getBusinessProductRevenue(
       business_details_all.business_details_all.business_details_id
     );
-    console.log("revenue", revenue);
+    const service_revenue = await mobile_services.getBusinessServiceRevenue(
+      business_details_all.business_details_all.business_details_id
+    );
+    const experience_revenue = await mobile_services.getBusinessExperienceRevenue(
+      business_details_all.business_details_all.business_details_id
+    );
+
+    function sum(total, p) {
+      return total + p;
+    }
+
+    const priceTotal = (item) => {
+      return item.map((i) => Number(i.price_before_tax)).reduce(sum);
+    };
+
+    const product_revenue_total =
+      product_revenue.revenue.length > 0
+        ? priceTotal(product_revenue.revenue)
+        : 0;
+    const experience_revenue_total =
+      experience_revenue.revenue.length > 0
+        ? priceTotal(experience_revenue.revenue)
+        : 0;
+    const service_revenue_total =
+      service_revenue.revenue.length > 0
+        ? priceTotal(service_revenue.revenue)
+        : 0;
+
+    console.log("revenueprd", product_revenue_total);
+    console.log("revenueexp", experience_revenue_total);
+    console.log("revenuesrv", service_revenue_total);
+    let revenue = {
+      product: { product_revenue_total, product_revenue },
+      service: { service_revenue_total, service_revenue },
+      experience: { experience_revenue_total, experience_revenue },
+      overall_revenue:
+        product_revenue_total +
+        service_revenue_total +
+        experience_revenue_total,
+      success: true,
+    };
     return res.send(revenue);
   } catch (error) {
     console.log("err", error);
