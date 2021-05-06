@@ -338,7 +338,7 @@ router.post("/claim-service", async (req, res) => {
 });
 
 router.put(
-  "/service/update",
+  "/service/update/:serviceid",
   token_service.authenticateToken,
   async (req, res) => {
     if (!req.body) {
@@ -363,7 +363,6 @@ router.put(
       let db_user = user_details_from_db.user;
 
       const response = await services_service.updateService(db_user, req.body);
-
       return res.send(response);
     } catch (error) {
       res.send({
