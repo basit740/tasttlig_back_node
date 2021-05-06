@@ -286,7 +286,6 @@ router.put("/mobile/product/update/", async (req, res) => {
     };
 
     const response = await mobile_services.updateProduct(db_user, req.body);
-    console.log(response);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -324,7 +323,6 @@ router.put("/mobile/service/update/", async (req, res) => {
     };
 
     const response = await mobile_services.updateService(db_user, req.body);
-    console.log(response);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -362,7 +360,6 @@ router.put("/mobile/experience/update/", async (req, res) => {
     };
 
     const response = await mobile_services.updateExperience(db_user, req.body);
-    console.log(response);
     return res.send(response);
   } catch (error) {
     res.send({
