@@ -122,17 +122,18 @@ router.post(
       };
 
       console.log("experience_information", experience_information);
-      const experience_central_server = await auth_server_service.createNewExperienceInCentralServer(
-        user_details_from_db,
-        experience_information,
-        req.body.experience_images
-      );
-      console.log(experience_central_server);
       const response = await experience_service.createNewExperience(
         user_details_from_db,
         experience_information,
         req.body.experience_images
       );
+      if (response.success) {
+        const experience_central_server = await auth_server_service.createNewExperienceInCentralServer(
+          user_details_from_db,
+          experience_information,
+          req.body.experience_images
+        );
+      }
 
       return res.send(response);
     } catch (error) {

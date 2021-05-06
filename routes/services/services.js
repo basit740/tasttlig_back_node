@@ -94,17 +94,19 @@ router.post(
           : null,
         service_user_id: req.user.id,
       };
-      const service_central_server = await auth_service.createNewServiceInCentralServer(
-        user_details_from_db,
-        service_information,
-        req.body.service_images
-      );
       console.log(service_central_server);
       const response = await services_service.createNewService(
         user_details_from_db,
         service_information,
         req.body.service_images
       );
+      if (response.success) {
+        const service_central_server = await auth_service.createNewServiceInCentralServer(
+          user_details_from_db,
+          service_information,
+          req.body.service_images
+        );
+      }
       return res.send(response);
     } catch (error) {
       console.log(error);

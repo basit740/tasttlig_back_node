@@ -173,11 +173,6 @@ router.post(
             redeemed_total_quantity: 0,
           };
           // adding product to central server
-          const product_central_server = await auth_server_service.createNewProductInCentralServer(
-            db_user,
-            all_product_details,
-            item.images
-          );
 
           const response = await all_product_service.createNewProduct(
             db_user,
@@ -185,6 +180,13 @@ router.post(
             item.images,
             createdByAdmin
           );
+          if (response.success) {
+            const product_central_server = await auth_server_service.createNewProductInCentralServer(
+              db_user,
+              all_product_details,
+              item.images
+            );
+          }
           //console.log("response from food sample", response);
           return res.send(response);
         } catch (error) {
