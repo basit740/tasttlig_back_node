@@ -265,6 +265,7 @@ const createNewFestival = async (festival_details, festival_images) => {
 
 const updateFestival = async (data, festival_images) => {
   console.log("body from the festival:", festival_images);
+  console.log('editing festival', data);
   try {
     await db.transaction(async (trx) => {
       const db_festival = await trx("festivals")
