@@ -513,8 +513,7 @@ const getBusinessServiceRevenue = async (business_details_id) => {
         GROUP BY order_items.item_id, order_items.order_item_id, orders.order_id, 
         services.service_id, user_claims.claimed_service_id, user_claims.claim_id
         HAVING order_items.item_type = 'service' 
-        AND services.service_business_id = ${business_details_id}
-        AND user_claims.current_stamp_status = 'Redeemed'`
+        AND services.service_business_id = ${business_details_id}`
         )
       );
     return {
@@ -540,8 +539,7 @@ const getBusinessProductRevenue = async (business_details_id) => {
           GROUP BY order_items.item_id, order_items.order_item_id, orders.order_id, 
           products.product_id, user_claims.claimed_product_id, user_claims.claim_id
           HAVING order_items.item_type = 'product' 
-          AND products.product_business_id = ${business_details_id}
-          AND user_claims.current_stamp_status = 'Redeemed'`
+          AND products.product_business_id = ${business_details_id}`
         )
       );
     return {
@@ -568,8 +566,7 @@ const getBusinessExperienceRevenue = async (business_details_id) => {
           GROUP BY order_items.item_id, order_items.order_item_id, orders.order_id, 
           experiences.experience_id, user_claims.claimed_experience_id, user_claims.claim_id
           HAVING order_items.item_type = 'experience' 
-          AND experiences.experience_business_id = ${business_details_id}
-          AND user_claims.current_stamp_status = 'Redeemed'`
+          AND experiences.experience_business_id = ${business_details_id}`
         )
       );
     return {
@@ -578,6 +575,146 @@ const getBusinessExperienceRevenue = async (business_details_id) => {
     };
   } catch (error) {
     return { success: false, error: error.message };
+  }
+};
+
+const updateProduct = async (db_user, data) => {
+  delete data.user_id;
+  const { product_images, ...product_update_data } = data;
+  let updateData = {};
+  updateData.festival_selected = data.festival_selected;
+
+  try {
+    if (Array.isArray(data.product_id)) {
+      await db("products")
+        .whereIn("product_id", data.product_id)
+        .where((builder) => {
+          return builder.where({
+            product_user_id: db_user.user_id,
+          });
+        })
+        .update(updateData);
+
+      return { success: true };
+    } else {
+      await db("products")
+        .where((builder) => {
+          return builder.where({
+            product_id: data.product_id,
+            product_user_id: db_user.user_id,
+          });
+        })
+        .update(product_update_data);
+
+      if (product_images && product_images.length) {
+        await db("product_images").where("product_id", data.product_id).del();
+
+        await db("product_images").insert(
+          product_images.map((image_url) => ({
+            product_id: data.product_id,
+            product_image_url: image_url,
+          }))
+        );
+      }
+
+      return { success: true };
+    }
+  } catch (error) {
+    return { success: false, details: error };
+  }
+};
+
+const updateService = async (db_user, data) => {
+  delete data.user_id;
+  const { service_images, ...service_update_data } = data;
+  let updateData = {};
+  updateData.festivals_selected = data.festival_selected;
+
+  try {
+    if (Array.isArray(data.service_id)) {
+      await db("services")
+        .whereIn("service_id", data.service_id)
+        .where((builder) => {
+          return builder.where({
+            service_user_id: db_user.user_id,
+          });
+        })
+        .update(updateData);
+
+      return { success: true };
+    } else {
+      await db("services")
+        .where((builder) => {
+          return builder.where({
+            service_id: data.service_id,
+            service_user_id: db_user.user_id,
+          });
+        })
+        .update(service_update_data);
+
+      if (service_images && service_images.length) {
+        await db("service_images").where("service_id", data.service_id).del();
+
+        await db("service_images").insert(
+          service_images.map((image_url) => ({
+            service_id: data.service_id,
+            service_image_url: image_url,
+          }))
+        );
+      }
+
+      return { success: true };
+    }
+  } catch (error) {
+    return { success: false, details: error };
+  }
+};
+
+const updateExperience = async (db_user, data) => {
+  delete data.user_id;
+  const { experience_images, ...experience_update_data } = data;
+  let updateData = {};
+  updateData.festival_selected = data.festival_selected;
+
+  try {
+    if (Array.isArray(data.experience_id)) {
+      await db("experiences")
+        .whereIn("experience_id", data.experience_id)
+        .where((builder) => {
+          return builder.where({
+            experience_business_id: db_user.business_id,
+          });
+        })
+        .update(updateData);
+
+      return { success: true };
+    } else {
+      await db("experiences")
+        .where((builder) => {
+          return builder.where({
+            experience_id: data.experience_id,
+            experience_business_id: db_user.business_id,
+          });
+        })
+        .update(experience_update_data);
+
+      if (experience_images && experience_images.length) {
+        await db("experience_images")
+          .where("experience_id", data.experience_id)
+          .del();
+
+        await db("experience_images").insert(
+          experience_images.map((image_url) => ({
+            experience_id: data.experience_id,
+            experience_image_url: image_url,
+          }))
+        );
+      }
+
+      return { success: true };
+    }
+  } catch (error) {
+    return { success: false, details: error };
   }
 };
 
@@ -593,4 +730,7 @@ module.exports = {
   getBusinessServiceRevenue,
   getBusinessExperienceRevenue,
   getBusinessProductRevenue,
+  updateProduct,
+  updateExperience,
+  updateService,
 };

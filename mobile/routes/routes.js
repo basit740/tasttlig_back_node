@@ -259,4 +259,118 @@ router.get("/business/revenue/:userId", async (req, res) => {
   }
 });
 
+router.put("/mobile/product/update/", async (req, res) => {
+  if (!req.body) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const business_details_all = await user_profile_service.getBusinessDetailsByUserId(
+      req.body.user_id
+    );
+    if (!business_details_all.success) {
+      return res.status(403).json({
+        success: false,
+        message: business_details_all.message,
+      });
+    }
+
+    let db_user = {
+      user_id:
+        business_details_all.business_details_all.business_details_user_id,
+      business_id:
+        business_details_all.business_details_all.business_details_id,
+    };
+
+    const response = await mobile_services.updateProduct(db_user, req.body);
+    console.log(response);
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+router.put("/mobile/service/update/", async (req, res) => {
+  if (!req.body) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const business_details_all = await user_profile_service.getBusinessDetailsByUserId(
+      req.body.user_id
+    );
+    if (!business_details_all.success) {
+      return res.status(403).json({
+        success: false,
+        message: business_details_all.message,
+      });
+    }
+
+    let db_user = {
+      user_id:
+        business_details_all.business_details_all.business_details_user_id,
+      business_id:
+        business_details_all.business_details_all.business_details_id,
+    };
+
+    const response = await mobile_services.updateService(db_user, req.body);
+    console.log(response);
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+router.put("/mobile/experience/update/", async (req, res) => {
+  if (!req.body) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const business_details_all = await user_profile_service.getBusinessDetailsByUserId(
+      req.body.user_id
+    );
+    if (!business_details_all.success) {
+      return res.status(403).json({
+        success: false,
+        message: business_details_all.message,
+      });
+    }
+
+    let db_user = {
+      user_id:
+        business_details_all.business_details_all.business_details_user_id,
+      business_id:
+        business_details_all.business_details_all.business_details_id,
+    };
+
+    const response = await mobile_services.updateExperience(db_user, req.body);
+    console.log(response);
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 module.exports = router;
