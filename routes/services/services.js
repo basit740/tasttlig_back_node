@@ -94,12 +94,12 @@ router.post(
           : null,
         service_user_id: req.user.id,
       };
+      console.log(service_central_server);
       const response = await services_service.createNewService(
         user_details_from_db,
         service_information,
         req.body.service_images
       );
-      res.send(response);
       if (response.success) {
         const service_central_server = await auth_service.createNewServiceInCentralServer(
           user_details_from_db,
@@ -107,9 +107,7 @@ router.post(
           req.body.service_images
         );
       }
-      return {
-        success: true,
-      };
+      return res.send(response);
     } catch (error) {
       console.log(error);
       res.send({
@@ -201,7 +199,7 @@ router.post(
       let result = "";
       const response = await services_service.addServiceToFestival(
         req.body.festivalId,
-        req.body.ps,
+        req.body.ps, 
         req.user.id
       );
       console.log(response);
@@ -348,7 +346,7 @@ router.post("/claim-service", async (req, res) => {
 });
 
 router.put(
-  "/service/update",
+  "/service/update/:serviceId",
   token_service.authenticateToken,
   async (req, res) => {
     if (!req.body) {
@@ -357,7 +355,7 @@ router.put(
         message: "Required parameters are not available in request.",
       });
     }
-console.log("req.body coming from edit services:", req.body)
+    console.log("req bodfy from service/update", req.body)
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
