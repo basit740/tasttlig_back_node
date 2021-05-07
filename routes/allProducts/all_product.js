@@ -35,7 +35,7 @@ router.get("/all-products/festival/:festivalId", async (req, res) => {
       filters,
       req.params.festivalId
     );
-    console.log("response from all product:", response)
+    console.log("response from all product:", response);
 
     return res.send(response);
   } catch (error) {
@@ -53,7 +53,10 @@ router.post(
   "/all-products/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>im coming from all products add:", req.body);
+    console.log(
+      ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>im coming from all products add:",
+      req.body
+    );
     try {
       req.body.map(async (item) => {
         if (
@@ -181,6 +184,7 @@ router.post(
             item.images,
             createdByAdmin
           );
+          res.send(response);
           if (response.success) {
             const product_central_server = await auth_server_service.createNewProductInCentralServer(
               db_user,
@@ -189,7 +193,9 @@ router.post(
             );
           }
           //console.log("response from food sample", response);
-          return res.send(response);
+          return {
+            success: true,
+          };
         } catch (error) {
           console.log(error);
           res.send({

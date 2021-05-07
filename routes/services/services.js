@@ -100,6 +100,7 @@ router.post(
         service_information,
         req.body.service_images
       );
+      res.send(response);
       if (response.success) {
         const service_central_server = await auth_service.createNewServiceInCentralServer(
           user_details_from_db,
@@ -107,7 +108,9 @@ router.post(
           req.body.service_images
         );
       }
-      return res.send(response);
+      return {
+        success: true,
+      };
     } catch (error) {
       console.log(error);
       res.send({
@@ -199,7 +202,7 @@ router.post(
       let result = "";
       const response = await services_service.addServiceToFestival(
         req.body.festivalId,
-        req.body.ps, 
+        req.body.ps,
         req.user.id
       );
       console.log(response);
