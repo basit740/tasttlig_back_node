@@ -11,6 +11,7 @@ const {
   generateRandomString,
   formatTime,
 } = require("../../functions/functions");
+const auth_server_service = require("../../services/authentication/auth_server_service");
 
 // Environment variables
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
@@ -1064,7 +1065,6 @@ router.delete("/food-sample/delete/user/:user_id", async (req, res) => {
     );
     return res.send(response);
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: "Error.",

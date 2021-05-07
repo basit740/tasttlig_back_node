@@ -486,13 +486,12 @@ const updateService = async (db_user, data) => {
       return { success: true };
     } else {
       await db("services")
-        // .where((builder) => {
-        //   return builder.where({
-        //     service_id: data.service_id,
-        //     service_user_id: db_user.tasttlig_user_id,
-        //   });
-        // })
-        .where("service_id", data.service_id)
+        .where((builder) => {
+          return builder.where({
+            service_id : data.service_id,
+            service_user_id: db_user.tasttlig_user_id,
+          });
+        })
         .update(service_update_data);
 
       if (service_images && service_images.length) {
@@ -509,6 +508,7 @@ const updateService = async (db_user, data) => {
       return { success: true };
     }
   } catch (error) {
+    console.log('service update error', error);
     return { success: false, details: error };
   }
 };
