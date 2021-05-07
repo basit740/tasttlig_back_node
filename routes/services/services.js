@@ -355,7 +355,7 @@ router.put(
         message: "Required parameters are not available in request.",
       });
     }
-    console.log("req bodfy from service/update", req.body)
+        console.log('Service data updating', req.body);
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
