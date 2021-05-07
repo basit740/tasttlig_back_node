@@ -121,7 +121,7 @@ router.post(
         experience_updated_at_datetime: new Date(),
       };
 
-      console.log("experience_information", experience_information);
+      //console.log("experience_information", experience_information);
       const response = await experience_service.createNewExperience(
         user_details_from_db,
         experience_information,
