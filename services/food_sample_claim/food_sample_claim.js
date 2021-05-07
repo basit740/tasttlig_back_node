@@ -24,6 +24,11 @@ const createNewFoodSampleClaim = async (
   quantityAfterClaim,
   product_claim_details
 ) => {
+  console.log("db_user from create new food sample claim",db_user)
+
+  console.log("db_all_products from create new food sample claim",db_all_products)
+  console.log("quantityAfterClaim from create new food sample claim",quantityAfterClaim)
+  console.log(" product_claim_detailsfrom create new food sample claim",product_claim_details)
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
@@ -49,11 +54,11 @@ const createNewFoodSampleClaim = async (
         db_food_sample_claim[0]
       );
 
-      await sendClaimedEmailToProvider(
-        db_user,
-        db_all_products,
-        db_food_sample_claim[0]
-      );
+      // await sendClaimedEmailToProvider(
+      //   db_user,
+      //   db_all_products,
+      //   db_food_sample_claim[0]
+      // );
 
       //assign festival end-date and festival to guest subscription package after product claim
       const subs = await user_profile_service.getValidSubscriptionsByUserId(
@@ -114,6 +119,59 @@ const createNewFoodSampleClaim = async (
     return { success: false, details: error.message };
   }
 };
+
+// Create food sample claim helper function
+const createNewProductClaim = async (
+  db_user,
+  db_all_products,
+  quantityAfterClaim,
+  product_claim_details
+) => {
+  console.log("db_user from create new food sample claim",db_user)
+
+  console.log("db_all_products from create new food sample claim",db_all_products)
+  console.log("quantityAfterClaim from create new food sample claim",quantityAfterClaim)
+  console.log(" product_claim_detailsfrom create new food sample claim",product_claim_details)
+  try {
+    await db.transaction(async (trx) => {
+      const db_food_sample_claim = await trx("user_claims")
+        .insert(product_claim_details)
+        .returning("*");
+
+      if (!db_food_sample_claim) {
+        return {
+          success: false,
+          details: "Inserting new food sample claim failed.",
+        };
+      }
+
+      if (quantityAfterClaim >= 0) {
+        await db("products")
+          .where({ product_id: db_food_sample_claim[0].claimed_product_id })
+          .update({ claimed_total_quantity: quantityAfterClaim });
+      }
+
+      await sendClaimedEmailToUser(
+        db_user,
+        db_all_products,
+        db_food_sample_claim[0]
+      );
+
+      // await sendClaimedEmailToProvider(
+      //   db_user,
+      //   db_all_products,
+      //   db_food_sample_claim[0]
+      // );
+
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    console.log("error", error);
+    return { success: false, details: error.message };
+  }
+};
+
 
 // User can claim food sample helper function
 const userCanClaimFoodSample = async (email, food_sample_id) => {
@@ -1320,6 +1378,7 @@ const sendClaimedServiceEmailToProvider = async (
 
 module.exports = {
   createNewFoodSampleClaim,
+  createNewProductClaim,
   getFoodClaimCount,
   userCanClaimFoodSample,
   confirmProductClaim,

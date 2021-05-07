@@ -75,7 +75,8 @@ const getAllProductsInFestival = async (
       "festivals",
       "products.festival_selected[1]",
       "festivals.festival_id"
-    ).leftJoin(
+    )
+    .leftJoin(
       "promotions",
       "products.promotional_discount_id",
       "promotions.promotion_id"
@@ -167,8 +168,8 @@ const createNewProduct = async (
   all_product_images,
   createdByAdmin
 ) => {
-  console.log("data coming from create new product:", all_product_details);
-
+  // console.log("data coming from create new product:", all_product_details);
+  // console.log("db user details", db_user.role);
   try {
     await db.transaction(async (trx) => {
       all_product_details.food_ad_code =
@@ -176,9 +177,9 @@ const createNewProduct = async (
         Math.random().toString(36).substring(2, 4);
       let user_role_object = db_user.role;
 
-      if (user_role_object.includes("HOST") || createdByAdmin) {
+      if (user_role_object.includes("HOST") || user_role_object.includes("VENDOR") || createdByAdmin) {
         all_product_details.status = "ACTIVE";
-      } else if (user_role_object.includes("HOST_PENDING")) {
+      } else if (user_role_object.includes("HOST_PENDING") || user_role_object.includes("VENDOR_PENDING")) {
         all_product_details.status = "INACTIVE";
       }
 
@@ -193,6 +194,29 @@ const createNewProduct = async (
         .update({
           product_id: db_all_product[0].product_id,
         });
+
+        if (user_role_object.includes("HOST"))
+        {
+          await trx("festivals")
+          .where({ festival_id: all_product_details.festival_selected[0] })
+          // .whereRaw('? = ANY(festival_host_id)', all_product_details.product_user_id)
+          .update({
+            festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+              all_product_details.product_user_id,
+            ]),
+          });
+        } 
+        else if (user_role_object.includes("VENDOR"))
+        {
+          await trx("festivals")
+          .where({ festival_id: all_product_details.festival_selected[0] })
+          // .whereRaw('? = ANY(festival_vendor_id)', all_product_details.product_user_id)
+          .update({
+            festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
+              all_product_details.product_user_id,
+            ]),
+          })
+        }
 
       if (!db_all_product) {
         return { success: false, details: "Inserting new product failed." };
@@ -268,6 +292,36 @@ const createNewProduct = async (
       );
     }
 
+    return { success: false, details: error.message };
+  }
+};
+const createNewProductFromKodidi = async (
+  db_user,
+  all_product_details,
+  all_product_images
+) => {
+  console.log("data coming from create new product:", all_product_details);
+
+  try {
+    await db.transaction(async (trx) => {
+      const db_all_product = await trx("products")
+        .insert(all_product_details)
+        .returning("*");
+
+      if (!db_all_product) {
+        return { success: false, details: "Inserting new product failed." };
+      }
+
+      const images = all_product_images.map((all_product_image) => ({
+        product_id: db_all_product[0].product_id,
+        product_image_url: all_product_image,
+      }));
+
+      await trx("product_images").insert(images);
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
     return { success: false, details: error.message };
   }
 };
@@ -429,4 +483,5 @@ module.exports = {
   getAllProductsInFestival,
   getAllUserProducts,
   getProductById,
+  createNewProductFromKodidi,
 };

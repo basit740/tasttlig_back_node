@@ -304,7 +304,7 @@ const updateFestival = async (data, festival_images) => {
 // Add host ID to festivals table helper function
 const hostToFestival = async (
   festival_id,
-  festival_vendor_id,
+  festival_host_id,
   foodSamplePreference
 ) => {
   try {
@@ -314,9 +314,9 @@ const hostToFestival = async (
           const db_host = await trx("festivals")
             .where({ festival_id: item })
             .update({
-              festival_vendor_id: trx.raw(
-                "array_append(festival_vendor_id, ?)",
-                [festival_vendor_id]
+              festival_host_id: trx.raw(
+                "array_append(festival_host_id, ?)",
+                [festival_host_id]
               ),
             })
             .returning("*");
@@ -339,8 +339,8 @@ const hostToFestival = async (
         const db_host = await trx("festivals")
           .where({ festival_id })
           .update({
-            festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
-              festival_vendor_id,
+            festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+              festival_host_id,
             ]),
           })
           .returning("*");
@@ -428,11 +428,13 @@ const getFestivalDetails = async (festival_id) => {
     .having("festivals.festival_id", "=", festival_id)
     .having("festivals.festival_end_date", ">=", new Date())
     .then((value) => {
+      console.log('festival details', value);
       return {
         success: true,
         details: value,
       };
-    })
+    }   
+    )
     .catch((reason) => {
       return { success: false, details: reason };
     });
