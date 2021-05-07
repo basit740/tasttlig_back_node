@@ -121,12 +121,13 @@ router.post(
         experience_updated_at_datetime: new Date(),
       };
 
-      console.log("experience_information", experience_information);
+      //console.log("experience_information", experience_information);
       const response = await experience_service.createNewExperience(
         user_details_from_db,
         experience_information,
         req.body.experience_images
       );
+      res.send(response);
       if (response.success) {
         const experience_central_server = await auth_server_service.createNewExperienceInCentralServer(
           user_details_from_db,
@@ -135,7 +136,9 @@ router.post(
         );
       }
 
-      return res.send(response);
+      return {
+        success: true,
+      };
     } catch (error) {
       console.log("error: ", error);
       res.send({
@@ -193,7 +196,6 @@ router.post("/add-experience-from-kodidi", async (req, res) => {
 });
 // GET experiences in specific festival
 router.get("/experiences/festival/:festival_id", async (req, res) => {
-
   // console.log("req.params.festival_id", req.params.festival_id);
   if (!req.params.festival_id) {
     return res.status(403).json({
@@ -206,7 +208,7 @@ router.get("/experiences/festival/:festival_id", async (req, res) => {
     const response = await experiences_service.getExperiencesInFestival(
       req.params.festival_id
     );
-      // console.log("response coming from experiences", response);
+    // console.log("response coming from experiences", response);
     return res.send(response);
   } catch (error) {
     res.send({
