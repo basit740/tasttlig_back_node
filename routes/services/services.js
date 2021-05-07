@@ -355,7 +355,7 @@ router.put(
         message: "Required parameters are not available in request.",
       });
     }
-
+console.log("req.body coming from edit services:", req.body)
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -370,7 +370,7 @@ router.put(
 
       let db_user = user_details_from_db.user;
 
-      const response = await services_service.updateService(db_user, req.body);
+      const response = await services_sservice.updateService(db_user, req.body);
 
       return res.send(response);
     } catch (error) {
