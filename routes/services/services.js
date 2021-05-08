@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const services_service = require("../../services/services/services");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
+const auth_service = require("../../services/authentication/auth_server_service");
 const { generateRandomString } = require("../../functions/functions");
 
 // POST services
@@ -98,7 +99,17 @@ router.post(
         service_information,
         req.body.service_images
       );
-      return res.send(response);
+      res.send(response);
+      if (response.success) {
+        const service_central_server = await auth_service.createNewServiceInCentralServer(
+          user_details_from_db,
+          service_information,
+          req.body.service_images
+        );
+      }
+      return {
+        success: true,
+      };
     } catch (error) {
       console.log(error);
       res.send({
@@ -190,7 +201,8 @@ router.post(
       let result = "";
       const response = await services_service.addServiceToFestival(
         req.body.festivalId,
-        req.body.ps
+        req.body.ps,
+        req.user.id
       );
       console.log(response);
       if (response.success) {
@@ -251,7 +263,9 @@ router.get("/services/user/:user_id", async (req, res) => {
       req.query.keyword,
       req.query.festival
     );
-
+    // console.log('req from  services', req.query);
+    // console.log('fecthing services', response);
+    // console.log('fecthing service ID', req.query.user_id);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -334,7 +348,7 @@ router.post("/claim-service", async (req, res) => {
 });
 
 router.put(
-  "/service/update",
+  "/service/update/:serviceId",
   token_service.authenticateToken,
   async (req, res) => {
     if (!req.body) {
@@ -343,7 +357,7 @@ router.put(
         message: "Required parameters are not available in request.",
       });
     }
-
+        console.log('Service data updating', req.body);
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id

@@ -35,6 +35,7 @@ router.post(
         message: "Required parameters are not available in request.",
       });
     }
+    console.log("req body from experinces/add", req.body)
 
     try {
       const user_details_from_db = await user_profile_service.getUserById(
@@ -425,7 +426,8 @@ router.post(
       let result = "";
       const response = await experience_service.addExperienceToFestival(
         req.body.festivalId,
-        req.body.ps
+        req.body.ps, 
+        req.user.id
       );
       console.log(response);
       if (response.success) {

@@ -26,6 +26,24 @@ router.get(
   }
 );
 
+// GET all host applications only
+router.get(
+  "/all-host-applications",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const applications = await hosts_service.getAllHostApplications();
+      console.log("response from here:", applications);
+      return res.send(applications);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
 // GET all applications by user ID
 router.get(
   "/applications/:userId",
@@ -76,11 +94,18 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      console.log("here rest");
+      // console.log("here rest");
+      const businessDetails = await business_passport_service.getBusinessApplicantDetails(
+        req.params.userId
+      );
+
+      // console.log("business details after approval:", businessDetails.application)
+
       const response = await business_passport_service.approveOrDeclineBusinessMemberApplication(
         req.params.userId,
         "APPROVED",
-        ""
+        "",
+        businessDetails
       );
 
       return res.send(response);
@@ -99,6 +124,8 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
+
+
       const response = await business_passport_service.approveOrDeclineBusinessMemberApplication(
         req.params.userId,
         "DECLINED",
@@ -267,6 +294,8 @@ router.get(
     }
   }
 );
+
+
 
 // GET guest ambassador applications
 router.get(

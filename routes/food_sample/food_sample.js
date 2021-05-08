@@ -11,6 +11,7 @@ const {
   generateRandomString,
   formatTime,
 } = require("../../functions/functions");
+const auth_server_service = require("../../services/authentication/auth_server_service");
 
 // Environment variables
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
@@ -147,7 +148,7 @@ router.post(
                 : item.dietaryRestrictions.includes("halal"),
             spice_level: item.spice_level,
             // food_sample_type: item.food_sample_type,
-            price: 2.0,
+            price: 0.0,
             quantity: parseInt(item.quantity),
             food_ad_code: generateRandomString(4),
             status: "ACTIVE",
@@ -679,7 +680,7 @@ router.get(
         current_page,
         requestByAdmin
       );
-      console.log("response from food samples:", response);
+      // console.log("response from food samples:", response);
       return res.send(response);
     } catch (error) {
       res.send({
@@ -758,7 +759,7 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
     const status_operator = "=";
     const food_sample_status = "ACTIVE";
 
-    const food_sample_response = await food_sample_service.getAllUserFoodSamples(
+    const food_sample_response = await food_sample_service.getproductOwnerInfo(
       req.params.owner_id,
       status_operator,
       food_sample_status,
@@ -766,7 +767,8 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
       current_page
     );
 
-    const db_food_samples = food_sample_response.details;
+    const db_products = food_sample_response.details;
+    console.log("db_products", db_products)
 
     const user_details_response = await user_profile_service.getUserById(
       req.params.owner_id
@@ -784,7 +786,7 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
     return res.send({
       success: true,
       owner_user: db_user,
-      food_samples: db_food_samples,
+      food_samples: db_products,
     });
   } catch (error) {
     res.send({
@@ -1063,7 +1065,6 @@ router.delete("/food-sample/delete/user/:user_id", async (req, res) => {
     );
     return res.send(response);
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: "Error.",

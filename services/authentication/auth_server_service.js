@@ -1,5 +1,6 @@
 // Libraries
 const axios = require("axios");
+const user_profile_service = require("../profile/user_profile");
 
 // Environment variables
 const auth_server_url = process.env.AUTH_SERVER;
@@ -104,6 +105,60 @@ const authAddPoints = async (user_id, point) => {
 
   return response.data;
 };
+// Add new product to central server
+const createNewProductInCentralServer = async (
+  db_user,
+  all_product_details,
+  images
+) => {
+  let response = await axios({
+    url: `${auth_server_url}/auth/add-product`,
+    method: "POST",
+    data: {
+      db_user,
+      all_product_details,
+      images,
+    },
+  });
+
+  return response.data;
+};
+// Add new experience to central server
+const createNewExperienceInCentralServer = async (
+  db_user,
+  experience_information,
+  images
+) => {
+  let response = await axios({
+    url: `${auth_server_url}/auth/add-experience`,
+    method: "POST",
+    data: {
+      db_user,
+      experience_information,
+      images,
+    },
+  });
+
+  return response.data;
+};
+// Add new service to central server
+const createNewServiceInCentralServer = async (
+  db_user,
+  service_information,
+  images
+) => {
+  let response = await axios({
+    url: `${auth_server_url}/auth/add-service`,
+    method: "POST",
+    data: {
+      db_user,
+      service_information,
+      images,
+    },
+  });
+
+  return response.data;
+};
 
 module.exports = {
   authSignup,
@@ -113,4 +168,7 @@ module.exports = {
   authAddRole,
   authRemoveRole,
   authAddPoints,
+  createNewProductInCentralServer,
+  createNewExperienceInCentralServer,
+  createNewServiceInCentralServer,
 };

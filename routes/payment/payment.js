@@ -69,6 +69,7 @@ router.post("/payment/stripe/success", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
+  console.log("req.body from strype/success",req.body)
 
   try {
     let db_user;
@@ -107,8 +108,11 @@ router.post("/payment/stripe/success", async (req, res) => {
       : null;
     const response = await user_order_service.createOrder(
       order_details,
-      db_order_details
+      db_order_details,
+      req.body.additionalEmail,
     );
+
+    console.log("db_order_details from payment page:", db_order_details)
 
     if (req.body.item_type === "food_sample") {
       const food_sample_claim_details = {
@@ -123,6 +127,69 @@ router.post("/payment/stripe/success", async (req, res) => {
         food_sample_claim_details
       );
 
+      return res.send(food_claim_response);
+    }
+
+    if (req.body.item_type === "product") {
+      const food_sample_claim_details = {
+        user_claim_email: db_user.user.email,
+        claim_user_id: db_user.user.tasttlig_user_id,
+        claimed_product_id: db_order_details.item.product_id,
+        current_stamp_status: "Claimed",
+        claimed_quantity:1,
+        reserved_on: new Date(),
+
+      };
+      const  quantityAfterClaim = 1;
+      const food_claim_response = await food_sample_claim_service.createNewProductClaim(
+        db_user.user,
+        db_order_details.item,
+        quantityAfterClaim,
+        food_sample_claim_details
+      );
+      console.log("food_claim_response from payment page:", food_claim_response)
+      return res.send(food_claim_response);
+    }
+
+    if (req.body.item_type === "experience") {
+      const food_sample_claim_details = {
+        user_claim_email: db_user.user.email,
+        claim_user_id: db_user.user.tasttlig_user_id,
+        claimed_experience_id: db_order_details.item.experience_id,
+        current_stamp_status: "Claimed",
+        claimed_quantity:1,
+        reserved_on: new Date(),
+
+      };
+      const  quantityAfterClaim = 1;
+      const food_claim_response = await food_sample_claim_service.createNewProductClaim(
+        db_user.user,
+        db_order_details.item,
+        quantityAfterClaim,
+        food_sample_claim_details
+      );
+      console.log("food_claim_response from payment page:", food_claim_response)
+      return res.send(food_claim_response);
+    }
+
+    if (req.body.item_type === "service") {
+      const food_sample_claim_details = {
+        user_claim_email: db_user.user.email,
+        claim_user_id: db_user.user.tasttlig_user_id,
+        claimed_service_id: db_order_details.item.service_id,
+        current_stamp_status: "Claimed",
+        claimed_quantity:1,
+        reserved_on: new Date(),
+
+      };
+      const  quantityAfterClaim = 1;
+      const food_claim_response = await food_sample_claim_service.createNewProductClaim(
+        db_user.user,
+        db_order_details.item,
+        quantityAfterClaim,
+        food_sample_claim_details
+      );
+      console.log("food_claim_response from payment page:", food_claim_response)
       return res.send(food_claim_response);
     }
 

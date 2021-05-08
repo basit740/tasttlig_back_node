@@ -40,15 +40,9 @@ const getBusinessApplications = async () => {
         "tasttlig_users",
         "applications.user_id",
         "tasttlig_users.tasttlig_user_id"
-      )
-      // .leftJoin(
-      //   "food_samples",
-      //   "applications.user_id",
-      //   "food_samples.food_sample_creater_user_id"
-      // )
+      )     
       .groupBy("applications.application_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
-      // .groupBy("food_samples.food_sample_creater_user_id")
       .having("applications.status", "=", "Pending")
       .having("applications.type", "=", "business_member");
 
@@ -63,11 +57,12 @@ const getBusinessApplications = async () => {
 
 const getBusinessApplicantDetails = async (userId) => {
   try {
-    console.log(userId)
+    console.log(userId);
     let application = await db
-      .select("business_details.*",
-      "business_details_images.*",
-      "tasttlig_users.*",
+      .select(
+        "business_details.*",
+        "business_details_images.*",
+        "tasttlig_users.*"
       )
       .from("business_details")
       .leftJoin(
@@ -96,7 +91,7 @@ const getBusinessApplicantDetails = async (userId) => {
       .having("user_role_lookup.role_code", "=", "BMP1")
       .first();
 
-     console.log(application)
+    console.log(application);
 
     return {
       success: true,
@@ -111,6 +106,8 @@ const getBusinessApplicantDetails = async (userId) => {
 const postBusinessPassportDetails = async (data) => {
   try {
     return await db.transaction(async (trx) => {
+      let applications = [];
+      let role_name = "";
       const business_details = {
         business_details_user_id: data["user_id"],
         business_name: data["user_business_name"],
@@ -129,15 +126,16 @@ const postBusinessPassportDetails = async (data) => {
         // business_passport_id: generateRandomString("6"),
         business_details_registration_date: data["start_date"],
         business_member_status: data["member_status"],
-        business_phone_number: data["user_business_phone_number"]
+        business_phone_number: data["user_business_phone_number"],
+        CRA_business_number: data["user_business_number"],
+        business_preference: data["user_business_preference"],
       };
-
 
       var business_details_id = await trx("business_details")
         .insert(business_details)
         .returning("business_details_id");
 
-        console.log("details from business passport", data);
+      // console.log("details from business passport", data);
 
       const business_details_images = {
         business_details_logo: data["user_business_logo"],
@@ -145,30 +143,98 @@ const postBusinessPassportDetails = async (data) => {
         business_details_id: business_details_id[0],
       };
 
-      await trx("business_details_images")
-        .insert(business_details_images);
-      
-        return { success: true };
+      await trx("business_details_images").insert(business_details_images);
+
+            applications.push({
+              user_id: data.user_id,
+              created_at: new Date(),
+              updated_at: new Date(),
+              reason: "host application",
+              type: "host",
+              status: "Pending",
+          });
+          role_name = "HOST_PENDING";
+          
+
+        if (data["user_business_preference"] === "Vend") {
+            applications.push({
+            user_id: data.user_id,
+            created_at: new Date(),
+            updated_at: new Date(),
+            reason: "vendor application",
+            type: "vendor",
+            status: "Pending",
+            });
+            role_name = "VENDOR_PENDING";
+        
+        // Get role code of new role to be added
+        const new_role_code = await trx("roles")
+        .select()
+        .where({ role: role_name })
+        .then((value) => {
+            return value[0].role_code;
+        });
+
+        // Insert new role for this user
+        await trx("user_role_lookup").insert({
+        user_id: data.user_id,
+        role_code: new_role_code,
+        });
+      }
+      else if (data["user_business_preference"] === "Host") {
+        applications.push({
+        user_id: data.user_id,
+        created_at: new Date(),
+        updated_at: new Date(),
+        reason: "host application",
+        type: "host",
+        status: "Pending",
+        });
+        role_name = "HOST_PENDING";
+    
+        // Get role code of new role to be added
+        const new_role_code = await trx("roles")
+        .select()
+        .where({ role: role_name })
+        .then((value) => {
+            return value[0].role_code;
+        });
+
+        // Insert new role for this user
+        await trx("user_role_lookup").insert({
+        user_id: data.user_id,
+        role_code: new_role_code,
+        });
+      }
+        await trx("applications")
+        .insert(applications);
+    
+  
+      return { success: true };
+  
     });
   } catch (error) {
-    
-    if(error.detail.includes("already exists")) {
-      return { success: false, details: "User Business Information already exists, you can edit your existing information under passport section in your profile" };
+    if (error && error.detail && error.detail.includes("already exists")) {
+      return {
+        success: false,
+        details:
+          "User Business Information already exists, you can edit your existing information under passport section in your profile",
+      };
     }
+    console.log(error);
     return { success: false, details: error.detail };
   }
 };
 
-
 const approveOrDeclineBusinessMemberApplication = async (
   userId,
   status,
-  declineReason
+  declineReason, businessDetails
 ) => {
   try {
-    console.log("here entry")
+    console.log("here entry");
     const db_user_row = await getUserById(userId);
-   
+
     if (!db_user_row.success) {
       return { success: false, message: db_user_row.message };
     }
@@ -177,8 +243,9 @@ const approveOrDeclineBusinessMemberApplication = async (
 
     // If status is approved
     if (status === "APPROVED") {
+      
       // update role
-      console.log("updating")
+      // console.log("updating");
       await db("user_role_lookup")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("role_code", "BMP1")
@@ -186,9 +253,39 @@ const approveOrDeclineBusinessMemberApplication = async (
         .catch((reason) => {
           return { success: false, message: reason };
         });
+
       
+      // if(businessDetails.application.business_preference === "Host" ) {
+      //   console.log(businessDetails.application.food_business_type);
+      //   await db("user_role_lookup")
+      //   .insert({
+      //     user_id: db_user.tasttlig_user_id,
+      //     role_code: "KJ7D",
+      //   })
+      //   .returning("*")
+      //   .catch((reason) => {
+      //     console.log('Reason', reason);
+      //     return { success: false, message: reason };
+      //   });
+      // } 
+      // else if(businessDetails.application.business_preference === "Vend" ) {
+      //   console.log(businessDetails.application.food_business_type);
+      //   await db("user_role_lookup")
+      //   .insert({
+      //     user_id: db_user.tasttlig_user_id,
+      //     role_code: "VSK1",
+      //   })
+      //   .returning("*")
+      //   .catch((reason) => {
+      //     console.log('Reason', reason);
+      //     return { success: false, message: reason };
+      //   });
+      // } 
+      
+  
+
       // STEP 5: Update applications table status
-      console.log("updated role")
+      // console.log("updated role");
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
@@ -199,34 +296,51 @@ const approveOrDeclineBusinessMemberApplication = async (
           return { success: false, message: reason };
         });
 
-        const str1 = "BP";
-        const str2 = generateRandomString("6");
-        const newString = str1.concat(str2);
+      const str1 = "BP";
+      const str2 = generateRandomString("6");
+      const newString = str1.concat(str2);
 
-        var d = new Date();
-        var year = d.getFullYear();
-        var month = d.getMonth();
-        var day = d.getDate();
+      var d = new Date();
+      var year = d.getFullYear();
+      var month = d.getMonth();
+      var day = d.getDate();
 
-        console.log("updated applications");
-        //Update status is business details table
-          await db("business_details")
-          .where("business_details_user_id", db_user.tasttlig_user_id)
-          .update({"business_member_status":"APPROVED",
-                    "business_passport_id": "BP"+generateRandomString("6"),
-                    "business_detail_approval_date": new Date(),
-                    "business_detail_expiry_date": new Date(year + 5, month, day),
-                    
-                  })
-          .returning("*")
-          .catch((reason) => {
-                                return { success: false, message: reason };
-                              });
+      console.log("updated applications");
+      //Update status is business details table
+      await db("business_details")
+        .where("business_details_user_id", db_user.tasttlig_user_id)
+        .update({
+          business_member_status: "APPROVED",
+          business_passport_id: "BP" + generateRandomString("6"),
+          business_detail_approval_date: new Date(),
+          business_detail_expiry_date: new Date(year + 5, month, day),
+        })
+        .returning("*")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
 
-        console.log("updated business details")
+      console.log("updated business details");
+
+      await db("user_subscriptions")
+      .where("user_id", db_user.tasttlig_user_id)
+      .andWhere("subscription_code", "H_BASIC")
+      .update({
+        user_subscription_status: "ACTIVE",
+        subscription_start_datetime: new Date(),
+        subscription_end_datetime: new Date(
+          new Date().setMonth(new Date().getMonth() + Number(30))
+        ),
+      })
+      .returning("*")
+      .catch((reason) => {
+        return { success: false, message: reason };
+      });
+
+    console.log("updated business details");
+
       return { success: true, message: status };
     } else {
-
       // Remove the role for this user
       await db("user_role_lookup")
         .where({
@@ -245,8 +359,8 @@ const approveOrDeclineBusinessMemberApplication = async (
           return { success: false, message: reason };
         });
 
-        //Update status is business details table
-        await db("business_details")
+      //Update status is business details table
+      await db("business_details")
         .where("business_details_user_id", db_user.tasttlig_user_id)
         .update("business_member_status", "REJECTED")
         .returning("*")

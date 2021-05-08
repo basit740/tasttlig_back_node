@@ -415,7 +415,10 @@ router.post(
       let result = "";
       const response = await products_service.addProductToFestival(
         req.body.festivalId,
-        req.body.ps
+        req.body.ps,
+        req.user.id,
+        user_details_from_db
+
       );
       console.log(response);
       if (response.success) {
@@ -502,9 +505,11 @@ router.get("/products/user/:user_id", async (req, res) => {
   }
   try {
     const response = await products_service.getProductsFromUser(
-      req.params.user_id,
+      req.query.user_id,
       req.body.keyword
     );
+    // console.log('products fetched', response);
+    // console.log('userrrr', req.query.user_id);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -514,6 +519,7 @@ router.get("/products/user/:user_id", async (req, res) => {
     });
   }
 });
+
 router.delete("/products/delete/user/:user_id", async (req, res) => {
   if (!req.params.user_id) {
     return res.status(403).json({

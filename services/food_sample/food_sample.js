@@ -139,11 +139,14 @@ const getAllUserFoodSamples = async (
   requestByAdmin = false,
   festival_name = ""
 ) => {
+
+
   const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
   const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
   let query = db
     .select(
       "products.*",
+      // "festivals.*",
       "nationalities.nationality",
       "nationalities.alpha_2_code",
       db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
@@ -163,7 +166,11 @@ const getAllUserFoodSamples = async (
       "products.festival_selected[1]",
       "festivals.festival_id"
     )
-    .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
+    .leftJoin(
+      "nationalities", 
+      "products.nationality_id",
+       "nationalities.id"
+       )
     .groupBy("products.product_id")
     .groupBy("festivals.festival_id")
     .groupBy("nationalities.nationality")
@@ -218,9 +225,123 @@ const getAllUserFoodSamples = async (
 
   return await query
     .then((value) => {
+      console.log("value", value)
       return { success: true, details: value };
     })
     .catch((reason) => {
+      console.log("reason", reason)
+      return { success: false, details: reason };
+    });
+};
+
+const getproductOwnerInfo = async (
+  user_id,
+  operator,
+  status,
+  keyword,
+  currentPage,
+  requestByAdmin = false,
+  festival_name = ""
+) => {
+
+
+  const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
+  const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
+  let query = db
+    .select(
+      "products.*",
+      "business_details.*",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
+      // db.raw(
+      //   "(select count(*)::integer from food_sample_claims c where c.food_sample_id=food_samples.food_sample_id and c.status<>? and c.reserved_on between ? and ?) as num_of_claims",
+      //   [Food_Sample_Claim_Status.PENDING, startOfDay, endOfDay]
+      // )
+    )
+    .from("products")
+    .leftJoin(
+      "product_images",
+      "products.product_id",
+      "product_images.product_id"
+    )
+    .leftJoin(
+      "festivals",
+      "products.festival_selected[1]",
+      "festivals.festival_id"
+    )
+    .leftJoin(
+      "nationalities", 
+      "products.nationality_id",
+       "nationalities.id"
+       )
+    .leftJoin(
+    "business_details",
+    "products.product_user_id",
+    "business_details.business_details_user_id"
+  )
+    .where("products.product_user_id", "=", user_id)
+    
+    .groupBy("products.product_id")
+    .groupBy("festivals.festival_id")
+    .groupBy("business_details.business_details_id")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code");
+
+  // if (!requestByAdmin) {
+  //   query = query
+  //     .having("product_user_id", "=", user_id)
+  //     .having("products.status", operator, status);
+  // } else {
+  //   query = query.having("products.status", operator, status);
+  // }
+
+  // if (festival_name !== "") {
+  //   query = query.having("festivals.festival_name", "=", festival_name);
+  // }
+
+  // if (keyword) {
+  //   query = db
+  //     .select(
+  //       "*",
+  //       db.raw(
+  //         "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+  //           "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+  //           "END rank",
+  //         [keyword, keyword]
+  //       )
+  //     )
+  //     .from(
+  //       db
+  //         .select(
+  //           "main.*",
+  //           db.raw(
+  //             "to_tsvector(concat_ws(' '," +
+  //               "main.title, " +
+  //               "main.description, " +
+  //               "main.nationality" +
+  //               ")) as search_text"
+  //           )
+  //         )
+  //         .from(query.as("main"))
+  //         .as("main")
+  //     )
+  //     .orderBy("rank", "desc");
+  // }
+
+  // query = query.paginate({
+  //   perPage: 12,
+  //   isLengthAware: true,
+  //   currentPage: currentPage,
+  // });
+
+  return await query
+    .then((value) => {
+      console.log("value", value)
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log("reason", reason)
       return { success: false, details: reason };
     });
 };
@@ -291,57 +412,72 @@ const getAllUserFoodSamplesNotInFestival = async (
 // Update food sample helper function
 const updateFoodSample = async (
   db_user,
-  food_sample_id,
+  product_id,
   update_data,
   updatedByAdmin
 ) => {
   const { images, ...food_sample_update_data } = update_data;
-
+  console.log('product data', update_data);
   if (!food_sample_update_data.status) {
-    // let user_role_object = db_user.role;
-    // if (
-    //   user_role_object.includes("RESTAURANT") &&
-    //   db_user.is_participating_in_festival &&
-    //   !updatedByAdmin
-    // ) {
-    //   food_sample_update_data.status = "ACTIVE";
-    // } else {
-    //   food_sample_update_data.status = "INACTIVE";
-    // }
     food_sample_update_data.status = "ACTIVE";
   }
 
   try {
-    await db("food_samples")
+    // await db("food_samples")
+    await db("products")
       .where((builder) => {
         if (updatedByAdmin) {
           return builder.where({
-            food_sample_id,
+            product_id,
           });
         } else {
           return builder.where({
-            food_sample_id,
-            food_sample_creater_user_id: db_user.tasttlig_user_id,
+            product_id,
+            product_user_id: db_user.tasttlig_user_id,
           });
         }
       })
-      .update(food_sample_update_data);
+      // .update(food_sample_update_data);
+      .update({
+        title: food_sample_update_data.title,
+        product_size: food_sample_update_data.sample_size,
+        quantity: food_sample_update_data.quantity,
+        spice_level: food_sample_update_data.spice_level,  
+        description:food_sample_update_data.description ,
+        start_time: food_sample_update_data.start_time,
+        end_time: food_sample_update_data.end_time,
+        nationality_id: food_sample_update_data.nationality_id,
+        festival_selected: food_sample_update_data.festival_selected,
+        is_vegetarian: food_sample_update_data.is_vegetarian,
+        is_vegan: food_sample_update_data.is_vegan,
+        is_gluten_free: food_sample_update_data.is_gluten_free,
+        is_halal: food_sample_update_data.is_halal,
+        is_available_on_monday: food_sample_update_data.is_available_on_monday,
+        is_available_on_tuesday: food_sample_update_data.is_available_on_tuesday,
+        is_available_on_wednesday: food_sample_update_data.is_available_on_wednesday,
+        is_available_on_thursday: food_sample_update_data.is_available_on_thursday,
+        is_available_on_friday: food_sample_update_data.is_available_on_friday,
+        is_available_on_saturday: food_sample_update_data.is_available_on_saturday,
+        is_available_on_sunday: food_sample_update_data.is_available_on_sunday,
+        
+      });
 
     if (images && images.length) {
-      await db("food_sample_images")
-        .where("food_sample_id", food_sample_id)
+      await db("product_images")
+        .where("product_id", product_id)
         .del();
 
-      await db("food_sample_images").insert(
-        images.map((image_url) => ({
-          food_sample_id,
-          image_url,
+      await db("product_images").insert(
+        images.map((product_image_url) => ({
+          product_id,
+          product_image_url,
         }))
       );
     }
 
     return { success: true };
   } catch (error) {
+    console.log(error);
     return { success: false, details: error };
   }
 };
@@ -402,12 +538,12 @@ const getAllFoodSamples = async (
     )
     .leftJoin(
       "tasttlig_users",
-      "products.product_creater_user_id",
+      "products.product_user_id",
       "tasttlig_users.tasttlig_user_id"
     )
     .leftJoin(
       "business_details",
-      "products.product_creater_user_id",
+      "products.product_user_id",
       "business_details.business_details_user_id"
     )
     .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
@@ -1053,6 +1189,7 @@ const deleteFoodSamplesFromUser = async (user_id, delete_items) => {
 
 module.exports = {
   createNewFoodSample,
+  getproductOwnerInfo,
   getAllUserFoodSamples,
   updateFoodSample,
   deleteFoodSample,
