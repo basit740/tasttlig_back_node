@@ -263,43 +263,6 @@ const createNewFestival = async (festival_details, festival_images) => {
   }
 };
 
-const updateFestival = async (data, festival_images) => {
-  console.log("body from the festival:", festival_images);
-  console.log('editing festival', data);
-  try {
-    await db.transaction(async (trx) => {
-      const db_festival = await trx("festivals")
-        .where({ festival_id: data.festival_id })
-        .update({
-          festival_name: data.festival_name,
-          festival_type: data.festival_type,
-          festival_price: data.festival_price,
-          festival_city: data.festival_city,
-          festival_start_date: data.festival_start_date,
-          festival_end_date: data.festival_end_date,
-          festival_start_time: data.festival_start_time,
-          festival_end_time: data.festival_end_time,
-          festival_description: data.festival_description,
-        })
-        .returning("*");
-
-      await trx("festival_images")
-        .where({ festival_id: data.festival_id })
-        .delete();
-
-      for (let image of festival_images) {
-        await trx("festival_images")
-          // .where({ festival_id: data.festival_id })
-          .insert({ festival_image_url: image, festival_id: data.festival_id })
-          .returning("*");
-      }
-    });
-
-    return { success: true, details: "Success." };
-  } catch (error) {
-    return { success: false, details: error.message };
-  }
-}; 
 
 // Add host ID to festivals table helper function
 const hostToFestival = async (
