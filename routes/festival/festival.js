@@ -60,7 +60,7 @@ router.get("/festival/all", async (req, res) => {
       keyword,
       filters
     );
-    console.log("filter", filters);
+    // console.log("filter", filters);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -174,19 +174,56 @@ router.get("/hosts/festival/:festival_id", async (req, res) => {
       req.params.festival_id
     );
 
-    for (let item of response.details[0].festival_vendor_id) {
+    const uniqueHostArray = [...new Set(response.details[0].festival_host_id)];
+
+    for (let item of uniqueHostArray) {
       const list = await user_profile_service.getUserById(item);
 
       if (list.user) {
         hosts.push(list.user);
       }
     }
+    // console.log("hosts from host/festival:", hosts)
 
     return res.send(hosts);
   } catch (error) {
     res.send({
       success: false,
       message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+
+// GET vendors in specific festival
+router.get("/vendors/festival/:festival_id", async (req, res) => {
+  if (!req.params.festival_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const vendors = [];
+
+    const response = await festival_service.getFestivalDetails(
+      req.params.festival_id
+    );
+    for (let item of response.details[0].festival_vendor_id) {
+      const list = await user_profile_service.getUserById(item);
+
+      if (list.user) {
+        vendors.push(list.user);
+      }
+    }
+    console.log("vendors for festival:", vendors);
+    return res.send(vendors);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error",
       response: error.message,
     });
   }
