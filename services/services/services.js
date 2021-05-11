@@ -482,9 +482,14 @@ const claimService = async (db_user, service_id) => {
 // Update service helper function
 const updateService = async (db_user, data) => {
   const { service_images, ...service_update_data } = data;
+  service_update_data.service_user_id = db_user.tasttlig_user_id
+ 
+ if(service_update_data.service_festivals_id === '') {
+  service_update_data.service_festivals_id = [];
+ } 
 
   let updateData = {};
-  console.log('SERVICE UPDATE DATA', service_update_data );
+  // console.log('SERVICE UPDATE DATA', service_update_data );
   // updateData.service_user_id = db_user.tasttlig_user_id;
   if(service_update_data.service_festivals_id==='')
   { 

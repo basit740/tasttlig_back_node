@@ -94,12 +94,12 @@ router.post(
           : null,
         service_user_id: req.user.id,
       };
+      console.log(service_central_server);
       const response = await services_service.createNewService(
         user_details_from_db,
         service_information,
         req.body.service_images
       );
-      res.send(response);
       if (response.success) {
         const service_central_server = await auth_service.createNewServiceInCentralServer(
           user_details_from_db,
@@ -107,9 +107,7 @@ router.post(
           req.body.service_images
         );
       }
-      return {
-        success: true,
-      };
+      return res.send(response);
     } catch (error) {
       console.log(error);
       res.send({
@@ -201,7 +199,7 @@ router.post(
       let result = "";
       const response = await services_service.addServiceToFestival(
         req.body.festivalId,
-        req.body.ps,
+        req.body.ps, 
         req.user.id
       );
       console.log(response);
@@ -373,7 +371,6 @@ router.put(
       let db_user = user_details_from_db.user;
 
       const response = await services_service.updateService(db_user, req.body);
-
       return res.send(response);
     } catch (error) {
       res.send({
