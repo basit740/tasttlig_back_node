@@ -299,7 +299,7 @@ const updateFestival = async (data, festival_images) => {
   } catch (error) {
     return { success: false, details: error.message };
   }
-};
+}; 
 
 // Add host ID to festivals table helper function
 const hostToFestival = async (
@@ -363,6 +363,36 @@ const hostToFestival = async (
     return { success: true, details: "Success." };
   } catch (error) {
     console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
+const updateFestival = async (data, festival_images) => {
+  try {
+    await db.transaction(async (trx) => {
+      const db_festival = await trx("festivals")
+        .where({ festival_id: data.festival_id })
+        .update({
+          festival_name: data.festival_name,
+          festival_type: data.festival_type,
+          festival_price: data.festival_price,
+          festival_city: data.festival_city,
+          festival_start_date: data.festival_start_date,
+          festival_end_date: data.festival_end_date,
+          festival_start_time: data.festival_start_time,
+          festival_end_time: data.festival_end_time,
+          festival_description: data.festival_description,
+        })
+        .returning("*");
+
+      await trx("festival_images")
+        .where({ festival_id: data.festival_id })
+        .update({ festival_image_url: festival_images[0] })
+        .returning("*");
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
     return { success: false, details: error.message };
   }
 };
