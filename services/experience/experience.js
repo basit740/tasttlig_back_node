@@ -17,6 +17,7 @@ const createNewExperience = async (
   experience_images
 ) => {
   try {
+    console.log('EXPERIENCE USER DETAILS.......',experience_details );
     await db.transaction(async (trx) => {
       /* experience_details.status = "INACTIVE";
       let user_role_object = db_user.role;
@@ -30,6 +31,9 @@ const createNewExperience = async (
         true
       ); */
       //experience_details.status = "ACTIVE";
+
+      let user_role_object = db_user.user.role;
+
       experience_details.claimed_total_quantity = 0;
       const db_experience = await trx("experiences")
         .insert(experience_details)
@@ -43,6 +47,34 @@ const createNewExperience = async (
         experience_id: db_experience[0].experience_id,
         experience_image_url: experience_image,
       }));
+
+      if(experience_details.festival_selected.length>0)
+      {  
+        // console.log('FESTIVAL LENGHT', experience_details.festival_selected );
+        console.log('USER ROLEEEEEEEE', user_role_object );
+        if (user_role_object && user_role_object.includes("HOST")) 
+        {
+            await trx("festivals")
+            .where({ festival_id: experience_details.festival_selected[0] })
+            .update({
+              festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+                db_user.user.tasttlig_user_id,
+              ]),
+            })
+          }
+          else if (user_role_object && user_role_object.includes("VENDOR")) 
+          {
+            console.log('VENDOR FESTIVAL LENGHT', experience_details.festival_selected );
+            console.log('USER ROLEEEEEEEE', user_role_object );
+              await trx("festivals")
+              .where({ festival_id: experience_details.festival_selected[0] })
+              .update({
+                festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
+                  db_user.user.tasttlig_user_id,
+                ]),
+              })
+          }
+      }
 
       await trx("experience_images").insert(images); //else { // Email to user on submitting the request to upgrade
 

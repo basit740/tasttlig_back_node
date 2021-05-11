@@ -348,7 +348,7 @@ router.post("/claim-service", async (req, res) => {
 });
 
 router.put(
-  "/service/update/:serviceId",
+  "/service/update",
   token_service.authenticateToken,
   async (req, res) => {
     if (!req.body) {

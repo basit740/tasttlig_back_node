@@ -31,6 +31,36 @@ const createNewService = async (
 
       await trx("service_images").insert(images);
 
+      console.log('FESTIVAL SELECTED', service_information.festivals_selected);
+      console.log('USER DETAILS', user_details_from_db.user.role);
+
+      if(service_information.festivals_selected>0)
+      {  
+        
+        if (user_details_from_db.user.role && user_details_from_db.user.role.includes("HOST")) 
+        {
+            await trx("festivals")
+            .where({ festival_id: service_information.festivals_selected[0] })
+            .update({
+              festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+                db_user.user.tasttlig_user_id,
+              ]),
+            })
+          }
+          else if (user_details_from_db.user.role && user_details_from_db.user.role.includes("VENDOR")) 
+          {
+            // console.log('VENDOR FESTIVAL LENGHT', experience_details.festival_selected );
+            // console.log('USER ROLEEEEEEEE', user_role_object );
+              await trx("festivals")
+              .where({ festival_id: service_information.festivals_selected[0] })
+              .update({
+                festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
+                  user_details_from_db.user.tasttlig_user_id,
+                ]),
+              })
+          }
+      }
+
       // Food sample created confirmation email
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
@@ -461,7 +491,7 @@ const updateService = async (db_user, data) => {
     service_update_data.service_festivals_id = [];
   }
   
-  // updateData.service_festival_id = data.service_festival_id;
+  updateData.service_festivals_id = data.service_festival_id;
 
   try {
     if (Array.isArray(data.service_id)) {
@@ -475,17 +505,48 @@ const updateService = async (db_user, data) => {
         })
         .update(updateData);
 
-      /* if (service_images && service_images.length) {
-        await db("service_images").whereIn("service_id", service_id).del();
+        // for each festival
+        updateData.service_festivals_id.map(async (festival_id) => {
+          try {
+            if (db_user.role.includes("HOST"))
+          {   
+            var host_ids = await db("festivals")
+            .select("festival_host_id")
+            .where("festival_id", "=", festival_id)
+            .then( (resp) => {return resp})
 
-        await db("service_images").insert(
-          service_images.map((image_url) => ({
-            service_id,
-            service_image_url: image_url,
-          }))
-        );
-      } */
+            // console.log('hosts to add ', host_ids)
 
+            if(!host_ids.includes(db_user.tasttlig_user_id)) {
+              host_ids.push(db_user.tasttlig_user_id);
+              await db("festivals")
+              .where({"festival_id": festival_id})
+              .update({"festival_host_id": host_ids}) 
+            }
+          } 
+          else if (db_user.role.includes("VENDOR"))
+          {
+            var vendor_ids = await db("festivals")
+            .select("festival_vendor_id")
+            .where("festival_id", "=", festival_id)
+            .then( (resp) => {return resp})
+
+            // console.log('vendors to add ', vendor_ids);
+
+            var vendor_ids_array = vendor_ids[0].festival_vendor_id || [];
+            // console.log('VENDOR array ', vendor_ids_array);
+            if(!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
+              vendor_ids_array.push(db_user.tasttlig_user_id);
+              await db("festivals")
+              .where({"festival_id": festival_id})
+              .update({"festival_vendor_id": vendor_ids_array})
+            }
+          }
+          } catch (error) {
+            return {success: false}
+          }
+          
+        });
       return { success: true };
     } else {
       await db("services")

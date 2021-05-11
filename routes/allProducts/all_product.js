@@ -35,7 +35,7 @@ router.get("/all-products/festival/:festivalId", async (req, res) => {
       filters,
       req.params.festivalId
     );
-    console.log("response from all product:", response);
+    // console.log("response from all product:", response);
 
     return res.send(response);
   } catch (error) {
