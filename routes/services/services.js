@@ -94,7 +94,7 @@ router.post(
           : null,
         service_user_id: req.user.id,
       };
-      console.log(service_central_server);
+      // console.log(service_central_server);
       const response = await services_service.createNewService(
         user_details_from_db,
         service_information,
