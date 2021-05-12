@@ -79,7 +79,7 @@ router.post(
           : null,
         experience_price: req.body.experience_price
           ? req.body.experience_price
-          : 0,
+          : 2,
         experience_capacity: req.body.experience_capacity,
         experience_user_id: createdByAdmin
         ? null
@@ -276,7 +276,7 @@ router.get("/experiences/:user_id", async (req, res) => {
     const response = await experience_service.getUserExperiencesById(
       business_details_id
     );
-    console.log("response from expereiences get:", response);
+    // console.log("response from expereiences get:", response);
     return res.send(response);
   } catch (error) {
     console.log("error from expereiences get:", error);
