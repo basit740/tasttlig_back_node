@@ -12,6 +12,7 @@ const {
   formatTime,
 } = require("../../functions/functions");
 const auth_server_service = require("../../services/authentication/auth_server_service");
+const all_product_service = require("../../services/allProducts/all_product");
 
 // Environment variables
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
@@ -1011,9 +1012,21 @@ router.put(
         req.body.food_sample_update_data,
         updatedByAdmin
       );
-
-      return res.send(response);
+      res.send(response);
+      const prev_product_details = await all_product_service.getProductById(
+        req.params.food_sample_id
+      );
+      const send_to_central_server =
+        await auth_server_service.editProductInCentralServer(
+          db_user.email,
+          prev_product_details,
+          req.body.food_sample_update_data
+        );
+      return {
+        success: true,
+      };
     } catch (error) {
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -1066,13 +1079,15 @@ router.delete("/food-sample/delete/user/:user_id", async (req, res) => {
       req.params.user_id,
       req.body.delete_items
     );
+    res.send(response);
     const delete_central_server =
       await auth_server_service.deleteProductInCentralServer(
         user.user.email,
         req.body.delete_items
       );
-    return res.send(response);
-    //return res.send({ success: false });
+    return {
+      success: true,
+    };
   } catch (error) {
     console.log(error);
     res.send({

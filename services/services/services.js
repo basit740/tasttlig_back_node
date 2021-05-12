@@ -52,7 +52,11 @@ const createNewService = async (
   }
 };
 
-const addServiceToFestival = async (festival_id, service_id, service_user_id) => {
+const addServiceToFestival = async (
+  festival_id,
+  service_id,
+  service_user_id
+) => {
   try {
     await db.transaction(async (trx) => {
       console.log("serviceId", service_id);
@@ -76,12 +80,12 @@ const addServiceToFestival = async (festival_id, service_id, service_user_id) =>
           }
         }
         await trx("festivals")
-        .where({ festival_id: festival_id })
-        .update({
-          festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
-            service_user_id,
-          ]),
-        })
+          .where({ festival_id: festival_id })
+          .update({
+            festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+              service_user_id,
+            ]),
+          });
       } else {
         let query = await db
           .select("services.*")
@@ -98,13 +102,13 @@ const addServiceToFestival = async (festival_id, service_id, service_user_id) =>
               ),
             })
             .returning("*");
-            await trx("festivals")
+          await trx("festivals")
             .where({ festival_id: festival_id })
             .update({
               festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
                 service_user_id,
               ]),
-            })
+            });
 
           if (!db_service) {
             return {
@@ -266,10 +270,10 @@ const getUserServiceDetails = async (user_id) => {
       "nationalities.id"
     )
     .leftJoin(
-        "business_details",
-        "services.service_user_id",
-        "business_details.business_details_user_id"
-      )
+      "business_details",
+      "services.service_user_id",
+      "business_details.business_details_user_id"
+    )
     .groupBy("services.service_id")
     .groupBy("services.service_nationality_id")
     .groupBy("business_details.business_details_id")
@@ -284,7 +288,7 @@ const getUserServiceDetails = async (user_id) => {
 };
 
 const getServicesFromUser = async (user_id, keyword, festival_id) => {
-  console.log('user of this service', user_id);
+  console.log("user of this service", user_id);
   let query = db
     .select(
       "services.*",
@@ -452,11 +456,15 @@ const claimService = async (db_user, service_id) => {
 // Update service helper function
 const updateService = async (db_user, data) => {
   const { service_images, ...service_update_data } = data;
-  service_update_data.service_user_id = db_user.tasttlig_user_id
- 
- if(service_update_data.service_festivals_id === '') {
-  service_update_data.service_festivals_id = [];
- } 
+  service_update_data.service_user_id = db_user.tasttlig_user_id;
+  service_update_data.festivals_selected = [
+    service_update_data.service_festivals_id,
+  ];
+  delete service_update_data.service_festivals_id;
+  console.log(service_update_data);
+  if (service_update_data.service_festivals_selected.length < 1) {
+    service_update_data.festivals_selected = [];
+  }
 
   let updateData = {};
   // updateData.service_festivals_id = Number(data.service_festival_id);
@@ -488,7 +496,7 @@ const updateService = async (db_user, data) => {
       await db("services")
         .where((builder) => {
           return builder.where({
-            service_id : data.service_id,
+            service_id: data.service_id,
             service_user_id: db_user.tasttlig_user_id,
           });
         })
@@ -508,7 +516,7 @@ const updateService = async (db_user, data) => {
       return { success: true };
     }
   } catch (error) {
-    console.log('service update error', error);
+    console.log("service update error", error);
     return { success: false, details: error };
   }
 };

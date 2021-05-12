@@ -93,7 +93,6 @@ router.post(
           : null,
         service_user_id: req.user.id,
       };
-      console.log(service_central_server);
       const response = await services_service.createNewService(
         user_details_from_db,
         service_information,
@@ -369,8 +368,19 @@ router.put(
 
       let db_user = user_details_from_db.user;
 
-      const response = await services_service.updateService(db_user, req.body);
-      return res.send(response);
+      /* const response = await services_service.updateService(db_user, req.body); */
+      console.log(req.body);
+      const prev_service_information = await services_service.findService(
+        req.body.service_id
+      );
+      const send_to_central_server =
+        await auth_service.editServiceInCentralServer(
+          db_user.email,
+          prev_service_information,
+          req.body
+        );
+      //return res.send(response);
+      return res.send({ success: false });
     } catch (error) {
       res.send({
         success: false,
@@ -396,22 +406,25 @@ router.delete(
     try {
       console.log("service id", req.body.service_id);
       console.log("user_id", req.user.id);
+      let serviceArr = [];
+      console.log(req.body.service_id);
+      for (let service of req.body.service_id) {
+        let service_info = await services_service.findService(Number(service));
+        serviceArr.push(service_info.details);
+      }
       const response = await services_service.deleteService(
         req.user.id,
         req.body.service_id
       );
-      let serviceArr = [];
-      for (let service of req.body.service_id) {
-        let service_info = await services_service.findService(service);
-        serviceArr.push(service_info.details);
-      }
+      res.send(response);
       const delete_central_server =
         await auth_service.deleteServiceInCentralServer(
           req.user.email,
           serviceArr
         );
-      return res.send(response);
-      //return res.send({ success: false });
+      return {
+        success: true,
+      };
     } catch (error) {
       res.send({
         success: false,
