@@ -49,9 +49,8 @@ router.post(
 
       let createdByAdmin = true;
 
-      const business_details_from_db = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
+      const business_details_from_db =
+        await authentication_service.getUserByBusinessDetails(req.user.id);
 
       if (
         user_details_from_db.user.role.includes("SPONSOR_PENDING") ||
@@ -101,11 +100,12 @@ router.post(
         req.body.service_images
       );
       if (response.success) {
-        const service_central_server = await auth_service.createNewServiceInCentralServer(
-          user_details_from_db,
-          service_information,
-          req.body.service_images
-        );
+        const service_central_server =
+          await auth_service.createNewServiceInCentralServer(
+            user_details_from_db,
+            service_information,
+            req.body.service_images
+          );
       }
       return res.send(response);
     } catch (error) {
@@ -177,9 +177,8 @@ router.post(
 
       let createdByAdmin = true;
 
-      const business_details_from_db = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
+      const business_details_from_db =
+        await authentication_service.getUserByBusinessDetails(req.user.id);
 
       if (
         user_details_from_db.user.role.includes("VENDOR") ||
@@ -199,7 +198,7 @@ router.post(
       let result = "";
       const response = await services_service.addServiceToFestival(
         req.body.festivalId,
-        req.body.ps, 
+        req.body.ps,
         req.user.id
       );
       console.log(response);
@@ -355,7 +354,7 @@ router.put(
         message: "Required parameters are not available in request.",
       });
     }
-        console.log('Service data updating', req.body);
+    console.log("Service data updating", req.body);
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -395,11 +394,24 @@ router.delete(
     }
 
     try {
+      console.log("service id", req.body.service_id);
+      console.log("user_id", req.user.id);
       const response = await services_service.deleteService(
         req.user.id,
         req.body.service_id
       );
+      let serviceArr = [];
+      for (let service of req.body.service_id) {
+        let service_info = await services_service.findService(service);
+        serviceArr.push(service_info.details);
+      }
+      const delete_central_server =
+        await auth_service.deleteServiceInCentralServer(
+          req.user.email,
+          serviceArr
+        );
       return res.send(response);
+      //return res.send({ success: false });
     } catch (error) {
       res.send({
         success: false,

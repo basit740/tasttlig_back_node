@@ -160,6 +160,33 @@ const createNewServiceInCentralServer = async (
   return response.data;
 };
 
+//delete product in central server
+const deleteProductInCentralServer = async (email, product_information) => {
+  let response = await axios({
+    url: `${auth_server_url}/auth/remove-product`,
+    method: "POST",
+    data: {
+      email,
+      product_information,
+    },
+  });
+
+  return response.data;
+};
+//delete product in central server
+const deleteServiceInCentralServer = async (email, service_information) => {
+  let response = await axios({
+    url: `${auth_server_url}/auth/remove-service`,
+    method: "POST",
+    data: {
+      service_information,
+      email,
+    },
+  });
+
+  return response.data;
+};
+
 module.exports = {
   authSignup,
   authLogin,
@@ -171,4 +198,6 @@ module.exports = {
   createNewProductInCentralServer,
   createNewExperienceInCentralServer,
   createNewServiceInCentralServer,
+  deleteProductInCentralServer,
+  deleteServiceInCentralServer,
 };
