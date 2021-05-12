@@ -79,7 +79,7 @@ router.post(
           : null,
         experience_price: req.body.experience_price
           ? req.body.experience_price
-          : 0,
+          : 2,
         experience_capacity: req.body.experience_capacity,
         experience_user_id: createdByAdmin
         ? null
