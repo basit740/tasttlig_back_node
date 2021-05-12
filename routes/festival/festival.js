@@ -461,10 +461,12 @@ router.post(
         });
       }
 
+      const db_user = user_details_from_db.user;
       const response = await festival_service.hostToFestival(
         festival_id,
         festival_restaurant_host_id,
-        foodSamplePreference
+        foodSamplePreference,
+        db_user
       );
 
       return res.send(response);

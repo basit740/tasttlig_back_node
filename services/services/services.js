@@ -82,7 +82,7 @@ const createNewService = async (
   }
 };
 
-const addServiceToFestival = async (festival_id, service_id, service_user_id) => {
+const addServiceToFestival = async (festival_id, service_id, service_user_id, user_details_from_db) => {
   try {
     await db.transaction(async (trx) => {
       console.log("serviceId", service_id);
@@ -105,13 +105,33 @@ const addServiceToFestival = async (festival_id, service_id, service_user_id) =>
             };
           }
         }
-        await trx("festivals")
-        .where({ festival_id: festival_id })
-        .update({
-          festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
-            service_user_id,
-          ]),
-        })
+        // await trx("festivals")
+        // .where({ festival_id: festival_id })
+        // .update({
+        //   festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+        //     service_user_id,
+        //   ]),
+        // })
+        if (user_details_from_db.user.role.includes("HOST")) 
+        {
+            await trx("festivals")
+            .where({ festival_id: festival_id })
+            .update({
+              festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+                service_user_id,
+              ]),
+            })
+          }
+          else if (user_details_from_db.user.role.includes("VENDOR")) 
+          {
+              await trx("festivals")
+              .where({ festival_id: festival_id })
+              .update({
+                festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
+                  service_user_id,
+                ]),
+              })
+          }
       } else {
         let query = await db
           .select("services.*")
@@ -128,6 +148,8 @@ const addServiceToFestival = async (festival_id, service_id, service_user_id) =>
               ),
             })
             .returning("*");
+            if (user_details_from_db.user.role.includes("HOST")) 
+           {
             await trx("festivals")
             .where({ festival_id: festival_id })
             .update({
@@ -135,6 +157,24 @@ const addServiceToFestival = async (festival_id, service_id, service_user_id) =>
                 service_user_id,
               ]),
             })
+          }
+          else if (user_details_from_db.user.role.includes("VENDOR")) 
+          {
+              await trx("festivals")
+              .where({ festival_id: festival_id })
+              .update({
+                festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
+                  service_user_id,
+                ]),
+              })
+          }
+            // await trx("festivals")
+            // .where({ festival_id: festival_id })
+            // .update({
+            //   festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+            //     service_user_id,
+            //   ]),
+            // })
 
           if (!db_service) {
             return {

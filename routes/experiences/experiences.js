@@ -270,7 +270,7 @@ router.get("/experiences/:user_id", async (req, res) => {
     const response = await experience_service.getUserExperiencesById(
       business_details_id
     );
-    console.log("response from expereiences get:", response);
+    // console.log("response from expereiences get:", response);
     return res.send(response);
   } catch (error) {
     console.log("error from expereiences get:", error);
