@@ -43,7 +43,7 @@ const createNewService = async (
             .where({ festival_id: service_information.festivals_selected[0] })
             .update({
               festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
-                db_user.user.tasttlig_user_id,
+                user_details_from_db.user.tasttlig_user_id,
               ]),
             })
           }
@@ -613,6 +613,49 @@ const updateService = async (db_user, data) => {
           }))
         );
       }
+
+      // for each festival
+      updateData.service_festivals_id.map(async (festival_id) => {
+        try {
+          if (db_user.role.includes("HOST"))
+        {   
+          var host_ids = await db("festivals")
+          .select("festival_host_id")
+          .where("festival_id", "=", festival_id)
+          .then( (resp) => {return resp})
+
+          // console.log('hosts to add ', host_ids)
+
+          if(!host_ids.includes(db_user.tasttlig_user_id)) {
+            host_ids.push(db_user.tasttlig_user_id);
+            await db("festivals")
+            .where({"festival_id": festival_id})
+            .update({"festival_host_id": host_ids}) 
+          }
+        } 
+        else if (db_user.role.includes("VENDOR"))
+        {
+          var vendor_ids = await db("festivals")
+          .select("festival_vendor_id")
+          .where("festival_id", "=", festival_id)
+          .then( (resp) => {return resp})
+
+          // console.log('vendors to add ', vendor_ids);
+
+          var vendor_ids_array = vendor_ids[0].festival_vendor_id || [];
+          // console.log('VENDOR array ', vendor_ids_array);
+          if(!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
+            vendor_ids_array.push(db_user.tasttlig_user_id);
+            await db("festivals")
+            .where({"festival_id": festival_id})
+            .update({"festival_vendor_id": vendor_ids_array})
+          }
+        }
+        } catch (error) {
+          return {success: false}
+        }
+        
+      });
 
       return { success: true };
     }
