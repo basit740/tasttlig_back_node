@@ -254,6 +254,20 @@ const approveOrDeclineBusinessMemberApplication = async (
           return { success: false, message: reason };
         });
 
+        if(businessDetails.application.food_business_type === "Restaurant" ) {
+        console.log(businessDetails.application.food_business_type);
+        await db("user_role_lookup")
+        .insert({
+          user_id: db_user.tasttlig_user_id,
+          role_code: "KJ7D",
+        })
+        .returning("*")
+        .catch((reason) => {
+          console.log('Reason', reason);
+          return { success: false, message: reason };
+        });
+      } 
+
       
       // if(businessDetails.application.business_preference === "Host" ) {
       //   console.log(businessDetails.application.food_business_type);
