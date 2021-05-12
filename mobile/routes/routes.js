@@ -43,14 +43,11 @@ router.post("/all-services-claim", async (req, res) => {
 
   try {
     if (!new_user) {
-      const {
-        canClaim,
-        message,
-        error,
-      } = await mobile_services.userCanClaimService(
-        db_user.email,
-        req.body.food_sample_id
-      );
+      const { canClaim, message, error } =
+        await mobile_services.userCanClaimService(
+          db_user.email,
+          req.body.food_sample_id
+        );
 
       if (!canClaim) {
         return res.status(error ? 500 : 200).json({
@@ -60,9 +57,10 @@ router.post("/all-services-claim", async (req, res) => {
         });
       }
 
-      const user_details_from_db = await user_profile_service.getUserByEmailWithSubscription(
-        db_user.email
-      );
+      const user_details_from_db =
+        await user_profile_service.getUserByEmailWithSubscription(
+          db_user.email
+        );
 
       if (!canClaim && !user_details_from_db.user.user_subscription_id) {
         return res.status(403).json({
@@ -196,9 +194,8 @@ router.get("/user/hosted-festival/:userId", async (req, res) => {
 
 router.get("/business/revenue/:userId", async (req, res) => {
   try {
-    const business_details_all = await user_profile_service.getBusinessDetailsByUserId(
-      req.params.userId
-    );
+    const business_details_all =
+      await user_profile_service.getBusinessDetailsByUserId(req.params.userId);
     if (!business_details_all.success) {
       return res.status(403).json({
         success: false,
@@ -211,9 +208,10 @@ router.get("/business/revenue/:userId", async (req, res) => {
     const service_revenue = await mobile_services.getBusinessServiceRevenue(
       business_details_all.business_details_all.business_details_id
     );
-    const experience_revenue = await mobile_services.getBusinessExperienceRevenue(
-      business_details_all.business_details_all.business_details_id
-    );
+    const experience_revenue =
+      await mobile_services.getBusinessExperienceRevenue(
+        business_details_all.business_details_all.business_details_id
+      );
 
     function sum(total, p) {
       return total + p;
@@ -236,9 +234,6 @@ router.get("/business/revenue/:userId", async (req, res) => {
         ? priceTotal(service_revenue.revenue)
         : 0;
 
-    console.log("revenueprd", product_revenue_total);
-    console.log("revenueexp", experience_revenue_total);
-    console.log("revenuesrv", service_revenue_total);
     let revenue = {
       product: { product_revenue_total, product_revenue },
       service: { service_revenue_total, service_revenue },
@@ -268,9 +263,8 @@ router.put("/mobile/product/update/", async (req, res) => {
   }
 
   try {
-    const business_details_all = await user_profile_service.getBusinessDetailsByUserId(
-      req.body.user_id
-    );
+    const business_details_all =
+      await user_profile_service.getBusinessDetailsByUserId(req.body.user_id);
     if (!business_details_all.success) {
       return res.status(403).json({
         success: false,
@@ -305,9 +299,8 @@ router.put("/mobile/service/update/", async (req, res) => {
   }
 
   try {
-    const business_details_all = await user_profile_service.getBusinessDetailsByUserId(
-      req.body.user_id
-    );
+    const business_details_all =
+      await user_profile_service.getBusinessDetailsByUserId(req.body.user_id);
     if (!business_details_all.success) {
       return res.status(403).json({
         success: false,
@@ -342,9 +335,8 @@ router.put("/mobile/experience/update/", async (req, res) => {
   }
 
   try {
-    const business_details_all = await user_profile_service.getBusinessDetailsByUserId(
-      req.body.user_id
-    );
+    const business_details_all =
+      await user_profile_service.getBusinessDetailsByUserId(req.body.user_id);
     if (!business_details_all.success) {
       return res.status(403).json({
         success: false,
@@ -366,6 +358,92 @@ router.put("/mobile/experience/update/", async (req, res) => {
       success: false,
       message: "Error.",
       response: error.message,
+    });
+  }
+});
+
+router.get(
+  "/mobile/orders/user/:userId",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const userOrders = await mobile_services.getAllUserOrders(req.user.id);
+      console.log("data coming from the orders:", userOrders);
+
+      return res.send(userOrders);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+router.post("/mobile/user/business/:userId", async (req, res) => {
+  try {
+    if (!req.params.userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+    let db_user;
+
+    db_user = await user_profile_service.getUserById(req.params.userId);
+    console.log("prm", db_user);
+
+    if (!db_user.success) {
+      res.send({
+        success: false,
+        message: "Entered Passport ID is invalid.",
+      });
+    }
+
+    let details = {};
+
+    console.log("public", req.body);
+    if (req.body.type && req.body.type === "public") {
+      details = {
+        business: {},
+        success: true,
+      };
+      details.business.first_name = db_user.user.first_name;
+      details.business.last_name = db_user.user.last_name;
+      details.business.email = db_user.user.email;
+
+      details.business.business_registered_location =
+        db_user.user.business_registered_location;
+      details.business.food_business_type = db_user.user.food_business_type;
+      details.business.business_unit = db_user.user.business_unit;
+      details.business.business_street_name = db_user.user.business_street_name;
+      details.business.business_street_number =
+        db_user.user.business_street_number;
+      details.business.business_name = db_user.user.business_name;
+      details.business.business_phone_number =
+        db_user.user.business_phone_number;
+      details.business.country = db_user.user.country;
+      details.business.city = db_user.user.city;
+      details.business.state = db_user.user.state;
+      details.business.zip_postal_code = db_user.user.zip_postal_code;
+      details.business.business_image_urls = db_user.user.business_image_urls;
+      details.business.business_details_id = db_user.user.business_details_id;
+      details.business.business_details_user_id =
+        db_user.user.business_details_user_id;
+    } else {
+      details = {
+        business: db_user.user,
+        success: true,
+      };
+    }
+    console.log("details", details);
+    return res.send(details);
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).send({
+      success: false,
+      message: error.message,
     });
   }
 });
