@@ -16,6 +16,7 @@ const createNewExperience = async (
   experience_details,
   experience_images
 ) => {
+  console.log("experience_details from createNewExperience: ", experience_details)
   try {
     await db.transaction(async (trx) => {
       /* experience_details.status = "INACTIVE";

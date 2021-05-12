@@ -168,7 +168,7 @@ router.post(
                 ? item.is_halal
                 : item.dietaryRestrictions.includes("halal"),
             spice_level: item.spice_level,
-            price: item.price,
+            price: item.price ? item.price : 2,
             quantity: parseInt(item.quantity),
             food_ad_code: generateRandomString(4),
             status: "ACTIVE",
