@@ -1006,6 +1006,9 @@ router.put(
         updatedByAdmin = true;
       }
 
+      const prev_product_details = await all_product_service.getProductById(
+        req.params.food_sample_id
+      );
       const response = await food_sample_service.updateFoodSample(
         db_user,
         req.params.food_sample_id,
@@ -1013,9 +1016,6 @@ router.put(
         updatedByAdmin
       );
       res.send(response);
-      const prev_product_details = await all_product_service.getProductById(
-        req.params.food_sample_id
-      );
       const send_to_central_server =
         await auth_server_service.editProductInCentralServer(
           db_user.email,

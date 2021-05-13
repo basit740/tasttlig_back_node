@@ -368,19 +368,22 @@ router.put(
 
       let db_user = user_details_from_db.user;
 
-      /* const response = await services_service.updateService(db_user, req.body); */
-      console.log(req.body);
       const prev_service_information = await services_service.findService(
         req.body.service_id
       );
+      const response = await services_service.updateService(db_user, req.body);
+      res.send(response);
+      console.log(req.body);
       const send_to_central_server =
         await auth_service.editServiceInCentralServer(
           db_user.email,
           prev_service_information,
           req.body
         );
-      //return res.send(response);
-      return res.send({ success: false });
+      return {
+        success: true,
+      };
+      //return res.send({ success: false });
     } catch (error) {
       res.send({
         success: false,
