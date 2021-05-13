@@ -66,7 +66,7 @@ router.post(
       // }
 
       const experience_details = {
-        experience_creator_user_id: db_user.tasttlig_user_id,
+        experience_user_id: db_user.tasttlig_user_id,
         title: req.body.title,
         type: req.body.type,
         nationality_id: req.body.nationality_id,
@@ -427,7 +427,8 @@ router.post(
       const response = await experience_service.addExperienceToFestival(
         req.body.festivalId,
         req.body.ps, 
-        req.user.id
+        req.user.id,
+        user_details_from_db
       );
       console.log(response);
       if (response.success) {

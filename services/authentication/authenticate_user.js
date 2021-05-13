@@ -81,7 +81,6 @@ const userRegister = async (new_user, sendEmail = true) => {
             .catch((error) => {
               return { success: false, message: error };
             });
-          console.log("sub deets", subDetails);
           if (subDetails.success) {
             let subscription_end_datetime = null;
 
@@ -119,6 +118,7 @@ const userRegister = async (new_user, sendEmail = true) => {
               },
               async (err, emailToken) => {
                 const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
+                console.log("urlVerifyEmail", urlVerifyEmail);
 
                 await Mailer.sendMail({
                   from: process.env.SES_DEFAULT_FROM,

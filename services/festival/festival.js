@@ -36,7 +36,8 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
   }
 
   if (filters.startDate) {
-    query.where("festivals.festival_start_date", ">=", startDate);
+    query.where("festivals.festival_end_date", ">=", startDate)
+    // .where("festivals.festival_start_date", ">=", startDate);
   }
 
   if (filters.startTime) {
@@ -263,65 +264,70 @@ const createNewFestival = async (festival_details, festival_images) => {
   }
 };
 
-const updateFestival = async (data, festival_images) => {
-  console.log("body from the festival:", festival_images);
-  console.log('editing festival', data);
-  try {
-    await db.transaction(async (trx) => {
-      const db_festival = await trx("festivals")
-        .where({ festival_id: data.festival_id })
-        .update({
-          festival_name: data.festival_name,
-          festival_type: data.festival_type,
-          festival_price: data.festival_price,
-          festival_city: data.festival_city,
-          festival_start_date: data.festival_start_date,
-          festival_end_date: data.festival_end_date,
-          festival_start_time: data.festival_start_time,
-          festival_end_time: data.festival_end_time,
-          festival_description: data.festival_description,
-        })
-        .returning("*");
-
-      await trx("festival_images")
-        .where({ festival_id: data.festival_id })
-        .delete();
-
-      for (let image of festival_images) {
-        await trx("festival_images")
-          // .where({ festival_id: data.festival_id })
-          .insert({ festival_image_url: image, festival_id: data.festival_id })
-          .returning("*");
-      }
-    });
-
-    return { success: true, details: "Success." };
-  } catch (error) {
-    return { success: false, details: error.message };
-  }
-};
 
 // Add host ID to festivals table helper function
 const hostToFestival = async (
   festival_id,
   festival_host_id,
-  foodSamplePreference
+  foodSamplePreference,
+  db_user
 ) => {
   try {
     await db.transaction(async (trx) => {
       if (typeof festival_id === "object") {
         for (let item of festival_id) {
-          const db_host = await trx("festivals")
-            .where({ festival_id: item })
-            .update({
-              festival_host_id: trx.raw(
-                "array_append(festival_host_id, ?)",
-                [festival_host_id]
-              ),
-            })
-            .returning("*");
-          for (let sample of foodSamplePreference) {
-            const db_host = await trx("products")
+          // const db_host = await trx("festivals")
+          //   .where({ festival_id: item })
+          //   .update({
+          //     festival_host_id: trx.raw(
+          //       "array_append(festival_host_id, ?)",
+          //       [festival_host_id]
+          //     ),
+          //   })
+          //   .returning("*");
+            try {
+              if (db_user.role.includes("HOST"))
+            {   
+              var host_ids = await db("festivals")
+              .select("festival_host_id")
+              .where("festival_id", "=", item)
+              .then( (resp) => {return resp})
+
+              // console.log('hosts to add ', host_ids)
+
+              if(!host_ids.includes(db_user.tasttlig_user_id)) {
+                host_ids.push(db_user.tasttlig_user_id);
+                await db("festivals")
+                .where({"festival_id": festival_id})
+                .update({"festival_host_id": host_ids}) 
+              }
+            } 
+            else if (db_user.role.includes("VENDOR"))
+            {
+              var vendor_ids = await db("festivals")
+              .select("festival_vendor_id")
+              .where("festival_id", "=", item)
+              .then( (resp) => {return resp})
+
+              // console.log('vendors to add ', vendor_ids);
+
+              var vendor_ids_array = vendor_ids[0].festival_vendor_id || [];
+              // console.log('VENDOR array ', vendor_ids_array);
+              if(!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
+                vendor_ids_array.push(db_user.tasttlig_user_id);
+                await db("festivals")
+                .where({"festival_id": item})
+                .update({"festival_vendor_id": vendor_ids_array})
+              }
+            }
+            } catch (error) {
+              return {success: false}
+            }
+
+            var db_host;
+
+            for (let sample of foodSamplePreference) {
+            db_host = await trx("products")
               .where({ product_id: sample })
               .update({
                 festival_selected: trx.raw(
@@ -363,6 +369,36 @@ const hostToFestival = async (
     return { success: true, details: "Success." };
   } catch (error) {
     console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
+const updateFestival = async (data, festival_images) => {
+  try {
+    await db.transaction(async (trx) => {
+      const db_festival = await trx("festivals")
+        .where({ festival_id: data.festival_id })
+        .update({
+          festival_name: data.festival_name,
+          festival_type: data.festival_type,
+          festival_price: data.festival_price,
+          festival_city: data.festival_city,
+          festival_start_date: data.festival_start_date,
+          festival_end_date: data.festival_end_date,
+          festival_start_time: data.festival_start_time,
+          festival_end_time: data.festival_end_time,
+          festival_description: data.festival_description,
+        })
+        .returning("*");
+
+      await trx("festival_images")
+        .where({ festival_id: data.festival_id })
+        .update({ festival_image_url: festival_images[0] })
+        .returning("*");
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
     return { success: false, details: error.message };
   }
 };

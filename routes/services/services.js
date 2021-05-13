@@ -76,7 +76,7 @@ router.post(
         service_nationality_id: req.body.service_nationality_id
           ? req.body.service_nationality_id
           : null,
-        service_price: req.body.service_price,
+        service_price: req.body.service_price ? req.body.service_price : 2,
         service_capacity: req.body.service_capacity,
         service_size_scope: req.body.service_size_scope,
         service_type: req.body.service_type,
@@ -198,7 +198,8 @@ router.post(
       const response = await services_service.addServiceToFestival(
         req.body.festivalId,
         req.body.ps,
-        req.user.id
+        req.user.id,
+        user_details_from_db
       );
       console.log(response);
       if (response.success) {
@@ -259,9 +260,9 @@ router.get("/services/user/:user_id", async (req, res) => {
       req.query.keyword,
       req.query.festival
     );
-    // console.log('req from  services', req.query);
-    // console.log('fecthing services', response);
-    // console.log('fecthing service ID', req.query.user_id);
+    console.log("req from  services", req);
+    console.log("fecthing services", response);
+    console.log("fecthing service ID", req.query.user_id);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -344,7 +345,7 @@ router.post("/claim-service", async (req, res) => {
 });
 
 router.put(
-  "/service/update/:serviceid",
+  "/service/update",
   token_service.authenticateToken,
   async (req, res) => {
     if (!req.body) {
