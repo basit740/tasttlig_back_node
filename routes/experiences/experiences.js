@@ -47,6 +47,8 @@ router.post(
         });
       }
 
+      console.log("user_details_from_db from experinces/add", user_details_from_db);
+
       let createdByAdmin = false;
 
       const business_details_from_db = await authentication_service.getUserByBusinessDetails(
@@ -70,14 +72,18 @@ router.post(
         experience_business_id: createdByAdmin
           ? null
           : db_business_details.business_details_id,
+         
         experience_name: req.body.experience_name,
         experience_nationality_id: req.body.experience_nationality_id
           ? req.body.experience_nationality_id
           : null,
         experience_price: req.body.experience_price
           ? req.body.experience_price
-          : 0,
+          : 2,
         experience_capacity: req.body.experience_capacity,
+        experience_user_id: createdByAdmin
+        ? null
+        : user_details_from_db.user.tasttlig_user_id,
         experience_size_scope: req.body.experience_size_scope,
         experience_description: req.body.experience_description,
         experience_type: req.body.experience_type
@@ -270,7 +276,7 @@ router.get("/experiences/:user_id", async (req, res) => {
     const response = await experience_service.getUserExperiencesById(
       business_details_id
     );
-    console.log("response from expereiences get:", response);
+    // console.log("response from expereiences get:", response);
     return res.send(response);
   } catch (error) {
     console.log("error from expereiences get:", error);

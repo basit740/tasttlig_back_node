@@ -77,7 +77,7 @@ router.post(
         service_nationality_id: req.body.service_nationality_id
           ? req.body.service_nationality_id
           : null,
-        service_price: req.body.service_price,
+        service_price: req.body.service_price ?  req.body.service_price : 2,
         service_capacity: req.body.service_capacity,
         service_size_scope: req.body.service_size_scope,
         service_type: req.body.service_type,
@@ -94,12 +94,12 @@ router.post(
           : null,
         service_user_id: req.user.id,
       };
+      // console.log(service_central_server);
       const response = await services_service.createNewService(
         user_details_from_db,
         service_information,
         req.body.service_images
       );
-      res.send(response);
       if (response.success) {
         const service_central_server = await auth_service.createNewServiceInCentralServer(
           user_details_from_db,
@@ -107,9 +107,7 @@ router.post(
           req.body.service_images
         );
       }
-      return {
-        success: true,
-      };
+      return res.send(response);
     } catch (error) {
       console.log(error);
       res.send({
@@ -201,8 +199,9 @@ router.post(
       let result = "";
       const response = await services_service.addServiceToFestival(
         req.body.festivalId,
-        req.body.ps,
-        req.user.id
+        req.body.ps, 
+        req.user.id,
+        user_details_from_db
       );
       console.log(response);
       if (response.success) {
@@ -263,9 +262,9 @@ router.get("/services/user/:user_id", async (req, res) => {
       req.query.keyword,
       req.query.festival
     );
-    // console.log('req from  services', req.query);
-    // console.log('fecthing services', response);
-    // console.log('fecthing service ID', req.query.user_id);
+    console.log('req from  services', req);
+    console.log('fecthing services', response);
+    console.log('fecthing service ID', req.query.user_id);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -348,7 +347,7 @@ router.post("/claim-service", async (req, res) => {
 });
 
 router.put(
-  "/service/update/:serviceId",
+  "/service/update",
   token_service.authenticateToken,
   async (req, res) => {
     if (!req.body) {
@@ -373,7 +372,6 @@ router.put(
       let db_user = user_details_from_db.user;
 
       const response = await services_service.updateService(db_user, req.body);
-
       return res.send(response);
     } catch (error) {
       res.send({

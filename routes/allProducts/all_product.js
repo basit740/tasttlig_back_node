@@ -35,7 +35,7 @@ router.get("/all-products/festival/:festivalId", async (req, res) => {
       filters,
       req.params.festivalId
     );
-    console.log("response from all product:", response);
+    // console.log("response from all product:", response);
 
     return res.send(response);
   } catch (error) {
@@ -168,7 +168,7 @@ router.post(
                 ? item.is_halal
                 : item.dietaryRestrictions.includes("halal"),
             spice_level: item.spice_level,
-            price: item.price,
+            price: item.price ? item.price : 2,
             quantity: parseInt(item.quantity),
             food_ad_code: generateRandomString(4),
             status: "ACTIVE",

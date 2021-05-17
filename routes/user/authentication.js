@@ -76,7 +76,7 @@ authRouter.get("/user/confirmation/:token", async (req, res) => {
 
   try {
     const user_id = jwt.verify(req.params.token, process.env.EMAIL_SECRET).user;
-    console.log("token coming from verifying:",token)
+    // console.log("token coming from verifying:",req.params.token)
     const response = await authenticate_user_service.verifyAccount(user_id);
     console.log("success, response", response);
     res.send(response);
