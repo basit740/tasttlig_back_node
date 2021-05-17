@@ -1,3 +1,5 @@
+//adding awards table
+
 exports.up = function(knex) {
     return knex.schema.createTable("awards", table => {
     table.increments("award_id").unsigned().primary();
