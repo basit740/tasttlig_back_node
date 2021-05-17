@@ -805,7 +805,7 @@ const getAllUserOrders = async (user_id) => {
 };
 
 const getBusinessAwards = async (business_id) => {
-  /* return db("awards")
+  return db("awards")
     .select("awards.*")
     .where("business_id", business_id)
     .then((value) => {
@@ -813,7 +813,7 @@ const getBusinessAwards = async (business_id) => {
     })
     .catch((reason) => {
       return { success: false, data: reason };
-    }); */
+    });
 };
 
 module.exports = {
