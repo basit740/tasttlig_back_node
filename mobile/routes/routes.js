@@ -448,4 +448,28 @@ router.post("/mobile/user/business/:userId", async (req, res) => {
   }
 });
 
+/* router.get("/mobile/business_awards/:userId", token_service.authenticateToken, async (req, res) => {
+  try {
+    const business_details_all =
+      await user_profile_service.getBusinessDetailsByUserId(req.params.userId);
+    if (!business_details_all.success) {
+      return res.status(403).json({
+        success: false,
+        message: business_details_all.message,
+      });
+    }
+
+    const business_awards = await mobile_services.getBusinessAwards(
+      business_details_all.business_details_all.business_details_id
+    );
+
+    return res.send(business_awards);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+}); */
+
 module.exports = router;
