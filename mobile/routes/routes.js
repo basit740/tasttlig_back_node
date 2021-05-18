@@ -412,6 +412,15 @@ router.post("/mobile/user/business/:userId", async (req, res) => {
       details.business.first_name = db_user.user.first_name;
       details.business.last_name = db_user.user.last_name;
       details.business.email = db_user.user.email;
+      details.business.user_country = db_user.user.user_country;
+      details.business.user_city = db_user.user.user_city;
+      details.business.user_state = db_user.user.user_state;
+      details.business.user_zip_postal_code = db_user.user.user_zip_postal_code;
+      details.business.user_profile_image_link =
+        db_user.user.user_profile_image_link;
+      details.business.street_name = db_user.user.street_name;
+      details.business.street_number = db_user.user.street_number;
+      details.business.apartment_no = db_user.user.apartment_no;
 
       details.business.business_registered_location =
         db_user.user.business_registered_location;
