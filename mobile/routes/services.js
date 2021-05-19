@@ -9,7 +9,7 @@ const service_claim_service = require("../services/services");
 
 // POST service claim
 router.post("/all-services-claim", async (req, res) => {
-  console.log("service claim", req.body);
+  ("service claim", req.body);
   if (!req.body.food_sample_claim_user || !req.body.food_sample_id) {
     return res.status(403).json({
       success: false,
@@ -76,7 +76,6 @@ router.post("/all-services-claim", async (req, res) => {
     const product_details_from_db = await service_claim_service.findService(
       req.body.food_sample_id
     );
-    console.log("db_all_products", product_details_from_db);
 
     if (!product_details_from_db.success) {
       return res.status(403).json({
@@ -102,10 +101,8 @@ router.post("/all-services-claim", async (req, res) => {
       claimed_total_quantity,
       product_claim_details
     );
-    console.log("response", response);
     return res.send(response);
   } catch (error) {
-    console.log("error", error);
     res.send({
       success: false,
       message:

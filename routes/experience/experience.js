@@ -35,7 +35,6 @@ router.post(
         message: "Required parameters are not available in request.",
       });
     }
-    console.log("req body from experinces/add", req.body)
 
     try {
       const user_details_from_db = await user_profile_service.getUserById(
@@ -404,7 +403,6 @@ router.post(
   "/experiences/festival/:festivalId",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log(req.body);
     if (!req.body.festivalId) {
       return res.status(403).json({
         success: false,

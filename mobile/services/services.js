@@ -122,7 +122,7 @@ const createNewServiceClaim = async (
         product_claim_details.festival_id
       );
       const getFestivalEndDate = response.details[0].festival_end_date;
-      console.log("subs", subs);
+      ("subs", subs);
       subs &&
         subs.user.map((sub) => {
           if (
@@ -151,7 +151,6 @@ const createNewServiceClaim = async (
                 })
                 .returning("*")
                 .catch((reason) => {
-                  console.log(reason);
                   return { success: false, message: reason };
                 });
             };
@@ -168,7 +167,6 @@ const createNewServiceClaim = async (
 
     return { success: true, details: "Success." };
   } catch (error) {
-    console.log("error", error);
     return { success: false, details: error.message };
   }
 };

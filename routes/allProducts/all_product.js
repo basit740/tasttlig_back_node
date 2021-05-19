@@ -53,10 +53,7 @@ router.post(
   "/all-products/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log(
-      ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>im coming from all products add:",
-      req.body
-    );
+     
     try {
       req.body.map(async (item) => {
         if (
@@ -186,7 +183,6 @@ router.post(
             item.images,
             createdByAdmin
           );
-          console.log("response from adding product:", response)
           res.send(response);
           if (response.success) {
             const product_central_server = await auth_server_service.createNewProductInCentralServer(
@@ -200,7 +196,6 @@ router.post(
             success: true,
           };
         } catch (error) {
-          console.log(error);
           res.send({
             success: false,
             message: "Error.",
@@ -209,7 +204,6 @@ router.post(
         }
       });
     } catch (error) {
-      console.log("error from adding product:", error)
       res.send({
         success: false,
         message: "Error.",
@@ -261,7 +255,6 @@ router.get(
         requestByAdmin,
         festival_id
       );
-      console.log("Products details", response);
       return res.send(response);
     } catch (error) {
       res.send({
@@ -274,7 +267,6 @@ router.get(
 );
 
 router.post("/add-product-from-kodidi", async (req, res) => {
-  console.log(req.body);
   if (!req.body.all_product_details || !req.body.db_user || !req.body.images) {
     return res.status(403).json({
       success: false,
@@ -311,10 +303,8 @@ router.post("/add-product-from-kodidi", async (req, res) => {
       product_insertion,
       req.body.images
     );
-    console.log(response);
     return res.send(response);
   } catch (error) {
-    console.log("error: ", error);
     res.send({
       success: false,
       message: "Error.",

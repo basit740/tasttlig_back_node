@@ -382,6 +382,16 @@ const createHost = async (host_details, is_host, email) => {
             details: "Inserting new preference failed.",
           };
         }
+        const db_business_preference = await trx("business_details")
+          .update({"business_preference": "Host"})
+          .returning("*");
+
+          if (!db_business_preference) {
+            return {
+              success: false,
+              details: "Inserting new business preference failed.",
+            };
+          }
       } else {
         console.log(dbUser);
         //hostDto.dbUser.user.tasttlig_user_id
