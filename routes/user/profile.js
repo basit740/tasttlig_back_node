@@ -77,7 +77,7 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     business_street_name: response.user.business_street_name,
     business_unit: response.user.business_unit,
     business_registered: response.user.business_registered,
-    retail_business: response.user.retail_business, 
+    retail_business: response.user.retail_business,
     food_business_type: response.user.food_business_type,
     food_handlers_certificate: response.user.food_handlers_certificate,
     business_registered_location: response.user.business_registered_location,
@@ -96,6 +96,7 @@ router.get("/user", token_service.authenticateToken, async (req, res) => {
     preferred_country_cuisine: response.user.preferred_country_cuisine,
     food_preferences: response.user.food_preferences,
     date_of_birth: response.user.date_of_birth,
+    apartment_no: response.user.apartment_no,
   };
 
   res.status(200).json({
@@ -213,7 +214,6 @@ router.post(
       food_preferences,
       food_allergies,
       socialmedia_reference,
-
     } = req.body;
     try {
       if (!food_preferences || !food_allergies || !preferred_country_cuisine) {
@@ -239,7 +239,7 @@ router.post(
           food_preferences,
           food_allergies,
           preferred_country_cuisine,
-          socialmedia_reference
+          socialmedia_reference,
         };
 
         const response = await user_profile_service.createPreferences(
@@ -329,7 +329,7 @@ router.put("/user/update-profile/:id", async (req, res) => {
       // profile_status: req.body.profile_status,
     };
 
-    console.log("user update", req.body)
+    console.log("user update", req.body);
 
     const response = await user_profile_service.updateUserProfile(user);
 
@@ -546,9 +546,8 @@ router.put("/user/updateMenuItem", async (req, res) => {
 // POST menu items from user
 router.post("/user/addMenuItems", async (req, res) => {
   try {
-    const user_details_from_db = await authenticate_user_service.findUserByEmail(
-      req.body.email
-    );
+    const user_details_from_db =
+      await authenticate_user_service.findUserByEmail(req.body.email);
 
     if (!user_details_from_db.success) {
       return res.status(403).json({
@@ -849,7 +848,7 @@ router.post(
   "/business-passport",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("body from business passport: ", req.body)
+    console.log("body from business passport: ", req.body);
     try {
       const response = await passport_service.postBusinessPassportDetails(
         req.body
@@ -864,7 +863,7 @@ router.post(
         is_business: req.body.is_business,
         email: req.user.email,
       };
-        console.log("host_info", hostDto);
+      console.log("host_info", hostDto);
       const creatingFreeOrder = await user_order_service.createFreeOrder(
         req.body.subscriptionResponse,
         req.user.id
@@ -899,9 +898,8 @@ router.get(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      const business_details_all = await user_profile_service.getBusinessDetailsByUserId(
-        req.user.id
-      );
+      const business_details_all =
+        await user_profile_service.getBusinessDetailsByUserId(req.user.id);
       if (!business_details_all.success) {
         return res.status(403).json({
           success: false,
@@ -950,9 +948,8 @@ router.post(
             });
           }
 
-          const business_details = await authentication_service.getUserByBusinessDetails(
-            req.user.id
-          );
+          const business_details =
+            await authentication_service.getUserByBusinessDetails(req.user.id);
           if (!business_details.success) {
             return res.status(403).json({
               success: false,
@@ -1022,9 +1019,8 @@ const saveUserApplicationToSponsor = async (req, res) => {
         });
       }
 
-      const business_details = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
+      const business_details =
+        await authentication_service.getUserByBusinessDetails(req.user.id);
       if (!business_details.success) {
         return res.status(403).json({
           success: false,

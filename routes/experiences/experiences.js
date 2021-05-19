@@ -51,9 +51,8 @@ router.post(
 
       let createdByAdmin = false;
 
-      const business_details_from_db = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
+      const business_details_from_db =
+        await authentication_service.getUserByBusinessDetails(req.user.id);
       console.log("business_details_from_db", business_details_from_db);
       if (!business_details_from_db.success) {
         return res.status(403).json({
@@ -135,11 +134,12 @@ router.post(
       );
       res.send(response);
       if (response.success) {
-        const experience_central_server = await auth_server_service.createNewExperienceInCentralServer(
-          user_details_from_db,
-          experience_information,
-          req.body.experience_images
-        );
+        const experience_central_server =
+          await auth_server_service.createNewExperienceInCentralServer(
+            user_details_from_db,
+            experience_information,
+            req.body.experience_images
+          );
       }
 
       return {
@@ -157,6 +157,12 @@ router.post(
 );
 router.post("/add-experience-from-kodidi", async (req, res) => {
   //console.log(req.body);
+  if (process.env.API_ACCESS_TOKEN !== req.body.access_token) {
+    return res.status(403).json({
+      success: false,
+      message: "Access Denied",
+    });
+  }
   if (
     !req.body.all_experience_details ||
     !req.body.db_user ||
@@ -174,9 +180,10 @@ router.post("/add-experience-from-kodidi", async (req, res) => {
     //console.log("user details", user_details_from_db);
     let business_details_from_db;
     if (user_details_from_db.success) {
-      business_details_from_db = await authentication_service.getUserByBusinessDetails(
-        user_details_from_db.user.id
-      );
+      business_details_from_db =
+        await authentication_service.getUserByBusinessDetails(
+          user_details_from_db.user.id
+        );
     }
     const experience_information = req.body.all_experience_details;
     const experience_insertion = {
@@ -250,13 +257,11 @@ router.get("/experiences/:user_id", async (req, res) => {
 
   let business_details_from_db;
   if (req.params.user_id) {
-    business_details_from_db = await authentication_service.getUserByBusinessDetails(
-      req.params.user_id
-    );
+    business_details_from_db =
+      await authentication_service.getUserByBusinessDetails(req.params.user_id);
   } else {
-    business_details_from_db = await authentication_service.getUserByBusinessDetails(
-      req.params.user_id
-    );
+    business_details_from_db =
+      await authentication_service.getUserByBusinessDetails(req.params.user_id);
   }
 
   if (!business_details_from_db.success) {
