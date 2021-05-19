@@ -211,7 +211,10 @@ router.get("/vendors/festival/:festival_id", async (req, res) => {
     const response = await festival_service.getFestivalDetails(
       req.params.festival_id
     );
-    for (let item of response.details[0].festival_vendor_id) {
+
+    const uniqueHostArray = [...new Set(response.details[0].festival_vendor_id)];
+
+    for (let item of uniqueHostArray) {
       const list = await user_profile_service.getUserById(item);
 
       if (list.user) {
@@ -518,6 +521,7 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     const { festival_id } = req.body;
+    console.log("req.body from vendor-festival:", req.body)
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -529,6 +533,7 @@ router.post(
           message: user_details_from_db.message,
         });
       }
+      const db_user = user_details_from_db.user;
       const business_details = await authentication_service.getUserByBusinessDetails(
         req.user.id
       );
@@ -542,7 +547,8 @@ router.post(
 
       const response = await festival_service.hostToFestival(
         festival_id,
-        business_details.business_details.business_details_id
+        business_details.business_details.business_details_id,
+        db_user
       );
       return res.send(response);
     } catch (error) {

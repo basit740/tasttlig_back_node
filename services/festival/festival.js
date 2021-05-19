@@ -268,10 +268,11 @@ const createNewFestival = async (festival_details, festival_images) => {
 // Add host ID to festivals table helper function
 const hostToFestival = async (
   festival_id,
-  festival_host_id,
   foodSamplePreference,
   db_user
 ) => {
+  console.log(' db_user vendors to add ', db_user);
+  console.log(' db_usfoodSamplePreferenceer vendors to add ', foodSamplePreference);
   try {
     await db.transaction(async (trx) => {
       if (typeof festival_id === "object") {
@@ -304,12 +305,12 @@ const hostToFestival = async (
             } 
             else if (db_user.role.includes("VENDOR"))
             {
+
               var vendor_ids = await db("festivals")
               .select("festival_vendor_id")
               .where("festival_id", "=", item)
               .then( (resp) => {return resp})
 
-              // console.log('vendors to add ', vendor_ids);
 
               var vendor_ids_array = vendor_ids[0].festival_vendor_id || [];
               // console.log('VENDOR array ', vendor_ids_array);
@@ -325,19 +326,21 @@ const hostToFestival = async (
             }
 
             var db_host;
+            if(typeof foodSamplePreference === "Array") {
+              for (let sample of foodSamplePreference) {
+              db_host = await trx("products")
+                .where({ product_id: sample })
+                .update({
+                  festival_selected: trx.raw(
+                    "array_append(festival_selected, ?)",
+                    item
+                  ),
+                })
+                .returning("*");
+            }
+            }
 
-            for (let sample of foodSamplePreference) {
-            db_host = await trx("products")
-              .where({ product_id: sample })
-              .update({
-                festival_selected: trx.raw(
-                  "array_append(festival_selected, ?)",
-                  item
-                ),
-              })
-              .returning("*");
-          }
-          if (!db_host) {
+            if (!db_host) {
             return { success: false, details: "Inserting new host failed." };
           }
         }
@@ -394,7 +397,7 @@ const hostToFestival = async (
           }
 
 
-
+      if(typeof foodSamplePreference === "Array") {
         for (let sample of foodSamplePreference) {
           const db_host = await trx("products")
             .where({ product_id: sample })
@@ -406,6 +409,7 @@ const hostToFestival = async (
             })
             .returning("*");
         }
+      }
         if (!db_host) {
           return { success: false, details: "Inserting new host failed." };
         }

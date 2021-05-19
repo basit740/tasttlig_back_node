@@ -65,10 +65,11 @@ router.post(
           !item.sample_size ||
           !item.quantity ||
           !item.description ||
-          !item.images ||
+          !item.images
+           ||
           !item.end_time ||
-          !item.start_time ||
-          !item.nationality_id
+          !item.start_time 
+          // !item.nationality_id
         ) {
           return res.status(403).json({
             success: false,
@@ -111,18 +112,19 @@ router.post(
             product_user_id: db_user.tasttlig_user_id,
             title: item.name,
             start_time:
-              item.start_time.length === 5
+            item.start_time ? item.start_time.length === 5
                 ? item.start_time
-                : formatTime(item.start_time),
+                : formatTime(item.start_time) : null,
             end_time:
-              item.end_time.length === 5
+            item.end_time ? item.end_time.length === 5
                 ? item.end_time
-                : formatTime(item.end_time),
+                : formatTime(item.end_time) : null,
             description: item.description,
 
             nationality_id: item.nationality_id,
             product_size: item.sample_size,
             product_type: item.product_type,
+            additional_information: item.additional_information,
             is_available_on_monday:
               item.is_available_on_monday !== undefined
                 ? item.is_available_on_monday
@@ -184,6 +186,7 @@ router.post(
             item.images,
             createdByAdmin
           );
+          console.log("response from adding product:", response)
           res.send(response);
           if (response.success) {
             const product_central_server = await auth_server_service.createNewProductInCentralServer(
@@ -206,6 +209,7 @@ router.post(
         }
       });
     } catch (error) {
+      console.log("error from adding product:", error)
       res.send({
         success: false,
         message: "Error.",

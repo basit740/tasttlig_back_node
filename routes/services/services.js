@@ -82,6 +82,7 @@ router.post(
         service_size_scope: req.body.service_size_scope,
         service_type: req.body.service_type,
         service_description: req.body.service_description,
+        additional_information: req.body.additional_information,
         festivals_selected: req.body.festival_selected,
         products_selected: req.body.products_selected,
         experiences_selected: req.body.experiences_selected,
