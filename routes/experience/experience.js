@@ -563,7 +563,6 @@ router.get(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      console.log(req.query);
       const current_page = req.query.page || 1;
       const keyword = req.query.keyword || "";
       const status_operator = "!=";
