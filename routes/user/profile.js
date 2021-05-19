@@ -158,7 +158,7 @@ router.post("/user/host", token_service.authenticateToken, async (req, res) => {
   }
 });
 router.post("/user/vendor", async (req, res) => {
-  //console.log(req.body, "request body");
+  console.log( "request body from user/vendor", req);
   try {
     const hostDto = req.body;
     const response = await user_profile_service.saveHostApplication(
