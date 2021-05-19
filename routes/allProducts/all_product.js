@@ -100,9 +100,8 @@ router.post(
               });
             }
 
-            const host_details_from_db = await user_profile_service.getUserByEmail(
-              item.userEmail
-            );
+            const host_details_from_db =
+              await user_profile_service.getUserByEmail(item.userEmail);
             db_user = host_details_from_db.user;
             createdByAdmin = true;
           }
@@ -186,11 +185,12 @@ router.post(
           );
           res.send(response);
           if (response.success) {
-            const product_central_server = await auth_server_service.createNewProductInCentralServer(
-              db_user,
-              all_product_details,
-              item.images
-            );
+            const product_central_server =
+              await auth_server_service.createNewProductInCentralServer(
+                db_user,
+                all_product_details,
+                item.images
+              );
           }
           //console.log("response from food sample", response);
           return {
@@ -270,6 +270,12 @@ router.get(
 );
 
 router.post("/add-product-from-kodidi", async (req, res) => {
+  if (process.env.API_ACCESS_TOKEN !== req.body.access_token) {
+    return res.status(403).json({
+      success: false,
+      message: "Access Denied",
+    });
+  }
   console.log(req.body);
   if (!req.body.all_product_details || !req.body.db_user || !req.body.images) {
     return res.status(403).json({
@@ -284,9 +290,10 @@ router.post("/add-product-from-kodidi", async (req, res) => {
     //console.log("user details", user_details_from_db);
     let business_details_from_db;
     if (user_details_from_db.success) {
-      business_details_from_db = await authentication_service.getUserByBusinessDetails(
-        user_details_from_db.user.id
-      );
+      business_details_from_db =
+        await authentication_service.getUserByBusinessDetails(
+          user_details_from_db.user.id
+        );
     }
     //console.log(user_details_from_db);
     const product_information = req.body.all_product_details;

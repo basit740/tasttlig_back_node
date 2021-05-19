@@ -12,6 +12,7 @@ const {
   formatTime,
 } = require("../../functions/functions");
 const auth_server_service = require("../../services/authentication/auth_server_service");
+const all_product_service = require("../../services/allProducts/all_product");
 
 // Environment variables
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
@@ -74,9 +75,8 @@ router.post(
               });
             }
 
-            const host_details_from_db = await user_profile_service.getUserByEmail(
-              item.userEmail
-            );
+            const host_details_from_db =
+              await user_profile_service.getUserByEmail(item.userEmail);
             db_user = host_details_from_db.user;
             createdByAdmin = true;
           }
@@ -723,15 +723,16 @@ router.get(
         requestByAdmin = true;
       }
 
-      const response = await food_sample_service.getAllUserFoodSamplesNotInFestival(
-        req.user.id,
-        status_operator,
-        food_sample_status,
-        keyword,
-        current_page,
-        requestByAdmin,
-        festival_name
-      );
+      const response =
+        await food_sample_service.getAllUserFoodSamplesNotInFestival(
+          req.user.id,
+          status_operator,
+          food_sample_status,
+          keyword,
+          current_page,
+          requestByAdmin,
+          festival_name
+        );
 
       return res.send(response);
     } catch (error) {
@@ -768,7 +769,7 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
     );
 
     const db_products = food_sample_response.details;
-    console.log("db_products", db_products)
+    console.log("db_products", db_products);
 
     const user_details_response = await user_profile_service.getUserById(
       req.params.owner_id
@@ -817,13 +818,14 @@ router.get("/food-sample/business/:business_name", async (req, res) => {
       });
     }
 
-    const food_sample_response = await food_sample_service.getAllUserFoodSamples(
-      user.user.tasttlig_user_id,
-      status_operator,
-      food_sample_status,
-      keyword,
-      current_page
-    );
+    const food_sample_response =
+      await food_sample_service.getAllUserFoodSamples(
+        user.user.tasttlig_user_id,
+        status_operator,
+        food_sample_status,
+        keyword,
+        current_page
+      );
 
     const db_food_samples = food_sample_response.details;
 
@@ -1004,15 +1006,27 @@ router.put(
         updatedByAdmin = true;
       }
 
+      const prev_product_details = await all_product_service.getProductById(
+        req.params.food_sample_id
+      );
       const response = await food_sample_service.updateFoodSample(
         db_user,
         req.params.food_sample_id,
         req.body.food_sample_update_data,
         updatedByAdmin
       );
-
-      return res.send(response);
+      res.send(response);
+      const send_to_central_server =
+        await auth_server_service.editProductInCentralServer(
+          db_user.email,
+          prev_product_details,
+          req.body.food_sample_update_data
+        );
+      return {
+        success: true,
+      };
     } catch (error) {
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -1059,12 +1073,23 @@ router.delete("/food-sample/delete/user/:user_id", async (req, res) => {
     });
   }
   try {
+    console.log(req.body.delete_items);
+    const user = await user_profile_service.getUserById(req.params.user_id);
     const response = await food_sample_service.deleteFoodSamplesFromUser(
       req.params.user_id,
       req.body.delete_items
     );
-    return res.send(response);
+    res.send(response);
+    const delete_central_server =
+      await auth_server_service.deleteProductInCentralServer(
+        user.user.email,
+        req.body.delete_items
+      );
+    return {
+      success: true,
+    };
   } catch (error) {
+    console.log(error);
     res.send({
       success: false,
       message: "Error.",
