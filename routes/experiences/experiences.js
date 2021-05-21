@@ -15,6 +15,7 @@ router.post(
   "/experiences/add",
   token_service.authenticateToken,
   async (req, res) => {
+    console.log("req.body from /experiences/add'", req.body)
     if (
       !req.body.experience_name ||
       //!req.body.experience_nationality_id ||
@@ -96,7 +97,7 @@ router.post(
         additional_information: req.body.additional_information
           ? req.body.additional_information
           : null,
-
+        experience_owner_type: req.body.experience_owner_type,
         festival_selected:
           req.body.festival_selected &&
           Array.isArray(req.body.festival_selected)

@@ -173,6 +173,7 @@ router.post(
             festival_selected: item.festivals,
             claimed_total_quantity: 0,
             redeemed_total_quantity: 0,
+            product_owner_type: item.product_owner_type,
           };
           // adding product to central server
 
