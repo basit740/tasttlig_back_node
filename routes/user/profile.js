@@ -182,7 +182,7 @@ router.post("/user/vendor", async (req, res) => {
 });
 
 router.post("/user/sponsor", async (req, res) => {
-  //console.log(req.body, "request body");
+  console.log( "request body from sponsor test: ",req.body);
   try {
     const hostDto = req.body;
     const response = await user_profile_service.saveHostApplication(

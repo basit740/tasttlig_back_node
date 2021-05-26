@@ -196,10 +196,12 @@ const getAllVendorApplications = async () => {
     declineReason, Details
   ) => {
     try {
-      console.log("here DB entry");
     //   console.log(preference);
-      console.log("DB user" , userId);
-      console.log(Details)
+      console.log("userId from approveOrDeclineHostVendorApplication: " , userId);
+      console.log("status from approveOrDeclineHostVendorApplication: " , status);
+      console.log("declineReason from approveOrDeclineHostVendorApplication: " , declineReason);
+      console.log("Details from approveOrDeclineHostVendorApplication: " , Details);
+
       const db_user_row = await getUserById(userId);
     //   console.log("got db user")
       const db_user = db_user_row.user;
@@ -249,6 +251,19 @@ const getAllVendorApplications = async () => {
                 .catch((reason) => {
                     return { success: false, message: reason };
                 });
+
+          // STEP 6: Email the user that their application is approved
+              await Mailer.sendMail({
+                from: process.env.SES_DEFAULT_FROM,
+                to: db_user.email,
+                subject: `[Tasttlig] Your request for upgradation to ${preference} is accepted`,
+                template: "user_upgrade_approve",
+                context: {
+                  first_name: db_user.first_name,
+                  last_name: db_user.last_name,
+                  role_name: preference,
+                },
+              });
             }
         }
         else if(preference=='Host'){
@@ -309,6 +324,22 @@ const getAllVendorApplications = async () => {
             .catch((reason) => {
                 return { success: false, message: reason };
             });
+
+
+          // STEP 6: Email the user that their application is approved
+        // STEP 4: Notify user their application is rejected
+          await Mailer.sendMail({
+            from: process.env.SES_DEFAULT_FROM,
+            to: db_user.email,
+            subject: `[Tasttlig] Your request for upgradation to ${preference} is rejected`,
+            template: "user_upgrade_reject",
+            context: {
+              first_name: db_user.first_name,
+              last_name: db_user.last_name,
+              declineReason,
+            },
+          });
+
         }
         if(preference=='Host') 
         {

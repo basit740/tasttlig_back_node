@@ -37,6 +37,101 @@ router.get(
     }
   }
 );
+
+router.get(
+  "/all-sponsor-applications",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const applications = await sponsor_service.getAllSponsorApplications();
+      console.log("response from app sponsor applications:", applications)
+      return res.send(applications);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+router.get(
+  "/sponsor-application/:userId",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const applications = await sponsor_service.getSponsorApplicantDetails(
+        req.params.userId
+      );
+
+      return res.send(applications);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+  // POST vendor approval from admin
+  router.post(
+    "/sponsor-applications/:userId/approve",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        console.log("here rest");
+        const Details = await sponsor_service.getSponsorApplicantDetails(
+          req.params.userId
+        );
+  
+  
+        const response = await sponsor_service.approveOrDeclineSponsorApplication(
+          req.params.userId,
+          "APPROVED",
+          "",
+          Details
+        );
+        console.log("response sponsor-applications after approval:", response)
+  
+        return res.send(response);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+
+
+  // POST vend application decline from admin
+  router.post(
+    "/sponsor-upgrade-applications/:userId/decline",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const Details = await sponsor_service.getSponsorApplicantDetails(
+            req.params.userId
+          );
+  
+        const response = await sponsor_service.approveOrDeclineSponsorApplication(
+          req.params.userId,
+          "DECLINED",
+          req.body.declineReason, Details
+        );
+  
+        return res.send(response);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+
+
 router.get(
   "/sponsor/inKind/user/:userId",
   token_service.authenticateToken,

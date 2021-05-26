@@ -141,7 +141,7 @@ router.post(
 
 
   // POST vendor approval from admin
-router.post(
+  router.post(
     "/vendor-applications/:userId/approve",
     token_service.authenticateToken,
     async (req, res) => {
