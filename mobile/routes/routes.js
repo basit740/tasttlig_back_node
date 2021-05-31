@@ -487,4 +487,45 @@ router.get(
   }
 );
 
+router.post("/mobile/attend-festival/:userId", async (req, res) => {
+  try {
+    if (!req.params.userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+    let db_user;
+
+    db_user = await user_profile_service.getUserById(req.params.userId);
+
+    if (!db_user.success) {
+      res.send({
+        success: false,
+        message: "Entered User ID is invalid.",
+      });
+    }
+
+    const response = await mobile_services.attendFestival(
+      db_user.user.tasttlig_user_id,
+      db_user.user.email,
+      req.body.festival_id
+    );
+
+    if (response.success) {
+      return res.send({
+        success: true,
+      });
+    } else {
+      return res.send(response);
+    }
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;

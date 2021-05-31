@@ -14,6 +14,7 @@ const {
 } = require("../../functions/functions");
 // Environment variables
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
+const moment = require("moment");
 
 const userCanClaimService = async (email, food_sample_id) => {
   try {
@@ -816,6 +817,84 @@ const getBusinessAwards = async (business_id) => {
     });
 };
 
+const attendFestival = async (user_id, user_email, festival_id) => {
+  try {
+    const festival = await festival_service.getFestivalDetails(festival_id);
+
+    await db.transaction(async (trx) => {
+      const db_guest = await trx("festivals")
+        .where({ festival_id: festival.details[0].festival_id })
+        .update({
+          festival_user_guest_id: trx.raw(
+            "array_append(festival_user_guest_id, ?)",
+            [user_id]
+          ),
+        })
+        .returning("*");
+
+      if (!db_guest) {
+        return { success: false, details: "Inserting guest failed." };
+      }
+    });
+
+    // Email to user on successful purchase
+    await Mailer.sendMail({
+      from: process.env.SES_DEFAULT_FROM,
+      to: user_email,
+      bcc: ADMIN_EMAIL,
+      subject: "[Tasttlig] Festival Attendance Successful",
+      template: "festival/attend_festival",
+      context: {
+        title: festival.details[0].festival_name,
+        items: [
+          {
+            title: festival.details[0].festival_name,
+            address: festival.details[0].festival_city,
+            day: moment(
+              moment(
+                new Date(festival.details[0].festival_start_date)
+                  .toISOString()
+                  .split("T")[0] +
+                  "T" +
+                  festival.details[0].festival_start_time +
+                  ".000Z"
+              ).add(new Date().getTimezoneOffset(), "m")
+            ).format("MMM Do YYYY"),
+            time:
+              moment(
+                moment(
+                  new Date(festival.details[0].festival_start_date)
+                    .toISOString()
+                    .split("T")[0] +
+                    "T" +
+                    festival.details[0].festival_start_time +
+                    ".000Z"
+                ).add(new Date().getTimezoneOffset(), "m")
+              ).format("hh:mm a") +
+              " - " +
+              moment(
+                moment(
+                  new Date(festival.details[0].festival_start_date)
+                    .toISOString()
+                    .split("T")[0] +
+                    "T" +
+                    festival.details[0].festival_end_time +
+                    ".000Z"
+                ).add(new Date().getTimezoneOffset(), "m")
+              ).format("hh:mm a"),
+            quantity: 1,
+          },
+        ],
+      },
+    });
+
+    return { success: true, details: "Success" };
+  } catch (error) {
+    console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
 module.exports = {
   userCanClaimService,
   findService,
@@ -833,4 +912,5 @@ module.exports = {
   updateService,
   getAllUserOrders,
   getBusinessAwards,
+  attendFestival,
 };
