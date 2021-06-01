@@ -195,7 +195,6 @@ router.get("/hosts/festival/:festival_id", async (req, res) => {
   }
 });
 
-
 // GET vendors in specific festival
 router.get("/vendors/festival/:festival_id", async (req, res) => {
   if (!req.params.festival_id) {
@@ -212,7 +211,9 @@ router.get("/vendors/festival/:festival_id", async (req, res) => {
       req.params.festival_id
     );
 
-    const uniqueHostArray = [...new Set(response.details[0].festival_vendor_id)];
+    const uniqueHostArray = [
+      ...new Set(response.details[0].festival_vendor_id),
+    ];
 
     for (let item of uniqueHostArray) {
       const list = await user_profile_service.getUserById(item);
@@ -446,11 +447,8 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     console.log("everything coming from host festival:", req.body);
-    const {
-      festival_id,
-      festival_restaurant_host_id,
-      foodSamplePreference,
-    } = req.body;
+    const { festival_id, festival_restaurant_host_id, foodSamplePreference } =
+      req.body;
 
     try {
       const user_details_from_db = await user_profile_service.getUserById(
@@ -474,6 +472,7 @@ router.post(
 
       return res.send(response);
     } catch (error) {
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -517,11 +516,34 @@ router.post(
 );
 
 router.post(
+  "/business/festival/add",
+  token_service.authenticateToken,
+  async (req, res) => {
+    const festival_id = req.body.festival_id;
+    const business_details_id = req.body.business_details_id;
+    console.log("req.body from /business/add", req.body);
+    try {
+      const response = await festival_service.addBusinessToFestival(
+        festival_id,
+        business_details_id
+      );
+      return res.send(response);
+    } catch (error) {
+      console.log(error);
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
+router.post(
   "/vendor-festival",
   token_service.authenticateToken,
   async (req, res) => {
     const { festival_id } = req.body;
-    console.log("req.body from vendor-festival:", req.body)
+    console.log("req.body from vendor-festival:", req.body);
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -534,9 +556,8 @@ router.post(
         });
       }
       const db_user = user_details_from_db.user;
-      const business_details = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
+      const business_details =
+        await authentication_service.getUserByBusinessDetails(req.user.id);
       console.log(business_details);
       if (!business_details.success) {
         return res.status(403).json({
