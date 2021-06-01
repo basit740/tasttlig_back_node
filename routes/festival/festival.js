@@ -521,11 +521,12 @@ router.post(
   async (req, res) => {
     const festival_id = req.body.festival_id;
     const business_details_id = req.body.business_details_id;
+    const user_id = req.body.user_id;
     console.log("req.body from /business/add", req.body);
     try {
       const response = await festival_service.addBusinessToFestival(
         festival_id,
-        business_details_id
+        user_id
       );
       return res.send(response);
     } catch (error) {

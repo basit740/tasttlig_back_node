@@ -425,7 +425,7 @@ const hostToFestival = async (
   }
 };
 
-const addBusinessToFestival = async (festival_id, business_id) => {
+const addBusinessToFestival = async (festival_id, user_id) => {
   try {
     await db.transaction(async (trx) => {
       if (typeof festival_id === "object") {
@@ -437,8 +437,8 @@ const addBusinessToFestival = async (festival_id, business_id) => {
               return resp;
             });
           let vendor_id_array = vendor_id[0].festival_vendor_id || [];
-          if (!vendor_id_array.includes(business_id)) {
-            vendor_id_array.push(business_id);
+          if (!vendor_id_array.includes(user_id)) {
+            vendor_id_array.push(user_id);
             await db("festivals")
               .where({ festival_id: item })
               .update({ festival_vendor_id: vendor_id_array });
