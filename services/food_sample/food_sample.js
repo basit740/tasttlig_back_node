@@ -139,8 +139,6 @@ const getAllUserFoodSamples = async (
   requestByAdmin = false,
   festival_name = ""
 ) => {
-
-
   const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
   const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
   let query = db
@@ -166,11 +164,7 @@ const getAllUserFoodSamples = async (
       "products.festival_selected[1]",
       "festivals.festival_id"
     )
-    .leftJoin(
-      "nationalities", 
-      "products.nationality_id",
-       "nationalities.id"
-       )
+    .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .groupBy("products.product_id")
     .groupBy("festivals.festival_id")
     .groupBy("nationalities.nationality")
@@ -225,11 +219,9 @@ const getAllUserFoodSamples = async (
 
   return await query
     .then((value) => {
-      console.log("value", value)
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("reason", reason)
       return { success: false, details: reason };
     });
 };
@@ -243,8 +235,6 @@ const getproductOwnerInfo = async (
   requestByAdmin = false,
   festival_name = ""
 ) => {
-
-
   const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
   const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
   let query = db
@@ -270,18 +260,14 @@ const getproductOwnerInfo = async (
       "products.festival_selected[1]",
       "festivals.festival_id"
     )
+    .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .leftJoin(
-      "nationalities", 
-      "products.nationality_id",
-       "nationalities.id"
-       )
-    .leftJoin(
-    "business_details",
-    "products.product_user_id",
-    "business_details.business_details_user_id"
-  )
+      "business_details",
+      "products.product_user_id",
+      "business_details.business_details_user_id"
+    )
     .where("products.product_user_id", "=", user_id)
-    
+
     .groupBy("products.product_id")
     .groupBy("festivals.festival_id")
     .groupBy("business_details.business_details_id")
@@ -337,11 +323,11 @@ const getproductOwnerInfo = async (
 
   return await query
     .then((value) => {
-      console.log("value", value)
+      console.log("value", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("reason", reason)
+      console.log("reason", reason);
       return { success: false, details: reason };
     });
 };
@@ -417,7 +403,7 @@ const updateFoodSample = async (
   updatedByAdmin
 ) => {
   const { images, ...food_sample_update_data } = update_data;
-  console.log('product data', update_data);
+  console.log("product data", update_data);
   if (!food_sample_update_data.status) {
     food_sample_update_data.status = "ACTIVE";
   }
@@ -442,8 +428,8 @@ const updateFoodSample = async (
         title: food_sample_update_data.title,
         product_size: food_sample_update_data.sample_size,
         quantity: food_sample_update_data.quantity,
-        spice_level: food_sample_update_data.spice_level,  
-        description:food_sample_update_data.description ,
+        spice_level: food_sample_update_data.spice_level,
+        description: food_sample_update_data.description,
         start_time: food_sample_update_data.start_time,
         end_time: food_sample_update_data.end_time,
         nationality_id: food_sample_update_data.nationality_id,
@@ -453,19 +439,20 @@ const updateFoodSample = async (
         is_gluten_free: food_sample_update_data.is_gluten_free,
         is_halal: food_sample_update_data.is_halal,
         is_available_on_monday: food_sample_update_data.is_available_on_monday,
-        is_available_on_tuesday: food_sample_update_data.is_available_on_tuesday,
-        is_available_on_wednesday: food_sample_update_data.is_available_on_wednesday,
-        is_available_on_thursday: food_sample_update_data.is_available_on_thursday,
+        is_available_on_tuesday:
+          food_sample_update_data.is_available_on_tuesday,
+        is_available_on_wednesday:
+          food_sample_update_data.is_available_on_wednesday,
+        is_available_on_thursday:
+          food_sample_update_data.is_available_on_thursday,
         is_available_on_friday: food_sample_update_data.is_available_on_friday,
-        is_available_on_saturday: food_sample_update_data.is_available_on_saturday,
+        is_available_on_saturday:
+          food_sample_update_data.is_available_on_saturday,
         is_available_on_sunday: food_sample_update_data.is_available_on_sunday,
-        
       });
 
     if (images && images.length) {
-      await db("product_images")
-        .where("product_id", product_id)
-        .del();
+      await db("product_images").where("product_id", product_id).del();
 
       await db("product_images").insert(
         images.map((product_image_url) => ({

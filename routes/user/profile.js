@@ -137,12 +137,17 @@ const extractFile = (requestBody, key, text) => {
 // POST application from multi-step form
 router.post("/user/host", token_service.authenticateToken, async (req, res) => {
   console.log(req.body);
-  console.log(req.user);
+  let user;
+  if (req.user.role.includes("ADMIN")) {
+    user = await user_profile_service.getUserByEmail(req.body.email);
+  } else {
+    user = req.user;
+  }
   try {
     const hostDto = req.body;
     const response = await user_profile_service.saveHostApplication(
       hostDto,
-      req.user
+      user
     );
 
     if (response.success) {
@@ -159,7 +164,7 @@ router.post("/user/host", token_service.authenticateToken, async (req, res) => {
   }
 });
 router.post("/user/vendor", async (req, res) => {
-  console.log( "request body from user/vendor", req);
+  console.log("request body from user/vendor", req);
   try {
     const hostDto = req.body;
     const response = await user_profile_service.saveHostApplication(
@@ -182,7 +187,7 @@ router.post("/user/vendor", async (req, res) => {
 });
 
 router.post("/user/sponsor", async (req, res) => {
-  console.log( "request body from sponsor test: ",req.body);
+  console.log("request body from sponsor test: ", req.body);
   try {
     const hostDto = req.body;
     const response = await user_profile_service.saveHostApplication(

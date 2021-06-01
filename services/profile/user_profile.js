@@ -20,8 +20,14 @@ const EMAIL_SECRET = process.env.EMAIL_SECRET;
 const getUserById = async (id) => {
   console.log("id from here:", id);
   return await db
-    .select("tasttlig_users.*", "business_details.*", db.raw("ARRAY_AGG(roles.role) as role"),
-    db.raw("ARRAY_AGG(business_details_images.business_details_logo) as business_image_urls"))
+    .select(
+      "tasttlig_users.*",
+      "business_details.*",
+      db.raw("ARRAY_AGG(roles.role) as role"),
+      db.raw(
+        "ARRAY_AGG(business_details_images.business_details_logo) as business_image_urls"
+      )
+    )
     .from("tasttlig_users")
     .leftJoin(
       "user_role_lookup",
@@ -29,7 +35,7 @@ const getUserById = async (id) => {
       "user_role_lookup.user_id"
     )
     .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
-   
+
     .leftJoin(
       "business_details",
       "tasttlig_users.tasttlig_user_id",
@@ -299,14 +305,18 @@ const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
 
 // Save business information to business details table helper function
 const saveBusinessForUser = async (hostDto, user_id) => {
+  console.log(hostDto);
   return await db.transaction(async (trx) => {
     const businessInfo = {
       business_details_user_id: user_id,
       //business_type: hostDto.service_provider,
       business_name: hostDto.business_name,
       //ethnicity_of_restaurant: hostDto.culture,
-      business_address_1: hostDto.business_address_1,
+      business_street_name: hostDto.business_street_name,
+      business_street_number: hostDto.business_street_number,
+      business_unit: hostDto.business_unit,
       city: hostDto.city,
+      business_type: hostDto.business_type,
       state: hostDto.state,
       zip_postal_code: hostDto.zip_postal_code,
       country: hostDto.country,
@@ -334,6 +344,13 @@ const saveBusinessForUser = async (hostDto, user_id) => {
     } else {
       response = await trx("business_details")
         .insert(businessInfo)
+        .returning("*");
+      console.log(response);
+      const insertImage = await trx("business_details_images")
+        .insert({
+          business_details_id: response[0].business_details_id,
+          business_details_logo: hostDto.logo[0],
+        })
         .returning("*");
     }
     console.log(response);
@@ -1374,8 +1391,7 @@ const createPreferences = async (preference_details, user_id) => {
         food_allergies: preference_details["food_allergies"],
         preferred_country_cuisine:
           preference_details["preferred_country_cuisine"],
-          socialmedia_reference:
-          preference_details["socialmedia_reference"],
+        socialmedia_reference: preference_details["socialmedia_reference"],
       })
       .returning("*")
       .then((value) => {
