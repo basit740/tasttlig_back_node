@@ -321,7 +321,6 @@ router.post("/food-sample/noUser/add", async (req, res) => {
           festival_id: item.addToFestival ? 2 : null,
           festival_selected: item.festivals,
         };
-        console.log("req from food sample,", food_sample_details);
 
         const response = await food_sample_service.createNewFoodSample(
           db_user,

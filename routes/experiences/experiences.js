@@ -131,7 +131,9 @@ router.post(
       const response = await experience_service.createNewExperience(
         user_details_from_db,
         experience_information,
-        req.body.experience_images
+        req.body.experience_images,
+        req.body.sponsorType,
+
       );
       res.send(response);
       if (response.success) {

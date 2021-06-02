@@ -11,7 +11,8 @@ const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const createNewService = async (
   user_details_from_db,
   service_information,
-  service_images
+  service_images,
+  sponsorType
 ) => {
   try {
     service_information.claimed_total_quantity = 0;
@@ -76,6 +77,22 @@ const createNewService = async (
         },
       });
     });
+
+    if (sponsorType === true && !user_details_from_db.user.role.includes("SPONSOR")) {
+      // Get role code of new role to be added
+      const new_role_code = await trx("roles")
+      .select()
+      .where({ role: "SPONSOR" })
+      .then((value) => {
+        return value[0].role_code;
+      });
+
+    // Insert new role for this user
+     await trx("user_role_lookup").insert({
+        user_id: user_details_from_db.user.tasttlig_user_id,
+        role_code: new_role_code,
+      });
+ }
 
     return { success: true, details: "Success." };
   } catch (error) {
@@ -143,12 +160,12 @@ const addServiceToFestival = async (
           .from("services")
           .where("service_id", "=", service_id);
         console.log(query);
-        if (query[0].service_festival_id) {
+        if (query[0].festivals_selected) {
           const db_service = await trx("services")
             .where({ service_id })
             .update({
               festivals_selected: trx.raw(
-                "array_append(service_festivals_selected, ?)",
+                "array_append(festivals_selected, ?)",
                 [festival_id]
               ),
             })
@@ -525,6 +542,7 @@ const claimService = async (db_user, service_id) => {
 // Update service helper function
 const updateService = async (db_user, data) => {
   const { service_images, ...service_update_data } = data;
+  console.log("service_update_data coming from the update service >>>>>>>>>>>", service_update_data)
   service_update_data.service_user_id = db_user.tasttlig_user_id;
   if (service_update_data.service_festivals_id === "") {
     service_update_data.service_festivals_id = [];
@@ -537,7 +555,7 @@ const updateService = async (db_user, data) => {
     service_update_data.service_festivals_id = [];
   }
 
-  updateData.service_festivals_id = data.service_festival_id;
+  updateData.festivals_selected = data.service_festival_id;
 
   try {
     if (Array.isArray(data.service_id)) {
@@ -552,7 +570,7 @@ const updateService = async (db_user, data) => {
         .update(updateData);
 
       // for each festival
-      updateData.service_festivals_id.map(async (festival_id) => {
+      updateData.festivals_selected.map(async (festival_id) => {
         try {
           if (db_user.role.includes("HOST")) {
             var host_ids = await db("festivals")
@@ -616,47 +634,47 @@ const updateService = async (db_user, data) => {
       }
 
       // for each festival
-      updateData.service_festivals_id.map(async (festival_id) => {
-        try {
-          if (db_user.role.includes("HOST")) {
-            var host_ids = await db("festivals")
-              .select("festival_host_id")
-              .where("festival_id", "=", festival_id)
-              .then((resp) => {
-                return resp;
-              });
+      // updateData.festivals_selected.map(async (festival_id) => {
+      //   try {
+      //     if (db_user.role.includes("HOST")) {
+      //       var host_ids = await db("festivals")
+      //         .select("festival_host_id")
+      //         .where("festival_id", "=", festival_id)
+      //         .then((resp) => {
+      //           return resp;
+      //         });
 
-            // console.log('hosts to add ', host_ids)
+      //       // console.log('hosts to add ', host_ids)
 
-            if (!host_ids.includes(db_user.tasttlig_user_id)) {
-              host_ids.push(db_user.tasttlig_user_id);
-              await db("festivals")
-                .where({ festival_id: festival_id })
-                .update({ festival_host_id: host_ids });
-            }
-          } else if (db_user.role.includes("VENDOR")) {
-            var vendor_ids = await db("festivals")
-              .select("festival_vendor_id")
-              .where("festival_id", "=", festival_id)
-              .then((resp) => {
-                return resp;
-              });
+      //       if (!host_ids.includes(db_user.tasttlig_user_id)) {
+      //         host_ids.push(db_user.tasttlig_user_id);
+      //         await db("festivals")
+      //           .where({ festival_id: festival_id })
+      //           .update({ festival_host_id: host_ids });
+      //       }
+      //     } else if (db_user.role.includes("VENDOR")) {
+      //       var vendor_ids = await db("festivals")
+      //         .select("festival_vendor_id")
+      //         .where("festival_id", "=", festival_id)
+      //         .then((resp) => {
+      //           return resp;
+      //         });
 
-            // console.log('vendors to add ', vendor_ids);
+      //       // console.log('vendors to add ', vendor_ids);
 
-            var vendor_ids_array = vendor_ids[0].festival_vendor_id || [];
-            // console.log('VENDOR array ', vendor_ids_array);
-            if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
-              vendor_ids_array.push(db_user.tasttlig_user_id);
-              await db("festivals")
-                .where({ festival_id: festival_id })
-                .update({ festival_vendor_id: vendor_ids_array });
-            }
-          }
-        } catch (error) {
-          return { success: false };
-        }
-      });
+      //       var vendor_ids_array = vendor_ids[0].festival_vendor_id || [];
+      //       // console.log('VENDOR array ', vendor_ids_array);
+      //       if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
+      //         vendor_ids_array.push(db_user.tasttlig_user_id);
+      //         await db("festivals")
+      //           .where({ festival_id: festival_id })
+      //           .update({ festival_vendor_id: vendor_ids_array });
+      //       }
+      //     }
+      //   } catch (error) {
+      //     return { success: false };
+      //   }
+      // });
 
       return { success: true };
     }

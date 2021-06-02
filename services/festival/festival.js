@@ -269,7 +269,8 @@ const createNewFestival = async (festival_details, festival_images) => {
 const hostToFestival = async (
   festival_id,
   foodSamplePreference,
-  db_user
+  db_user,
+  applicationType
 ) => {
   console.log(' db_user vendors to add ', db_user);
   console.log(' db_usfoodSamplePreferenceer vendors to add ', foodSamplePreference);
@@ -287,7 +288,7 @@ const hostToFestival = async (
           //   })
           //   .returning("*");
             try {
-              if (db_user.role.includes("HOST"))
+              if (db_user.role.includes("HOST") && applicationType === "Host")
             {   
               var host_ids = await db("festivals")
               .select("festival_host_id")
@@ -303,8 +304,10 @@ const hostToFestival = async (
                 .update({"festival_host_id": host_ids}) 
               }
             } 
-            else if (db_user.role.includes("VENDOR"))
+            else if (db_user.role.includes("VENDOR") || db_user.role.includes("BUSINESS_MEMBER") && applicationType === "Vendor") 
+            // && !db_user.role.includes("HOST") && !db_user.role.includes("HOST_PENDING"))
             {
+              console.log('im coming from vendor option  ', db_user.role)
 
               var vendor_ids = await db("festivals")
               .select("festival_vendor_id")
@@ -320,6 +323,24 @@ const hostToFestival = async (
                 .where({"festival_id": item})
                 .update({"festival_vendor_id": vendor_ids_array})
               }
+
+              if (!db_user.role.includes("VENDOR"))
+              {
+                console.log('im coming from vendor option coming from not vendor option>>>>  ', db_user.role)
+                  // Get role code of new role to be added
+                const new_role_code = await trx("roles")
+                .select()
+                .where({ role: "VENDOR" })
+                .then((value) => {
+                    return value[0].role_code;
+                });
+
+                   // Insert new role for this user
+               await trx("user_role_lookup").insert({
+                user_id: db_user.tasttlig_user_id,
+                role_code: new_role_code,
+                });
+                }
             }
             } catch (error) {
               return {success: false}
@@ -339,6 +360,7 @@ const hostToFestival = async (
                 .returning("*");
             }
             }
+
 
             if (!db_host) {
             return { success: false, details: "Inserting new host failed." };
@@ -453,8 +475,9 @@ const updateFestival = async (data, festival_images) => {
 };
 
 // Add sponsor to festivals table helper function
-const sponsorToFestival = async (festival_id, festival_business_sponsor_id) => {
+const sponsorToFestival = async (festival_id, festival_business_sponsor_id, db_user) => {
   try {
+    let role = db_user.user.role;
     await db.transaction(async (trx) => {
       const db_sponsor_festival = await trx("festivals")
         .where({ festival_id })
@@ -466,9 +489,26 @@ const sponsorToFestival = async (festival_id, festival_business_sponsor_id) => {
         })
         .returning("*");
 
-      if (!db_sponsor_festival) {
-        return { success: false, details: "Inserting new sponsor failed." };
-      }
+        if (!db_sponsor_festival) {
+         return { success: false, details: "Inserting new sponsor failed." };
+        }
+        if(!role.includes('SPONSOR'))
+        {
+          // Get role code of new role to be added
+          const new_role_code = await trx("roles")
+          .select()
+          .where({ role: "SPONSOR" })
+          .then((value) => {
+            return value[0].role_code;
+          });
+
+        // Insert new role for this user
+         await trx("user_role_lookup").insert({
+            user_id: db_user.user.tasttlig_user_id,
+            role_code: new_role_code,
+          });
+        }
+
     });
 
     return { success: true, details: "Success." };

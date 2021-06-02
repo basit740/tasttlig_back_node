@@ -181,8 +181,10 @@ router.post(
             db_user,
             all_product_details,
             item.images,
-            createdByAdmin
+            createdByAdmin,
+            item.sponsorType,
           );
+          console.log("response coming from all product right now:", response)
           res.send(response);
           if (response.success) {
             const product_central_server =

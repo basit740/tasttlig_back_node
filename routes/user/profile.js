@@ -136,8 +136,8 @@ const extractFile = (requestBody, key, text) => {
 
 // POST application from multi-step form
 router.post("/user/host", token_service.authenticateToken, async (req, res) => {
-  console.log(req.body);
-  console.log(req.user);
+  console.log("req.body from user/host", req.body);
+  console.log("req.user from user/host", req.user);
   try {
     const hostDto = req.body;
     const response = await user_profile_service.saveHostApplication(

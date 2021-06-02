@@ -14,9 +14,11 @@ const SITE_BASE = process.env.SITE_BASE;
 const createNewExperience = async (
   db_user,
   experience_details,
-  experience_images
+  experience_images,
+  sponsorType
 ) => {
   console.log("experience_details from createNewExperience: ", experience_details)
+  let user_role_object = db_user.user.role;
   try {
     console.log('EXPERIENCE USER DETAILS.......',experience_details );
     await db.transaction(async (trx) => {
@@ -131,6 +133,21 @@ const createNewExperience = async (
       //}
     });
 
+    if (sponsorType === true && !user_role_object.includes("SPONSOR")) {
+      // Get role code of new role to be added
+      const new_role_code = await trx("roles")
+      .select()
+      .where({ role: "SPONSOR" })
+      .then((value) => {
+        return value[0].role_code;
+      });
+
+    // Insert new role for this user
+     await trx("user_role_lookup").insert({
+        user_id: db_user.user.tasttlig_user_id,
+        role_code: new_role_code,
+      });
+ }
     return { success: true, details: "Success." };
   } catch (error) {
     console.log("*******err", error);

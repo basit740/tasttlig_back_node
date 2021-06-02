@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
+const { compareSync } = require("bcrypt");
 
 router.get("/festival/landing-page", async (req, res) => {
   try {
@@ -469,7 +470,8 @@ router.post(
         festival_id,
         festival_restaurant_host_id,
         foodSamplePreference,
-        db_user
+        db_user,
+        "Host"
       );
 
       return res.send(response);
@@ -500,10 +502,12 @@ router.post(
           message: user_details_from_db.message,
         });
       }
+      console.log("user id from the sponsor to festival:", user_details_from_db)
 
       const response = await festival_service.sponsorToFestival(
         festival_id,
-        festival_business_sponsor_id
+        festival_business_sponsor_id,
+        user_details_from_db
       );
       return res.send(response);
     } catch (error) {
@@ -537,7 +541,7 @@ router.post(
       const business_details = await authentication_service.getUserByBusinessDetails(
         req.user.id
       );
-      console.log(business_details);
+      console.log("business_details from the vendor-festival");
       if (!business_details.success) {
         return res.status(403).json({
           success: false,
@@ -548,7 +552,8 @@ router.post(
       const response = await festival_service.hostToFestival(
         festival_id,
         business_details.business_details.business_details_id,
-        db_user
+        db_user,
+        "Vendor"
       );
       return res.send(response);
     } catch (error) {

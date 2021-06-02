@@ -98,7 +98,8 @@ router.post(
       const response = await services_service.createNewService(
         user_details_from_db,
         service_information,
-        req.body.service_images
+        req.body.service_images,
+        req.body.sponsorType
       );
       if (response.success) {
         const service_central_server =
@@ -262,9 +263,7 @@ router.get("/services/user/:user_id", async (req, res) => {
       req.query.keyword,
       req.query.festival
     );
-    console.log("req from  services", req);
-    console.log("fecthing services", response);
-    console.log("fecthing service ID", req.query.user_id);
+   
     return res.send(response);
   } catch (error) {
     res.send({
