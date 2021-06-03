@@ -267,7 +267,6 @@ const createNewFestival = async (festival_details, festival_images) => {
 // Add host ID to festivals table helper function
 const hostToFestival = async (
   festival_id,
-  festival_restaurant_host_id,
   foodSamplePreference,
   db_user,
   applicationType
