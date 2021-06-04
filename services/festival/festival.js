@@ -36,7 +36,7 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
   }
 
   if (filters.startDate) {
-    query.where("festivals.festival_end_date", ">=", startDate)
+    query.where("festivals.festival_end_date", ">=", startDate);
     // .where("festivals.festival_start_date", ">=", startDate);
   }
 
@@ -264,14 +264,18 @@ const createNewFestival = async (festival_details, festival_images) => {
   }
 };
 
-
 // Add host ID to festivals table helper function
 const hostToFestival = async (
   festival_id,
-  festival_host_id,
   foodSamplePreference,
-  db_user
+  db_user,
+  applicationType
 ) => {
+  console.log(" db_user vendors to add ", db_user);
+  console.log(
+    " db_usfoodSamplePreferenceer vendors to add ",
+    foodSamplePreference
+  );
   try {
     await db.transaction(async (trx) => {
       if (typeof festival_id === "object") {
@@ -286,125 +290,153 @@ const hostToFestival = async (
           //   })
           //   .returning("*");
             try {
-              if (db_user.role.includes("HOST"))
+              if (db_user.role.includes("HOST") && applicationType === "Host")
             {   
               var host_ids = await db("festivals")
-              .select("festival_host_id")
-              .where("festival_id", "=", item)
-              .then( (resp) => {return resp})
+                .select("festival_host_id")
+                .where("festival_id", "=", item)
+                .then((resp) => {
+                  return resp;
+                });
 
-              // console.log('hosts to add ', host_ids)
+              console.log("hosts to add ", host_ids);
 
-              if(!host_ids.includes(db_user.tasttlig_user_id)) {
-                host_ids.push(db_user.tasttlig_user_id);
+              if (
+                !host_ids[0].festival_host_id.includes(db_user.tasttlig_user_id)
+              ) {
+                host_ids[0].festival_host_id.push(db_user.tasttlig_user_id);
                 await db("festivals")
-                .where({"festival_id": festival_id})
-                .update({"festival_host_id": host_ids}) 
+                  .where({ festival_id: festival_id })
+                  .update({ festival_host_id: host_ids[0].festival_host_id });
               }
             } 
-            else if (db_user.role.includes("VENDOR"))
+            else if (db_user.role.includes("VENDOR") || db_user.role.includes("BUSINESS_MEMBER") || db_user.role.includes("BUSINESS_MEMBER_PENDING") && applicationType === "Vendor") 
+            // && !db_user.role.includes("HOST") && !db_user.role.includes("HOST_PENDING"))
             {
-              var vendor_ids = await db("festivals")
-              .select("festival_vendor_id")
-              .where("festival_id", "=", item)
-              .then( (resp) => {return resp})
+              console.log('im coming from vendor option  ', db_user.role)
 
-              // console.log('vendors to add ', vendor_ids);
+              var vendor_ids = await db("festivals")
+                .select("festival_vendor_id")
+                .where("festival_id", "=", item)
+                .then((resp) => {
+                  return resp;
+                });
 
               var vendor_ids_array = vendor_ids[0].festival_vendor_id || [];
               // console.log('VENDOR array ', vendor_ids_array);
-              if(!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
+              if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
                 vendor_ids_array.push(db_user.tasttlig_user_id);
                 await db("festivals")
-                .where({"festival_id": item})
-                .update({"festival_vendor_id": vendor_ids_array})
+                  .where({ festival_id: item })
+                  .update({ festival_vendor_id: vendor_ids_array });
               }
-            }
-            } catch (error) {
-              return {success: false}
-            }
 
-            var db_host;
+              if (!db_user.role.includes("VENDOR"))
+              {
+                console.log('im coming from vendor option coming from not vendor option>>>>  ', db_user.role)
+                  // Get role code of new role to be added
+                const new_role_code = await trx("roles")
+                .select()
+                .where({ role: "VENDOR" })
+                .then((value) => {
+                    return value[0].role_code;
+                });
 
-            for (let sample of foodSamplePreference) {
-            db_host = await trx("products")
-              .where({ product_id: sample })
-              .update({
-                festival_selected: trx.raw(
-                  "array_append(festival_selected, ?)",
-                  item
-                ),
-              })
-              .returning("*");
+                   // Insert new role for this user
+               await trx("user_role_lookup").insert({
+                user_id: db_user.tasttlig_user_id,
+                role_code: new_role_code,
+                });
+                }
+            }
+          } catch (error) {
+            console.log(error);
+            return { success: false };
           }
-          if (!db_host) {
+
+          var db_host;
+          if (typeof foodSamplePreference === "object") {
+            for (let sample of foodSamplePreference) {
+              db_host = await trx("products")
+                .where({ product_id: sample })
+                .update({
+                  festival_selected: trx.raw(
+                    "array_append(festival_selected, ?)",
+                    item
+                  ),
+                })
+                .returning("*");
+            }
+          }
+
+
+            if (!db_host) {
             return { success: false, details: "Inserting new host failed." };
           }
         }
       } else {
-        
-            // const db_host = await trx("festivals")
-            //   .where({ festival_id })
-            //   .update({
-            //     festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
-            //       festival_host_id,
-            //     ]),
-            //   })
-            //   .returning("*");
-        
+        // const db_host = await trx("festivals")
+        //   .where({ festival_id })
+        //   .update({
+        //     festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+        //       festival_host_id,
+        //     ]),
+        //   })
+        //   .returning("*");
 
-          
-          try {
-            if (db_user.role.includes("HOST"))
-          {   
+        try {
+          if (db_user.role.includes("HOST")) {
             var host_ids = await db("festivals")
-            .select("festival_host_id")
-            .where({ festival_id })
-            .then( (resp) => {return resp})
+              .select("festival_host_id")
+              .where({ festival_id })
+              .then((resp) => {
+                return resp;
+              });
 
             // console.log('hosts to add ', host_ids)
 
-            if(!host_ids.includes(db_user.tasttlig_user_id)) {
+            if (!host_ids.includes(db_user.tasttlig_user_id)) {
               host_ids.push(db_user.tasttlig_user_id);
               await db("festivals")
-              .where({"festival_id": festival_id})
-              .update({"festival_host_id": host_ids}) 
+                .where({ festival_id: festival_id })
+                .update({ festival_host_id: host_ids });
             }
-          } 
-          else if (db_user.role.includes("VENDOR"))
-          {
+          } else if (db_user.role.includes("VENDOR")) {
             var vendor_ids = await db("festivals")
-            .select("festival_vendor_id")
-            .where({ festival_id })
-            .then( (resp) => {return resp})
+              .select("festival_vendor_id")
+              .where({ festival_id })
+              .then((resp) => {
+                return resp;
+              });
 
             // console.log('vendors to add ', vendor_ids);
 
             var vendor_ids_array = vendor_ids[0].festival_vendor_id || [];
             // console.log('VENDOR array ', vendor_ids_array);
-            if(!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
+            if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
               vendor_ids_array.push(db_user.tasttlig_user_id);
               await db("festivals")
-              .where({"festival_id": festival_id})
-              .update({"festival_vendor_id": vendor_ids_array})
+                .where({ festival_id: festival_id })
+                .update({ festival_vendor_id: vendor_ids_array });
             }
           }
-          } catch (error) {
-            return {success: false}
+        } catch (error) {
+          console.log(error);
+          return { success: false };
+        }
+
+        if (typeof foodSamplePreference === "Array") {
+          for (let sample of foodSamplePreference) {
+            const db_host = await trx("products")
+              .where({ product_id: sample })
+              .update({
+                festival_selected: trx.raw(
+                  "array_append(festival_selected, ?)",
+                  festival_id
+                ),
+              })
+              .returning("*");
           }
-
-
-
-        for (let sample of foodSamplePreference) {
-          const db_host = await trx("products")
-            .where({ product_id: sample })
-            .update({
-              festival_selected: trx.raw(
-                "array_append(festival_selected, ?)",
-                festival_id
-              ),
-            })
-            .returning("*");
         }
         if (!db_host) {
           return { success: false, details: "Inserting new host failed." };
@@ -415,6 +447,33 @@ const hostToFestival = async (
   } catch (error) {
     console.log(error);
     return { success: false, details: error.message };
+  }
+};
+
+const addBusinessToFestival = async (festival_id, user_id) => {
+  try {
+    await db.transaction(async (trx) => {
+      if (typeof festival_id === "object") {
+        for (let item of festival_id) {
+          var vendor_id = await db("festivals")
+            .select("festival_vendor_id")
+            .where("festival_id", "=", item)
+            .then((resp) => {
+              return resp;
+            });
+          let vendor_id_array = vendor_id[0].festival_vendor_id || [];
+          if (!vendor_id_array.includes(user_id)) {
+            vendor_id_array.push(user_id);
+            await db("festivals")
+              .where({ festival_id: item })
+              .update({ festival_vendor_id: vendor_id_array });
+          }
+        }
+      }
+    });
+    return { success: true, details: "Success." };
+  } catch (error) {
+    console.log(error);
   }
 };
 
@@ -449,8 +508,9 @@ const updateFestival = async (data, festival_images) => {
 };
 
 // Add sponsor to festivals table helper function
-const sponsorToFestival = async (festival_id, festival_business_sponsor_id) => {
+const sponsorToFestival = async (festival_id, festival_business_sponsor_id, db_user) => {
   try {
+    let role = db_user.user.role;
     await db.transaction(async (trx) => {
       const db_sponsor_festival = await trx("festivals")
         .where({ festival_id })
@@ -462,9 +522,26 @@ const sponsorToFestival = async (festival_id, festival_business_sponsor_id) => {
         })
         .returning("*");
 
-      if (!db_sponsor_festival) {
-        return { success: false, details: "Inserting new sponsor failed." };
-      }
+        if (!db_sponsor_festival) {
+         return { success: false, details: "Inserting new sponsor failed." };
+        }
+        if(!role.includes('SPONSOR'))
+        {
+          // Get role code of new role to be added
+          const new_role_code = await trx("roles")
+          .select()
+          .where({ role: "SPONSOR" })
+          .then((value) => {
+            return value[0].role_code;
+          });
+
+        // Insert new role for this user
+         await trx("user_role_lookup").insert({
+            user_id: db_user.user.tasttlig_user_id,
+            role_code: new_role_code,
+          });
+        }
+
     });
 
     return { success: true, details: "Success." };
@@ -509,13 +586,12 @@ const getFestivalDetails = async (festival_id) => {
     .having("festivals.festival_id", "=", festival_id)
     .having("festivals.festival_end_date", ">=", new Date())
     .then((value) => {
-      console.log('festival details', value);
+      console.log("festival details", value);
       return {
         success: true,
         details: value,
       };
-    }   
-    )
+    })
     .catch((reason) => {
       return { success: false, details: reason };
     });
@@ -565,4 +641,5 @@ module.exports = {
   getFestivalRestaurants,
   getAllFestivalsPresent,
   updateFestival,
+  addBusinessToFestival,
 };
