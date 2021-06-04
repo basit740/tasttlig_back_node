@@ -310,7 +310,7 @@ const hostToFestival = async (
                   .update({ festival_host_id: host_ids[0].festival_host_id });
               }
             } 
-            else if (db_user.role.includes("VENDOR") || db_user.role.includes("BUSINESS_MEMBER") && applicationType === "Vendor") 
+            else if (db_user.role.includes("VENDOR") || db_user.role.includes("BUSINESS_MEMBER") || db_user.role.includes("BUSINESS_MEMBER_PENDING") && applicationType === "Vendor") 
             // && !db_user.role.includes("HOST") && !db_user.role.includes("HOST_PENDING"))
             {
               console.log('im coming from vendor option  ', db_user.role)
