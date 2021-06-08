@@ -12,7 +12,6 @@ const services_service = require("../../services/services/services");
 
 // POST food sample claim
 router.post("/all-products-claim", async (req, res) => {
-  console.log("req coming from claiming the product:", )
   if (!req.body.food_sample_claim_user || !req.body.food_sample_id) {
     return res.status(403).json({
       success: false,
@@ -139,7 +138,6 @@ router.post("/all-products-claim/confirm", async (req, res) => {
 
 // POST confirm service redeem status
 router.post("/all-services-claim/confirm", async (req, res) => {
-  console.log("service claim body", req.body);
   if (!req.body.claim_viewable_id) {
     return res.status(403).json({
       success: false,

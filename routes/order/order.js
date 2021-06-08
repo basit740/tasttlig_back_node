@@ -15,11 +15,9 @@ router.get("/orders/user/:userId", token_service.authenticateToken,  async (req,
     const userOrders = await order_service.getAllUserOrders(
       req.user.id
     );
-    console.log("data coming from the orders:", userOrders)
 
     return res.send(userOrders);
   } catch (error) {
-    console.log(error)
     res.status(500).send({
       success: false,
       message: error.message,
@@ -34,7 +32,6 @@ router.get("/orders/current/user/:userId", token_service.authenticateToken,  asy
 
     return res.send(userOrders);
   } catch (error) {
-    console.log(error)
     res.status(500).send({
       success: false,
       message: error.message,

@@ -282,7 +282,6 @@ const getUserApplications = async (user_id) => {
       applications,
     };
   } catch (error) {
-    console.log("error", error);
     return { success: false, error: error.message };
   }
 };
@@ -387,7 +386,6 @@ const getAttendedFestivalsForUser = async (
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log(reason);
       return { success: false, details: reason };
     });
 };
@@ -492,14 +490,12 @@ const getHostedFestivalsForUser = async (
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log(reason);
       return { success: false, details: reason };
     });
 };
 
 const getBusinessServiceRevenue = async (business_details_id) => {
   try {
-    console.log("revenue biz id", business_details_id);
 
     const revenue = await db
       .select("order_items.*", "orders.*", "services.*", "user_claims.*")
@@ -552,7 +548,6 @@ const getBusinessProductRevenue = async (business_details_id) => {
 
 const getBusinessExperienceRevenue = async (business_details_id) => {
   try {
-    console.log("revenue biz id", business_details_id);
 
     const revenue = await db
       .select("order_items.*", "orders.*", "experiences.*", "user_claims.*")
@@ -794,7 +789,6 @@ const getAllUserOrders = async (user_id) => {
 
   return await query
     .then((value) => {
-      console.log(value);
       return { success: true, details: value };
     })
     .catch((reason) => {

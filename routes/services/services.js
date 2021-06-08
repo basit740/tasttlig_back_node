@@ -111,7 +111,6 @@ router.post(
       }
       return res.send(response);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -141,7 +140,6 @@ router.get("/services/festival/:festival_id", async (req, res) => {
       filters,
       req.query.keyword
     );
-    // console.log('services in festival response', response);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -157,7 +155,6 @@ router.post(
   "/services/festival/:festivalId",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log(req.body);
     if (!req.body.festivalId) {
       return res.status(403).json({
         success: false,
@@ -204,7 +201,6 @@ router.post(
         req.user.id,
         user_details_from_db
       );
-      console.log(response);
       if (response.success) {
         result = response;
       } else {
@@ -213,10 +209,8 @@ router.post(
           message: "Error.",
         });
       }
-      console.log("new response", result);
       return res.send(result);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -355,7 +349,6 @@ router.put(
         message: "Required parameters are not available in request.",
       });
     }
-    console.log("Service data updating", req.body);
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -375,7 +368,6 @@ router.put(
       );
       const response = await services_service.updateService(db_user, req.body);
       res.send(response);
-      console.log(req.body);
       const send_to_central_server =
         await auth_service.editServiceInCentralServer(
           db_user.email,
@@ -409,10 +401,7 @@ router.delete(
     }
 
     try {
-      console.log("service id", req.body.service_id);
-      console.log("user_id", req.user.id);
       let serviceArr = [];
-      console.log(req.body.service_id);
       for (let service of req.body.service_id) {
         let service_info = await services_service.findService(Number(service));
         serviceArr.push(service_info.details);

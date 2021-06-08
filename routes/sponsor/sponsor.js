@@ -28,7 +28,6 @@ router.get(
       );
       return res.send(response);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -44,7 +43,6 @@ router.get(
   async (req, res) => {
     try {
       const applications = await sponsor_service.getAllSponsorApplications();
-      console.log("response from app sponsor applications:", applications)
       return res.send(applications);
     } catch (error) {
       res.status(500).send({
@@ -80,7 +78,6 @@ router.get(
     token_service.authenticateToken,
     async (req, res) => {
       try {
-        console.log("here rest");
         const Details = await sponsor_service.getSponsorApplicantDetails(
           req.params.userId
         );
@@ -92,7 +89,6 @@ router.get(
           "",
           Details
         );
-        console.log("response sponsor-applications after approval:", response)
   
         return res.send(response);
       } catch (error) {
@@ -154,7 +150,6 @@ router.get(
       );
       return res.send(response);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",

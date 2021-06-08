@@ -67,7 +67,6 @@ router.post(
   "/applications/:userId/approve",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("approving host application:", req.body)
 
     try {
       const response = await user_profile_service.approveOrDeclineHostAmbassadorApplication(

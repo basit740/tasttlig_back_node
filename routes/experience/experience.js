@@ -428,7 +428,6 @@ router.post(
         req.user.id,
         user_details_from_db
       );
-      console.log(response);
       if (response.success) {
         result = response;
       } else {
@@ -437,10 +436,8 @@ router.post(
           message: "Error.",
         });
       }
-      console.log("new response", result);
       return res.send(result);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -455,7 +452,6 @@ router.put(
   "/experience/update/:experience_id",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("exp******", req.body);
     if (!req.params.experience_id || !req.body) {
       return res.status(403).json({
         success: false,
@@ -540,7 +536,6 @@ router.delete("/experience/delete/user/:user_id", async (req, res) => {
     });
   }
   try {
-    console.log("fe bdy", req.body);
     const response = await experience_service.deleteFoodExperiences(
       req.params.user_id,
       req.body.delete_items
@@ -592,7 +587,6 @@ router.get(
       );
       return res.send(response);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",

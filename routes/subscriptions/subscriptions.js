@@ -11,7 +11,6 @@ const festival_service = require("../../services/festival/festival");
 
 // GET subscription details
 router.get("/subscription/details", async (req, res) => {
-  console.log("body from subsrcitpion", req.query)
   const { item_type, item_id } = req.query;
 
   if (!item_type || !item_id) {
@@ -30,7 +29,6 @@ router.get("/subscription/details", async (req, res) => {
     const db_order_details = await user_order_service.getOrderDetails(
       order_details
     );
-    console.log("db_order_details from subsrcitpion", db_order_details)
     return res.send(db_order_details);
   } catch (error) {
     res.send({
@@ -41,8 +39,6 @@ router.get("/subscription/details", async (req, res) => {
 });
 router.get("/subscription/:userId", async (req, res) => {
   const user_id = req.params.userId;
-  console.log("params", req.params);
-  console.log(user_id);
 
   try {
     const db_subscription_details = await user_profile_service.getVendorUserBySubscriptionId(
@@ -51,7 +47,6 @@ router.get("/subscription/:userId", async (req, res) => {
 
     return res.send(db_subscription_details);
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: error.message,
@@ -72,11 +67,9 @@ router.post(
         festival_id,
         user_subscription_id
       );
-      console.log("subscriptions, dbdetails", db_subscription_details);
       const business_details = await authentication_service.getUserByBusinessDetails(
         user_id
       );
-      console.log(business_details);
       if (!business_details.success) {
         return res.status(403).json({
           success: false,
@@ -97,7 +90,6 @@ router.post(
 
       return res.send(db_subscription_details);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: error.message,
