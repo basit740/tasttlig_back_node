@@ -9,24 +9,18 @@ const user_profile_service = require("../../services/profile/user_profile");
 
 // GET all tickets
 router.get("/ticket/all", token_service.authenticateToken, async (req, res) => {
-  console.log("query",req.query)
-  console.log(req.user);
   try {
     const ticket_user_id = req.query.ticket_user_id || req.user.id
     const current_page = req.query.page || 1;
 
-    console.log('currentpage', current_page);
-    console.log(ticket_user_id);
 
     const response = await ticket_service.getAllTickets(
       ticket_user_id,
       current_page
     );
-    console.log("response frp,", response)
 
     return res.send(response);
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: "Error.",
@@ -81,8 +75,7 @@ router.delete("/tickets/delete/user/:user_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
-  //console.log("req params",req.body)
-  //console.log(req.body.delete_items)
+
   try {
     const response = await ticket_service.deleteTicketsFromUser(
       req.params.user_id,
@@ -90,7 +83,6 @@ router.delete("/tickets/delete/user/:user_id", async (req, res) => {
     );
     return res.send(response);
   } catch (error) {
-    console.log(error)
     res.send({
       success: false,
       message: "Error.",
@@ -110,6 +102,8 @@ router.post(
       ticket_festival_id,
       no_of_admits,
       stripe_receipt_id,
+      ticket_price,
+      ticket_type,
       // attend_status,
     } = req.body;
     try {
@@ -144,6 +138,8 @@ router.post(
         ticket_festival_id,
         no_of_admits,
         stripe_receipt_id,
+        ticket_price,
+        ticket_type
       };
       
       
@@ -151,7 +147,6 @@ router.post(
       
       return res.send(response);
     } catch (error) {
-      console.log("error: ", error)
       res.send({
         success: false,
         message: "Error.",

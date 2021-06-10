@@ -86,7 +86,6 @@ router.post(
       );
       return res.send(response);
     } catch (error) {
-      console.log(error)
       res.send({
         success: false,
         message: "Error.",
@@ -105,7 +104,6 @@ router.get("/promotions/user/:user_id", async (req, res) => {
       });
     }
     try {
-      console.log(req.query)
       const response = await services_promotions.getPromotionsByUser(
         req.params.user_id,
         req.query.keyword
@@ -133,7 +131,6 @@ router.get("/promotions/user/:user_id", async (req, res) => {
         req.params.user_id,
         req.body.delete_items
       );
-      console.log(response)
       return res.send(response);
     } catch (error) {
       res.send({

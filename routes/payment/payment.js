@@ -48,7 +48,6 @@ router.post("/payment/stripe", async (req, res) => {
 
     return res.send(response);
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: error.message,
@@ -69,7 +68,6 @@ router.post("/payment/stripe/success", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
-  console.log("req.body from strype/success",req.body)
 
   try {
     let db_user;
@@ -112,7 +110,6 @@ router.post("/payment/stripe/success", async (req, res) => {
       req.body.additionalEmail,
     );
 
-    console.log("db_order_details from payment page:", db_order_details)
 
     if (req.body.item_type === "food_sample") {
       const food_sample_claim_details = {
@@ -147,7 +144,6 @@ router.post("/payment/stripe/success", async (req, res) => {
         quantityAfterClaim,
         food_sample_claim_details
       );
-      console.log("food_claim_response from payment page:", food_claim_response)
       return res.send(food_claim_response);
     }
 
@@ -168,7 +164,6 @@ router.post("/payment/stripe/success", async (req, res) => {
         quantityAfterClaim,
         food_sample_claim_details
       );
-      console.log("food_claim_response from payment page:", food_claim_response)
       return res.send(food_claim_response);
     }
 
@@ -189,7 +184,6 @@ router.post("/payment/stripe/success", async (req, res) => {
         quantityAfterClaim,
         food_sample_claim_details
       );
-      console.log("food_claim_response from payment page:", food_claim_response)
       return res.send(food_claim_response);
     }
 
@@ -202,7 +196,6 @@ router.post("/payment/stripe/success", async (req, res) => {
       return res.send(response);
     }
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: error.message,

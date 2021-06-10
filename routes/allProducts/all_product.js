@@ -35,7 +35,6 @@ router.get("/all-products/festival/:festivalId", async (req, res) => {
       filters,
       req.params.festivalId
     );
-    // console.log("response from all product:", response);
 
     return res.send(response);
   } catch (error) {
@@ -192,7 +191,6 @@ router.post(
               item.images
             );
           }
-          //console.log("response from food sample", response);
           return {
             success: true,
           };
@@ -224,8 +222,6 @@ router.get(
       const current_page = req.query.page || 1;
       const keyword = req.query.keyword || "";
       const festival_id = req.query.festival || "";
-      //console.log("request params", req.query);
-      //console.log("festival_id", festival_id);
       const status_operator = "!=";
       const food_sample_status = "ARCHIVED";
 
@@ -281,14 +277,12 @@ router.post("/add-product-from-kodidi", async (req, res) => {
     const user_details_from_db = await user_profile_service.getUserByEmail(
       req.body.db_user.email
     );
-    //console.log("user details", user_details_from_db);
     let business_details_from_db;
     if (user_details_from_db.success) {
       business_details_from_db = await authentication_service.getUserByBusinessDetails(
         user_details_from_db.user.id
       );
     }
-    //console.log(user_details_from_db);
     const product_information = req.body.all_product_details;
     const product_insertion = {
       product_user_id: user_details_from_db.user

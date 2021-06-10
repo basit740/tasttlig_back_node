@@ -34,7 +34,6 @@ router.post(
         message: "Required parameters are not available in request.",
       });
     }
-    console.log("req body from experinces/add", req.body);
 
     try {
       const user_details_from_db = await user_profile_service.getUserById(
@@ -47,14 +46,11 @@ router.post(
         });
       }
 
-      console.log("user_details_from_db from experinces/add", user_details_from_db);
 
       let createdByAdmin = false;
 
-      const business_details_from_db = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
-      console.log("business_details_from_db", business_details_from_db);
+      const business_details_from_db =
+        await authentication_service.getUserByBusinessDetails(req.user.id);
       if (!business_details_from_db.success) {
         return res.status(403).json({
           success: false,
@@ -97,7 +93,7 @@ router.post(
         additional_information: req.body.additional_information
           ? req.body.additional_information
           : null,
-
+        experience_owner_type: req.body.experience_owner_type,
         festival_selected:
           req.body.festival_selected &&
           Array.isArray(req.body.festival_selected)
@@ -131,22 +127,24 @@ router.post(
       const response = await experience_service.createNewExperience(
         user_details_from_db,
         experience_information,
-        req.body.experience_images
+        req.body.experience_images,
+        req.body.sponsorType,
+
       );
       res.send(response);
       if (response.success) {
-        const experience_central_server = await auth_server_service.createNewExperienceInCentralServer(
-          user_details_from_db,
-          experience_information,
-          req.body.experience_images
-        );
+        const experience_central_server =
+          await auth_server_service.createNewExperienceInCentralServer(
+            user_details_from_db,
+            experience_information,
+            req.body.experience_images
+          );
       }
 
       return {
         success: true,
       };
     } catch (error) {
-      console.log("error: ", error);
       res.send({
         success: false,
         message: "Error.",
@@ -156,7 +154,12 @@ router.post(
   }
 );
 router.post("/add-experience-from-kodidi", async (req, res) => {
-  //console.log(req.body);
+  if (process.env.API_ACCESS_TOKEN !== req.body.access_token) {
+    return res.status(403).json({
+      success: false,
+      message: "Access Denied",
+    });
+  }
   if (
     !req.body.all_experience_details ||
     !req.body.db_user ||
@@ -174,9 +177,10 @@ router.post("/add-experience-from-kodidi", async (req, res) => {
     //console.log("user details", user_details_from_db);
     let business_details_from_db;
     if (user_details_from_db.success) {
-      business_details_from_db = await authentication_service.getUserByBusinessDetails(
-        user_details_from_db.user.id
-      );
+      business_details_from_db =
+        await authentication_service.getUserByBusinessDetails(
+          user_details_from_db.user.id
+        );
     }
     const experience_information = req.body.all_experience_details;
     const experience_insertion = {
@@ -192,7 +196,6 @@ router.post("/add-experience-from-kodidi", async (req, res) => {
 
     return res.send(response);
   } catch (error) {
-    console.log("error: ", error);
     res.send({
       success: false,
       message: "Error.",
@@ -250,13 +253,11 @@ router.get("/experiences/:user_id", async (req, res) => {
 
   let business_details_from_db;
   if (req.params.user_id) {
-    business_details_from_db = await authentication_service.getUserByBusinessDetails(
-      req.params.user_id
-    );
+    business_details_from_db =
+      await authentication_service.getUserByBusinessDetails(req.params.user_id);
   } else {
-    business_details_from_db = await authentication_service.getUserByBusinessDetails(
-      req.params.user_id
-    );
+    business_details_from_db =
+      await authentication_service.getUserByBusinessDetails(req.params.user_id);
   }
 
   if (!business_details_from_db.success) {
@@ -268,10 +269,7 @@ router.get("/experiences/:user_id", async (req, res) => {
 
   let business_details_id =
     business_details_from_db.business_details.business_details_id;
-  console.log(
-    "business_details_id from expereiences get:",
-    business_details_id
-  );
+
   try {
     const response = await experience_service.getUserExperiencesById(
       business_details_id
@@ -279,7 +277,6 @@ router.get("/experiences/:user_id", async (req, res) => {
     // console.log("response from expereiences get:", response);
     return res.send(response);
   } catch (error) {
-    console.log("error from expereiences get:", error);
     res.send({
       success: false,
       message: "Error.",

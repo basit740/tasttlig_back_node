@@ -13,8 +13,6 @@ router.post(
   "/vendor/:userId",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("body", req.body);
-    console.log("user", req.user);
     if (
       !req.body.cooking_area ||
       !req.body.food_temperature_maintenance_plan ||
@@ -32,7 +30,6 @@ router.post(
         req.user.id
       );
 
-      console.log("user details from db", user_details_from_db);
 
       if (!user_details_from_db.success) {
         return res.status(403).json({

@@ -12,6 +12,7 @@ const {
   formatTime,
 } = require("../../functions/functions");
 const auth_server_service = require("../../services/authentication/auth_server_service");
+const all_product_service = require("../../services/allProducts/all_product");
 
 // Environment variables
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
@@ -22,7 +23,6 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      console.log(req.body[0].festivals);
       req.body.map(async (item) => {
         if (
           !item.title ||
@@ -74,9 +74,8 @@ router.post(
               });
             }
 
-            const host_details_from_db = await user_profile_service.getUserByEmail(
-              item.userEmail
-            );
+            const host_details_from_db =
+              await user_profile_service.getUserByEmail(item.userEmail);
             db_user = host_details_from_db.user;
             createdByAdmin = true;
           }
@@ -164,7 +163,6 @@ router.post(
             item.images,
             createdByAdmin
           );
-          console.log("response from food sample", response);
           return res.send(response);
         } catch (error) {
           res.send({
@@ -184,7 +182,6 @@ router.post(
   }
 );
 router.post("/food-sample/noUser/add", async (req, res) => {
-  console.log(req.body);
   try {
     req.body.map(async (item) => {
       if (
@@ -223,11 +220,9 @@ router.post("/food-sample/noUser/add", async (req, res) => {
               message: user_details_from_db.message,
             });
           } */
-        console.log(item.userEmail);
         const user_details_from_db = await user_profile_service.getUserByEmail(
           item.userEmail
         );
-        console.log(user_details_from_db);
         let createdByAdmin = false;
         let db_user = user_details_from_db.user;
         /* let user_role_object = db_user.role;
@@ -321,7 +316,6 @@ router.post("/food-sample/noUser/add", async (req, res) => {
           festival_id: item.addToFestival ? 2 : null,
           festival_selected: item.festivals,
         };
-        console.log("req from food sample,", food_sample_details);
 
         const response = await food_sample_service.createNewFoodSample(
           db_user,
@@ -329,10 +323,8 @@ router.post("/food-sample/noUser/add", async (req, res) => {
           item.images,
           createdByAdmin
         );
-        console.log("response from food sample", response);
         return res.send(response);
       } catch (error) {
-        console.log(error);
         res.send({
           success: false,
           message: "Error.",
@@ -341,7 +333,6 @@ router.post("/food-sample/noUser/add", async (req, res) => {
       }
     });
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: "Error.",
@@ -508,8 +499,6 @@ router.get("/food-sample/all", async (req, res) => {
 // GET all food samples in festival
 router.get("/food-sample/festival/:festivalId", async (req, res) => {
   try {
-    console.log("body", req.body);
-    console.log("params", req.params);
     //const current_page = req.query.page || 1;
     const keyword = req.query.keyword || "";
     const status_operator = "=";
@@ -547,7 +536,6 @@ router.get("/food-sample/festival/:festivalId", async (req, res) => {
 
     return res.send(response);
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: "Error.",
@@ -571,7 +559,6 @@ router.get("/food-sample/nationalities", async (req, res) => {
       );
     });
 
-    console.log(keyword);
 
     const response = await food_sample_service.getDistinctNationalities(
       status_operator,
@@ -580,7 +567,6 @@ router.get("/food-sample/nationalities", async (req, res) => {
       alreadySelectedNationalityList
     );
 
-    console.log(response);
 
     return res.send(response);
   } catch (error) {
@@ -595,7 +581,6 @@ router.get("/food-sample/nationalities", async (req, res) => {
 router.get("/food-sample/user-nationalities", async (req, res) => {
   try {
     const keyword = req.query.keyword || "";
-    console.log(keyword);
     const response = await food_sample_service.getNationalities(keyword);
     if (response.success) {
       res.status(200).send(response);
@@ -606,7 +591,6 @@ router.get("/food-sample/user-nationalities", async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("Update", error);
   }
 });
 
@@ -723,15 +707,16 @@ router.get(
         requestByAdmin = true;
       }
 
-      const response = await food_sample_service.getAllUserFoodSamplesNotInFestival(
-        req.user.id,
-        status_operator,
-        food_sample_status,
-        keyword,
-        current_page,
-        requestByAdmin,
-        festival_name
-      );
+      const response =
+        await food_sample_service.getAllUserFoodSamplesNotInFestival(
+          req.user.id,
+          status_operator,
+          food_sample_status,
+          keyword,
+          current_page,
+          requestByAdmin,
+          festival_name
+        );
 
       return res.send(response);
     } catch (error) {
@@ -768,7 +753,6 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
     );
 
     const db_products = food_sample_response.details;
-    console.log("db_products", db_products)
 
     const user_details_response = await user_profile_service.getUserById(
       req.params.owner_id
@@ -817,13 +801,14 @@ router.get("/food-sample/business/:business_name", async (req, res) => {
       });
     }
 
-    const food_sample_response = await food_sample_service.getAllUserFoodSamples(
-      user.user.tasttlig_user_id,
-      status_operator,
-      food_sample_status,
-      keyword,
-      current_page
-    );
+    const food_sample_response =
+      await food_sample_service.getAllUserFoodSamples(
+        user.user.tasttlig_user_id,
+        status_operator,
+        food_sample_status,
+        keyword,
+        current_page
+      );
 
     const db_food_samples = food_sample_response.details;
 
@@ -1004,14 +989,25 @@ router.put(
         updatedByAdmin = true;
       }
 
+      const prev_product_details = await all_product_service.getProductById(
+        req.params.food_sample_id
+      );
       const response = await food_sample_service.updateFoodSample(
         db_user,
         req.params.food_sample_id,
         req.body.food_sample_update_data,
         updatedByAdmin
       );
-
-      return res.send(response);
+      res.send(response);
+      const send_to_central_server =
+        await auth_server_service.editProductInCentralServer(
+          db_user.email,
+          prev_product_details,
+          req.body.food_sample_update_data
+        );
+      return {
+        success: true,
+      };
     } catch (error) {
       res.send({
         success: false,
@@ -1059,11 +1055,20 @@ router.delete("/food-sample/delete/user/:user_id", async (req, res) => {
     });
   }
   try {
+    const user = await user_profile_service.getUserById(req.params.user_id);
     const response = await food_sample_service.deleteFoodSamplesFromUser(
       req.params.user_id,
       req.body.delete_items
     );
-    return res.send(response);
+    res.send(response);
+    const delete_central_server =
+      await auth_server_service.deleteProductInCentralServer(
+        user.user.email,
+        req.body.delete_items
+      );
+    return {
+      success: true,
+    };
   } catch (error) {
     res.send({
       success: false,

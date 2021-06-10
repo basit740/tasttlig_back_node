@@ -42,5 +42,20 @@ router.get("/festival/restaurants", async (req, res) => {
     });
   }
 });
+router.get("/all/restaurants", async (req, res) => {
+  try {
+    const response = await business_finder_service.getAllRestaurants(
+      req.query.keyword
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error,
+    });
+  }
+});
 
 module.exports = router;

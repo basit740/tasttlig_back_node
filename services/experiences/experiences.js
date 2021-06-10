@@ -13,8 +13,6 @@ const createNewExperience = async (
   experience_information,
   experience_images
 ) => {
-  console.log("experience_information::", experience_information)
-  // console.log("experience_information::", experience_information)
   try {
     await db.transaction(async (trx) => {
       const db_experience = await trx("experiences")
@@ -48,7 +46,6 @@ const createNewExperience = async (
 
     return { success: true, details: "Success." };
   } catch (error) {
-    console.log("error::", error)
     return { success: false, details: error.message };
   }
 };
@@ -103,11 +100,9 @@ const getExperiencesInFestival = async (festival_id) => {
     .groupBy("services.service_id")
     .having("experiences.festival_selected", "@>", [festival_id])
     .then((value) => {
-      // console.log("value", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("reason", reason);
       return { success: false, details: reason };
     });
 };

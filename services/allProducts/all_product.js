@@ -157,7 +157,6 @@ const getAllProductsInFestival = async (
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("service", reason);
       return { success: false, details: reason };
     });
 };
@@ -166,16 +165,15 @@ const createNewProduct = async (
   db_user,
   all_product_details,
   all_product_images,
-  createdByAdmin
+  createdByAdmin,
+  sponsorType
 ) => {
-  // console.log("data coming from create new product:", all_product_details);
-  // console.log("db user details", db_user.role);
   try {
+    let user_role_object = db_user.role;
     await db.transaction(async (trx) => {
       all_product_details.food_ad_code =
         Math.random().toString(36).substring(2, 4) +
         Math.random().toString(36).substring(2, 4);
-      let user_role_object = db_user.role;
 
       if (user_role_object.includes("HOST") || user_role_object.includes("VENDOR") || createdByAdmin) {
         all_product_details.status = "ACTIVE";
@@ -199,7 +197,6 @@ const createNewProduct = async (
         {
           await trx("festivals")
           .where({ festival_id: all_product_details.festival_selected[0] })
-          // .whereRaw('? = ANY(festival_host_id)', all_product_details.product_user_id)
           .update({
             festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
               all_product_details.product_user_id,
@@ -276,7 +273,26 @@ const createNewProduct = async (
           },
         });
       }
+
+      if (sponsorType === true && !user_role_object.includes("SPONSOR")) {
+        // Get role code of new role to be added
+        const new_role_code = await trx("roles")
+        .select()
+        .where({ role: "SPONSOR" })
+        .then((value) => {
+          return value[0].role_code;
+        });
+
+      // Insert new role for this user
+       await trx("user_role_lookup").insert({
+          user_id: db_user.tasttlig_user_id,
+          role_code: new_role_code,
+        });
+   }
+
     });
+
+   
 
     return { success: true, details: "Success." };
   } catch (error) {
@@ -288,7 +304,8 @@ const createNewProduct = async (
         db_user,
         all_product_details,
         all_product_images,
-        createdByAdmin
+        createdByAdmin,
+        sponsorType
       );
     }
 
@@ -300,7 +317,6 @@ const createNewProductFromKodidi = async (
   all_product_details,
   all_product_images
 ) => {
-  console.log("data coming from create new product:", all_product_details);
 
   try {
     await db.transaction(async (trx) => {
@@ -336,12 +352,7 @@ const getAllUserProducts = async (
   requestByAdmin = false,
   festival_id
 ) => {
-  console.log(
-    "coming into the get ll user food samples",
-    user_id,
-    operator,
-    status
-  );
+ 
   const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
   const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
   let query = db
@@ -395,7 +406,6 @@ const getAllUserProducts = async (
   }
 
   if (festival_id) {
-    //console.log("festival_id", festival_id);
     query = query.havingRaw(
       "(? != ALL(coalesce(products.festival_selected, array[]::int[])))",
       festival_id
@@ -433,7 +443,6 @@ const getAllUserProducts = async (
       .orderBy("rank", "desc");
   }
 
-  console.log(query.toSQL());
   query = query.paginate({
     perPage: 12,
     isLengthAware: true,
@@ -442,11 +451,9 @@ const getAllUserProducts = async (
 
   return await query
     .then((value) => {
-      console.log("Products value", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      //console.log("reason", reason);
       return { success: false, details: reason };
     });
 };

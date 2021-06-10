@@ -15,7 +15,6 @@ router.get(
   async (req, res) => {
     try {
       const applications = await hosts_service.getHostApplications();
-      console.log("response from here:", applications);
       return res.send(applications);
     } catch (error) {
       res.status(500).send({
@@ -33,7 +32,6 @@ router.get(
   async (req, res) => {
     try {
       const applications = await hosts_service.getAllHostApplications();
-      console.log("response from here:", applications);
       return res.send(applications);
     } catch (error) {
       res.status(500).send({
@@ -54,10 +52,8 @@ router.get(
         req.params.userId
       );
 
-      console.log("response from application host:", application);
       return res.send(application);
     } catch (error) {
-      console.log("response from application host:", error);
       res.status(500).send({
         success: false,
         message: error.message,
@@ -71,15 +67,14 @@ router.post(
   "/applications/:userId/approve",
   token_service.authenticateToken,
   async (req, res) => {
+
     try {
       const response = await user_profile_service.approveOrDeclineHostAmbassadorApplication(
         req.params.userId,
         "APPROVED"
       );
-      console.log("response", response);
       return res.send(response);
     } catch (error) {
-      console.log(error);
       res.status(500).send({
         success: false,
         message: error.message,
@@ -153,10 +148,8 @@ router.post(
         "DECLINED",
         req.body.declineReason
       );
-      console.log("response", response);
       return res.send(response);
     } catch (error) {
-      console.log("error", error);
       res.status(500).send({
         success: false,
         message: error.message,
@@ -193,7 +186,6 @@ router.post(
       able_to_provide_games_about_culture_cuisine,
       subscriptionResponse,
     } = req.body;
-    console.log(req.body);
     try {
       if (!host_video_url || !host_description) {
         return res.status(403).json({
@@ -224,7 +216,6 @@ router.post(
         able_to_provide_excellent_customer_service,
         able_to_provide_games_about_culture_cuisine,
       };
-      console.log("subscriptionResponse", subscriptionResponse);
       const creatingFreeOrder = await user_order_service.createFreeOrder(
         subscriptionResponse,
         host_user_id
@@ -241,13 +232,10 @@ router.post(
         req.body.email
       );
       if (response.success) {
-        console.log(response);
         return res.send(response);
       }
-      console.log("non-success", response);
       return res.status(500).send(response);
     } catch (error) {
-      console.log(error);
       return res.status(403).json({
         success: false,
         message: error,
@@ -286,7 +274,6 @@ router.get(
 
       return res.send(applications);
     } catch (error) {
-      console.log(error);
       res.status(500).send({
         success: false,
         message: error.message,
@@ -346,7 +333,6 @@ router.post(
         "APPROVED",
         req.body
       );
-      console.log("approve response", response);
       return res.send(response);
     } catch (error) {
       res.status(500).send({
@@ -361,7 +347,6 @@ router.post(
   "/applications/:userId/:appId/decline",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("decline", req.params);
     try {
       const response = await user_profile_service.approveOrDeclineGuestAmbassadorSubscription(
         req.params.userId,
@@ -369,7 +354,6 @@ router.post(
         "DECLINED",
         req.body
       );
-      console.log("decline", response);
       return res.send(response);
     } catch (error) {
       res.status(500).send({
