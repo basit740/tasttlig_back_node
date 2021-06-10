@@ -528,4 +528,23 @@ router.post("/mobile/attend-festival/:userId", async (req, res) => {
   }
 });
 
+/* router.post("/mobile/pre-stripe-payment", async (req, res) => {
+  try {
+
+    if (response.success) {
+      return res.send({
+        success: true,
+      });
+    } else {
+      return res.send(response);
+    }
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+}); */
+
 module.exports = router;
