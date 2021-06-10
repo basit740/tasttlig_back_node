@@ -157,7 +157,6 @@ const getAllProductsInFestival = async (
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("service", reason);
       return { success: false, details: reason };
     });
 };
@@ -169,8 +168,6 @@ const createNewProduct = async (
   createdByAdmin,
   sponsorType
 ) => {
-  console.log("sponsorType coming from create new product:", sponsorType);
-  // console.log("db user details", db_user.role);
   try {
     let user_role_object = db_user.role;
     await db.transaction(async (trx) => {
@@ -200,7 +197,6 @@ const createNewProduct = async (
         {
           await trx("festivals")
           .where({ festival_id: all_product_details.festival_selected[0] })
-          // .whereRaw('? = ANY(festival_host_id)', all_product_details.product_user_id)
           .update({
             festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
               all_product_details.product_user_id,
@@ -301,7 +297,6 @@ const createNewProduct = async (
     return { success: true, details: "Success." };
   } catch (error) {
     // Duplicate key
-    console.log("error from sponsor:", error)
     if (error.code === 23505) {
       all_product_details.food_ad_code = generateRandomString(4);
 
@@ -322,7 +317,6 @@ const createNewProductFromKodidi = async (
   all_product_details,
   all_product_images
 ) => {
-  console.log("data coming from create new product:", all_product_details);
 
   try {
     await db.transaction(async (trx) => {
@@ -358,12 +352,7 @@ const getAllUserProducts = async (
   requestByAdmin = false,
   festival_id
 ) => {
-  console.log(
-    "coming into the get ll user food samples",
-    user_id,
-    operator,
-    status
-  );
+ 
   const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
   const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
   let query = db
@@ -417,7 +406,6 @@ const getAllUserProducts = async (
   }
 
   if (festival_id) {
-    //console.log("festival_id", festival_id);
     query = query.havingRaw(
       "(? != ALL(coalesce(products.festival_selected, array[]::int[])))",
       festival_id
@@ -455,7 +443,6 @@ const getAllUserProducts = async (
       .orderBy("rank", "desc");
   }
 
-  console.log(query.toSQL());
   query = query.paginate({
     perPage: 12,
     isLengthAware: true,
@@ -464,11 +451,9 @@ const getAllUserProducts = async (
 
   return await query
     .then((value) => {
-      console.log("Products value", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      //console.log("reason", reason);
       return { success: false, details: reason };
     });
 };

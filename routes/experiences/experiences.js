@@ -15,7 +15,6 @@ router.post(
   "/experiences/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("req.body from /experiences/add'", req.body)
     if (
       !req.body.experience_name ||
       //!req.body.experience_nationality_id ||
@@ -35,7 +34,6 @@ router.post(
         message: "Required parameters are not available in request.",
       });
     }
-    console.log("req body from experinces/add", req.body);
 
     try {
       const user_details_from_db = await user_profile_service.getUserById(
@@ -48,13 +46,11 @@ router.post(
         });
       }
 
-      console.log("user_details_from_db from experinces/add", user_details_from_db);
 
       let createdByAdmin = false;
 
       const business_details_from_db =
         await authentication_service.getUserByBusinessDetails(req.user.id);
-      console.log("business_details_from_db", business_details_from_db);
       if (!business_details_from_db.success) {
         return res.status(403).json({
           success: false,
@@ -149,7 +145,6 @@ router.post(
         success: true,
       };
     } catch (error) {
-      console.log("error: ", error);
       res.send({
         success: false,
         message: "Error.",
@@ -159,7 +154,6 @@ router.post(
   }
 );
 router.post("/add-experience-from-kodidi", async (req, res) => {
-  //console.log(req.body);
   if (process.env.API_ACCESS_TOKEN !== req.body.access_token) {
     return res.status(403).json({
       success: false,
@@ -202,7 +196,6 @@ router.post("/add-experience-from-kodidi", async (req, res) => {
 
     return res.send(response);
   } catch (error) {
-    console.log("error: ", error);
     res.send({
       success: false,
       message: "Error.",
@@ -276,10 +269,7 @@ router.get("/experiences/:user_id", async (req, res) => {
 
   let business_details_id =
     business_details_from_db.business_details.business_details_id;
-  console.log(
-    "business_details_id from expereiences get:",
-    business_details_id
-  );
+
   try {
     const response = await experience_service.getUserExperiencesById(
       business_details_id
@@ -287,7 +277,6 @@ router.get("/experiences/:user_id", async (req, res) => {
     // console.log("response from expereiences get:", response);
     return res.send(response);
   } catch (error) {
-    console.log("error from expereiences get:", error);
     res.send({
       success: false,
       message: "Error.",

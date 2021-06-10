@@ -418,7 +418,6 @@ router.post(
         req.user.id,
         user_details_from_db
       );
-      console.log(response);
       if (response.success) {
         result = response;
       } else {
@@ -429,7 +428,6 @@ router.post(
       }
       return res.send(result);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",

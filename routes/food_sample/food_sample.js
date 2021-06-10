@@ -23,7 +23,6 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      console.log(req.body[0].festivals);
       req.body.map(async (item) => {
         if (
           !item.title ||
@@ -164,7 +163,6 @@ router.post(
             item.images,
             createdByAdmin
           );
-          console.log("response from food sample", response);
           return res.send(response);
         } catch (error) {
           res.send({
@@ -184,7 +182,6 @@ router.post(
   }
 );
 router.post("/food-sample/noUser/add", async (req, res) => {
-  console.log(req.body);
   try {
     req.body.map(async (item) => {
       if (
@@ -223,11 +220,9 @@ router.post("/food-sample/noUser/add", async (req, res) => {
               message: user_details_from_db.message,
             });
           } */
-        console.log(item.userEmail);
         const user_details_from_db = await user_profile_service.getUserByEmail(
           item.userEmail
         );
-        console.log(user_details_from_db);
         let createdByAdmin = false;
         let db_user = user_details_from_db.user;
         /* let user_role_object = db_user.role;
@@ -328,10 +323,8 @@ router.post("/food-sample/noUser/add", async (req, res) => {
           item.images,
           createdByAdmin
         );
-        console.log("response from food sample", response);
         return res.send(response);
       } catch (error) {
-        console.log(error);
         res.send({
           success: false,
           message: "Error.",
@@ -340,7 +333,6 @@ router.post("/food-sample/noUser/add", async (req, res) => {
       }
     });
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: "Error.",
@@ -507,8 +499,6 @@ router.get("/food-sample/all", async (req, res) => {
 // GET all food samples in festival
 router.get("/food-sample/festival/:festivalId", async (req, res) => {
   try {
-    console.log("body", req.body);
-    console.log("params", req.params);
     //const current_page = req.query.page || 1;
     const keyword = req.query.keyword || "";
     const status_operator = "=";
@@ -546,7 +536,6 @@ router.get("/food-sample/festival/:festivalId", async (req, res) => {
 
     return res.send(response);
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: "Error.",
@@ -570,7 +559,6 @@ router.get("/food-sample/nationalities", async (req, res) => {
       );
     });
 
-    console.log(keyword);
 
     const response = await food_sample_service.getDistinctNationalities(
       status_operator,
@@ -579,7 +567,6 @@ router.get("/food-sample/nationalities", async (req, res) => {
       alreadySelectedNationalityList
     );
 
-    console.log(response);
 
     return res.send(response);
   } catch (error) {
@@ -594,7 +581,6 @@ router.get("/food-sample/nationalities", async (req, res) => {
 router.get("/food-sample/user-nationalities", async (req, res) => {
   try {
     const keyword = req.query.keyword || "";
-    console.log(keyword);
     const response = await food_sample_service.getNationalities(keyword);
     if (response.success) {
       res.status(200).send(response);
@@ -605,7 +591,6 @@ router.get("/food-sample/user-nationalities", async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("Update", error);
   }
 });
 
@@ -768,7 +753,6 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
     );
 
     const db_products = food_sample_response.details;
-    console.log("db_products", db_products);
 
     const user_details_response = await user_profile_service.getUserById(
       req.params.owner_id
@@ -1025,7 +1009,6 @@ router.put(
         success: true,
       };
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -1072,7 +1055,6 @@ router.delete("/food-sample/delete/user/:user_id", async (req, res) => {
     });
   }
   try {
-    console.log(req.body.delete_items);
     const user = await user_profile_service.getUserById(req.params.user_id);
     const response = await food_sample_service.deleteFoodSamplesFromUser(
       req.params.user_id,
@@ -1088,7 +1070,6 @@ router.delete("/food-sample/delete/user/:user_id", async (req, res) => {
       success: true,
     };
   } catch (error) {
-    console.log(error);
     res.send({
       success: false,
       message: "Error.",

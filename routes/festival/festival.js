@@ -223,7 +223,6 @@ router.get("/vendors/festival/:festival_id", async (req, res) => {
         vendors.push(list.user);
       }
     }
-    console.log("vendors for festival:", vendors);
     return res.send(vendors);
   } catch (error) {
     res.send({
@@ -447,7 +446,7 @@ router.post(
   "/host-festival",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("everything coming from host festival:", req.body);
+    console.log("festival_id from host-festival:", req.body)
     const { festival_id, festival_restaurant_host_id, foodSamplePreference } =
       req.body;
 
@@ -466,7 +465,6 @@ router.post(
       const db_user = user_details_from_db.user;
       const response = await festival_service.hostToFestival(
         festival_id,
-        festival_restaurant_host_id,
         foodSamplePreference,
         db_user,
         "Host"
@@ -474,7 +472,6 @@ router.post(
 
       return res.send(response);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -501,7 +498,6 @@ router.post(
           message: user_details_from_db.message,
         });
       }
-      console.log("user id from the sponsor to festival:", user_details_from_db)
 
       const response = await festival_service.sponsorToFestival(
         festival_id,
@@ -526,7 +522,6 @@ router.post(
     const festival_id = req.body.festival_id;
     const business_details_id = req.body.business_details_id;
     const user_id = req.body.user_id;
-    console.log("req.body from /business/add", req.body);
     try {
       const response = await festival_service.addBusinessToFestival(
         festival_id,
@@ -534,7 +529,6 @@ router.post(
       );
       return res.send(response);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -548,7 +542,6 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     const { festival_id } = req.body;
-    console.log("req.body from vendor-festival:", req.body);
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -564,7 +557,6 @@ router.post(
       const business_details = await authentication_service.getUserByBusinessDetails(
         req.user.id
       );
-      console.log("business_details from the vendor-festival");
       if (!business_details.success) {
         return res.status(403).json({
           success: false,
@@ -580,7 +572,6 @@ router.post(
       );
       return res.send(response);
     } catch (error) {
-      console.log(error);
       res.send({
         success: false,
         message: "Error.",

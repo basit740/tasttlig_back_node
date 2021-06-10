@@ -8,7 +8,6 @@ const user_profile_service = require("../../services/profile/user_profile");
 
 // GET all passport details
 router.get("/passport", async (req, res) => {
-  console.log("currentFestivals",req.query)
   try {
     const userId = req.query.userId;
     const current_page = req.query.page || 1;

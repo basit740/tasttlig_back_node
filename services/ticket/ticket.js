@@ -8,8 +8,6 @@ const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const getAllTickets = async (userId, currentPage) => {
   // let startDate = filters.startDate.substring(0, 10);
   // let startTime = formatTime(filters.startTime);
-  console.log(currentPage);
-  console.log("userId", userId);
   const userIdInt = Number(userId);
   let query = db
     .select(
@@ -74,11 +72,9 @@ const getAllTickets = async (userId, currentPage) => {
 
   return await query
     .then((value) => {
-      console.log(value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log(reason);
       return { success: false, details: reason };
     });
 };
@@ -148,7 +144,6 @@ const getTicketList = async () => {
 };
 
 const newTicketInfo = async (ticket_details) => {
-  console.log("data from ticket add:", ticket_details)
   try {
 
     await db.transaction(async (trx) => {
@@ -163,7 +158,6 @@ const newTicketInfo = async (ticket_details) => {
 
     return { success: true, details: "Success." };
   } catch (error) {
-    console.log("error:", error);
     return { success: false, details: error.message };
   }
 };
@@ -181,7 +175,6 @@ const deleteTicketsFromUser = async(user_id, delete_items) => {
           return { success: true };
         })
         .catch((reason) => {
-          console.log(reason);
           return { success: false, details: reason };
         });
       })

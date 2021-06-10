@@ -100,7 +100,6 @@ router.post("/all-services-claim", async (req, res) => {
     );
     return res.send(response);
   } catch (error) {
-    console.log("error", error);
     res.send({
       success: false,
       message:
@@ -118,7 +117,6 @@ router.get("/user/applications/:userId", async (req, res) => {
 
     return res.send(application);
   } catch (error) {
-    console.log("err", error);
     res.status(500).send({
       success: false,
       message: error.message,
@@ -148,7 +146,6 @@ router.get("/user/attended-festival/:userId", async (req, res) => {
       filters,
       req.params.userId
     );
-    console.log("filter", filters);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -181,7 +178,6 @@ router.get("/user/hosted-festival/:userId", async (req, res) => {
       filters,
       req.params.userId
     );
-    console.log("filter", filters);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -246,7 +242,6 @@ router.get("/business/revenue/:userId", async (req, res) => {
     };
     return res.send(revenue);
   } catch (error) {
-    console.log("err", error);
     res.status(500).send({
       success: false,
       message: error.message,
@@ -368,11 +363,9 @@ router.get(
   async (req, res) => {
     try {
       const userOrders = await mobile_services.getAllUserOrders(req.user.id);
-      console.log("data coming from the orders:", userOrders);
 
       return res.send(userOrders);
     } catch (error) {
-      console.log(error);
       res.status(500).send({
         success: false,
         message: error.message,
@@ -392,7 +385,6 @@ router.post("/mobile/user/business/:userId", async (req, res) => {
     let db_user;
 
     db_user = await user_profile_service.getUserById(req.params.userId);
-    console.log("prm", db_user);
 
     if (!db_user.success) {
       res.send({
@@ -403,7 +395,6 @@ router.post("/mobile/user/business/:userId", async (req, res) => {
 
     let details = {};
 
-    console.log("public", req.body);
     if (req.body.type && req.body.type === "public") {
       details = {
         business: {},
@@ -446,10 +437,8 @@ router.post("/mobile/user/business/:userId", async (req, res) => {
         success: true,
       };
     }
-    console.log("details", details);
     return res.send(details);
   } catch (error) {
-    console.log("error", error);
     res.status(500).send({
       success: false,
       message: error.message,
@@ -476,7 +465,6 @@ router.get(
       const business_awards = await mobile_services.getBusinessAwards(
         business_details_all.business_details_all.business_details_id
       );
-      console.log("business_awards", business_awards);
       return res.send(business_awards);
     } catch (error) {
       res.send({
@@ -486,5 +474,45 @@ router.get(
     }
   }
 );
+
+router.post("/mobile/attend-festival/:userId", async (req, res) => {
+  try {
+    if (!req.params.userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
+      });
+    }
+    let db_user;
+
+    db_user = await user_profile_service.getUserById(req.params.userId);
+
+    if (!db_user.success) {
+      res.send({
+        success: false,
+        message: "Entered User ID is invalid.",
+      });
+    }
+
+    const response = await mobile_services.attendFestival(
+      db_user.user.tasttlig_user_id,
+      db_user.user.email,
+      req.body.festival_id
+    );
+
+    if (response.success) {
+      return res.send({
+        success: true,
+      });
+    } else {
+      return res.send(response);
+    }
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
 
 module.exports = router;

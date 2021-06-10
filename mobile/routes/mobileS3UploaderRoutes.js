@@ -52,7 +52,6 @@ mobileS3UploaderRouter.post("/mobile/s3_signed_url", async (req, res) => {
             options
           );
         } catch (error) {
-          console.log(JSON.stringify(error));
           return {
             success: false,
             error: error.message,

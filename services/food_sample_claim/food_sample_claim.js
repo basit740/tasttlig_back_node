@@ -24,11 +24,7 @@ const createNewFoodSampleClaim = async (
   quantityAfterClaim,
   product_claim_details
 ) => {
-  console.log("db_user from create new food sample claim",db_user)
 
-  console.log("db_all_products from create new food sample claim",db_all_products)
-  console.log("quantityAfterClaim from create new food sample claim",quantityAfterClaim)
-  console.log(" product_claim_detailsfrom create new food sample claim",product_claim_details)
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
@@ -69,7 +65,6 @@ const createNewFoodSampleClaim = async (
         product_claim_details.festival_id
       );
       const getFestivalEndDate = response.details[0].festival_end_date;
-      console.log("subs", subs);
       subs &&
         subs.user.map((sub) => {
           if (
@@ -80,11 +75,7 @@ const createNewFoodSampleClaim = async (
             (sub.subscription_code === "G_AMB" &&
               sub.suscribed_festivals == null)
           ) {
-            /* let subscription_end_datetime = null;
-            subscription_end_datetime = new Date(
-              new Date().setMonth(new Date().getMonth() + Number(1))
-            );
-            console.log("sub date", subscription_end_datetime); */
+ 
 
             const updateSub = async (subId, subDate, festivalId) => {
               await db("user_subscriptions")
@@ -98,7 +89,6 @@ const createNewFoodSampleClaim = async (
                 })
                 .returning("*")
                 .catch((reason) => {
-                  console.log(reason);
                   return { success: false, message: reason };
                 });
             };
@@ -115,7 +105,6 @@ const createNewFoodSampleClaim = async (
 
     return { success: true, details: "Success." };
   } catch (error) {
-    console.log("error", error);
     return { success: false, details: error.message };
   }
 };
@@ -127,11 +116,7 @@ const createNewProductClaim = async (
   quantityAfterClaim,
   product_claim_details
 ) => {
-  console.log("db_user from create new food sample claim",db_user)
 
-  console.log("db_all_products from create new food sample claim",db_all_products)
-  console.log("quantityAfterClaim from create new food sample claim",quantityAfterClaim)
-  console.log(" product_claim_detailsfrom create new food sample claim",product_claim_details)
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
@@ -167,7 +152,6 @@ const createNewProductClaim = async (
 
     return { success: true, details: "Success." };
   } catch (error) {
-    console.log("error", error);
     return { success: false, details: error.message };
   }
 };
@@ -238,9 +222,7 @@ const confirmProductClaim = async (
   totalRedeemQuantity
 ) => {
   try {
-    console.log("claimId",claimId)
-    console.log("quantityAfterRedeem",quantityAfterRedeem)
-    console.log("totalRedeemQuantity",totalRedeemQuantity)
+
     
     let db_product;
     let db_food_sample_claim;
@@ -263,7 +245,6 @@ const confirmProductClaim = async (
           })
           .returning("*");
       }
-      //console.log(db_food_sample_claim);
       //insert data to user_reviews
       await db("user_reviews").insert({
         review_user_id: db_food_sample_claim[0].claim_user_id,
@@ -291,7 +272,6 @@ const confirmProductClaim = async (
 
     return { success: true, details: "Success." };
   } catch (error) {
-    console.log(error);
     return { success: false, details: error.message };
   }
 };
@@ -318,9 +298,7 @@ const confirmServiceClaim = async (
   totalRedeemQuantity
 ) => {
   try {
-    console.log("claimId",claimId)
-    console.log("quantityAfterRedeem",quantityAfterRedeem)
-    console.log("totalRedeemQuantity",totalRedeemQuantity)
+
     
     let db_product;
     let db_food_sample_claim;
@@ -343,7 +321,7 @@ const confirmServiceClaim = async (
           })
           .returning("*");
       }
-      //console.log(db_food_sample_claim);
+
       //insert data to user_reviews
       await db("user_reviews").insert({
         review_user_id: db_food_sample_claim[0].claim_user_id,
@@ -371,7 +349,6 @@ const confirmServiceClaim = async (
 
     return { success: true, details: "Success." };
   } catch (error) {
-    console.log(error);
     return { success: false, details: error.message };
   }
 };
@@ -470,10 +447,7 @@ const sendRedeemedEmailToUser = async (
   db_product,
   db_business
 ) => {
-  console.log("db_food_sample", db_food_sample_claim);
-  console.log("db_product", db_product);
-  console.log("db_user", db_user);
-  console.log("db_business", db_business);
+
   const token = jwt.sign(
     {
       claim_id: db_food_sample_claim.claim_id,
@@ -562,7 +536,6 @@ const getUserProductsClaims = async (user_id) => {
 
     return { success: true, details: db_food_sample_claim };
   } catch (error) {
-    console.log(error);
     return { success: false, error: error.message };
   }
 };
@@ -606,7 +579,6 @@ const getUserProductsRedeems = async (user_id, keyword, db_user) => {
     .groupBy("nationalities.alpha_2_code")
     .having("product_user_id", "=", user_id,  );
 
-  console.log("keyword from condfition: ", user_id);
   if (keyword) {
     // keyword=parseInt(keyword)
     query = db
@@ -638,11 +610,9 @@ const getUserProductsRedeems = async (user_id, keyword, db_user) => {
 
   return await query
     .then((value) => {
-      // console.log("value from redeem>>.>>>", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("service problem>>>>>>", reason);
       return { success: false, details: reason };
     });
 };
@@ -687,7 +657,6 @@ const getUserServiceRedeems = async (user_id, keyword, db_user) => {
     // .groupBy("nationalities.alpha_2_code")
     .having("services.service_user_id", "=", user_id,  );
 
-  console.log("keyword from condition: ", user_id);
   if (keyword) {
     // keyword=parseInt(keyword)
     query = db
@@ -719,18 +688,15 @@ const getUserServiceRedeems = async (user_id, keyword, db_user) => {
 
   return await query
     .then((value) => {
-      // console.log("value from redeem>>.>>>", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("service problem>>>>>>", reason);
       return { success: false, details: reason };
     });
 };
 
 // Get user food sample claims helper function
 const getUserExperiencesRedeems = async (user_id, keyword, db_user) => {
-  console.log("db_user", db_user)
   let query = db
     .select(
       "experiences.*",
@@ -798,15 +764,12 @@ const getUserExperiencesRedeems = async (user_id, keyword, db_user) => {
       )
       .orderBy("rank", "desc");
   }
-  console.log("query from condfition: ", query);
 
   return await query
     .then((value) => {
-      // console.log("value from redeem>>.>>>", value);
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("service problem>>>>>>", reason);
       return { success: false, details: reason };
     });
 };
@@ -1025,7 +988,6 @@ const createNewExperienceClaim = async (
         })
         .update({ claimed_total_quantity: quantityAfterClaim });
       }
-      console.log("db_food_sample_claim", db_food_sample_claim)
 
       await sendClaimedExperienceEmailToUser(
         db_user,
@@ -1048,7 +1010,6 @@ const createNewExperienceClaim = async (
         product_claim_details.festival_id
       );
       const getFestivalEndDate = response.details[0].festival_end_date;
-      console.log("subs", subs);
       subs &&
         subs.user.map((sub) => {
           if (
@@ -1059,11 +1020,7 @@ const createNewExperienceClaim = async (
             (sub.subscription_code === "G_AMB" &&
               sub.suscribed_festivals == null)
           ) {
-            /* let subscription_end_datetime = null;
-            subscription_end_datetime = new Date(
-              new Date().setMonth(new Date().getMonth() + Number(1))
-            );
-            console.log("sub date", subscription_end_datetime); */
+         
 
             const updateSub = async (subId, subDate, festivalId) => {
               await db("user_subscriptions")
@@ -1077,7 +1034,6 @@ const createNewExperienceClaim = async (
                 })
                 .returning("*")
                 .catch((reason) => {
-                  console.log(reason);
                   return { success: false, message: reason };
                 });
             };
@@ -1094,7 +1050,6 @@ const createNewExperienceClaim = async (
 
     return { success: true, details: "Success." };
   } catch (error) {
-    console.log("error", error);
     return { success: false, details: error.message };
   }
 };
@@ -1214,7 +1169,6 @@ const createNewServiceClaim = async (
         })
         .update({ claimed_total_quantity: quantityAfterClaim });
       }
-      console.log("db_food_sample_claim", db_food_sample_claim)
 
       await sendClaimedServiceEmailToUser(
         db_user,
@@ -1237,7 +1191,6 @@ const createNewServiceClaim = async (
         product_claim_details.festival_id
       );
       const getFestivalEndDate = response.details[0].festival_end_date;
-      console.log("subs", subs);
       subs &&
         subs.user.map((sub) => {
           if (
@@ -1248,11 +1201,7 @@ const createNewServiceClaim = async (
             (sub.subscription_code === "G_AMB" &&
               sub.suscribed_festivals == null)
           ) {
-            /* let subscription_end_datetime = null;
-            subscription_end_datetime = new Date(
-              new Date().setMonth(new Date().getMonth() + Number(1))
-            );
-            console.log("sub date", subscription_end_datetime); */
+        
 
             const updateSub = async (subId, subDate, festivalId) => {
               await db("user_subscriptions")
@@ -1266,7 +1215,6 @@ const createNewServiceClaim = async (
                 })
                 .returning("*")
                 .catch((reason) => {
-                  console.log(reason);
                   return { success: false, message: reason };
                 });
             };
@@ -1283,7 +1231,6 @@ const createNewServiceClaim = async (
 
     return { success: true, details: "Success." };
   } catch (error) {
-    console.log("error", error);
     return { success: false, details: error.message };
   }
 };
@@ -1342,7 +1289,6 @@ const sendClaimedServiceEmailToProvider = async (
   db_food_sample,
   db_food_sample_claim
 ) => {
-  console.log('host email',  db_food_sample);
   const token = jwt.sign(
     {
       claim_id: db_food_sample_claim.claim_id,
@@ -1357,7 +1303,6 @@ const sendClaimedServiceEmailToProvider = async (
   );
 
   const url = `${process.env.SITE_BASE}/confirm-food-sample/${token}`;
-  console.log('hosting food sample', db_food_sample.email );
   return Mailer.sendMail({    
     from: process.env.SES_DEFAULT_FROM,
     to: db_food_sample.email,

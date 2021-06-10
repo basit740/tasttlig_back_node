@@ -31,13 +31,11 @@ router.get(
 
 // GET user by ID
 router.get("/user", token_service.authenticateToken, async (req, res) => {
-  console.log("data from the user get", req.user.id);
   const response = await user_profile_service.getUserBySubscriptionId(
     req.user.id
   );
 
   if (!response.success) {
-    console.log("error from get user:", response.message);
     return res.status(403).json({
       success: false,
       message: response.message,
@@ -136,7 +134,6 @@ const extractFile = (requestBody, key, text) => {
 
 // POST application from multi-step form
 router.post("/user/host", token_service.authenticateToken, async (req, res) => {
-  console.log(req.body);
   let user;
   if (req.user.role.includes("ADMIN")) {
     user = await user_profile_service.getUserByEmail(req.body.email);
@@ -156,7 +153,6 @@ router.post("/user/host", token_service.authenticateToken, async (req, res) => {
 
     return res.status(500).send(response);
   } catch (error) {
-    console.log(error);
     return res.status(403).json({
       success: false,
       message: error,
@@ -164,7 +160,6 @@ router.post("/user/host", token_service.authenticateToken, async (req, res) => {
   }
 });
 router.post("/user/vendor", async (req, res) => {
-  console.log("request body from user/vendor", req);
   try {
     const hostDto = req.body;
     const response = await user_profile_service.saveHostApplication(
@@ -178,7 +173,6 @@ router.post("/user/vendor", async (req, res) => {
 
     return res.status(500).send(response);
   } catch (error) {
-    console.log(error);
     return res.status(403).json({
       success: false,
       message: error,
@@ -187,7 +181,6 @@ router.post("/user/vendor", async (req, res) => {
 });
 
 router.post("/user/sponsor", async (req, res) => {
-  console.log("request body from sponsor test: ", req.body);
   try {
     const hostDto = req.body;
     const response = await user_profile_service.saveHostApplication(
@@ -213,7 +206,6 @@ router.post(
   "/complete-profile/preference/:id",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log(req.body);
     const {
       preferred_country_cuisine,
       food_preferences,
@@ -307,7 +299,6 @@ router.put("/user/update-account/:id", async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("Update", error);
   }
 });
 
@@ -334,7 +325,6 @@ router.put("/user/update-profile/:id", async (req, res) => {
       // profile_status: req.body.profile_status,
     };
 
-    console.log("user update", req.body);
 
     const response = await user_profile_service.updateUserProfile(user);
 
@@ -347,7 +337,6 @@ router.put("/user/update-profile/:id", async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("Update", error);
   }
 });
 
@@ -383,7 +372,6 @@ router.put("/user/update-business-profile/:id", async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("Update", error);
   }
 });
 
@@ -402,7 +390,6 @@ router.get("/user/nationalities", async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("Update", error);
   }
 });
 
@@ -427,7 +414,6 @@ router.put(
       user_gender,
       user_state,
     } = req.body;
-    // console.log(user_date_of_birth);
     try {
       if (
         !user_date_of_birth ||
@@ -446,7 +432,6 @@ router.put(
         });
       }
 
-      // console.log(req)
 
       try {
         const user_details_from_db = await user_profile_service.getUserById(
@@ -478,9 +463,7 @@ router.put(
 
         user_info["id"] = req.user.id;
 
-        console.log("body from front-end:", user_info);
         const response = await user_profile_service.createUserInfo(user_info);
-        console.log("response from preferences:", response);
         return res.send(response);
       } catch (error) {
         res.send({
@@ -853,7 +836,6 @@ router.post(
   "/business-passport",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("body from business passport: ", req.body);
     try {
       const response = await passport_service.postBusinessPassportDetails(
         req.body
@@ -868,7 +850,6 @@ router.post(
         is_business: req.body.is_business,
         email: req.user.email,
       };
-      console.log("host_info", hostDto);
       const creatingFreeOrder = await user_order_service.createFreeOrder(
         req.body.subscriptionResponse,
         req.user.id
@@ -888,7 +869,6 @@ router.post(
 
       return res.send(saveHost);
     } catch (error) {
-      console.log("error from catch:", error);
       return res.status(403).json({
         success: false,
         message: error.details,
@@ -999,7 +979,6 @@ router.post(
 );
 
 const saveUserApplicationToSponsor = async (req, res) => {
-  console.log("inside d funct", req.user);
   // save sponsor application
   const hostDto = {
     is_sponsor: req.body.is_sponsor,
@@ -1085,7 +1064,6 @@ router.post(
           sub.subscription_end_datetime &&
           sub.subscription_end_datetime < new Date()
         ) {
-          //console.log("IN*******", sub.subscription_end_datetime);
           const res = manageSub(sub.user_subscription_id);
         }
       });
@@ -1126,11 +1104,9 @@ router.post(
         });
       } */
 
-      //console.log("body", req.body);
       let ambData = req.body;
       let dbUser = await user_profile_service.getUserByEmail(req.user.email);
       ambData.dbUser = dbUser;
-      //console.log("ambData", ambData);
       const response = await user_profile_service.upgradeToGuestAmbassador(
         ambData
       );
