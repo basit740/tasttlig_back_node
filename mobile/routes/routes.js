@@ -6,6 +6,11 @@ const token_service = require("../../services/authentication/token");
 const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const mobile_services = require("../services/services");
+const { Stripe } = require("stripe");
+
+// Use Stripe secret key
+const keySecret = process.env.STRIPE_SECRET_KEY;
+const stripe = new Stripe(keySecret);
 
 // POST service claim
 router.post("/all-services-claim", async (req, res) => {
@@ -515,15 +520,36 @@ router.post("/mobile/attend-festival/:userId", async (req, res) => {
   }
 });
 
-/* router.post("/mobile/pre-stripe-payment", async (req, res) => {
+router.post("/mobile/confirm-payment", async (req, res) => {
   try {
+    const paymentMethod = await stripe.paymentMethods.create({
+      type: "card",
+      card: req.body.card,
+      billing_details: req.body.billing_details,
+    });
 
-    if (response.success) {
-      return res.send({
-        success: true,
-      });
+    if (paymentMethod.id) {
+      const paymentConfirm = await stripe.paymentIntents.confirm(
+        req.body.clientSecret,
+        { payment_method: paymentMethod.id }
+      );
+
+      if (paymentConfirm.status === "succeeded") {
+        return res.send({
+          paymentIntent: paymentConfirm,
+          success: true,
+        });
+      } else {
+        return res.send({
+          paymentIntent: paymentConfirm,
+          success: false,
+        });
+      }
     } else {
-      return res.send(response);
+      return res.send({
+        paymentIntent: paymentMethod,
+        success: false,
+      });
     }
   } catch (error) {
     console.log("error", error);
@@ -532,6 +558,6 @@ router.post("/mobile/attend-festival/:userId", async (req, res) => {
       message: error.message,
     });
   }
-}); */
+});
 
 module.exports = router;
