@@ -101,6 +101,108 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
     });
 };
 
+const getAllFestivalList = async (currentPage, keyword, filters) => {
+  let startDate;
+  let startTime;
+  let user_id;
+
+  if (filters.startDate) {
+    startDate = filters.startDate.substring(0, 10);
+  }
+  if (filters.startTime) {
+    startTime = formatTime(filters.startTime);
+  }
+  if (filters.user_id) {
+    user_id = filters.user_id;
+  }
+  let query = db
+    .select(
+      "festivals.*",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("festivals")
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    )
+    .where("festivals.festival_id", ">", 3)
+    //.where("festivals.festival_end_date", ">=", new Date())
+    .groupBy("festivals.festival_id")
+    .having("festivals.festival_user_admin_id[1]", "=", Number(user_id))
+    .orderBy("festival_start_date");
+
+  if (filters.nationalities && filters.nationalities.length) {
+    query.whereIn("nationalities.nationality", filters.nationalities);
+  }
+
+  if (filters.startDate) {
+    query.where("festivals.festival_end_date", ">=", startDate);
+    // .where("festivals.festival_start_date", ">=", startDate);
+  }
+
+  if (filters.startTime) {
+    query.where("festivals.festival_start_time", ">=", startTime);
+  }
+
+  if (filters.cityLocation) {
+    query.where("festivals.festival_city", "=", filters.cityLocation);
+  }
+
+  //if (filters.dayOfWeek) {
+  /* query.whereRaw("Day(festivals.festival_start_time) = ?", [
+      filters.dayOfWeek,
+    ]); */
+  //query.where(knex.datePart("dow", "festivals.festival_start_date"), "=", 0);
+  //}
+
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                "main.nationality, " +
+                "main.festival_name, " +
+                "main.festival_type, " +
+                "main.festival_price, " +
+                "main.festival_city, " +
+                "main.description)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+
+  query = query.paginate({
+    perPage: 12,
+    isLengthAware: true,
+    currentPage: currentPage,
+  });
+
+  return await query
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
+
 const getAllFestivalsPresent = async () => {
   return await db
     .select(
@@ -604,6 +706,7 @@ const getFestivalRestaurants = async (host_id, festival_id) => {
 
 module.exports = {
   getAllFestivals,
+  getAllFestivalList,
   getThreeFestivals,
   getFestivalList,
   createNewFestival,
