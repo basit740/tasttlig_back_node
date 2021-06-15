@@ -560,4 +560,26 @@ router.post("/mobile/confirm-payment", async (req, res) => {
   }
 });
 
+router.post("/mobile/user-vendor-subscription", async (req, res) => {
+  console.log("vend subs body", req.body);
+  const user_id = req.body.user_id;
+  const suscribed_festivals = req.body.suscribed_festivals;
+
+  try {
+    const db_subscription_details =
+      await mobile_services.getVendorUserBySubscriptionId(
+        user_id,
+        suscribed_festivals
+      );
+
+    console.log(db_subscription_details);
+    return res.send(db_subscription_details);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;

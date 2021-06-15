@@ -498,7 +498,6 @@ const getHostedFestivalsForUser = async (
 
 const getBusinessServiceRevenue = async (business_details_id) => {
   try {
-
     const revenue = await db
       .select("order_items.*", "orders.*", "services.*", "user_claims.*")
       .from("orders")
@@ -550,7 +549,6 @@ const getBusinessProductRevenue = async (business_details_id) => {
 
 const getBusinessExperienceRevenue = async (business_details_id) => {
   try {
-
     const revenue = await db
       .select("order_items.*", "orders.*", "experiences.*", "user_claims.*")
       .from("orders")
@@ -889,6 +887,32 @@ const attendFestival = async (user_id, user_email, festival_id) => {
   }
 };
 
+const getVendorUserBySubscriptionId = async (id, suscribed_festivals) => {
+  return await db("user_subscriptions")
+    .select("user_subscriptions.*")
+    .where("user_subscriptions.user_id", "=", id)
+    .andWhere(
+      "user_subscriptions.suscribed_festivals",
+      "@>",
+      suscribed_festivals
+    )
+    .andWhere(function () {
+      this.where("user_subscriptions.subscription_code", "V_MIN")
+        .orWhere("user_subscriptions.subscription_code", "V_MOD")
+        .orWhere("user_subscriptions.subscription_code", "V_ULTRA");
+    })
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+
+      return { success: true, user: value };
+    })
+    .catch((error) => {
+      return { success: false, message: error };
+    });
+};
+
 module.exports = {
   userCanClaimService,
   findService,
@@ -907,4 +931,5 @@ module.exports = {
   getAllUserOrders,
   getBusinessAwards,
   attendFestival,
+  getVendorUserBySubscriptionId,
 };

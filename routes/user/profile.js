@@ -298,8 +298,7 @@ router.put("/user/update-account/:id", async (req, res) => {
         message: "Email already exists.",
       });
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 });
 
 router.put("/user/update-profile/:id", async (req, res) => {
@@ -325,7 +324,6 @@ router.put("/user/update-profile/:id", async (req, res) => {
       // profile_status: req.body.profile_status,
     };
 
-
     const response = await user_profile_service.updateUserProfile(user);
 
     if (response.success) {
@@ -336,8 +334,7 @@ router.put("/user/update-profile/:id", async (req, res) => {
         message: "Email already exists.",
       });
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 });
 
 router.put("/user/update-business-profile/:id", async (req, res) => {
@@ -371,8 +368,7 @@ router.put("/user/update-business-profile/:id", async (req, res) => {
         message: "Email already exists.",
       });
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 });
 
 // get nationalities for user
@@ -389,8 +385,7 @@ router.get("/user/nationalities", async (req, res) => {
         message: "Email already exists.",
       });
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 });
 
 // // update user info for passport
@@ -431,7 +426,6 @@ router.put(
           message: "Required parameters are not available in request.",
         });
       }
-
 
       try {
         const user_details_from_db = await user_profile_service.getUserById(
