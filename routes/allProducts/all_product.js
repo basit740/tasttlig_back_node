@@ -55,6 +55,7 @@ router.post(
      
     try {
       req.body.map(async (item) => {
+        console.log("item from /all-products/add:", item)
         if (
           !item.name ||
           !item.festivals ||
@@ -172,7 +173,7 @@ router.post(
             festival_selected: item.festivals,
             claimed_total_quantity: 0,
             redeemed_total_quantity: 0,
-            product_owner_type: item.product_owner_type,
+            product_offering_type: item.product_offering_type,
           };
           // adding product to central server
 
