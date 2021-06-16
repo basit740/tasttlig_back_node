@@ -72,6 +72,48 @@ router.get("/festival/all", async (req, res) => {
   }
 });
 
+
+// GET all festivals (including expired ones)from a specific user
+router.get("/festivals/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    const current_page = req.query.page || 1;
+    const keyword = req.query.keyword || "";
+
+    const filters = {
+      nationalities: req.query.nationalities,
+      startDate: req.query.startDate,
+      startTime: new Date(req.query.startTime).getTime(),
+      cityLocation: req.query.cityLocation,
+      radius: req.query.radius,
+      latitude: req.query.latitude,
+      longitude: req.query.longitude,
+      dayOfWeek: req.query.dayOfWeek,
+      user_id: req.query.user_id,
+    };
+
+    const response = await festival_service.getAllFestivalList(
+      current_page,
+      keyword,
+      filters
+    );
+    // console.log("filter", filters);
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+
 router.get("/festival/allFestival", async (req, res) => {
   try {
     const response = await festival_service.getAllFestivalsPresent();
