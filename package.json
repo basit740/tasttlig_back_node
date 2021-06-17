@@ -33,8 +33,7 @@
     "nodemailer-express-handlebars": "^4.0.0",
     "objection": "^2.2.3",
     "pg": "^8.3.0",
-    "stripe": "^8.84.0",
-    "windows-build-tools": "^4.0.0"
+    "stripe": "^8.84.0"
   },
   "devDependencies": {
     "jest": "^26.0.1",
