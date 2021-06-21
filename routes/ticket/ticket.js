@@ -96,6 +96,7 @@ router.post(
   "/ticket/add",
   token_service.authenticateToken,
   async (req, res) => {
+    console.log("req.body coming from ticet add:",req.body)
     const {
       ticket_booking_confirmation_id,
       ticket_user_id,
@@ -144,7 +145,7 @@ router.post(
       
       
       const response = await ticket_service.newTicketInfo(ticket_details);
-      
+      console.log("response coming from ticet add:",response)
       return res.send(response);
     } catch (error) {
       res.send({
@@ -154,6 +155,7 @@ router.post(
       });
     }
   } catch (error) {
+    console.log("error coming from ticet add:",error)
     res.send({
       success: false,
       message: "Error.",

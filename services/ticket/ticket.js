@@ -17,6 +17,7 @@ const getAllTickets = async (userId, currentPage) => {
       "tasttlig_users.email",
       "tasttlig_users.phone_number",
       "festivals.festival_price",
+      "festivals.festival_vendor_price",
       "festivals.festival_name",
       "festivals.festival_city",
       "festivals.festival_type",
@@ -52,6 +53,7 @@ const getAllTickets = async (userId, currentPage) => {
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
     .groupBy("festivals.festival_price")
+    .groupBy("festivals.festival_vendor_price")
     .groupBy("festivals.festival_name")
     .groupBy("festivals.festival_city")
     .groupBy("festivals.festival_type")
@@ -63,7 +65,7 @@ const getAllTickets = async (userId, currentPage) => {
     .groupBy("festivals.festival_id")
     .groupBy("festivals.festival_type")
     .orderBy("festivals.festival_start_date", "asc");
-
+    
   query = query.paginate({
     perPage: 12,
     isLengthAware: true,
@@ -144,17 +146,40 @@ const getTicketList = async () => {
 };
 
 const newTicketInfo = async (ticket_details) => {
+  console.log("ticket_details coming from ticet add:", ticket_details.ticket_festival_id[0])
   try {
+    if(typeof ticket_details.ticket_festival_id === "object") {
+      await db.transaction(async (trx) => {
+        const vendorFestival = ticket_details.ticket_festival_id.map((festivalNumber) => ({
+          // ticket_booking_confirmation_id: ticket_details.ticket_booking_confirmation_id,
+          ticket_user_id: ticket_details.ticket_user_id,
+          ticket_festival_id: festivalNumber,
+          no_of_admits: ticket_details.no_of_admits,
+          ticket_price: ticket_details.ticket_price,
+          ticket_type: ticket_details.ticket_type,
+          stripe_receipt_id: ticket_details.stripe_receipt_id,
 
-    await db.transaction(async (trx) => {
-      const db_ticket = await trx("ticket_details")
-        .insert(ticket_details)
-        .returning("*");
+        }))
+        const db_ticket = await trx("ticket_details")
+          .insert(vendorFestival)
+          .returning("*");
+  
+        if (!db_ticket) {
+          return { success: false, details: "Inserting new ticket failed." };
+        }
+      });
+    } else {
+      await db.transaction(async (trx) => {
+        const db_ticket = await trx("ticket_details")
+          .insert(ticket_details)
+          .returning("*");
+  
+        if (!db_ticket) {
+          return { success: false, details: "Inserting new ticket failed." };
+        }
+      });
 
-      if (!db_ticket) {
-        return { success: false, details: "Inserting new ticket failed." };
-      }
-    });
+    }
 
     return { success: true, details: "Success." };
   } catch (error) {

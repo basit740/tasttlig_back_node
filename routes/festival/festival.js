@@ -325,6 +325,7 @@ router.post(
       festival_start_time,
       festival_end_time,
       festival_description,
+      festival_vendor_price
     } = req.body;
 
     try {
@@ -363,6 +364,7 @@ router.post(
           festival_name,
           festival_type,
           festival_price,
+          festival_vendor_price,
           festival_city,
           festival_start_date: festival_start_date.substring(0, 10),
           festival_end_date: festival_end_date.substring(0, 10),
