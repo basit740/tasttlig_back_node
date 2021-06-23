@@ -1078,7 +1078,7 @@ router.get(
   async (req, res) => {
     try {
       const response = await user_profile_service.getValidSubscriptionsByUserId(
-        req.params.id
+        req.user.id
       );
       if (!response.success) {
         return res.status(403).json({
