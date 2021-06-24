@@ -458,15 +458,73 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
           subscription_end_datetime = db_order_details.item.date_of_expiry;
         }
 
-        await trx("user_subscriptions").insert({
-          subscription_code: db_order_details.item.subscription_code,
-          user_id: order_details.user_id,
-          subscription_start_datetime: new Date(),
-          subscription_end_datetime: subscription_end_datetime,
-          suscribed_festivals: db_order_details.subscribed_festivals,
-          cash_payment_received: db_order_details.item.price,
-          user_subscription_status: "ACTIVE",
-        });
+        if(order_details.discount < 1) {
+
+          for(let festival of db_order_details.subscribed_festivals) {
+          console.log("festival for rejection:", festival)
+
+            await db("user_subscriptions")
+            .where("user_id", order_details.user_id)
+            .andWhere("subscription_code", order_details.item_id)
+            .update({
+              suscribed_festivals: trx.raw(
+                "array_append(suscribed_festivals, ?)",
+                [festival]
+              ),
+            })
+            .returning("*")
+            .catch((reason) => {
+              console.log("reason for rejection:", reason)
+              return { success: false, message: reason };
+            });
+
+            await db("festivals")
+            .where("festival_id", festival)
+            .update({
+              festival_vendor_id: trx.raw(
+                "array_append(festival_vendor_id, ?)",
+                [order_details.user_id]
+              ),
+            })
+            .returning("*")
+            .catch((reason) => {
+              console.log("reason for rejection:", reason)
+              return { success: false, message: reason };
+            });
+
+          }
+        
+        } else {
+          await trx("user_subscriptions").insert({
+            subscription_code: db_order_details.item.subscription_code,
+            user_id: order_details.user_id,
+            subscription_start_datetime: new Date(),
+            subscription_end_datetime: subscription_end_datetime,
+            suscribed_festivals: db_order_details.subscribed_festivals,
+            cash_payment_received: db_order_details.item.price,
+            user_subscription_status: "ACTIVE",
+          });
+          if (db_order_details.subscribed_festivals) {
+            for(let festival of db_order_details.subscribed_festivals) {
+              console.log("festival for rejection from here:", festival)
+              await db("festivals")
+              .where("festival_id", festival)
+              .update({
+                festival_vendor_id: trx.raw(
+                  "array_append(festival_vendor_id, ?)",
+                  [order_details.user_id]
+                ),
+              })
+              .returning("*")
+              .catch((reason) => {
+                console.log("reason for rejection:", reason)
+                return { success: false, message: reason };
+              });
+            }
+          }
+
+          }
+
 
         // await point_system_service.addUserPoints(
         //   order_details.user_id,

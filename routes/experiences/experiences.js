@@ -93,7 +93,7 @@ router.post(
         additional_information: req.body.additional_information
           ? req.body.additional_information
           : null,
-        experience_owner_type: req.body.experience_owner_type,
+          experience_offering_type: req.body.experience_offering_type,
         festival_selected:
           req.body.festival_selected &&
           Array.isArray(req.body.festival_selected)

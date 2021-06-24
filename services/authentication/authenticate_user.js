@@ -103,7 +103,6 @@ const userRegister = async (new_user, sendEmail = true) => {
               cash_payment_received: subDetails.item.price,
               user_subscription_status: "ACTIVE",
             });
-            console.log("sub deets1", "done basic sub");
           }
 
           // Send sign up email confirmation to the user

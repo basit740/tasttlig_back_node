@@ -52,22 +52,21 @@ router.post(
   "/all-products/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log(
-      ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>im coming from all products add:",
-      req.body
-    );
+     
     try {
       req.body.map(async (item) => {
+        console.log("item from /all-products/add:", item)
         if (
           !item.name ||
           !item.festivals ||
           !item.sample_size ||
           !item.quantity ||
           !item.description ||
-          !item.images ||
+          !item.images
+           ||
           !item.end_time ||
-          !item.start_time ||
-          !item.nationality_id
+          !item.start_time 
+          // !item.nationality_id
         ) {
           return res.status(403).json({
             success: false,
@@ -99,9 +98,8 @@ router.post(
               });
             }
 
-            const host_details_from_db = await user_profile_service.getUserByEmail(
-              item.userEmail
-            );
+            const host_details_from_db =
+              await user_profile_service.getUserByEmail(item.userEmail);
             db_user = host_details_from_db.user;
             createdByAdmin = true;
           }
@@ -110,18 +108,19 @@ router.post(
             product_user_id: db_user.tasttlig_user_id,
             title: item.name,
             start_time:
-              item.start_time.length === 5
+            item.start_time ? item.start_time.length === 5
                 ? item.start_time
-                : formatTime(item.start_time),
+                : formatTime(item.start_time) : null,
             end_time:
-              item.end_time.length === 5
+            item.end_time ? item.end_time.length === 5
                 ? item.end_time
-                : formatTime(item.end_time),
+                : formatTime(item.end_time) : null,
             description: item.description,
 
             nationality_id: item.nationality_id,
             product_size: item.sample_size,
             product_type: item.product_type,
+            additional_information: item.additional_information,
             is_available_on_monday:
               item.is_available_on_monday !== undefined
                 ? item.is_available_on_monday
@@ -174,6 +173,7 @@ router.post(
             festival_selected: item.festivals,
             claimed_total_quantity: 0,
             redeemed_total_quantity: 0,
+            product_offering_type: item.product_offering_type,
           };
           // adding product to central server
 
@@ -181,21 +181,22 @@ router.post(
             db_user,
             all_product_details,
             item.images,
-            createdByAdmin
+            createdByAdmin,
+            item.sponsorType,
           );
           res.send(response);
           if (response.success) {
-            const product_central_server = await auth_server_service.createNewProductInCentralServer(
-              db_user,
-              all_product_details,
-              item.images
-            );
+            const product_central_server =
+              await auth_server_service.createNewProductInCentralServer(
+                db_user,
+                all_product_details,
+                item.images
+              );
           }
           return {
             success: true,
           };
         } catch (error) {
-          console.log(error);
           res.send({
             success: false,
             message: "Error.",
@@ -253,7 +254,6 @@ router.get(
         requestByAdmin,
         festival_id
       );
-      console.log("Products details", response);
       return res.send(response);
     } catch (error) {
       res.send({
@@ -266,6 +266,12 @@ router.get(
 );
 
 router.post("/add-product-from-kodidi", async (req, res) => {
+  if (process.env.API_ACCESS_TOKEN !== req.body.access_token) {
+    return res.status(403).json({
+      success: false,
+      message: "Access Denied",
+    });
+  }
   console.log(req.body);
   if (!req.body.all_product_details || !req.body.db_user || !req.body.images) {
     return res.status(403).json({
@@ -279,9 +285,10 @@ router.post("/add-product-from-kodidi", async (req, res) => {
     );
     let business_details_from_db;
     if (user_details_from_db.success) {
-      business_details_from_db = await authentication_service.getUserByBusinessDetails(
-        user_details_from_db.user.id
-      );
+      business_details_from_db =
+        await authentication_service.getUserByBusinessDetails(
+          user_details_from_db.user.id
+        );
     }
     const product_information = req.body.all_product_details;
     const product_insertion = {
@@ -301,10 +308,8 @@ router.post("/add-product-from-kodidi", async (req, res) => {
       product_insertion,
       req.body.images
     );
-    console.log(response);
     return res.send(response);
   } catch (error) {
-    console.log("error: ", error);
     res.send({
       success: false,
       message: "Error.",

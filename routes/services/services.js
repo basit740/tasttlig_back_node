@@ -76,7 +76,7 @@ router.post(
         service_nationality_id: req.body.service_nationality_id
           ? req.body.service_nationality_id
           : null,
-        service_owner_type: req.body.service_owner_type,
+        service_offering_type: req.body.service_offering_type,
         service_price: req.body.service_price ? req.body.service_price : 2,
         service_capacity: req.body.service_capacity,
         service_size_scope: req.body.service_size_scope,
