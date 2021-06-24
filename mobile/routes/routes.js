@@ -8,6 +8,7 @@ const authenticate_user_service = require("../../services/authentication/authent
 const mobile_services = require("../services/services");
 const { Stripe } = require("stripe");
 const { getFestivalList } = require("../../services/festival/festival");
+const { db } = require("../../db/db-config");
 
 // Use Stripe secret key
 const keySecret = process.env.STRIPE_SECRET_KEY;
@@ -589,37 +590,49 @@ router.get("/mobile/unsubscribed-festivals/:userId", async (req, res) => {
   try {
     const getFestivals = await getFestivalList();
     console.log("get fest list", getFestivals);
-    let festivals = getFestivals.festival_list;
-    /* if (getFestivals.success) {
-      getFestivals.festival_list.map((festival) => {
-        festivalIds.push(Number(festival.festival_id));
-      });
-    } */
-    //console.log("fest ids", festivalIds);
+    let allFestivals = getFestivals.festival_list;
+    let unsubscribedFestivals = [];
+    let subscribedFestivals = [];
+
     const db_subscription_details =
       await mobile_services.getVendorUnsubscribedFestivalsById(user_id);
     console.log("subs", db_subscription_details.user);
 
-    let unsubscribedFestivals = [];
-    festivals.map((festival) => {
+    db_subscription_details.user.map((subscribed) => {
+      console.log("subscribed", subscribed.festival_id);
+      subscribedFestivals.push(subscribed.festival_id);
+    });
+
+    console.log("subscribedFestivals ->>>>", subscribedFestivals);
+
+    allFestivals.map((festival) => {
       if (db_subscription_details.user.length > 0) {
-        db_subscription_details.user.map((user) => {
-          if (!user.suscribed_festivals.includes(festival.festival_id)) {
-            console.log("iteration", festival);
-            unsubscribedFestivals.push(festival);
-          }
-          /* if (
-            !user.suscribed_festivals.includes(festival.festival_id) &&
-            user.subscription_code === "V_MIN"
-          ) {
-            console.log("includes", !user.suscribed_festivals.includes(festival.festival_id));
-            console.log("user", user);
-            console.log("iteration", festival.festival_id);
-            unsubscribedFestivals.push(festival);
-          } */
-        });
+      } else {
+        console.log(
+          "you are subscribed as a vendor to all of the available festivals."
+        );
       }
     });
+
+    // allFestivals.map((festival) => {
+    //   if (db_subscription_details.user.length > 0) {
+    //     db_subscription_details.user.map((user) => {
+    //       if (!user.suscribed_festivals.includes(festival.festival_id)) {
+    //         console.log("iteration", festival);
+    //         unsubscribedFestivals.push(festival);
+    //       }
+    //       /* if (
+    //         !user.suscribed_festivals.includes(festival.festival_id) &&
+    //         user.subscription_code === "V_MIN"
+    //       ) {
+    //         console.log("includes", !user.suscribed_festivals.includes(festival.festival_id));
+    //         console.log("user", user);
+    //         console.log("iteration", festival.festival_id);
+    //         unsubscribedFestivals.push(festival);
+    //       } */
+    //     });
+    //   }
+    // });
     console.log("unsubd", unsubscribedFestivals);
 
     return res.send({
