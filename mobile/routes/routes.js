@@ -7,6 +7,7 @@ const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const mobile_services = require("../services/services");
 const { Stripe } = require("stripe");
+const { getFestivalList } = require("../../services/festival/festival");
 
 // Use Stripe secret key
 const keySecret = process.env.STRIPE_SECRET_KEY;
@@ -574,6 +575,57 @@ router.post("/mobile/user-vendor-subscription", async (req, res) => {
 
     console.log(db_subscription_details);
     return res.send(db_subscription_details);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+router.get("/mobile/unsubscribed-festivals/:userId", async (req, res) => {
+  const user_id = req.params.userId;
+
+  try {
+    const getFestivals = await getFestivalList();
+    console.log("get fest list", getFestivals);
+    let festivals = getFestivals.festival_list;
+    /* if (getFestivals.success) {
+      getFestivals.festival_list.map((festival) => {
+        festivalIds.push(Number(festival.festival_id));
+      });
+    } */
+    //console.log("fest ids", festivalIds);
+    const db_subscription_details =
+      await mobile_services.getVendorUnsubscribedFestivalsById(user_id);
+    console.log("subs", db_subscription_details.user);
+
+    let unsubscribedFestivals = [];
+    festivals.map((festival) => {
+      if (db_subscription_details.user.length > 0) {
+        db_subscription_details.user.map((user) => {
+          if (!user.suscribed_festivals.includes(festival.festival_id)) {
+            console.log("iteration", festival);
+            unsubscribedFestivals.push(festival);
+          }
+          /* if (
+            !user.suscribed_festivals.includes(festival.festival_id) &&
+            user.subscription_code === "V_MIN"
+          ) {
+            console.log("includes", !user.suscribed_festivals.includes(festival.festival_id));
+            console.log("user", user);
+            console.log("iteration", festival.festival_id);
+            unsubscribedFestivals.push(festival);
+          } */
+        });
+      }
+    });
+    console.log("unsubd", unsubscribedFestivals);
+
+    return res.send({
+      success: true,
+      unsubscribedFestivals: unsubscribedFestivals,
+    });
   } catch (error) {
     res.send({
       success: false,

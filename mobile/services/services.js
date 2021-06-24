@@ -912,6 +912,26 @@ const getVendorUserBySubscriptionId = async (id, suscribed_festivals) => {
       return { success: false, message: error };
     });
 };
+const getVendorUnsubscribedFestivalsById = async (id) => {
+  return await db("user_subscriptions")
+    .select("user_subscriptions.suscribed_festivals")
+    .where("user_subscriptions.user_id", "=", id)
+    .andWhere(function () {
+      this.where("user_subscriptions.subscription_code", "V_MIN")
+        .orWhere("user_subscriptions.subscription_code", "V_MOD")
+        .orWhere("user_subscriptions.subscription_code", "V_ULTRA");
+    })
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+
+      return { success: true, user: value };
+    })
+    .catch((error) => {
+      return { success: false, message: error };
+    });
+};
 
 module.exports = {
   userCanClaimService,
@@ -932,4 +952,5 @@ module.exports = {
   getBusinessAwards,
   attendFestival,
   getVendorUserBySubscriptionId,
+  getVendorUnsubscribedFestivalsById,
 };
