@@ -588,7 +588,7 @@ router.get("/mobile/unsubscribed-festivals/:userId", async (req, res) => {
 
   try {
     const getFestivals = await getFestivalList();
-    console.log("get fest list", getFestivals);
+    //console.log("get fest list", getFestivals);
     let festivals = getFestivals.festival_list;
     /* if (getFestivals.success) {
       getFestivals.festival_list.map((festival) => {
@@ -599,16 +599,28 @@ router.get("/mobile/unsubscribed-festivals/:userId", async (req, res) => {
     const db_subscription_details =
       await mobile_services.getVendorUnsubscribedFestivalsById(user_id);
     console.log("subs", db_subscription_details.user);
+    let subscribed = [];
+    db_subscription_details.user.map((user) => {
+      user.suscribed_festivals.map((festivalId) => {
+        subscribed.push(festivalId);
+      });
+    });
+    console.log("suscribed", subscribed);
 
     let unsubscribedFestivals = [];
     festivals.map((festival) => {
-      if (db_subscription_details.user.length > 0) {
-        db_subscription_details.user.map((user) => {
+      if (subscribed.length > 0) {
+        if (!subscribed.includes(festival.festival_id)) {
+          console.log("iteration", festival.festival_id);
+          unsubscribedFestivals.push(festival);
+        }
+
+        /* suscribed.map((id) => {
           if (!user.suscribed_festivals.includes(festival.festival_id)) {
             console.log("iteration", festival);
             unsubscribedFestivals.push(festival);
-          }
-          /* if (
+          } */
+        /* if (
             !user.suscribed_festivals.includes(festival.festival_id) &&
             user.subscription_code === "V_MIN"
           ) {
@@ -617,7 +629,7 @@ router.get("/mobile/unsubscribed-festivals/:userId", async (req, res) => {
             console.log("iteration", festival.festival_id);
             unsubscribedFestivals.push(festival);
           } */
-        });
+        //});
       }
     });
     console.log("unsubd", unsubscribedFestivals);
