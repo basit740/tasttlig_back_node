@@ -589,14 +589,8 @@ router.get("/mobile/unsubscribed-festivals/:userId", async (req, res) => {
 
   try {
     const getFestivals = await getFestivalList();
-    //console.log("get fest list", getFestivals);
     let festivals = getFestivals.festival_list;
-    /* if (getFestivals.success) {
-      getFestivals.festival_list.map((festival) => {
-        festivalIds.push(Number(festival.festival_id));
-      });
-    } */
-    //console.log("fest ids", festivalIds);
+
     const db_subscription_details =
       await mobile_services.getVendorUnsubscribedFestivalsById(user_id);
     console.log("subs", db_subscription_details.user);
@@ -615,45 +609,10 @@ router.get("/mobile/unsubscribed-festivals/:userId", async (req, res) => {
           console.log("iteration", festival.festival_id);
           unsubscribedFestivals.push(festival);
         }
-
-        /* suscribed.map((id) => {
-          if (!user.suscribed_festivals.includes(festival.festival_id)) {
-            console.log("iteration", festival);
-            unsubscribedFestivals.push(festival);
-          } */
-        /* if (
-            !user.suscribed_festivals.includes(festival.festival_id) &&
-            user.subscription_code === "V_MIN"
-          ) {
-            console.log("includes", !user.suscribed_festivals.includes(festival.festival_id));
-            console.log("user", user);
-            console.log("iteration", festival.festival_id);
-            unsubscribedFestivals.push(festival);
-          } */
-        //});
+      } else {
+        unsubscribedFestivals.push(festival);
       }
     });
-
-    // allFestivals.map((festival) => {
-    //   if (db_subscription_details.user.length > 0) {
-    //     db_subscription_details.user.map((user) => {
-    //       if (!user.suscribed_festivals.includes(festival.festival_id)) {
-    //         console.log("iteration", festival);
-    //         unsubscribedFestivals.push(festival);
-    //       }
-    //       /* if (
-    //         !user.suscribed_festivals.includes(festival.festival_id) &&
-    //         user.subscription_code === "V_MIN"
-    //       ) {
-    //         console.log("includes", !user.suscribed_festivals.includes(festival.festival_id));
-    //         console.log("user", user);
-    //         console.log("iteration", festival.festival_id);
-    //         unsubscribedFestivals.push(festival);
-    //       } */
-    //     });
-    //   }
-    // });
-    console.log("unsubd", unsubscribedFestivals);
 
     return res.send({
       success: true,
