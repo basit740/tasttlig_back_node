@@ -589,28 +589,48 @@ router.get("/mobile/unsubscribed-festivals/:userId", async (req, res) => {
 
   try {
     const getFestivals = await getFestivalList();
-    console.log("get fest list", getFestivals);
-    let allFestivals = getFestivals.festival_list;
-    let unsubscribedFestivals = [];
-    let subscribedFestivals = [];
-
+    //console.log("get fest list", getFestivals);
+    let festivals = getFestivals.festival_list;
+    /* if (getFestivals.success) {
+      getFestivals.festival_list.map((festival) => {
+        festivalIds.push(Number(festival.festival_id));
+      });
+    } */
+    //console.log("fest ids", festivalIds);
     const db_subscription_details =
       await mobile_services.getVendorUnsubscribedFestivalsById(user_id);
     console.log("subs", db_subscription_details.user);
-
-    db_subscription_details.user.map((subscribed) => {
-      console.log("subscribed", subscribed.festival_id);
-      subscribedFestivals.push(subscribed.festival_id);
+    let subscribed = [];
+    db_subscription_details.user.map((user) => {
+      user.suscribed_festivals.map((festivalId) => {
+        subscribed.push(festivalId);
+      });
     });
+    console.log("suscribed", subscribed);
 
-    console.log("subscribedFestivals ->>>>", subscribedFestivals);
+    let unsubscribedFestivals = [];
+    festivals.map((festival) => {
+      if (subscribed.length > 0) {
+        if (!subscribed.includes(festival.festival_id)) {
+          console.log("iteration", festival.festival_id);
+          unsubscribedFestivals.push(festival);
+        }
 
-    allFestivals.map((festival) => {
-      if (db_subscription_details.user.length > 0) {
-      } else {
-        console.log(
-          "you are subscribed as a vendor to all of the available festivals."
-        );
+        /* suscribed.map((id) => {
+          if (!user.suscribed_festivals.includes(festival.festival_id)) {
+            console.log("iteration", festival);
+            unsubscribedFestivals.push(festival);
+          } */
+        /* if (
+            !user.suscribed_festivals.includes(festival.festival_id) &&
+            user.subscription_code === "V_MIN"
+          ) {
+            console.log("includes", !user.suscribed_festivals.includes(festival.festival_id));
+            console.log("user", user);
+            console.log("iteration", festival.festival_id);
+            unsubscribedFestivals.push(festival);
+          } */
+        //});
       }
     });
 
