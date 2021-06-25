@@ -1071,6 +1071,28 @@ router.post(
   }
 );
 
+//get user subscription list using subscription code and user id
+router.get(
+  "/subscription-list/:id/:code",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const response = await user_profile_service.getSubscriptionsByCode(
+        req.params.id,
+        req.params.code
+      );
+      if (!response.success) {
+        return res.status(403).json({
+          success: false,
+          message: response.message,
+        });
+      }
+      //response.user
+      return res.send(response);
+    } catch (error) {}
+  }
+);
+
 //get all user subscriptions by user id
 router.get(
   "/valid-user-subscriptions/:id",
