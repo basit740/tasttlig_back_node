@@ -69,6 +69,8 @@ router.post("/payment/stripe/success", async (req, res) => {
     });
   }
 
+  console.log("req.body from payment successful pruive:", req.body)
+
   try {
     let db_user;
 
@@ -88,6 +90,8 @@ router.post("/payment/stripe/success", async (req, res) => {
       user_passport_id: db_user.user.passport_id,
       payment_id: req.body.payment_id,
       vendor_festivals: req.body.vendor_festivals,
+      discount: req.body.discount,
+      festivalDiscount: req.body.festivalDiscount,
     };
     const db_order_details = await user_order_service.getOrderDetails(
       order_details
@@ -108,6 +112,7 @@ router.post("/payment/stripe/success", async (req, res) => {
       order_details,
       db_order_details,
       req.body.additionalEmail,
+      
     );
 
 
