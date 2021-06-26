@@ -22,6 +22,7 @@ router.get(
   
         return res.send(applications);
       } catch (error) {
+        console.log(error);
         res.status(500).send({
           success: false,
           message: error.message,
@@ -41,6 +42,7 @@ router.get(
   
         return res.send(applications);
       } catch (error) {
+        console.log(error);
         res.status(500).send({
           success: false,
           message: error.message,
@@ -57,6 +59,7 @@ router.get(
     async (req, res) => {
       try {
         const applications = await upgrade_service.getAllVendorApplications();
+        console.log("response from here:", applications);
         return res.send(applications);
       } catch (error) {
         res.status(500).send({
@@ -71,6 +74,7 @@ router.post(
     "/upgrade/vendor-to-host",
     token_service.authenticateToken,
     async (req, res) => {
+      console.log("body from front: ", req.body)
       try {
         const response = await upgrade_service.upgradeApplication(
           req.body
@@ -81,8 +85,10 @@ router.post(
             message: response.details,
           });
         }
+        console.log(response);
         return res.send(response);
       } catch (error) {
+        console.log("error from catch:", error);
         return res.status(403).json({
           success: false,
           message: error.details,
@@ -95,6 +101,7 @@ router.post(
     "/upgrade/business-to-host",
     token_service.authenticateToken,
     async (req, res) => {
+      console.log("body from front: ", req.body)
       try {
         const response = await upgrade_service.upgradeApplication(
           req.body
@@ -105,8 +112,10 @@ router.post(
             message: response.details,
           });
         }
+        console.log(response);
         return res.send(response);
       } catch (error) {
+        console.log("error from catch:", error);
         return res.status(403).json({
           success: false,
           message: error.details,
@@ -119,6 +128,7 @@ router.post(
     "/upgrade/business-to-vend",
     token_service.authenticateToken,
     async (req, res) => {
+      console.log("body from front: ", req.body)
       try {
         const response = await upgrade_service.upgradeApplication(
           req.body
@@ -129,8 +139,10 @@ router.post(
             message: response.details,
           });
         }
+        console.log(response);
         return res.send(response);
       } catch (error) {
+        console.log("error from catch:", error);
         return res.status(403).json({
           success: false,
           message: error.details,
@@ -141,7 +153,7 @@ router.post(
 
 
   // POST vendor approval from admin
-  router.post(
+router.post(
     "/vendor-applications/:userId/approve",
     token_service.authenticateToken,
     async (req, res) => {

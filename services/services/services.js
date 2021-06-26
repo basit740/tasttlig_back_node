@@ -11,8 +11,7 @@ const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 const createNewService = async (
   user_details_from_db,
   service_information,
-  service_images,
-  sponsorType
+  service_images
 ) => {
   try {
     service_information.claimed_total_quantity = 0;
@@ -32,36 +31,34 @@ const createNewService = async (
 
       await trx("service_images").insert(images);
 
-      console.log("FESTIVAL SELECTED", service_information.festivals_selected);
-      console.log("USER DETAILS", user_details_from_db.user.role);
+      console.log('FESTIVAL SELECTED', service_information.festivals_selected);
+      console.log('USER DETAILS', user_details_from_db.user.role);
 
-      if (service_information.festivals_selected > 0) {
-        if (
-          user_details_from_db.user.role &&
-          user_details_from_db.user.role.includes("HOST")
-        ) {
-          await trx("festivals")
+      if(service_information.festivals_selected>0)
+      {  
+        
+        if (user_details_from_db.user.role && user_details_from_db.user.role.includes("HOST")) 
+        {
+            await trx("festivals")
             .where({ festival_id: service_information.festivals_selected[0] })
             .update({
               festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
                 user_details_from_db.user.tasttlig_user_id,
               ]),
-            });
-        } else if (
-          user_details_from_db.user.role &&
-          user_details_from_db.user.role.includes("VENDOR")
-        ) {
-          // console.log('VENDOR FESTIVAL LENGHT', experience_details.festival_selected );
-          // console.log('USER ROLEEEEEEEE', user_role_object );
-          await trx("festivals")
-            .where({ festival_id: service_information.festivals_selected[0] })
-            .update({
-              festival_vendor_id: trx.raw(
-                "array_append(festival_vendor_id, ?)",
-                [user_details_from_db.user.tasttlig_user_id]
-              ),
-            });
-        }
+            })
+          }
+          else if (user_details_from_db.user.role && user_details_from_db.user.role.includes("VENDOR")) 
+          {
+            // console.log('VENDOR FESTIVAL LENGHT', experience_details.festival_selected );
+            // console.log('USER ROLEEEEEEEE', user_role_object );
+              await trx("festivals")
+              .where({ festival_id: service_information.festivals_selected[0] })
+              .update({
+                festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
+                  user_details_from_db.user.tasttlig_user_id,
+                ]),
+              })
+          }
       }
 
       // Food sample created confirmation email
@@ -78,22 +75,6 @@ const createNewService = async (
       });
     });
 
-    if (sponsorType === true && !user_details_from_db.user.role.includes("SPONSOR")) {
-      // Get role code of new role to be added
-      const new_role_code = await trx("roles")
-      .select()
-      .where({ role: "SPONSOR" })
-      .then((value) => {
-        return value[0].role_code;
-      });
-
-    // Insert new role for this user
-     await trx("user_role_lookup").insert({
-        user_id: user_details_from_db.user.tasttlig_user_id,
-        role_code: new_role_code,
-      });
- }
-
     return { success: true, details: "Success." };
   } catch (error) {
     console.log(error);
@@ -101,12 +82,7 @@ const createNewService = async (
   }
 };
 
-const addServiceToFestival = async (
-  festival_id,
-  service_id,
-  service_user_id,
-  user_details_from_db
-) => {
+const addServiceToFestival = async (festival_id, service_id, service_user_id, user_details_from_db) => {
   try {
     await db.transaction(async (trx) => {
       console.log("serviceId", service_id);
@@ -136,65 +112,69 @@ const addServiceToFestival = async (
         //     service_user_id,
         //   ]),
         // })
-        if (user_details_from_db.user.role.includes("HOST")) {
-          await trx("festivals")
+        if (user_details_from_db.user.role.includes("HOST")) 
+        {
+            await trx("festivals")
             .where({ festival_id: festival_id })
             .update({
               festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
                 service_user_id,
               ]),
-            });
-        } else if (user_details_from_db.user.role.includes("VENDOR")) {
-          await trx("festivals")
-            .where({ festival_id: festival_id })
-            .update({
-              festival_vendor_id: trx.raw(
-                "array_append(festival_vendor_id, ?)",
-                [service_user_id]
-              ),
-            });
-        }
+            })
+          }
+          else if (user_details_from_db.user.role.includes("VENDOR")) 
+          {
+              await trx("festivals")
+              .where({ festival_id: festival_id })
+              .update({
+                festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
+                  service_user_id,
+                ]),
+              })
+          }
       } else {
         let query = await db
           .select("services.*")
           .from("services")
           .where("service_id", "=", service_id);
         console.log(query);
-        if (query[0].festivals_selected) {
+        if (query[0].service_festival_id) {
           const db_service = await trx("services")
             .where({ service_id })
             .update({
               festivals_selected: trx.raw(
-                "array_append(festivals_selected, ?)",
+                "array_append(service_festivals_selected, ?)",
                 [festival_id]
               ),
             })
             .returning("*");
-          if (user_details_from_db.user.role.includes("HOST")) {
+            if (user_details_from_db.user.role.includes("HOST")) 
+           {
             await trx("festivals")
+            .where({ festival_id: festival_id })
+            .update({
+              festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+                service_user_id,
+              ]),
+            })
+          }
+          else if (user_details_from_db.user.role.includes("VENDOR")) 
+          {
+              await trx("festivals")
               .where({ festival_id: festival_id })
               .update({
-                festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+                festival_vendor_id: trx.raw("array_append(festival_vendor_id, ?)", [
                   service_user_id,
                 ]),
-              });
-          } else if (user_details_from_db.user.role.includes("VENDOR")) {
-            await trx("festivals")
-              .where({ festival_id: festival_id })
-              .update({
-                festival_vendor_id: trx.raw(
-                  "array_append(festival_vendor_id, ?)",
-                  [service_user_id]
-                ),
-              });
+              })
           }
-          // await trx("festivals")
-          // .where({ festival_id: festival_id })
-          // .update({
-          //   festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
-          //     service_user_id,
-          //   ]),
-          // })
+            // await trx("festivals")
+            // .where({ festival_id: festival_id })
+            // .update({
+            //   festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+            //     service_user_id,
+            //   ]),
+            // })
 
           if (!db_service) {
             return {
@@ -356,10 +336,10 @@ const getUserServiceDetails = async (user_id) => {
       "nationalities.id"
     )
     .leftJoin(
-      "business_details",
-      "services.service_user_id",
-      "business_details.business_details_user_id"
-    )
+        "business_details",
+        "services.service_user_id",
+        "business_details.business_details_user_id"
+      )
     .groupBy("services.service_id")
     .groupBy("services.service_nationality_id")
     .groupBy("business_details.business_details_id")
@@ -374,7 +354,7 @@ const getUserServiceDetails = async (user_id) => {
 };
 
 const getServicesFromUser = async (user_id, keyword, festival_id) => {
-  console.log("user of this service", user_id);
+  console.log('user of this service', user_id);
   let query = db
     .select(
       "services.*",
@@ -542,20 +522,21 @@ const claimService = async (db_user, service_id) => {
 // Update service helper function
 const updateService = async (db_user, data) => {
   const { service_images, ...service_update_data } = data;
-  console.log("service_update_data coming from the update service >>>>>>>>>>>", service_update_data)
-  service_update_data.service_user_id = db_user.tasttlig_user_id;
-  if (service_update_data.service_festivals_id === "") {
-    service_update_data.service_festivals_id = [];
-  }
+  service_update_data.service_user_id = db_user.tasttlig_user_id
+ 
+ if(service_update_data.service_festivals_id === '') {
+  service_update_data.service_festivals_id = [];
+ } 
 
   let updateData = {};
   // console.log('SERVICE UPDATE DATA', service_update_data );
   // updateData.service_user_id = db_user.tasttlig_user_id;
-  if (service_update_data.service_festivals_id === "") {
+  if(service_update_data.service_festivals_id==='')
+  { 
     service_update_data.service_festivals_id = [];
   }
-
-  updateData.festivals_selected = data.service_festival_id;
+  
+  updateData.service_festivals_id = data.service_festival_id;
 
   try {
     if (Array.isArray(data.service_id)) {
@@ -569,54 +550,54 @@ const updateService = async (db_user, data) => {
         })
         .update(updateData);
 
-      // for each festival
-      updateData.festivals_selected.map(async (festival_id) => {
-        try {
-          if (db_user.role.includes("HOST")) {
+        // for each festival
+        updateData.service_festivals_id.map(async (festival_id) => {
+          try {
+            if (db_user.role.includes("HOST"))
+          {   
             var host_ids = await db("festivals")
-              .select("festival_host_id")
-              .where("festival_id", "=", festival_id)
-              .then((resp) => {
-                return resp;
-              });
+            .select("festival_host_id")
+            .where("festival_id", "=", festival_id)
+            .then( (resp) => {return resp})
 
             // console.log('hosts to add ', host_ids)
 
-            if (!host_ids.includes(db_user.tasttlig_user_id)) {
+            if(!host_ids.includes(db_user.tasttlig_user_id)) {
               host_ids.push(db_user.tasttlig_user_id);
               await db("festivals")
-                .where({ festival_id: festival_id })
-                .update({ festival_host_id: host_ids });
+              .where({"festival_id": festival_id})
+              .update({"festival_host_id": host_ids}) 
             }
-          } else if (db_user.role.includes("VENDOR")) {
+          } 
+          else if (db_user.role.includes("VENDOR"))
+          {
             var vendor_ids = await db("festivals")
-              .select("festival_vendor_id")
-              .where("festival_id", "=", festival_id)
-              .then((resp) => {
-                return resp;
-              });
+            .select("festival_vendor_id")
+            .where("festival_id", "=", festival_id)
+            .then( (resp) => {return resp})
 
             // console.log('vendors to add ', vendor_ids);
 
             var vendor_ids_array = vendor_ids[0].festival_vendor_id || [];
             // console.log('VENDOR array ', vendor_ids_array);
-            if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
+            if(!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
               vendor_ids_array.push(db_user.tasttlig_user_id);
               await db("festivals")
-                .where({ festival_id: festival_id })
-                .update({ festival_vendor_id: vendor_ids_array });
+              .where({"festival_id": festival_id})
+              .update({"festival_vendor_id": vendor_ids_array})
             }
           }
-        } catch (error) {
-          return { success: false };
-        }
-      });
+          } catch (error) {
+            return {success: false}
+          }
+          
+        });
       return { success: true };
     } else {
       await db("services")
         .where((builder) => {
           return builder.where({
-            service_id: data.service_id,
+            service_id : data.service_id,
             service_user_id: db_user.tasttlig_user_id,
           });
         })
@@ -634,52 +615,52 @@ const updateService = async (db_user, data) => {
       }
 
       // for each festival
-      // updateData.festivals_selected.map(async (festival_id) => {
-      //   try {
-      //     if (db_user.role.includes("HOST")) {
-      //       var host_ids = await db("festivals")
-      //         .select("festival_host_id")
-      //         .where("festival_id", "=", festival_id)
-      //         .then((resp) => {
-      //           return resp;
-      //         });
+      updateData.service_festivals_id.map(async (festival_id) => {
+        try {
+          if (db_user.role.includes("HOST"))
+        {   
+          var host_ids = await db("festivals")
+          .select("festival_host_id")
+          .where("festival_id", "=", festival_id)
+          .then( (resp) => {return resp})
 
-      //       // console.log('hosts to add ', host_ids)
+          // console.log('hosts to add ', host_ids)
 
-      //       if (!host_ids.includes(db_user.tasttlig_user_id)) {
-      //         host_ids.push(db_user.tasttlig_user_id);
-      //         await db("festivals")
-      //           .where({ festival_id: festival_id })
-      //           .update({ festival_host_id: host_ids });
-      //       }
-      //     } else if (db_user.role.includes("VENDOR")) {
-      //       var vendor_ids = await db("festivals")
-      //         .select("festival_vendor_id")
-      //         .where("festival_id", "=", festival_id)
-      //         .then((resp) => {
-      //           return resp;
-      //         });
+          if(!host_ids.includes(db_user.tasttlig_user_id)) {
+            host_ids.push(db_user.tasttlig_user_id);
+            await db("festivals")
+            .where({"festival_id": festival_id})
+            .update({"festival_host_id": host_ids}) 
+          }
+        } 
+        else if (db_user.role.includes("VENDOR"))
+        {
+          var vendor_ids = await db("festivals")
+          .select("festival_vendor_id")
+          .where("festival_id", "=", festival_id)
+          .then( (resp) => {return resp})
 
-      //       // console.log('vendors to add ', vendor_ids);
+          // console.log('vendors to add ', vendor_ids);
 
-      //       var vendor_ids_array = vendor_ids[0].festival_vendor_id || [];
-      //       // console.log('VENDOR array ', vendor_ids_array);
-      //       if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
-      //         vendor_ids_array.push(db_user.tasttlig_user_id);
-      //         await db("festivals")
-      //           .where({ festival_id: festival_id })
-      //           .update({ festival_vendor_id: vendor_ids_array });
-      //       }
-      //     }
-      //   } catch (error) {
-      //     return { success: false };
-      //   }
-      // });
+          var vendor_ids_array = vendor_ids[0].festival_vendor_id || [];
+          // console.log('VENDOR array ', vendor_ids_array);
+          if(!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
+            vendor_ids_array.push(db_user.tasttlig_user_id);
+            await db("festivals")
+            .where({"festival_id": festival_id})
+            .update({"festival_vendor_id": vendor_ids_array})
+          }
+        }
+        } catch (error) {
+          return {success: false}
+        }
+        
+      });
 
       return { success: true };
     }
   } catch (error) {
-    console.log("service update error", error);
+    console.log('service update error', error);
     return { success: false, details: error };
   }
 };

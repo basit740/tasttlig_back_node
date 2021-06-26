@@ -6,6 +6,13 @@ const token_service = require("../../services/authentication/token");
 const user_profile_service = require("../../services/profile/user_profile");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const mobile_services = require("../services/services");
+const { Stripe } = require("stripe");
+const { getFestivalList } = require("../../services/festival/festival");
+const { db } = require("../../db/db-config");
+
+// Use Stripe secret key
+const keySecret = process.env.STRIPE_SECRET_KEY;
+const stripe = new Stripe(keySecret);
 
 // POST service claim
 router.post("/all-services-claim", async (req, res) => {
@@ -509,6 +516,110 @@ router.post("/mobile/attend-festival/:userId", async (req, res) => {
     }
   } catch (error) {
     res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+router.post("/mobile/confirm-payment", async (req, res) => {
+  try {
+    const paymentMethod = await stripe.paymentMethods.create({
+      type: "card",
+      card: req.body.card,
+      billing_details: req.body.billing_details,
+    });
+
+    if (paymentMethod.id) {
+      const paymentConfirm = await stripe.paymentIntents.confirm(
+        req.body.clientSecret,
+        { payment_method: paymentMethod.id }
+      );
+
+      if (paymentConfirm.status === "succeeded") {
+        return res.send({
+          paymentIntent: paymentConfirm,
+          success: true,
+        });
+      } else {
+        return res.send({
+          paymentIntent: paymentConfirm,
+          success: false,
+        });
+      }
+    } else {
+      return res.send({
+        paymentIntent: paymentMethod,
+        success: false,
+      });
+    }
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+router.post("/mobile/user-vendor-subscription", async (req, res) => {
+  console.log("vend subs body", req.body);
+  const user_id = req.body.user_id;
+  const suscribed_festivals = req.body.suscribed_festivals;
+
+  try {
+    const db_subscription_details =
+      await mobile_services.getVendorUserBySubscriptionId(
+        user_id,
+        suscribed_festivals
+      );
+
+    console.log(db_subscription_details);
+    return res.send(db_subscription_details);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+router.get("/mobile/unsubscribed-festivals/:userId", async (req, res) => {
+  const user_id = req.params.userId;
+
+  try {
+    const getFestivals = await getFestivalList();
+    let festivals = getFestivals.festival_list;
+
+    const db_subscription_details =
+      await mobile_services.getVendorUnsubscribedFestivalsById(user_id);
+    console.log("subs", db_subscription_details.user);
+    let subscribed = [];
+    db_subscription_details.user.map((user) => {
+      user.suscribed_festivals.map((festivalId) => {
+        subscribed.push(festivalId);
+      });
+    });
+    console.log("suscribed", subscribed);
+
+    let unsubscribedFestivals = [];
+    festivals.map((festival) => {
+      if (subscribed.length > 0) {
+        if (!subscribed.includes(festival.festival_id)) {
+          console.log("iteration", festival.festival_id);
+          unsubscribedFestivals.push(festival);
+        }
+      } else {
+        unsubscribedFestivals.push(festival);
+      }
+    });
+
+    return res.send({
+      success: true,
+      unsubscribedFestivals: unsubscribedFestivals,
+    });
+  } catch (error) {
+    res.send({
       success: false,
       message: error.message,
     });

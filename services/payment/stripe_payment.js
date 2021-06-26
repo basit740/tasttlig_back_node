@@ -35,7 +35,11 @@ const paymentIntent = async (order_details, vendor_festivals) => {
       description: order_details.item.description,
     });
 
-    return { success: true, client_secret: payment.client_secret };
+    return {
+      success: true,
+      client_secret: payment.client_secret,
+      paymentIntent_id: payment.id,
+    };
   } catch (error) {
     console.log(error);
     return { success: false, message: error.message };
