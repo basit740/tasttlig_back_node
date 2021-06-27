@@ -5,6 +5,7 @@ const { db } = require("../../db/db-config");
 const Orders = require("../../models/orders");
 const Experiences = require("../../models/Experiences");
 const point_system_service = require("../profile/points_system");
+const festival_service = require("../../services/festival/festival");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const moment = require("moment");
 const _ = require("lodash");
@@ -481,10 +482,15 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
             await db("festivals")
             .where("festival_id", festival)
             .update({
-              festival_vendor_id: trx.raw(
-                "array_append(festival_vendor_id, ?)",
-                [order_details.user_id]
-              ),
+              // FY: instead of adding user to festival_vendor_id, add user to vendor_request_id 
+              // festival_vendor_id: trx.raw(
+              //   "array_append(festival_vendor_id, ?)",
+              //   [order_details.user_id]
+              // ),
+               vendor_request_id: trx.raw(
+                 "array_append(vendor_request_id, ?)",
+                 [order_details.user_id]
+                 ),
             })
             .returning("*")
             .catch((reason) => {
@@ -506,12 +512,21 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
           });
           if (db_order_details.subscribed_festivals) {
             for(let festival of db_order_details.subscribed_festivals) {
+              let db_festival;
+              db_festival = await festival_service.getFestivalDetails(
+                  festival
+                )
               console.log("festival for rejection from here:", festival)
               await db("festivals")
               .where("festival_id", festival)
               .update({
-                festival_vendor_id: trx.raw(
-                  "array_append(festival_vendor_id, ?)",
+                // FY: instead of adding user to festival_vendor_id, add user to vendor_request_id 
+                // festival_vendor_id: trx.raw(
+                //   "array_append(festival_vendor_id, ?)",
+                //   [order_details.user_id]
+                // ),
+                vendor_request_id: trx.raw(
+                  "array_append(vendor_request_id, ?)",
                   [order_details.user_id]
                 ),
               })
@@ -519,6 +534,17 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
               .catch((reason) => {
                 console.log("reason for rejection:", reason)
                 return { success: false, message: reason };
+              });
+
+              await trx("applications").insert({
+                user_id: order_details.user_id,
+                created_at: new Date(),
+                updated_at: new Date(),
+                receiver: db_festival.details[0].festival_user_admin_id[0],
+                reason: "vendor application",
+                type: "vendor",
+                status: "Pending",
+                festival: festival,
               });
             }
           }

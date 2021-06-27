@@ -67,6 +67,25 @@ router.get(
     }
   );
 
+  //FY: routing for fetching vendor applications for specific host
+  router.get(
+    "/vendor-applications/:hostId",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const applications = await upgrade_service.getVendorApplications(
+          req.params.hostId
+        );
+        return res.send(applications);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+
 router.post(
     "/upgrade/vendor-to-host",
     token_service.authenticateToken,
@@ -154,6 +173,37 @@ router.post(
         // console.log("business details after approval:", businessDetails.application)
   
         const response = await upgrade_service.approveOrDeclineHostVendorApplication(
+          req.params.userId,
+          "APPROVED",
+          "",
+          Details
+        );
+  
+        return res.send(response);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+
+  // POST vendor approval from host
+  router.post(
+    "/vendor-applications/:festivalId/:userId/approve",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        // console.log("here rest");
+        const Details = await upgrade_service.getVendorApplicantDetails(
+          req.params.userId
+        );
+  
+        // console.log("business details after approval:", businessDetails.application)
+  
+        const response = await upgrade_service.approveOrDeclineVendorApplicationOnFestival(
+          req.params.festivalId,
           req.params.userId,
           "APPROVED",
           "",
