@@ -167,7 +167,7 @@ const getAllVendorApplications = async () => {
         .groupBy("business_details.business_details_id")
         // .having("user_subscriptions.user_subscription_status", "=", "INACTIVE")
         .having("applications.status", "=", "Pending")
-        .having("receiver", "=", Number(hostId));
+        .having("receiver_id", "=", Number(hostId));
   
       return {
         success: true,
@@ -461,6 +461,7 @@ const getAllVendorApplications = async () => {
             .where("user_id", db_user.tasttlig_user_id)
             .andWhere("status", "Pending")
             .andWhere("type", "vendor")
+            .andWhere("festival_id", festivalId)
             .update("status", "APPROVED")
             .returning("*")
             .catch((reason) => {

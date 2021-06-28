@@ -461,8 +461,8 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
 
         if(order_details.discount < 1) {
 
-          for(let festival of db_order_details.subscribed_festivals) {
-          console.log("festival for rejection:", festival)
+          for(let festival_id of db_order_details.subscribed_festivals) {
+          console.log("festival for rejection:", festival_id)
 
             await db("user_subscriptions")
             .where("user_id", order_details.user_id)
@@ -470,7 +470,7 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
             .update({
               suscribed_festivals: trx.raw(
                 "array_append(suscribed_festivals, ?)",
-                [festival]
+                [festival_id]
               ),
             })
             .returning("*")
@@ -480,7 +480,7 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
             });
 
             await db("festivals")
-            .where("festival_id", festival)
+            .where("festival_id", festival_id)
             .update({
               // FY: instead of adding user to festival_vendor_id, add user to vendor_request_id 
               // festival_vendor_id: trx.raw(
@@ -511,14 +511,14 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
             user_subscription_status: "ACTIVE",
           });
           if (db_order_details.subscribed_festivals) {
-            for(let festival of db_order_details.subscribed_festivals) {
+            for(let festival_id of db_order_details.subscribed_festivals) {
               let db_festival;
               db_festival = await festival_service.getFestivalDetails(
-                  festival
+                   festival_id
                 )
-              console.log("festival for rejection from here:", festival)
+              console.log("festival for rejection from here:", festival_id)
               await db("festivals")
-              .where("festival_id", festival)
+              .where("festival_id", festival_id)
               .update({
                 // FY: instead of adding user to festival_vendor_id, add user to vendor_request_id 
                 // festival_vendor_id: trx.raw(
@@ -540,11 +540,11 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
                 user_id: order_details.user_id,
                 created_at: new Date(),
                 updated_at: new Date(),
-                receiver: db_festival.details[0].festival_user_admin_id[0],
+                receiver_id: db_festival.details[0].festival_user_admin_id[0],
                 reason: "vendor application",
                 type: "vendor",
                 status: "Pending",
-                festival: festival,
+                festival_id: festival_id,
               });
             }
           }
