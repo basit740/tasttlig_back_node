@@ -232,6 +232,38 @@ router.post(
     }
   );
 
+  
+  // POST vendor approval from host
+  router.post(
+    "/vendor-applications/:festivalId/:userId/decline",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        // console.log("here rest");
+        const Details = await upgrade_service.getVendorApplicantDetails(
+          req.params.userId
+        );
+  
+        // console.log("business details after approval:", businessDetails.application)
+  
+        const response = await upgrade_service.approveOrDeclineVendorApplicationOnFestival(
+          req.params.festivalId,
+          req.params.userId,
+          "DECLINED",
+          "",
+          Details
+        );
+  
+        return res.send(response);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+
 
     // POST host approval from admin
 router.post(
