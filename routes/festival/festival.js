@@ -360,7 +360,7 @@ router.post(
         }
 
         const festival_details = {
-          festival_user_admin_id: [req.user.id],
+          festival_host_admin_id: [req.user.id],
           festival_name,
           festival_type,
           festival_price,
@@ -448,7 +448,7 @@ router.put(
         }
 
         const festival_details = {
-          festival_user_admin_id: [req.user.id],
+          festival_host_admin_id: [req.user.id],
           festival_name,
           festival_type,
           festival_price,
