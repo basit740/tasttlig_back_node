@@ -4,7 +4,6 @@ const user_profile_service = require("../profile/user_profile");
 
 // Environment variables
 const auth_server_url = process.env.AUTH_SERVER;
-const access_token = process.env.API_ACCESS_TOKEN;
 
 // Authenticate user sign up helper function
 const authSignup = async (email, password, passport_id = "") => {
@@ -116,7 +115,6 @@ const createNewProductInCentralServer = async (
     url: `${auth_server_url}/auth/add-product`,
     method: "POST",
     data: {
-      access_token,
       db_user,
       all_product_details,
       images,
@@ -135,7 +133,6 @@ const createNewExperienceInCentralServer = async (
     url: `${auth_server_url}/auth/add-experience`,
     method: "POST",
     data: {
-      access_token,
       db_user,
       experience_information,
       images,
@@ -154,75 +151,9 @@ const createNewServiceInCentralServer = async (
     url: `${auth_server_url}/auth/add-service`,
     method: "POST",
     data: {
-      access_token,
       db_user,
       service_information,
       images,
-    },
-  });
-
-  return response.data;
-};
-
-//delete product in central server
-const deleteProductInCentralServer = async (email, product_information) => {
-  let response = await axios({
-    url: `${auth_server_url}/auth/remove-product`,
-    method: "POST",
-    data: {
-      access_token,
-      email,
-      product_information,
-    },
-  });
-
-  return response.data;
-};
-//delete product in central server
-const deleteServiceInCentralServer = async (email, service_information) => {
-  let response = await axios({
-    url: `${auth_server_url}/auth/remove-service`,
-    method: "POST",
-    data: {
-      access_token,
-      service_information,
-      email,
-    },
-  });
-
-  return response.data;
-};
-const editProductInCentralServer = async (
-  email,
-  prev_product_information,
-  update_product_information
-) => {
-  let response = await axios({
-    url: `${auth_server_url}/auth/edit-product`,
-    method: "POST",
-    data: {
-      access_token,
-      email,
-      prev_product_information,
-      update_product_information,
-    },
-  });
-
-  return response.data;
-};
-const editServiceInCentralServer = async (
-  email,
-  prev_service_information,
-  update_service_information
-) => {
-  let response = await axios({
-    url: `${auth_server_url}/auth/edit-service`,
-    method: "POST",
-    data: {
-      access_token,
-      email,
-      prev_service_information,
-      update_service_information,
     },
   });
 
@@ -240,8 +171,4 @@ module.exports = {
   createNewProductInCentralServer,
   createNewExperienceInCentralServer,
   createNewServiceInCentralServer,
-  deleteProductInCentralServer,
-  deleteServiceInCentralServer,
-  editProductInCentralServer,
-  editServiceInCentralServer,
 };
