@@ -202,6 +202,39 @@ const getAllFestivalList = async (currentPage, keyword, filters) => {
     });
 };
 
+const getAllHostFestivalList = async (filters) => {
+
+  let user_id;
+
+  if (filters.user_id) {
+    user_id = filters.user_id;
+  }
+  let query = db
+    .select(
+      "festivals.*",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("festivals")
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    )
+    .where("festivals.festival_id", ">", 3)
+    //.where("festivals.festival_end_date", ">=", new Date())
+    .groupBy("festivals.festival_id")
+    .having("festivals.festival_host_admin_id[1]", "=", Number(user_id))
+    .orderBy("festival_start_date");
+
+  return await query
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
 
 const getAllFestivalsPresent = async () => {
   return await db
@@ -717,4 +750,5 @@ module.exports = {
   getAllFestivalsPresent,
   updateFestival,
   addBusinessToFestival,
+  getAllHostFestivalList,
 };

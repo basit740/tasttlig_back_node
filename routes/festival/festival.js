@@ -7,6 +7,7 @@ const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
 const { compareSync } = require("bcrypt");
+const { compose } = require("objection");
 
 router.get("/festival/landing-page", async (req, res) => {
   try {
@@ -103,6 +104,34 @@ router.get("/festivals/:user_id", async (req, res) => {
       filters
     );
     // console.log("filter", filters);
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// GET all festivals (including expired ones)from a specific user
+router.get("/host-festivals/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+
+    const filters = {
+      user_id: req.query.user_id,
+    };
+
+    const response = await festival_service.getAllHostFestivalList(
+      filters
+    );
+    console.log("response", response);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -282,7 +311,8 @@ router.get("/sponsors/festival/:festival_id", async (req, res) => {
       success: false,
       message: "Required parameters are not available in request.",
     });
-  }
+  } 
+  console.log("req from the host-sponsor/festivals:", req)
 
   try {
     const sponsors = [];
@@ -300,6 +330,120 @@ router.get("/sponsors/festival/:festival_id", async (req, res) => {
     }
 
     return res.send(sponsors);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+// host-sponsors/festivals/${appContext.state.user.id}
+
+
+// GET sponsors in specific festival
+router.get("/hostsponsors/festival/:user_id", async (req, res) => {
+
+  try {
+    const sponsors = [];
+
+    const filters = {
+      user_id: req.query.user_id,
+    };
+
+    const response = await festival_service.getAllHostFestivalList(
+  
+      filters
+    );
+
+    for(let item of response.details) {
+      if(item.festival_business_sponsor_id && item.festival_business_sponsor_id !== null){
+
+        for (let sponsor of item.festival_business_sponsor_id) {
+          const list = await user_profile_service.getUserById(sponsor);
+    
+          if (list.user) {
+            sponsors.push(list.user);
+          }
+        }
+      } 
+    }
+
+    return res.send(sponsors);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// GET sponsors in specific festival
+router.get("/hostvendors/festival/:user_id", async (req, res) => {
+
+  try {
+    const vendors = [];
+
+    const filters = {
+      user_id: req.query.user_id,
+    };
+
+    const response = await festival_service.getAllHostFestivalList(
+      filters
+    );
+
+    for(let item of response.details) {
+      if(item.festival_vendor_id && item.festival_vendor_id !== null){
+
+        for (let vendor of item.festival_vendor_id) {
+          const list = await user_profile_service.getUserById(vendor);
+    
+          if (list.user) {
+            vendors.push(list.user);
+          }
+        }
+      } 
+    }
+
+    return res.send(vendors);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// GET sponsors in specific festival
+router.get("/hostguests/festival/:user_id", async (req, res) => {
+
+  try {
+    const guests = [];
+
+    const filters = {
+      user_id: req.query.user_id,
+    };
+
+    const response = await festival_service.getAllHostFestivalList(
+      filters
+    );
+
+    for(let item of response.details) {
+      if(item.festival_user_guest_id && item.festival_user_guest_id !== null){
+
+        for (let guest of item.festival_user_guest_id) {
+          const list = await user_profile_service.getUserById(guest);
+    
+          if (list.user) {
+            guests.push(list.user);
+          }
+        }
+      } 
+    }
+
+    return res.send(guests);
   } catch (error) {
     res.send({
       success: false,
