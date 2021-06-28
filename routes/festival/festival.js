@@ -769,6 +769,51 @@ router.post(
   }
 );
 
+// POST vendor application on host dashboard
+router.post(
+  "/vendor-application",
+  token_service.authenticateToken,
+  async (req, res) => {
+    const { festival_id } = req.body;
+    try {
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
+
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message,
+        });
+      }
+      const db_user = user_details_from_db.user;
+      const business_details = await authentication_service.getUserByBusinessDetails(
+        req.user.id
+      );
+      if (!business_details.success) {
+        return res.status(403).json({
+          success: false,
+          message: business_details.message,
+        });
+      }
+
+      const response = await festival_service.addVendorApplication(
+        festival_id,
+        business_details.business_details.business_details_id,
+        db_user,
+        "Vendor"
+      );
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
+
 // GET festival restaurants
 router.get("/festival/restaurant/all", async (req, res) => {
   if (!req.query.host_id) {

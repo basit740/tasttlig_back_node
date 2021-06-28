@@ -561,6 +561,170 @@ const hostToFestival = async (
   }
 };
 
+const addVendorApplication = async (
+  festival_id,
+  foodSamplePreference,
+  db_user,
+  applicationType
+) => {
+ 
+  try {
+    await db.transaction(async (trx) => {
+      if (typeof festival_id === "object") {
+        for (let item of festival_id) {
+      
+            try {
+              if (db_user.role.includes("HOST") && applicationType === "Host")
+            {   
+              var host_ids = await db("festivals")
+                .select("festival_host_id")
+                .where("festival_id", "=", item)
+                .then((resp) => {
+                  return resp;
+                });
+
+
+              if (
+                !host_ids[0].festival_host_id.includes(db_user.tasttlig_user_id)
+              ) {
+                host_ids[0].festival_host_id.push(db_user.tasttlig_user_id);
+                await db("festivals")
+                  .where({ festival_id: festival_id })
+                  .update({ festival_host_id: host_ids[0].festival_host_id });
+              }
+            } 
+            else if (db_user.role.includes("VENDOR") || db_user.role.includes("BUSINESS_MEMBER") || db_user.role.includes("BUSINESS_MEMBER_PENDING") && applicationType === "Vendor") 
+            // && !db_user.role.includes("HOST") && !db_user.role.includes("HOST_PENDING"))
+            {
+
+              var vendor_application_ids = await db("festivals")
+                .select("vendor_request_id")
+                .where("festival_id", "=", item)
+                .then((resp) => {
+                  return resp;
+                });
+
+              var vendor_ids_array = vendor_application_ids[0].vendor_request_id || [];
+              if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
+                vendor_ids_array.push(db_user.tasttlig_user_id);
+                await db("festivals")
+                  .where({ festival_id: item })
+                  .update({ vendor_request_id: vendor_ids_array });
+              }
+
+              if (!db_user.role.includes("VENDOR"))
+              {
+                  // Get role code of new role to be added
+                const new_role_code = await trx("roles")
+                .select()
+                .where({ role: "VENDOR" })
+                .then((value) => {
+                    return value[0].role_code;
+                });
+
+                   // Insert new role for this user
+               await trx("user_role_lookup").insert({
+                user_id: db_user.tasttlig_user_id,
+                role_code: new_role_code,
+                });
+                }
+            }
+          } catch (error) {
+            return { success: false };
+          }
+          console.log("festival_id coming from host to festival:", typeof foodSamplePreference)
+
+          var db_host;
+          if (typeof foodSamplePreference === "object") {
+            for (let sample of foodSamplePreference) {
+              db_host = await trx("products")
+                .where({ product_id: sample })
+                .update({
+                  festival_selected: trx.raw(
+                    "array_append(festival_selected, ?)",
+                    item
+                  ),
+                })
+                .returning("*");
+            }
+          }
+
+
+            if (!db_host) {
+            return { success: false, details: "Inserting new host failed." };
+          }
+        }
+      } else {
+        // const db_host = await trx("festivals")
+        //   .where({ festival_id })
+        //   .update({
+        //     festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
+        //       festival_host_id,
+        //     ]),
+        //   })
+        //   .returning("*");
+
+        try {
+          if (db_user.role.includes("HOST")) {
+            var host_ids = await db("festivals")
+              .select("festival_host_id")
+              .where({ festival_id })
+              .then((resp) => {
+                return resp;
+              });
+
+
+            if (!host_ids.includes(db_user.tasttlig_user_id)) {
+              host_ids.push(db_user.tasttlig_user_id);
+              await db("festivals")
+                .where({ festival_id: festival_id })
+                .update({ festival_host_id: host_ids });
+            }
+          } else if (db_user.role.includes("VENDOR")) {
+            var vendor_application_ids = await db("festivals")
+              .select("vendor_request_id")
+              .where({ festival_id })
+              .then((resp) => {
+                return resp;
+              });
+
+
+            var vendor_ids_array = vendor_application_ids[0].vendor_request_id || [];
+            if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
+              vendor_ids_array.push(db_user.tasttlig_user_id);
+              await db("festivals")
+                .where({ festival_id: festival_id })
+                .update({ vendor_request_id: vendor_ids_array });
+            }
+          }
+        } catch (error) {
+          return { success: false };
+        }
+
+        if (typeof foodSamplePreference === "Array") {
+          for (let sample of foodSamplePreference) {
+            const db_host = await trx("products")
+              .where({ product_id: sample })
+              .update({
+                festival_selected: trx.raw(
+                  "array_append(festival_selected, ?)",
+                  festival_id
+                ),
+              })
+              .returning("*");
+          }
+        }
+        if (!db_host) {
+          return { success: false, details: "Inserting new host failed." };
+        }
+      }
+    });
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
+
 const addBusinessToFestival = async (festival_id, user_id) => {
   try {
     await db.transaction(async (trx) => {
@@ -744,6 +908,7 @@ module.exports = {
   getFestivalList,
   createNewFestival,
   hostToFestival,
+  addVendorApplication,
   sponsorToFestival,
   getFestivalDetails,
   getFestivalRestaurants,
