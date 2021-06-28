@@ -409,6 +409,7 @@ const getAllVendorApplications = async () => {
     }
   };
 
+  // host approve or decline vendor applicant on a specific festival
   const approveOrDeclineVendorApplicationOnFestival = async (
     festivalId,
     userId,
@@ -437,7 +438,21 @@ const getAllVendorApplications = async () => {
         return { success: false, message: db_user_row.message };
       }
   
-      
+      // remove vendor from vendor_request_id
+      await db("festivals")
+            .where("festival_id", festivalId)
+            .update({
+               vendor_request_id: db.raw(
+                 "array_remove(vendor_request_id, ?)",
+                 [db_user.tasttlig_user_id]
+               ),
+               
+            })
+            .returning("*")
+            .catch((reason) => {
+              console.log("reason for rejection:", reason)
+              return { success: false, message: reason };
+            });   
   
       // If status is approved
       if (status === "APPROVED") {
