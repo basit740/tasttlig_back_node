@@ -155,6 +155,11 @@ const getAllVendorApplications = async () => {
           "applications.user_id",
           "business_details.business_details_user_id"
         )
+        .leftJoin(
+          "festivals",
+          "applications.festival_id",
+          "festivals.festival_id"
+        )
         // .leftJoin(
         //   "user_subscriptions",
         //   "tasttlig_users.tasttlig_user_id",
@@ -166,8 +171,9 @@ const getAllVendorApplications = async () => {
         // .groupBy("user_subscriptions.user_subscription_id")
         .groupBy("business_details.business_details_id")
         // .having("user_subscriptions.user_subscription_status", "=", "INACTIVE")
+        .groupBy("festivals.festival_id")
         .having("applications.status", "=", "Pending")
-        .having("receiver_id", "=", Number(hostId));
+        .having("applications.receiver_id", "=", Number(hostId));
   
       return {
         success: true,
