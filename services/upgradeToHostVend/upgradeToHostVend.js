@@ -417,48 +417,59 @@ const getAllVendorApplications = async () => {
   
       // remove vendor from vendor_request_id
       await db("festivals")
-            .where("festival_id", festivalId)
-            .update({
-               vendor_request_id: db.raw(
-                 "array_remove(vendor_request_id, ?)",
-                 [db_user.tasttlig_user_id]
-               ),
-               
-            })
-            .returning("*")
-            .catch((reason) => {
-              console.log("reason for rejection:", reason)
-              return { success: false, message: reason };
-            });   
-  
+        .where("festival_id", festivalId)
+        .update({
+            vendor_request_id: db.raw(
+              "array_remove(vendor_request_id, ?)",
+              [db_user.tasttlig_user_id]
+            ),
+            
+        })
+        .returning("*")
+        .catch(() => {
+          return { success: false };
+        });     
+
+        const application = await db("applications")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("status", "Pending")
+        .andWhere("type", "vendor")
+        .andWhere("festival_id", festivalId)
+        .returning("*")
+        .catch(() => {
+          return { success: false };
+        });       
+        console.log("1234567",application.length); 
       // If status is approved
       if (status === "APPROVED") {
-        // update the applications table
-        await db("applications")
-            .where("user_id", db_user.tasttlig_user_id)
-            .andWhere("status", "Pending")
-            .andWhere("type", "vendor")
-            .andWhere("festival_id", festivalId)
-            .update("status", "APPROVED")
-            .returning("*")
-            .catch((reason) => {
-                return { success: false, message: reason };
-            });
+        if (!application.length === 0){
+            // update the applications table
+          await db("applications")
+          .where("user_id", db_user.tasttlig_user_id)
+          .andWhere("status", "Pending")
+          .andWhere("type", "vendor")
+          .andWhere("festival_id", festivalId)
+          .update("status", "APPROVED")
+          .returning("*")
+          .catch((reason) => {
+              return { success: false, message: reason };
+          });
           // add the user to fesstival
           await db("festivals")
             .where("festival_id", festivalId)
             .update({
-               festival_vendor_id: db.raw(
-                 "array_append(festival_vendor_id, ?)",
-                 [db_user.tasttlig_user_id]
-               ),
-               
+              festival_vendor_id: db.raw(
+                "array_append(festival_vendor_id, ?)",
+                [db_user.tasttlig_user_id]
+              ),
+              
             })
             .returning("*")
-            .catch((reason) => {
-              console.log("reason for rejection:", reason)
-              return { success: false, message: reason };
-            });     
+            .catch(() => {
+              return { success: false };
+            });        
+            }
+        
         if(preference=='Vend'){
             await db("applications")
             .where("user_id", db_user.tasttlig_user_id)

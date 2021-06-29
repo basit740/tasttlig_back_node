@@ -201,18 +201,49 @@ router.post(
     }
   );
 
+// POST vendor approval from timer
+router.post(
+  "/vendor-application-timer/:festivalId/:ticketPrice/:userId/approve",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const Details = await upgrade_service.getVendorApplicantDetails(
+        req.params.userId
+      );
+      // const response = await upgrade_service.approveOrDeclineVendorApplicationOnFestival(
+      //   req.params.festivalId,
+      //   req.params.ticketPrice,
+      //   req.params.userId,
+      //   "APPROVED",
+      //   "",
+      //   Details
+      setTimeout(() => {upgrade_service.approveOrDeclineVendorApplicationOnFestival(
+        req.params.festivalId,
+        req.params.ticketPrice,
+        req.params.userId,
+        "APPROVED",
+        "",
+        Details)}, 60* 1000
+      );
+
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
   // POST vendor approval from host
   router.post(
     "/vendor-applications/:festivalId/:ticketPrice/:userId/approve",
     token_service.authenticateToken,
     async (req, res) => {
       try {
-        // console.log("here rest");
         const Details = await upgrade_service.getVendorApplicantDetails(
           req.params.userId
         );
-  
-        // console.log("business details after approval:", businessDetails.application)
   
         const response = await upgrade_service.approveOrDeclineVendorApplicationOnFestival(
           req.params.festivalId,
@@ -234,19 +265,15 @@ router.post(
   );
 
   
-  // POST vendor approval from host
+  // POST vendor applicant decline from host
   router.post(
     "/vendor-applications/:festivalId/:ticketPrice/:userId/decline",
     token_service.authenticateToken,
     async (req, res) => {
       try {
-        // console.log("here rest");
         const Details = await upgrade_service.getVendorApplicantDetails(
           req.params.userId
         );
-  
-        // console.log("business details after approval:", businessDetails.application)
-  
         const response = await upgrade_service.approveOrDeclineVendorApplicationOnFestival(
           req.params.festivalId,
           req.params.ticketPrice,
