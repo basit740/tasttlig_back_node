@@ -381,6 +381,7 @@ const getAllVendorApplications = async () => {
   // host approve or decline vendor applicant on a specific festival
   const approveOrDeclineVendorApplicationOnFestival = async (
     festivalId,
+    ticketPrice,
     userId,
     status,
     declineReason,
@@ -389,6 +390,7 @@ const getAllVendorApplications = async () => {
     try {
     //   console.log(preference);
       console.log("festivalId from approveOrDeclineVendorApplicationOnFestival: " , festivalId);
+      console.log("ticketPrice from approveOrDeclineVendorApplicationOnFestival: " , ticketPrice);
       console.log("userId from approveOrDeclineVendorApplicationOnFestival: " , userId);
       console.log("status from approveOrDeclineVendorApplicationOnFestival: " , status);
       console.log("declineReason from approveOrDeclineVendorApplicationOnFestival: " , declineReason);
@@ -534,7 +536,50 @@ const getAllVendorApplications = async () => {
       console.log("updated application status");
   
         return { success: true, message: status };
-      } else {
+      } 
+      else {
+        // else DECLINE the application
+        await db("applications")
+            .where("user_id", db_user.tasttlig_user_id)
+            .andWhere("status", "Pending")
+            .andWhere("type", "vendor")
+            .andWhere("festival_id", festivalId)
+            .update("status", "DECLINED")
+            .returning("*")
+            .catch((reason) => {
+                return { success: false, message: reason };
+            });
+        // add ticketPrice to user credit
+
+        // get the current user credit
+        let user = await db("tasttlig_users")
+        .where("tasttlig_user_id", userId)
+        .returning("*")
+        .catch(() => {
+          return { success: false };
+        });     
+        // get the sum of tickprice and user credit
+        let sum = Number(user[0].credit) + Number(ticketPrice);
+        // console.log("credit: ", sum);
+        // update the new credit
+        await db("tasttlig_users")
+          .where("tasttlig_user_id", userId)
+          .update("credit", sum)
+          .returning("*")
+          .catch(() => {
+            return { success: false };
+          });     
+
+        // deletes the corresponding ticket
+        await db("ticket_details")
+          .where("ticket_user_id", userId)
+          .where("ticket_festival_id", festivalId)
+          .where("ticket_type", "Vendor")
+          .del()
+          .returning("*")
+          .catch(() => {
+            return { success: false };
+        });   
 
         if(preference=='Vend') 
         {

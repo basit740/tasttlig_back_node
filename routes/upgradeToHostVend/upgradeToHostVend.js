@@ -203,7 +203,7 @@ router.post(
 
   // POST vendor approval from host
   router.post(
-    "/vendor-applications/:festivalId/:userId/approve",
+    "/vendor-applications/:festivalId/:ticketPrice/:userId/approve",
     token_service.authenticateToken,
     async (req, res) => {
       try {
@@ -216,6 +216,7 @@ router.post(
   
         const response = await upgrade_service.approveOrDeclineVendorApplicationOnFestival(
           req.params.festivalId,
+          req.params.ticketPrice,
           req.params.userId,
           "APPROVED",
           "",
@@ -235,7 +236,7 @@ router.post(
   
   // POST vendor approval from host
   router.post(
-    "/vendor-applications/:festivalId/:userId/decline",
+    "/vendor-applications/:festivalId/:ticketPrice/:userId/decline",
     token_service.authenticateToken,
     async (req, res) => {
       try {
@@ -248,6 +249,7 @@ router.post(
   
         const response = await upgrade_service.approveOrDeclineVendorApplicationOnFestival(
           req.params.festivalId,
+          req.params.ticketPrice,
           req.params.userId,
           "DECLINED",
           "",
