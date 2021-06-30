@@ -68,6 +68,31 @@ router.get("/ticket/:ticket_id", async (req, res) => {
   }
 });
 
+// GET specific ticket details
+router.get("/ticket/festival/:festival_id", async (req, res) => {
+  console.log("req.body from the ticket/festival:", req.params)
+  if (!req.params.festival_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await ticket_service.getTicketFestivalDetails(
+      req.params.festival_id
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 router.delete("/tickets/delete/user/:user_id", async (req, res) => {
   if (!req.params.user_id) {
     return res.status(403).json({

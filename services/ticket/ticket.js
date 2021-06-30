@@ -130,6 +130,57 @@ const getTicketDetails = async (ticket_id) => {
     });
 };
 
+
+// Get tickets in festival helper function
+const getTicketFestivalDetails = async (festival_id) => {
+  return await db
+    .select(
+      "ticket_details.*",
+      "tasttlig_users.first_name",
+      "tasttlig_users.last_name",
+      "tasttlig_users.email",
+      "tasttlig_users.phone_number",
+      "festivals.festival_name",
+      "festivals.festival_city",
+      "festivals.festival_description",
+      "festivals.festival_start_time",
+      "festivals.festival_end_time",
+      "festivals.festival_start_date",
+      "festivals.festival_end_date",
+      "festivals.festival_price",
+      "festivals.festival_type",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("ticket_details")
+    .leftJoin(
+      "tasttlig_users",
+      "ticket_details.ticket_user_id",
+      "tasttlig_users.tasttlig_user_id"
+    )
+    .leftJoin(
+      "festivals",
+      "ticket_details.ticket_festival_id",
+      "festivals.festival_id"
+    )
+    .leftJoin(
+      "festival_images",
+      "ticket_details.ticket_festival_id",
+      "festival_images.festival_id"
+    )
+    .groupBy("ticket_details.ticket_id")
+    .groupBy("tasttlig_users.tasttlig_user_id")
+    .groupBy("festivals.festival_id")
+    .groupBy("festivals.festival_type")
+    .having("ticket_details.ticket_festival_id", "=", festival_id)
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
+
 // Get ticket list helper function
 const getTicketList = async () => {
   return await db
@@ -214,5 +265,6 @@ module.exports = {
   getTicketDetails,
   getTicketList,
   newTicketInfo,
-  deleteTicketsFromUser
+  deleteTicketsFromUser,
+  getTicketFestivalDetails
 };
