@@ -217,7 +217,6 @@ const getAllVendorApplications = async () => {
         .groupBy("business_details.business_details_id")
         .groupBy("user_role_lookup.user_role_lookup_id")
         .having("tasttlig_users.tasttlig_user_id", "=", Number(userId))
-        //FY: new flow does not require vendor applicant having vendor-inpending role assigned
         //.having("user_role_lookup.role_code", "=", "VSK2")
         .first();
   
@@ -439,10 +438,12 @@ const getAllVendorApplications = async () => {
         .catch(() => {
           return { success: false };
         });       
-        console.log("1234567",application.length); 
       // If status is approved
       if (status === "APPROVED") {
-        if (!application.length === 0){
+        console.log("table update pending", !(application.length === 0));
+        // make sure the there is an application in the database with this applicant on this festival and is Pending 
+        // add a timer to make sure the application has been created for more than 71 hours to avoid bug after demo June 30
+        if (!(application.length === 0)){
             // update the applications table
           await db("applications")
           .where("user_id", db_user.tasttlig_user_id)
@@ -469,6 +470,18 @@ const getAllVendorApplications = async () => {
               return { success: false };
             });        
             }
+
+            // await Mailer.sendMail({
+            //   from: process.env.SES_DEFAULT_FROM,
+            //   to: db_user.email,
+            //   subject: `[Tasttlig] Your request for upgradation to vendor is accepted`,
+            //   template: "user_upgrade_approve",
+            //   context: {
+            //     first_name: db_user.first_name,
+            //     last_name: db_user.last_name,
+            //     role_name:'vendor',
+            //   },
+            // });
         
         if(preference=='Vend'){
             await db("applications")
