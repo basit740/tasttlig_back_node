@@ -155,6 +155,11 @@ const getAllVendorApplications = async () => {
           "applications.user_id",
           "business_details.business_details_user_id"
         )
+        .leftJoin(
+          "festivals",
+          "applications.festival_id",
+          "festivals.festival_id"
+        )
         // .leftJoin(
         //   "user_subscriptions",
         //   "tasttlig_users.tasttlig_user_id",
@@ -166,8 +171,9 @@ const getAllVendorApplications = async () => {
         // .groupBy("user_subscriptions.user_subscription_id")
         .groupBy("business_details.business_details_id")
         // .having("user_subscriptions.user_subscription_status", "=", "INACTIVE")
+        .groupBy("festivals.festival_id")
         .having("applications.status", "=", "Pending")
-        .having("receiver_id", "=", Number(hostId));
+        .having("applications.receiver_id", "=", Number(hostId));
   
       return {
         success: true,
@@ -211,7 +217,6 @@ const getAllVendorApplications = async () => {
         .groupBy("business_details.business_details_id")
         .groupBy("user_role_lookup.user_role_lookup_id")
         .having("tasttlig_users.tasttlig_user_id", "=", Number(userId))
-        //FY: new flow does not require vendor applicant having vendor-inpending role assigned
         //.having("user_role_lookup.role_code", "=", "VSK2")
         .first();
   
@@ -381,6 +386,7 @@ const getAllVendorApplications = async () => {
   // host approve or decline vendor applicant on a specific festival
   const approveOrDeclineVendorApplicationOnFestival = async (
     festivalId,
+    ticketPrice,
     userId,
     status,
     declineReason,
@@ -389,6 +395,7 @@ const getAllVendorApplications = async () => {
     try {
     //   console.log(preference);
       console.log("festivalId from approveOrDeclineVendorApplicationOnFestival: " , festivalId);
+      console.log("ticketPrice from approveOrDeclineVendorApplicationOnFestival: " , ticketPrice);
       console.log("userId from approveOrDeclineVendorApplicationOnFestival: " , userId);
       console.log("status from approveOrDeclineVendorApplicationOnFestival: " , status);
       console.log("declineReason from approveOrDeclineVendorApplicationOnFestival: " , declineReason);
@@ -409,48 +416,73 @@ const getAllVendorApplications = async () => {
   
       // remove vendor from vendor_request_id
       await db("festivals")
-            .where("festival_id", festivalId)
-            .update({
-               vendor_request_id: db.raw(
-                 "array_remove(vendor_request_id, ?)",
-                 [db_user.tasttlig_user_id]
-               ),
-               
-            })
-            .returning("*")
-            .catch((reason) => {
-              console.log("reason for rejection:", reason)
-              return { success: false, message: reason };
-            });   
-  
+        .where("festival_id", festivalId)
+        .update({
+            vendor_request_id: db.raw(
+              "array_remove(vendor_request_id, ?)",
+              [db_user.tasttlig_user_id]
+            ),
+            
+        })
+        .returning("*")
+        .catch(() => {
+          return { success: false };
+        });     
+
+        const application = await db("applications")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("status", "Pending")
+        .andWhere("type", "vendor")
+        .andWhere("festival_id", festivalId)
+        .returning("*")
+        .catch(() => {
+          return { success: false };
+        });       
       // If status is approved
       if (status === "APPROVED") {
-        // update the applications table
-        await db("applications")
-            .where("user_id", db_user.tasttlig_user_id)
-            .andWhere("status", "Pending")
-            .andWhere("type", "vendor")
-            .andWhere("festival_id", festivalId)
-            .update("status", "APPROVED")
-            .returning("*")
-            .catch((reason) => {
-                return { success: false, message: reason };
-            });
+        console.log("table update pending", !(application.length === 0));
+        // make sure the there is an application in the database with this applicant on this festival and is Pending 
+        // add a timer to make sure the application has been created for more than 71 hours to avoid bug after demo June 30
+        if (!(application.length === 0)){
+            // update the applications table
+          await db("applications")
+          .where("user_id", db_user.tasttlig_user_id)
+          .andWhere("status", "Pending")
+          .andWhere("type", "vendor")
+          .andWhere("festival_id", festivalId)
+          .update("status", "APPROVED")
+          .returning("*")
+          .catch((reason) => {
+              return { success: false, message: reason };
+          });
           // add the user to fesstival
           await db("festivals")
             .where("festival_id", festivalId)
             .update({
-               festival_vendor_id: db.raw(
-                 "array_append(festival_vendor_id, ?)",
-                 [db_user.tasttlig_user_id]
-               ),
-               
+              festival_vendor_id: db.raw(
+                "array_append(festival_vendor_id, ?)",
+                [db_user.tasttlig_user_id]
+              ),
+              
             })
             .returning("*")
-            .catch((reason) => {
-              console.log("reason for rejection:", reason)
-              return { success: false, message: reason };
-            });     
+            .catch(() => {
+              return { success: false };
+            });        
+            }
+
+            // await Mailer.sendMail({
+            //   from: process.env.SES_DEFAULT_FROM,
+            //   to: db_user.email,
+            //   subject: `[Tasttlig] Your request for upgradation to vendor is accepted`,
+            //   template: "user_upgrade_approve",
+            //   context: {
+            //     first_name: db_user.first_name,
+            //     last_name: db_user.last_name,
+            //     role_name:'vendor',
+            //   },
+            // });
+        
         if(preference=='Vend'){
             await db("applications")
             .where("user_id", db_user.tasttlig_user_id)
@@ -534,7 +566,50 @@ const getAllVendorApplications = async () => {
       console.log("updated application status");
   
         return { success: true, message: status };
-      } else {
+      } 
+      else {
+        // else DECLINE the application
+        await db("applications")
+            .where("user_id", db_user.tasttlig_user_id)
+            .andWhere("status", "Pending")
+            .andWhere("type", "vendor")
+            .andWhere("festival_id", festivalId)
+            .update("status", "DECLINED")
+            .returning("*")
+            .catch((reason) => {
+                return { success: false, message: reason };
+            });
+        // add ticketPrice to user credit
+
+        // get the current user credit
+        let user = await db("tasttlig_users")
+        .where("tasttlig_user_id", userId)
+        .returning("*")
+        .catch(() => {
+          return { success: false };
+        });     
+        // get the sum of tickprice and user credit
+        let sum = Number(user[0].credit) + Number(ticketPrice);
+        // console.log("credit: ", sum);
+        // update the new credit
+        await db("tasttlig_users")
+          .where("tasttlig_user_id", userId)
+          .update("credit", sum)
+          .returning("*")
+          .catch(() => {
+            return { success: false };
+          });     
+
+        // deletes the corresponding ticket
+        await db("ticket_details")
+          .where("ticket_user_id", userId)
+          .where("ticket_festival_id", festivalId)
+          .where("ticket_type", "Vendor")
+          .del()
+          .returning("*")
+          .catch(() => {
+            return { success: false };
+        });   
 
         if(preference=='Vend') 
         {

@@ -8,6 +8,8 @@ const authenticate_user_service = require("../../services/authentication/authent
 const authentication_service = require("../../services/authentication/authenticate_user");
 const upgrade_service = require("../../services/upgradeToHostVend/upgradeToHostVend");
 const host_service = require("../../services/hosts/hosts");
+const festival_service = require("../../services/festival/festival");
+const Mailer = require("../../services/email/nodemailer").nodemailer_transporter;
 
 
 
@@ -201,23 +203,108 @@ router.post(
     }
   );
 
+// POST vendor approval from timer
+router.post(
+  "/vendor-application-timer/:festivalId/:ticketPrice/:userId/approve",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const Details = await upgrade_service.getVendorApplicantDetails(
+        req.params.userId
+      );
+        // get the festival info
+      const festival = await festival_service.getFestivalDetails(
+        req.params.festivalId
+      );
+      // get the host info
+      const host = await user_profile_service.getUserById(
+        festival.details[0].festival_host_admin_id[0]
+       );
+       console.log("mail for host", host.user.email);
+       // send a mail to the host
+       await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: (host.user.email + ""),
+        subject: `[Tasttlig] Your have a new vendor applicant`,
+        template: "vendor_applicant_notification",
+        context: {
+          first_name: (host.user.first_name + ""),
+          last_name: (host.user.last_name + ""),
+        },
+      });
+
+
+      // const response = await upgrade_service.approveOrDeclineVendorApplicationOnFestival(
+      //   req.params.festivalId,
+      //   req.params.ticketPrice,
+      //   req.params.userId,
+      //   "APPROVED",
+      //   "",
+      //   Details
+
+      // set a timer to accept applicant 
+      setTimeout(() => {upgrade_service.approveOrDeclineVendorApplicationOnFestival(
+        req.params.festivalId,
+        req.params.ticketPrice,
+        req.params.userId,
+        "APPROVED",
+        "",
+        Details)}, 60* 1000
+      );
+
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
   // POST vendor approval from host
   router.post(
-    "/vendor-applications/:festivalId/:userId/approve",
+    "/vendor-applications/:festivalId/:ticketPrice/:userId/approve",
     token_service.authenticateToken,
     async (req, res) => {
       try {
-        // console.log("here rest");
         const Details = await upgrade_service.getVendorApplicantDetails(
           req.params.userId
         );
   
-        // console.log("business details after approval:", businessDetails.application)
-  
         const response = await upgrade_service.approveOrDeclineVendorApplicationOnFestival(
           req.params.festivalId,
+          req.params.ticketPrice,
           req.params.userId,
           "APPROVED",
+          "",
+          Details
+        );
+  
+        return res.send(response);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+
+  
+  // POST vendor applicant decline from host
+  router.post(
+    "/vendor-applications/:festivalId/:ticketPrice/:userId/decline",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const Details = await upgrade_service.getVendorApplicantDetails(
+          req.params.userId
+        );
+        const response = await upgrade_service.approveOrDeclineVendorApplicationOnFestival(
+          req.params.festivalId,
+          req.params.ticketPrice,
+          req.params.userId,
+          "DECLINED",
           "",
           Details
         );

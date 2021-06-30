@@ -540,7 +540,7 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
                 user_id: order_details.user_id,
                 created_at: new Date(),
                 updated_at: new Date(),
-                receiver_id: db_festival.details[0].festival_user_admin_id[0],
+                receiver_id: db_festival.details[0].festival_host_admin_id[0],
                 reason: "vendor application",
                 type: "vendor",
                 status: "Pending",

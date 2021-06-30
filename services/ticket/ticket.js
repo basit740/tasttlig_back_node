@@ -180,6 +180,23 @@ const getTicketFestivalDetails = async (festival_id) => {
     });
 };
 
+// Get vendor ticket with user_id and festival_id
+const getVendTicket = async (user_id, festival_id) => {
+  return await db
+  .select("ticket_details.*")
+  .from("ticket_details")
+    .groupBy("ticket_details.ticket_id")
+    .having("ticket_details.ticket_user_id", "=", user_id)
+    .having("ticket_details.ticket_festival_id", "=", festival_id)
+    .having("ticket_details.ticket_type", "=", "Vendor")
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
 
 // Get ticket list helper function
 const getTicketList = async () => {
@@ -263,6 +280,7 @@ const deleteTicketsFromUser = async(user_id, delete_items) => {
 module.exports = {
   getAllTickets,
   getTicketDetails,
+  getVendTicket,
   getTicketList,
   newTicketInfo,
   deleteTicketsFromUser,

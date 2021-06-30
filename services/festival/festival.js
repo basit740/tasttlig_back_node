@@ -129,7 +129,7 @@ const getAllFestivalList = async (currentPage, keyword, filters) => {
     .where("festivals.festival_id", ">", 3)
     //.where("festivals.festival_end_date", ">=", new Date())
     .groupBy("festivals.festival_id")
-    .having("festivals.festival_user_admin_id[1]", "=", Number(user_id))
+    .having("festivals.festival_host_admin_id[1]", "=", Number(user_id))
     .orderBy("festival_start_date");
 
   if (filters.nationalities && filters.nationalities.length) {
@@ -841,7 +841,7 @@ const getFestivalDetails = async (festival_id) => {
     )
     .leftJoin(
       "business_details AS b1",
-      "festivals.festival_user_admin_id[1]",
+      "festivals.festival_host_admin_id[1]",
       "b1.business_details_user_id"
     )
     .leftJoin(
