@@ -249,7 +249,13 @@ router.post(
         req.params.userId,
         "APPROVED",
         "",
-        Details)}, 60* 1000
+        Details)
+        
+      
+      
+      
+      
+      }, 60* 1000
       );
 
     } catch (error) {
