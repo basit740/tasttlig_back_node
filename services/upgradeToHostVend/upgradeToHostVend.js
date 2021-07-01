@@ -499,7 +499,24 @@ const getAllVendorApplications = async () => {
               festival_name: (festival.details[0].festival_name + ""),
             },
           });
+           // send notification mail to client
+          await Mailer.sendMail({
+            from: process.env.SES_DEFAULT_FROM,
+            to: (client.user.email + ""),
+            subject: `[Tasttlig] Vendor application accepted`,
+            template: "vendor_applicant_accept_notification",
+            context: {
+              first_name: (client.user.first_name + ""),
+              last_name: (client.user.last_name + ""),
+              host_first_name: (host.user.first_name + ""),
+              host_last_name: (host.user.last_name + ""),
+              festival_name: (festival.details[0].festival_name + ""),
+              host_phone: (host.user.phone_number + ""),
+            },
+          });
         }
+
+
         if(preference=='Vend'){
             await db("applications")
             .where("user_id", db_user.tasttlig_user_id)
@@ -628,7 +645,7 @@ const getAllVendorApplications = async () => {
             return { success: false };
         });   
 
-        //
+        // send a mail to clent for rejection
         await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,
           to: (client.user.email + ""),
