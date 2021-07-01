@@ -9,6 +9,8 @@ const menu_items_service = require("../menu_items/menu_items");
 const assets_service = require("../assets/assets");
 const external_api_service = require("../../services/external_api_service");
 const auth_server_service = require("../../services/authentication/auth_server_service");
+const festival_service = require("../../services/festival/festival");
+const user_profile_service = require("../../services/profile/user_profile");
 const _ = require("lodash");
 
 
@@ -408,7 +410,20 @@ const getAllVendorApplications = async () => {
       let preference = Details.application.business_preference;
       console.log('preferense', preference)
       let role = db_user.role;
-      
+  
+      // get the festival info
+      const festival = await festival_service.getFestivalDetails(
+        festivalId
+      );
+      // get the host info
+      const host = await user_profile_service.getUserById(
+        festival.details[0].festival_host_admin_id[0]
+      );
+
+      // get the client info
+      const client = await user_profile_service.getUserById(
+        userId
+      );
   
       if (!db_user_row.success) {
         return { success: false, message: db_user_row.message };
@@ -469,20 +484,22 @@ const getAllVendorApplications = async () => {
             .catch(() => {
               return { success: false };
             });        
-            }
 
-            // await Mailer.sendMail({
-            //   from: process.env.SES_DEFAULT_FROM,
-            //   to: db_user.email,
-            //   subject: `[Tasttlig] Your request for upgradation to vendor is accepted`,
-            //   template: "user_upgrade_approve",
-            //   context: {
-            //     first_name: db_user.first_name,
-            //     last_name: db_user.last_name,
-            //     role_name:'vendor',
-            //   },
-            // });
-        
+          // send notification mail to host 
+          await Mailer.sendMail({
+            from: process.env.SES_DEFAULT_FROM,
+            to: (host.user.email + ""),
+            subject: `[Tasttlig] New vendor applicant accpeted`,
+            template: "vendor_applicant_timeout_notification",
+            context: {
+              first_name: (host.user.first_name + ""),
+              last_name: (host.user.last_name + ""),
+              client_first_name: (client.user.first_name + ""),
+              client_last_name: (client.user.last_name + ""),
+              festival_name: (festival.details[0].festival_name + ""),
+            },
+          });
+        }
         if(preference=='Vend'){
             await db("applications")
             .where("user_id", db_user.tasttlig_user_id)
@@ -610,6 +627,22 @@ const getAllVendorApplications = async () => {
           .catch(() => {
             return { success: false };
         });   
+
+        //
+        await Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
+          to: (client.user.email + ""),
+          subject: `[Tasttlig] Vendor application rejected`,
+          template: "vendor_applicant_reject_notification",
+          context: {
+            first_name: (client.user.first_name + ""),
+            last_name: (client.user.last_name + ""),
+            host_first_name: (host.user.first_name + ""),
+            host_last_name: (host.user.last_name + ""),
+            festival_name: (festival.details[0].festival_name + ""),
+            host_phone: (host.user.phone_number + ""),
+          },
+        });
 
         if(preference=='Vend') 
         {

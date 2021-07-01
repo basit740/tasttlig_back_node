@@ -220,6 +220,12 @@ router.post(
       const host = await user_profile_service.getUserById(
         festival.details[0].festival_host_admin_id[0]
        );
+
+       // get the client info
+      const client = await user_profile_service.getUserById(
+        req.params.userId
+       );
+
        console.log("mail for host", host.user.email);
        // send a mail to the host
        await Mailer.sendMail({
@@ -230,6 +236,9 @@ router.post(
         context: {
           first_name: (host.user.first_name + ""),
           last_name: (host.user.last_name + ""),
+          client_first_name: (client.user.first_name + ""),
+          client_last_name: (client.user.last_name + ""),
+          festival_name: (festival.details[0].festival_name + ""),
         },
       });
 
@@ -250,10 +259,6 @@ router.post(
         "APPROVED",
         "",
         Details)
-        
-      
-      
-      
       
       }, 60* 1000
       );
