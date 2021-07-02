@@ -263,35 +263,7 @@ const approveOrDeclineBusinessMemberApplication = async (
           });
       }
 
-      // if(businessDetails.application.business_preference === "Host" ) {
-      //   console.log(businessDetails.application.food_business_type);
-      //   await db("user_role_lookup")
-      //   .insert({
-      //     user_id: db_user.tasttlig_user_id,
-      //     role_code: "KJ7D",
-      //   })
-      //   .returning("*")
-      //   .catch((reason) => {
-      //     console.log('Reason', reason);
-      //     return { success: false, message: reason };
-      //   });
-      // }
-      // else if(businessDetails.application.business_preference === "Vend" ) {
-      //   console.log(businessDetails.application.food_business_type);
-      //   await db("user_role_lookup")
-      //   .insert({
-      //     user_id: db_user.tasttlig_user_id,
-      //     role_code: "VSK1",
-      //   })
-      //   .returning("*")
-      //   .catch((reason) => {
-      //     console.log('Reason', reason);
-      //     return { success: false, message: reason };
-      //   });
-      // }
 
-      // STEP 5: Update applications table status
-      // console.log("updated role");
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
