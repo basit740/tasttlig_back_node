@@ -180,55 +180,72 @@ const getAllVendorApplications = async () => {
   
       // If status is approved
       if (status === "APPROVED") {
+        // Update applications table status
+        await db("applications")
+          .where("user_id", db_user.tasttlig_user_id)
+          .andWhere("status", "Pending")
+          .andWhere("type", "host")
+          .update("status", "APPROVED")
+          .returning("*")
+          .catch((reason) => {
+            return { success: false, message: reason };
+          });
 
-        if(preference=='Vend'){
-            await db("applications")
-            .where("user_id", db_user.tasttlig_user_id)
-            .andWhere("status", "Pending")
-            .andWhere("type", "vendor")
-            .update("status", "APPROVED")
-            .returning("*")
-            .catch((reason) => {
-                return { success: false, message: reason };
-            });
-
-            if(role.includes('BUSINESS_MEMBER_PENDING'))
-            {
-                await db("user_role_lookup")
-                .where("user_id", db_user.tasttlig_user_id)
-                .andWhere("role_code", "BMP1")
-                .update("role_code", "BMA1")
-                .catch((reason) => {
-                    return { success: false, message: reason };
-                });
-            }
-
-            if(role.includes('VENDOR_PENDING'))
-            {
-                await db("user_role_lookup")
-                .where("user_id", db_user.tasttlig_user_id)
-                .andWhere("role_code", "VSK2")
-                .update("role_code", "VSK1")
-                .catch((reason) => {
-                    return { success: false, message: reason };
-                });
-            }
-        }
-        else if(preference=='Host'){
-            await db("applications")
-            .where("user_id", db_user.tasttlig_user_id)
-            .andWhere("status", "Pending")
-            .andWhere("type", "host")
-            .update("status", "APPROVED")
-            .returning("*")
-            .catch((reason) => {
-                return { success: false, message: reason };
-            });
-        }
-      console.log("updated application status");
+        // update the user role as host
+        await db("user_role_lookup")
+          .where("user_id", db_user.tasttlig_user_id)
+          .andWhere("role_code", "JUCR")
+          .update("role_code", "KJ7D")
+          .returning("*")
+          .catch((reason) => {
+            console.log("Reason", reason);
+            return { success: false, message: reason };
+          });
+        
+          // Email the user that their application is approved
+        await Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
+          to: db_user.email,
+          subject: `[Tasttlig] Your request for upgradation to becoming Host is accepted`,
+          template: "user_upgrade_approve",
+          context: {
+            first_name: db_user.first_name,
+            last_name: db_user.last_name,
+            role_name: "Host Ambassador",
+            active_item: active_item,
+          },
+        });
+        console.log("updated application status");
   
         return { success: true, message: status };
       } 
+      else {
+        // reject
+        // Update applications table status
+        await db("applications")
+          .where("user_id", db_user.tasttlig_user_id)
+          .andWhere("status", "Pending")
+          .andWhere("type", "host")
+          .update("status", "DECLINED")
+          .returning("*")
+          .catch((reason) => {
+            return { success: false, message: reason };
+          });
+
+
+        // remove in pending status
+        await db("user_role_lookup")
+          .where("user_id", db_user.tasttlig_user_id)
+          .andWhere("role_code", "JUCR")
+          .del()
+          .returning("*")
+          .catch((reason) => {
+            console.log("Reason", reason);
+            return { success: false, message: reason };
+          });
+      }
+
+
     } catch (error) {
       return { success: false, message: error };
     }
@@ -304,7 +321,6 @@ const getAllVendorApplications = async () => {
         });       
       // If status is approved
       if (status === "APPROVED") {
-        console.log("table update pending", !(application.length === 0));
         // make sure the there is an application in the database with this applicant on this festival and is Pending 
         // add a timer to make sure the application has been created for more than 71 hours to avoid bug after demo June 30
         if (!(application.length === 0)){
