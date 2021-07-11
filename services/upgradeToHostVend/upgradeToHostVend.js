@@ -211,8 +211,7 @@ const getAllVendorApplications = async () => {
           context: {
             first_name: db_user.first_name,
             last_name: db_user.last_name,
-            role_name: "Host Ambassador",
-            active_item: active_item,
+            role_name: "Host",
           },
         });
         console.log("updated application status");

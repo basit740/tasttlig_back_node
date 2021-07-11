@@ -1093,15 +1093,15 @@ const approveOrDeclineHostAmbassadorApplication = async (
         });
 
       // insert the user role as 
-      await db("user_role_lookup")
-        .where("user_id", db_user.tasttlig_user_id)
-        .andWhere("role_code", "JUCR")
-        .update("role_code", "KJ7D")
-        .returning("*")
-        .catch((reason) => {
-          console.log("Reason", reason);
-          return { success: false, message: reason };
-        });
+      // await db("user_role_lookup")
+      //   .where("user_id", db_user.tasttlig_user_id)
+      //   .andWhere("role_code", "JUCR")
+      //   .update("role_code", "KJ7D")
+      //   .returning("*")
+      //   .catch((reason) => {
+      //     console.log("Reason", reason);
+      //     return { success: false, message: reason };
+      //   });
 
       // let active_item = "Products";
 
