@@ -2,13 +2,9 @@
 
 // Libraries
 const { db } = require("../../db/db-config");
-const jwt = require("jsonwebtoken");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
-const { formatPhone } = require("../../functions/functions");
-const menu_items_service = require("../menu_items/menu_items");
-const assets_service = require("../assets/assets");
-const external_api_service = require("../../services/external_api_service");
-const auth_server_service = require("../../services/authentication/auth_server_service");
+const festival_service = require("../../services/festival/festival");
+const user_profile_service = require("../../services/profile/user_profile");
 const _ = require("lodash");
 
 
@@ -38,66 +34,6 @@ const getUserById = async (id) => {
   };
 
 
-// Save application information to applications table helper function
-const upgradeApplication = async (data) => {
-    let applications = [];
-    let role_name = "";
-    console.log("data", data);
- try{
-        await db.transaction(async (trx) => {
-            if (data.businessPreference === "Host") {
-            applications.push({
-                user_id: data.user_id,
-                created_at: new Date(),
-                updated_at: new Date(),
-                reason: "host application",
-                type: "host",
-                status: "Pending",
-            });
-            role_name = "HOST_PENDING";
-            }
-        
-            if (data.businessPreference === "Vend") {
-                applications.push({
-                user_id: data.user_id,
-                created_at: new Date(),
-                updated_at: new Date(),
-                reason: "vendor application",
-                type: "vendor",
-                status: "Pending",
-                });
-                role_name = "VENDOR_PENDING";
-            }
-            // Get role code of new role to be added
-            const new_role_code = await trx("roles")
-            .select()
-            .where({ role: role_name })
-            .then((value) => {
-                return value[0].role_code;
-            });
-        
-            // Insert new role for this user
-            await trx("user_role_lookup").insert({
-            user_id: data.user_id,
-            role_code: new_role_code,
-            });
-
-            await trx("business_details")
-            .where("business_details_user_id", data.user_id)
-            .update("business_preference", data.businessPreference)
-
-            await trx("applications")
-            .insert(applications);
-            
-            }
-        );
-          return { success: true, details: "Success." };
-
-        } catch (error) {
-            console.log("error:", error);
-            return { success: false, details: error.message };
-        };
-  };
 
 
 
@@ -117,17 +53,10 @@ const getAllVendorApplications = async () => {
           "applications.user_id",
           "business_details.business_details_user_id"
         )
-        // .leftJoin(
-        //   "user_subscriptions",
-        //   "tasttlig_users.tasttlig_user_id",
-        //   "user_subscriptions.user_id"
-        // )
         .where("applications.type", "=", "vendor")
         .groupBy("applications.application_id")
         .groupBy("tasttlig_users.tasttlig_user_id")
-        // .groupBy("user_subscriptions.user_subscription_id")
         .groupBy("business_details.business_details_id")
-        // .having("user_subscriptions.user_subscription_status", "=", "INACTIVE")
         .having("applications.status", "=", "Pending");
   
       return {
@@ -139,7 +68,7 @@ const getAllVendorApplications = async () => {
     }
   };
 
-// FY: get all applications using hostId
+// get all applications send to specific host using hostId
   const getVendorApplications = async (hostId) => {
     try {
       const applications = await db
@@ -160,17 +89,10 @@ const getAllVendorApplications = async () => {
           "applications.festival_id",
           "festivals.festival_id"
         )
-        // .leftJoin(
-        //   "user_subscriptions",
-        //   "tasttlig_users.tasttlig_user_id",
-        //   "user_subscriptions.user_id"
-        // )
         .where("applications.type", "=", "vendor")
         .groupBy("applications.application_id")
         .groupBy("tasttlig_users.tasttlig_user_id")
-        // .groupBy("user_subscriptions.user_subscription_id")
         .groupBy("business_details.business_details_id")
-        // .having("user_subscriptions.user_subscription_status", "=", "INACTIVE")
         .groupBy("festivals.festival_id")
         .having("applications.status", "=", "Pending")
         .having("applications.receiver_id", "=", Number(hostId));
@@ -217,7 +139,6 @@ const getAllVendorApplications = async () => {
         .groupBy("business_details.business_details_id")
         .groupBy("user_role_lookup.user_role_lookup_id")
         .having("tasttlig_users.tasttlig_user_id", "=", Number(userId))
-        //.having("user_role_lookup.role_code", "=", "VSK2")
         .first();
   
       console.log(application);
@@ -257,127 +178,73 @@ const getAllVendorApplications = async () => {
         return { success: false, message: db_user_row.message };
       }
   
-      
-  
       // If status is approved
       if (status === "APPROVED") {
+        // Update applications table status
+        await db("applications")
+          .where("user_id", db_user.tasttlig_user_id)
+          .andWhere("status", "Pending")
+          .andWhere("type", "host")
+          .update("status", "APPROVED")
+          .returning("*")
+          .catch((reason) => {
+            return { success: false, message: reason };
+          });
 
-        if(preference=='Vend'){
-            await db("applications")
-            .where("user_id", db_user.tasttlig_user_id)
-            .andWhere("status", "Pending")
-            .andWhere("type", "vendor")
-            .update("status", "APPROVED")
-            .returning("*")
-            .catch((reason) => {
-                return { success: false, message: reason };
-            });
-
-            if(role.includes('BUSINESS_MEMBER_PENDING'))
-            {
-                await db("user_role_lookup")
-                .where("user_id", db_user.tasttlig_user_id)
-                .andWhere("role_code", "BMP1")
-                .update("role_code", "BMA1")
-                .catch((reason) => {
-                    return { success: false, message: reason };
-                });
-            }
-
-            if(role.includes('VENDOR_PENDING'))
-            {
-                await db("user_role_lookup")
-                .where("user_id", db_user.tasttlig_user_id)
-                .andWhere("role_code", "VSK2")
-                .update("role_code", "VSK1")
-                .catch((reason) => {
-                    return { success: false, message: reason };
-                });
-            }
-        }
-        else if(preference=='Host'){
-            await db("applications")
-            .where("user_id", db_user.tasttlig_user_id)
-            .andWhere("status", "Pending")
-            .andWhere("type", "host")
-            .update("status", "APPROVED")
-            .returning("*")
-            .catch((reason) => {
-                return { success: false, message: reason };
-            });
-
-            if(role.includes('BUSINESS_MEMBER_PENDING'))
-            {
-                await db("user_role_lookup")
-                .where("user_id", db_user.tasttlig_user_id)
-                .andWhere("role_code", "BMP1")
-                .update("role_code", "BMA1")
-                .catch((reason) => {
-                    return { success: false, message: reason };
-                 });
-            }
-
-            if(role.includes('HOST_PENDING'))
-            {
-                await db("user_role_lookup")
-                .where("user_id", db_user.tasttlig_user_id)
-                .andWhere("role_code", "JUCR")
-                .update("role_code", "KJ7D")
-                .catch((reason) => {
-                    return { success: false, message: reason };
-                });
-            }
-        }
-    
-      console.log("updated application status");
-  
-        return { success: true, message: status };
-      } else {
-
-        if(preference=='Vend') 
-        {
-            // Remove the role for this user
-            await db("user_role_lookup")
-            .where({
-                user_id: db_user.tasttlig_user_id,
-                role_code: "VSK2",
-            })
-            .del();
-            // STEP 3: Update applications table status
-            await db("applications")
-            .where("user_id", db_user.tasttlig_user_id)
-            .andWhere("status", "Pending")
-            .andWhere("type", "vendor")
-            .update("status", "REJECT")
-            .returning("*")
-            .catch((reason) => {
-                return { success: false, message: reason };
-            });
-        }
-        if(preference=='Host') 
-        {
-            // Remove the role for this user
-            await db("user_role_lookup")
-            .where({
-                user_id: db_user.tasttlig_user_id,
-                role_code: "JUCR",
-            })
-            .del();
-            // STEP 3: Update applications table status
-            await db("applications")
-            .where("user_id", db_user.tasttlig_user_id)
-            .andWhere("status", "Pending")
-            .andWhere("type", "host")
-            .update("status", "REJECT")
-            .returning("*")
-            .catch((reason) => {
-                return { success: false, message: reason };
-            });
-        }
-  
+        // update the user role as host
+        await db("user_role_lookup")
+          .where("user_id", db_user.tasttlig_user_id)
+          .andWhere("role_code", "JUCR")
+          .update("role_code", "KJ7D")
+          .returning("*")
+          .catch((reason) => {
+            console.log("Reason", reason);
+            return { success: false, message: reason };
+          });
         
+          // Email the user that their application is approved
+        await Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
+          to: db_user.email,
+          subject: `[Tasttlig] Your request for upgradation to becoming Host is accepted`,
+          template: "user_upgrade_approve",
+          context: {
+            first_name: db_user.first_name,
+            last_name: db_user.last_name,
+            role_name: "Host",
+          },
+        });
+        console.log("updated application status");
+  
         return { success: true, message: status };
+      } 
+      else {
+        // reject
+        // Update applications table status
+        await db("applications")
+          .where("user_id", db_user.tasttlig_user_id)
+          .andWhere("status", "Pending")
+          .andWhere("type", "host")
+          .update("status", "DECLINED")
+          .returning("*")
+          .catch((reason) => {
+            return { success: false, message: reason };
+          });
+
+
+        // remove in pending status
+        await db("user_role_lookup")
+          .where("user_id", db_user.tasttlig_user_id)
+          .andWhere("role_code", "JUCR")
+          .del()
+          .returning("*")
+          .catch((reason) => {
+            console.log("Reason", reason);
+            return { success: false, message: reason };
+          });
       }
+
+
     } catch (error) {
       return { success: false, message: error };
     }
@@ -408,7 +275,20 @@ const getAllVendorApplications = async () => {
       let preference = Details.application.business_preference;
       console.log('preferense', preference)
       let role = db_user.role;
-      
+  
+      // get the festival info
+      const festival = await festival_service.getFestivalDetails(
+        festivalId
+      );
+      // get the host info
+      const host = await user_profile_service.getUserById(
+        festival.details[0].festival_host_admin_id[0]
+      );
+
+      // get the client info
+      const client = await user_profile_service.getUserById(
+        userId
+      );
   
       if (!db_user_row.success) {
         return { success: false, message: db_user_row.message };
@@ -440,7 +320,6 @@ const getAllVendorApplications = async () => {
         });       
       // If status is approved
       if (status === "APPROVED") {
-        console.log("table update pending", !(application.length === 0));
         // make sure the there is an application in the database with this applicant on this festival and is Pending 
         // add a timer to make sure the application has been created for more than 71 hours to avoid bug after demo June 30
         if (!(application.length === 0)){
@@ -469,98 +348,36 @@ const getAllVendorApplications = async () => {
             .catch(() => {
               return { success: false };
             });        
-            }
 
-            // await Mailer.sendMail({
-            //   from: process.env.SES_DEFAULT_FROM,
-            //   to: db_user.email,
-            //   subject: `[Tasttlig] Your request for upgradation to vendor is accepted`,
-            //   template: "user_upgrade_approve",
-            //   context: {
-            //     first_name: db_user.first_name,
-            //     last_name: db_user.last_name,
-            //     role_name:'vendor',
-            //   },
-            // });
-        
-        if(preference=='Vend'){
-            await db("applications")
-            .where("user_id", db_user.tasttlig_user_id)
-            .andWhere("status", "Pending")
-            .andWhere("type", "vendor")
-            .update("status", "APPROVED")
-            .returning("*")
-            .catch((reason) => {
-                return { success: false, message: reason };
-            });
-
-            if(role.includes('BUSINESS_MEMBER_PENDING'))
-            {
-                await db("user_role_lookup")
-                .where("user_id", db_user.tasttlig_user_id)
-                .andWhere("role_code", "BMP1")
-                .update("role_code", "BMA1")
-                .catch((reason) => {
-                    return { success: false, message: reason };
-                });
-            }
-
-            if(role.includes('VENDOR_PENDING'))
-            {
-                await db("user_role_lookup")
-                .where("user_id", db_user.tasttlig_user_id)
-                .andWhere("role_code", "VSK2")
-                .update("role_code", "VSK1")
-                .catch((reason) => {
-                    return { success: false, message: reason };
-                });
-
-          // STEP 6: Email the user that their application is approved
-              await Mailer.sendMail({
-                from: process.env.SES_DEFAULT_FROM,
-                to: db_user.email,
-                subject: `[Tasttlig] Your request for upgradation to ${preference} is accepted`,
-                template: "user_upgrade_approve",
-                context: {
-                  first_name: db_user.first_name,
-                  last_name: db_user.last_name,
-                  role_name: preference,
-                },
-              });
-            }
-        }
-        else if(preference=='Host'){
-            await db("applications")
-            .where("user_id", db_user.tasttlig_user_id)
-            .andWhere("status", "Pending")
-            .andWhere("type", "host")
-            .update("status", "APPROVED")
-            .returning("*")
-            .catch((reason) => {
-                return { success: false, message: reason };
-            });
-
-            if(role.includes('BUSINESS_MEMBER_PENDING'))
-            {
-                await db("user_role_lookup")
-                .where("user_id", db_user.tasttlig_user_id)
-                .andWhere("role_code", "BMP1")
-                .update("role_code", "BMA1")
-                .catch((reason) => {
-                    return { success: false, message: reason };
-                 });
-            }
-
-            if(role.includes('HOST_PENDING'))
-            {
-                await db("user_role_lookup")
-                .where("user_id", db_user.tasttlig_user_id)
-                .andWhere("role_code", "JUCR")
-                .update("role_code", "KJ7D")
-                .catch((reason) => {
-                    return { success: false, message: reason };
-                });
-            }
+          // send notification mail to host 
+          await Mailer.sendMail({
+            from: process.env.SES_DEFAULT_FROM,
+            to: (host.user.email + ""),
+            subject: `[Tasttlig] New vendor applicant accpeted`,
+            template: "vendor_applicant_timeout_notification",
+            context: {
+              first_name: (host.user.first_name + ""),
+              last_name: (host.user.last_name + ""),
+              client_first_name: (client.user.first_name + ""),
+              client_last_name: (client.user.last_name + ""),
+              festival_name: (festival.details[0].festival_name + ""),
+            },
+          });
+           // send notification mail to client
+          await Mailer.sendMail({
+            from: process.env.SES_DEFAULT_FROM,
+            to: (client.user.email + ""),
+            subject: `[Tasttlig] Vendor application accepted`,
+            template: "vendor_applicant_accept_notification",
+            context: {
+              first_name: (client.user.first_name + ""),
+              last_name: (client.user.last_name + ""),
+              host_first_name: (host.user.first_name + ""),
+              host_last_name: (host.user.last_name + ""),
+              festival_name: (festival.details[0].festival_name + ""),
+              host_phone: (host.user.phone_number + ""),
+            },
+          });
         }
     
       console.log("updated application status");
@@ -611,65 +428,21 @@ const getAllVendorApplications = async () => {
             return { success: false };
         });   
 
-        if(preference=='Vend') 
-        {
-            // Remove the role for this user
-            await db("user_role_lookup")
-            .where({
-                user_id: db_user.tasttlig_user_id,
-                role_code: "VSK2",
-            })
-            .del();
-            // STEP 3: Update applications table status
-            await db("applications")
-            .where("user_id", db_user.tasttlig_user_id)
-            .andWhere("status", "Pending")
-            .andWhere("type", "vendor")
-            .update("status", "REJECT")
-            .returning("*")
-            .catch((reason) => {
-                return { success: false, message: reason };
-            });
-
-
-          // STEP 6: Email the user that their application is approved
-        // STEP 4: Notify user their application is rejected
-          await Mailer.sendMail({
-            from: process.env.SES_DEFAULT_FROM,
-            to: db_user.email,
-            subject: `[Tasttlig] Your request for upgradation to ${preference} is rejected`,
-            template: "user_upgrade_reject",
-            context: {
-              first_name: db_user.first_name,
-              last_name: db_user.last_name,
-              declineReason,
-            },
-          });
-
-        }
-        if(preference=='Host') 
-        {
-            // Remove the role for this user
-            await db("user_role_lookup")
-            .where({
-                user_id: db_user.tasttlig_user_id,
-                role_code: "JUCR",
-            })
-            .del();
-            // STEP 3: Update applications table status
-            await db("applications")
-            .where("user_id", db_user.tasttlig_user_id)
-            .andWhere("status", "Pending")
-            .andWhere("type", "host")
-            .update("status", "REJECT")
-            .returning("*")
-            .catch((reason) => {
-                return { success: false, message: reason };
-            });
-        }
-  
-        
-        return { success: true, message: status };
+        // send a mail to clent for rejection
+        await Mailer.sendMail({
+          from: process.env.SES_DEFAULT_FROM,
+          to: (client.user.email + ""),
+          subject: `[Tasttlig] Vendor application rejected`,
+          template: "vendor_applicant_reject_notification",
+          context: {
+            first_name: (client.user.first_name + ""),
+            last_name: (client.user.last_name + ""),
+            host_first_name: (host.user.first_name + ""),
+            host_last_name: (host.user.last_name + ""),
+            festival_name: (festival.details[0].festival_name + ""),
+            host_phone: (host.user.phone_number + ""),
+          },
+        });
       }
     } catch (error) {
       return { success: false, message: error };
@@ -679,7 +452,6 @@ const getAllVendorApplications = async () => {
 
 
   module.exports = {
-    upgradeApplication,
     getAllVendorApplications,
     getVendorApplications,
     getVendorApplicantDetails,

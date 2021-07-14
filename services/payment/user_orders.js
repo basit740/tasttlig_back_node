@@ -21,22 +21,6 @@ const getVendorSubscriptionDetails = async () => {
     .where("subscription_name", "LIKE", "vendor%");
 };
 
-// const getNationalities = async (keyword) => {
-//   try {
-//     return await db("nationalities")
-//       .select("nationality")
-//       .having("nationality", "LIKE", keyword + "%")
-//       .returning("*")
-//       .then((value) => {
-//         return { success: true, details: value[0] };
-//       })
-//       .catch((reason) => {
-//         return { success: false, details: reason };
-//       });
-//   } catch (error) {
-//     return { success: false, message: error };
-//   }
-// };
 
 // Get order details helper function
 const getOrderDetails = async (order_details) => {
@@ -1139,21 +1123,7 @@ const createCartOrder = async (order_details, db_order_details) => {
 // Get all user orders helper function
 const getAllUserOrders = async (user_id) => {
   try {
-    // const db_orders = await db("orders")
-    //   .leftJoin(
-    //     "order_items",
-    //     "orders.order_id",
-    //     "order_items.order_id"
-    //   )
-    //   .leftJoin(
-    //     "payments",
-    //     "orders.order_id",
-    //     "payments.order_id"
-    //   )
-    //   .where({
-    //     order_by_user_id: user_id
-    //   })
-    //   .returning("*");
+
     const db_orders = await Orders.query()
       .withGraphFetched("[order_items, payments]")
       .where("orders.order_by_user_id", user_id)

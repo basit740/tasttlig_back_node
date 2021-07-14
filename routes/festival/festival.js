@@ -505,6 +505,7 @@ router.post(
 
         const festival_details = {
           festival_host_admin_id: [req.user.id],
+          festival_vendor_id: [req.user.id],
           festival_name,
           festival_type,
           festival_price,

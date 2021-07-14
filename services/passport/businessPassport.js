@@ -145,66 +145,66 @@ const postBusinessPassportDetails = async (data) => {
 
       await trx("business_details_images").insert(business_details_images);
 
-      applications.push({
-        user_id: data.user_id,
-        created_at: new Date(),
-        updated_at: new Date(),
-        reason: "host application",
-        type: "host",
-        status: "Pending",
-      });
-      role_name = "HOST_PENDING";
+      // applications.push({
+      //   user_id: data.user_id,
+      //   created_at: new Date(),
+      //   updated_at: new Date(),
+      //   reason: "host application",
+      //   type: "host",
+      //   status: "Pending",
+      // });
+      // role_name = "HOST_PENDING";
 
-      if (data["user_business_preference"] === "Vend") {
-        applications.push({
-          user_id: data.user_id,
-          created_at: new Date(),
-          updated_at: new Date(),
-          reason: "vendor application",
-          type: "vendor",
-          status: "Pending",
-        });
-        role_name = "VENDOR_PENDING";
+      // if (data["user_business_preference"] === "Vend") {
+      //   applications.push({
+      //     user_id: data.user_id,
+      //     created_at: new Date(),
+      //     updated_at: new Date(),
+      //     reason: "vendor application",
+      //     type: "vendor",
+      //     status: "Pending",
+      //   });
+      //   role_name = "VENDOR_PENDING";
 
-        // Get role code of new role to be added
-        const new_role_code = await trx("roles")
-          .select()
-          .where({ role: role_name })
-          .then((value) => {
-            return value[0].role_code;
-          });
+      //   // Get role code of new role to be added
+      //   const new_role_code = await trx("roles")
+      //     .select()
+      //     .where({ role: role_name })
+      //     .then((value) => {
+      //       return value[0].role_code;
+      //     });
 
-        // Insert new role for this user
-        await trx("user_role_lookup").insert({
-          user_id: data.user_id,
-          role_code: new_role_code,
-        });
-      } else if (data["user_business_preference"] === "Host") {
-        applications.push({
-          user_id: data.user_id,
-          created_at: new Date(),
-          updated_at: new Date(),
-          reason: "host application",
-          type: "host",
-          status: "Pending",
-        });
-        role_name = "HOST_PENDING";
+      //   // Insert new role for this user
+      //   await trx("user_role_lookup").insert({
+      //     user_id: data.user_id,
+      //     role_code: new_role_code,
+      //   });
+      // } else if (data["user_business_preference"] === "Host") {
+      //   applications.push({
+      //     user_id: data.user_id,
+      //     created_at: new Date(),
+      //     updated_at: new Date(),
+      //     reason: "host application",
+      //     type: "host",
+      //     status: "Pending",
+      //   });
+      //   role_name = "HOST_PENDING";
 
-        // Get role code of new role to be added
-        const new_role_code = await trx("roles")
-          .select()
-          .where({ role: role_name })
-          .then((value) => {
-            return value[0].role_code;
-          });
+      //   // Get role code of new role to be added
+      //   const new_role_code = await trx("roles")
+      //     .select()
+      //     .where({ role: role_name })
+      //     .then((value) => {
+      //       return value[0].role_code;
+      //     });
 
-        // Insert new role for this user
-        await trx("user_role_lookup").insert({
-          user_id: data.user_id,
-          role_code: new_role_code,
-        });
-      }
-      await trx("applications").insert(applications);
+      //   // Insert new role for this user
+      //   await trx("user_role_lookup").insert({
+      //     user_id: data.user_id,
+      //     role_code: new_role_code,
+      //   });
+      // }
+      // await trx("applications").insert(applications);
 
       return { success: true };
     });
@@ -249,49 +249,7 @@ const approveOrDeclineBusinessMemberApplication = async (
           return { success: false, message: reason };
         });
 
-      if (businessDetails.application.food_business_type === "Restaurant") {
-        console.log(businessDetails.application.food_business_type);
-        await db("user_role_lookup")
-          .insert({
-            user_id: db_user.tasttlig_user_id,
-            role_code: "KJ7D",
-          })
-          .returning("*")
-          .catch((reason) => {
-            console.log("Reason", reason);
-            return { success: false, message: reason };
-          });
-      }
 
-      // if(businessDetails.application.business_preference === "Host" ) {
-      //   console.log(businessDetails.application.food_business_type);
-      //   await db("user_role_lookup")
-      //   .insert({
-      //     user_id: db_user.tasttlig_user_id,
-      //     role_code: "KJ7D",
-      //   })
-      //   .returning("*")
-      //   .catch((reason) => {
-      //     console.log('Reason', reason);
-      //     return { success: false, message: reason };
-      //   });
-      // }
-      // else if(businessDetails.application.business_preference === "Vend" ) {
-      //   console.log(businessDetails.application.food_business_type);
-      //   await db("user_role_lookup")
-      //   .insert({
-      //     user_id: db_user.tasttlig_user_id,
-      //     role_code: "VSK1",
-      //   })
-      //   .returning("*")
-      //   .catch((reason) => {
-      //     console.log('Reason', reason);
-      //     return { success: false, message: reason };
-      //   });
-      // }
-
-      // STEP 5: Update applications table status
-      // console.log("updated role");
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")

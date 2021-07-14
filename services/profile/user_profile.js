@@ -1080,57 +1080,33 @@ const approveOrDeclineHostAmbassadorApplication = async (
     // Depends on status, we do different things:
     // If status is approved
     if (status === "APPROVED") {
-      await db("products")
-        .where({
-          product_user_id: db_user.tasttlig_user_id,
-          status: "INACTIVE",
-        })
-        .update("status", "ACTIVE");
 
-      await db("user_subscriptions")
-        .where({
-          user_id: db_user.tasttlig_user_id,
-          user_subscription_status: "Pending",
-        })
-        .update("user_subscription_status", "ACTIVE");
-
-      // STEP 3: Update all Food Samples to Active state if the user agreed to participate in festival
-      if (db_user.is_participating_in_festival) {
-        await db("products")
-          .where({
-            product_user_id: db_user.tasttlig_user_id,
-            status: "INACTIVE",
-          })
-          .update("status", "ACTIVE");
-      }
-
-      // STEP 4: Update all documents belongs to this user which is in Pending state become APPROVED
-      await db("documents")
-        .where("user_id", db_user.tasttlig_user_id)
-        .andWhere("status", "Pending")
-        .update("status", "APPROVED")
-        .returning("*")
-        .catch((reason) => {
-          return { success: false, message: reason };
-        });
-
-      // STEP 5: Update applications table status
+      // Update applications table status
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
+        .andWhere("type", "host")
         .update("status", "APPROVED")
         .returning("*")
         .catch((reason) => {
           return { success: false, message: reason };
         });
 
-      let active_item = "Products";
+      // insert the user role as 
+      // await db("user_role_lookup")
+      //   .where("user_id", db_user.tasttlig_user_id)
+      //   .andWhere("role_code", "JUCR")
+      //   .update("role_code", "KJ7D")
+      //   .returning("*")
+      //   .catch((reason) => {
+      //     console.log("Reason", reason);
+      //     return { success: false, message: reason };
+      //   });
 
-      /*       if (role_name_in_title_case === "Host") {
-        active_item = "Experiences";
-      } */
+      // let active_item = "Products";
 
-      // STEP 6: Email the user that their application is approved
+
+      // Email the user that their application is approved
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
         to: db_user.email,

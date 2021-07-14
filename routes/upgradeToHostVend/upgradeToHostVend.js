@@ -72,7 +72,7 @@ router.get(
     }
   );
 
-  //FY: routing for fetching vendor applications for specific host
+  // fetching vendor applications for specific host
   router.get(
     "/vendor-applications/:hostId",
     token_service.authenticateToken,
@@ -91,86 +91,6 @@ router.get(
     }
   );
 
-router.post(
-    "/upgrade/vendor-to-host",
-    token_service.authenticateToken,
-    async (req, res) => {
-      console.log("body from front: ", req.body)
-      try {
-        const response = await upgrade_service.upgradeApplication(
-          req.body
-        );
-        if (!response.success) {
-          return res.status(200).json({
-            success: false,
-            message: response.details,
-          });
-        }
-        console.log(response);
-        return res.send(response);
-      } catch (error) {
-        console.log("error from catch:", error);
-        return res.status(403).json({
-          success: false,
-          message: error.details,
-        });
-      }
-    }
-  );
-
-  router.post(
-    "/upgrade/business-to-host",
-    token_service.authenticateToken,
-    async (req, res) => {
-      console.log("body from front: ", req.body)
-      try {
-        const response = await upgrade_service.upgradeApplication(
-          req.body
-        );
-        if (!response.success) {
-          return res.status(200).json({
-            success: false,
-            message: response.details,
-          });
-        }
-        console.log(response);
-        return res.send(response);
-      } catch (error) {
-        console.log("error from catch:", error);
-        return res.status(403).json({
-          success: false,
-          message: error.details,
-        });
-      }
-    }
-  );
-
-  router.post(
-    "/upgrade/business-to-vend",
-    token_service.authenticateToken,
-    async (req, res) => {
-      console.log("body from front: ", req.body)
-      try {
-        const response = await upgrade_service.upgradeApplication(
-          req.body
-        );
-        if (!response.success) {
-          return res.status(200).json({
-            success: false,
-            message: response.details,
-          });
-        }
-        console.log(response);
-        return res.send(response);
-      } catch (error) {
-        console.log("error from catch:", error);
-        return res.status(403).json({
-          success: false,
-          message: error.details,
-        });
-      }
-    }
-  );
 
 
   // POST vendor approval from admin
@@ -220,6 +140,12 @@ router.post(
       const host = await user_profile_service.getUserById(
         festival.details[0].festival_host_admin_id[0]
        );
+
+       // get the client info
+      const client = await user_profile_service.getUserById(
+        req.params.userId
+       );
+
        console.log("mail for host", host.user.email);
        // send a mail to the host
        await Mailer.sendMail({
@@ -230,17 +156,11 @@ router.post(
         context: {
           first_name: (host.user.first_name + ""),
           last_name: (host.user.last_name + ""),
+          client_first_name: (client.user.first_name + ""),
+          client_last_name: (client.user.last_name + ""),
+          festival_name: (festival.details[0].festival_name + ""),
         },
       });
-
-
-      // const response = await upgrade_service.approveOrDeclineVendorApplicationOnFestival(
-      //   req.params.festivalId,
-      //   req.params.ticketPrice,
-      //   req.params.userId,
-      //   "APPROVED",
-      //   "",
-      //   Details
 
       // set a timer to accept applicant 
       setTimeout(() => {upgrade_service.approveOrDeclineVendorApplicationOnFestival(
@@ -249,7 +169,9 @@ router.post(
         req.params.userId,
         "APPROVED",
         "",
-        Details)}, 60* 1000
+        Details)
+      
+      }, 60* 1000
       );
 
     } catch (error) {
