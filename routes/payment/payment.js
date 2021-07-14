@@ -10,6 +10,7 @@ const food_sample_claim_service = require("../../services/food_sample_claim/food
 
 // POST Stripe payment
 router.post("/payment/stripe", async (req, res) => {
+  console.log("req coming from payment/strype: ", req.body)
   if (!req.body.item_id || !req.body.item_type || !req.body.email) {
     return res.status(403).json({
       success: false,
@@ -45,9 +46,10 @@ router.post("/payment/stripe", async (req, res) => {
       db_order_details,
       req.body.vendor_festivals
     );
-
+console.log("response from payment:", response)
     return res.send(response);
   } catch (error) {
+    console.log("error from payment:", error)
     res.send({
       success: false,
       message: error.message,
