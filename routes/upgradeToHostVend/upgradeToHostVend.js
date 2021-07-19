@@ -53,6 +53,25 @@ router.get(
     }
   );
 
+  router.get(
+    "/sponsor-application/:userId",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const applications = await upgrade_service.getSponsorApplicantDetails(
+          req.params.userId
+        );
+  
+        return res.send(applications);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
 
 
   router.get(
@@ -91,6 +110,24 @@ router.get(
     }
   );
 
+  // fetching sponsor applications for specific host
+  router.get(
+    "/sponsor-applications/:hostId",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const applications = await upgrade_service.getSponsorApplications(
+          req.params.hostId
+        );
+        return res.send(applications);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
 
 
   // POST vendor approval from admin

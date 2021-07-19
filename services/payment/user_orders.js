@@ -534,7 +534,6 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
             }
           } 
           else if (db_order_details.subscribed_festivals && db_order_details.item.subscription_code === 'S_KMIN') {
-            console.log('1234567', db_order_details);
             for(let festival_id of db_order_details.subscribed_festivals) {
               let db_festival;
               db_festival = await festival_service.getFestivalDetails(
