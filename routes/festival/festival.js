@@ -717,39 +717,54 @@ router.post(
     }
   }
 );
-// POST sponsor to festival
-// router.post(
-//   "/sponsor-festival",
-//   token_service.authenticateToken,
-//   async (req, res) => {
-//     const { festival_id, festival_business_sponsor_id } = req.body;
-//     try {
-//       const user_details_from_db = await user_profile_service.getUserById(
-//         req.user.id
-//       );
 
-//       if (!user_details_from_db.success) {
-//         return res.status(403).json({
-//           success: false,
-//           message: user_details_from_db.message,
-//         });
-//       }
+// POST partner application on host dashboard
+router.post(
+  "/partner-application",
+  token_service.authenticateToken,
+  async (req, res) => {
+    const { festival_id } = req.body;
+    
+    try {
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
 
-//       const response = await festival_service.sponsorToFestival(
-//         festival_id,
-//         festival_business_sponsor_id,
-//         user_details_from_db
-//       );
-//       return res.send(response);
-//     } catch (error) {
-//       res.send({
-//         success: false,
-//         message: "Error.",
-//         response: error,
-//       });
-//     }
-//   }
-// );
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message,
+        });
+      }
+      const db_user = user_details_from_db.user;
+      const business_details = await authentication_service.getUserByBusinessDetails(
+        req.user.id
+      );
+      if (!business_details.success) {
+        return res.status(403).json({
+          success: false,
+          message: business_details.message,
+        });
+      }
+      console.log('12345', festival_id);
+      const response = await festival_service.addPartnerApplication(
+        festival_id,
+        business_details.business_details.business_details_id,
+        db_user,
+        "Partner"
+      );
+      
+      return res.send(response);
+    } catch (error) {
+      console.log('12345', error);
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
 
 router.post(
   "/business/festival/add",

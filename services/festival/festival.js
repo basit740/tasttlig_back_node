@@ -754,7 +754,6 @@ const addSponsorApplication = async (
             }
           
         } catch (error) {
-          console.log('123123123');
           return { success: false };
         }
 
@@ -776,6 +775,49 @@ const addSponsorApplication = async (
         }
       }
     });
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
+
+const addPartnerApplication = async (
+  festival_id,
+  foodSamplePreference,
+  db_user,
+  applicationType
+) => {
+
+  try {
+    await db.transaction(async (trx) => {
+
+
+      try {
+        
+        const db_festival = await getFestivalDetails(
+          festival_id
+       )
+       console.log('123', db_festival);
+          // await trx("applications").insert({
+          //   user_id: db_user,
+          //   created_at: new Date(),
+          //   updated_at: new Date(),
+          //   receiver_id: db_festival.details[0].festival_host_admin_id[0],
+          //   reason: "partner application",
+          //   type: "partner",
+          //   status: "Pending",
+          //   festival_id: festival_id,
+          // });
+        
+          
+        
+      } catch (error) {
+        console.log('123', error);
+        return { success: false };
+      }
+
+    
+  });
     return { success: true, details: "Success." };
   } catch (error) {
     return { success: false, details: error.message };
@@ -974,4 +1016,5 @@ module.exports = {
   updateFestival,
   addBusinessToFestival,
   getAllHostFestivalList,
+  addPartnerApplication,
 };
