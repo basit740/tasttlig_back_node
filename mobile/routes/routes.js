@@ -593,6 +593,46 @@ router.get("/mobile/unsubscribed-festivals/:userId", async (req, res) => {
 
     const db_subscription_details =
       await mobile_services.getVendorUnsubscribedFestivalsById(user_id);
+    let subscribed = [];
+    db_subscription_details.user.map((user) => {
+      user.suscribed_festivals.map((festivalId) => {
+        subscribed.push(festivalId);
+      });
+    });
+
+    let unsubscribedFestivals = [];
+    festivals.map((festival) => {
+      if (subscribed.length > 0) {
+        if (!subscribed.includes(festival.festival_id)) {
+          unsubscribedFestivals.push(festival);
+        }
+      } else {
+        unsubscribedFestivals.push(festival);
+      }
+    });
+
+    return res.send({
+      success: true,
+      unsubscribedFestivals: unsubscribedFestivals,
+    });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+
+router.get("/mobile/unsubscribed-sponsor-festivals/:userId", async (req, res) => {
+  const user_id = req.params.userId;
+
+  try {
+    const getFestivals = await getFestivalList();
+    let festivals = getFestivals.festival_list;
+
+    const db_subscription_details =
+      await mobile_services.getSponsorUnsubscribedFestivalsById(user_id);
     console.log("subs", db_subscription_details.user);
     let subscribed = [];
     db_subscription_details.user.map((user) => {
