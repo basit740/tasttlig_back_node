@@ -859,21 +859,7 @@ const getAllVendorApplications = async () => {
       if (!db_user_row.success) {
         return { success: false, message: db_user_row.message };
       }
-  
-      // remove partner from partner_request_id
-      await db("festivals")
-        .where("festival_id", festivalId)
-        .update({
-            partner_request_id: db.raw(
-              "array_remove(partner_request_id, ?)",
-              [db_user.tasttlig_user_id]
-            ),
-            
-        })
-        .returning("*")
-        .catch(() => {
-          return { success: false };
-        });     
+     
 
         const application = await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
@@ -962,7 +948,6 @@ const getAllVendorApplications = async () => {
             .catch((reason) => {
                 return { success: false, message: reason };
             });
-        // add ticketPrice to user credit
 
         // get the current user credit
         let user = await db("tasttlig_users")
@@ -983,16 +968,6 @@ const getAllVendorApplications = async () => {
             return { success: false };
           });     
 
-        // deletes the corresponding ticket
-        await db("ticket_details")
-          .where("ticket_user_id", userId)
-          .where("ticket_festival_id", festivalId)
-          .where("ticket_type", "partner")
-          .del()
-          .returning("*")
-          .catch(() => {
-            return { success: false };
-        });   
 
         // send a mail to clent for rejection
         await Mailer.sendMail({

@@ -379,7 +379,7 @@ router.get("/hostsponsors/festival/:user_id", async (req, res) => {
   }
 });
 
-// GET sponsors in specific festival
+// GET vendors in specific festival
 router.get("/hostvendors/festival/:user_id", async (req, res) => {
 
   try {
@@ -416,7 +416,45 @@ router.get("/hostvendors/festival/:user_id", async (req, res) => {
   }
 });
 
-// GET sponsors in specific festival
+// GET partners in specific festival
+router.get("/hostpartners/festival/:user_id", async (req, res) => {
+
+  try {
+    const partners = [];
+
+    const filters = {
+      user_id: req.query.user_id,
+    };
+
+    const response = await festival_service.getAllHostFestivalList(
+  
+      filters
+    );
+
+    for(let item of response.details) {
+      if(item.festival_business_partner_id && item.festival_business_partner_id !== null){
+
+        for (let partner of item.festival_business_partner_id) {
+          const list = await user_profile_service.getUserById(partner);
+    
+          if (list.user) {
+            partners.push(list.user);
+          }
+        }
+      } 
+    }
+
+    return res.send(partners);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// GET guests in specific festival
 router.get("/hostguests/festival/:user_id", async (req, res) => {
 
   try {
@@ -749,9 +787,7 @@ router.post(
       console.log('12345', festival_id);
       const response = await festival_service.addPartnerApplication(
         festival_id,
-        business_details.business_details.business_details_id,
         db_user,
-        "Partner"
       );
       
       return res.send(response);

@@ -73,6 +73,46 @@ router.get(
     }
   );
 
+  router.get(
+    "/partner-application/:userId",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const applications = await upgrade_service.getPartnerApplicantDetails(
+          req.params.userId
+        );
+  
+        return res.send(applications);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+
+  router.get(
+    "/partner-applications/:userId",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const applications = await upgrade_service.getPartnerApplications(
+          req.params.userId
+        );
+  
+        return res.send(applications);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+
 
   router.get(
     "/all-vendor-applications",
@@ -128,6 +168,7 @@ router.get(
       }
     }
   );
+  
 
 
   // POST vendor approval from admin
@@ -458,7 +499,7 @@ router.post(
 
   // POST partner approval from host
   router.post(
-    "/partner-applications/:festivalId/:ticketPrice/:userId/approve",
+    "/partner-applications/:festivalId/:userId/approve",
     token_service.authenticateToken,
     async (req, res) => {
       try {
@@ -468,7 +509,6 @@ router.post(
   
         const response = await upgrade_service.approveOrDeclinePartnerApplicationOnFestival(
           req.params.festivalId,
-          req.params.ticketPrice,
           req.params.userId,
           "APPROVED",
           "",
@@ -488,7 +528,7 @@ router.post(
   
   // POST partner applicant decline from host
   router.post(
-    "/partner-applications/:festivalId/:ticketPrice/:userId/decline",
+    "/partner-applications/:festivalId/:userId/decline",
     token_service.authenticateToken,
     async (req, res) => {
       try {
@@ -497,7 +537,6 @@ router.post(
         );
         const response = await upgrade_service.approveOrDeclinePartnerApplicationOnFestival(
           req.params.festivalId,
-          req.params.ticketPrice,
           req.params.userId,
           "DECLINED",
           "",

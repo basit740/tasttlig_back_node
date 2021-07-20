@@ -781,11 +781,10 @@ const addSponsorApplication = async (
   }
 };
 
+// create partner application
 const addPartnerApplication = async (
   festival_id,
-  foodSamplePreference,
-  db_user,
-  applicationType
+  db_user
 ) => {
 
   try {
@@ -793,26 +792,27 @@ const addPartnerApplication = async (
 
 
       try {
+        for (let festival of festival_id) {
+          const db_festival = await getFestivalDetails(
+            festival
+            )
+            
+            await trx("applications").insert({
+              user_id: db_user.tasttlig_user_id,
+              created_at: new Date(),
+              updated_at: new Date(),
+              receiver_id: db_festival.details[0].festival_host_admin_id[0],
+              reason: "partner application",
+              type: "partner",
+              status: "Pending",
+              festival_id: festival,
+            });
+        }
         
-        const db_festival = await getFestivalDetails(
-          festival_id
-       )
-       console.log('123', db_festival);
-          // await trx("applications").insert({
-          //   user_id: db_user,
-          //   created_at: new Date(),
-          //   updated_at: new Date(),
-          //   receiver_id: db_festival.details[0].festival_host_admin_id[0],
-          //   reason: "partner application",
-          //   type: "partner",
-          //   status: "Pending",
-          //   festival_id: festival_id,
-          // });
         
           
         
       } catch (error) {
-        console.log('123', error);
         return { success: false };
       }
 
