@@ -494,7 +494,8 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
             cash_payment_received: db_order_details.item.price,
             user_subscription_status: "ACTIVE",
           });
-          if (db_order_details.subscribed_festivals) {
+          console.log('1234567', db_order_details.item.subscription_code);
+          if (db_order_details.subscribed_festivals && db_order_details.item.subscription_code === 'V_MIN') {
             for(let festival_id of db_order_details.subscribed_festivals) {
               let db_festival;
               db_festival = await festival_service.getFestivalDetails(
@@ -531,15 +532,43 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
                 festival_id: festival_id,
               });
             }
+          } 
+          else if (db_order_details.subscribed_festivals && db_order_details.item.subscription_code === 'S_KMIN') {
+            for(let festival_id of db_order_details.subscribed_festivals) {
+              let db_festival;
+              db_festival = await festival_service.getFestivalDetails(
+                   festival_id
+                )
+              console.log("festival for rejection from here:", festival_id)
+              await db("festivals")
+              .where("festival_id", festival_id)
+              .update({
+                sponsor_request_id: trx.raw(
+                  "array_append(sponsor_request_id, ?)",
+                  [order_details.user_id]
+                ),
+              })
+              .returning("*")
+              .catch((reason) => {
+                console.log("reason for rejection:", reason)
+                return { success: false, message: reason };
+              });
+
+              await trx("applications").insert({
+                user_id: order_details.user_id,
+                created_at: new Date(),
+                updated_at: new Date(),
+                receiver_id: db_festival.details[0].festival_host_admin_id[0],
+                reason: "sponsor application",
+                type: "sponsor",
+                status: "Pending",
+                festival_id: festival_id,
+              });
+            }
+          } 
           }
 
-          }
 
-
-        // await point_system_service.addUserPoints(
-        //   order_details.user_id,
-        //   total_amount_after_tax * 100
-        // );
       });
 
       const package_plan_name = _.startCase(

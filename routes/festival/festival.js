@@ -379,7 +379,7 @@ router.get("/hostsponsors/festival/:user_id", async (req, res) => {
   }
 });
 
-// GET sponsors in specific festival
+// GET vendors in specific festival
 router.get("/hostvendors/festival/:user_id", async (req, res) => {
 
   try {
@@ -416,7 +416,45 @@ router.get("/hostvendors/festival/:user_id", async (req, res) => {
   }
 });
 
-// GET sponsors in specific festival
+// GET partners in specific festival
+router.get("/hostpartners/festival/:user_id", async (req, res) => {
+
+  try {
+    const partners = [];
+
+    const filters = {
+      user_id: req.query.user_id,
+    };
+
+    const response = await festival_service.getAllHostFestivalList(
+  
+      filters
+    );
+
+    for(let item of response.details) {
+      if(item.festival_business_partner_id && item.festival_business_partner_id !== null){
+
+        for (let partner of item.festival_business_partner_id) {
+          const list = await user_profile_service.getUserById(partner);
+    
+          if (list.user) {
+            partners.push(list.user);
+          }
+        }
+      } 
+    }
+
+    return res.send(partners);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// GET guests in specific festival
 router.get("/hostguests/festival/:user_id", async (req, res) => {
 
   try {
@@ -469,7 +507,8 @@ router.post(
       festival_start_time,
       festival_end_time,
       festival_description,
-      festival_vendor_price
+      festival_vendor_price,
+      festival_sponsor_price,
     } = req.body;
 
     try {
@@ -510,6 +549,7 @@ router.post(
           festival_type,
           festival_price,
           festival_vendor_price,
+          festival_sponsor_price,
           festival_city,
           festival_start_date: festival_start_date.substring(0, 10),
           festival_end_date: festival_end_date.substring(0, 10),
@@ -670,12 +710,13 @@ router.post(
   }
 );
 
-// POST sponsor to festival
+// POST sponsor application on host dashboard
 router.post(
-  "/sponsor-festival",
+  "/sponsor-application",
   token_service.authenticateToken,
   async (req, res) => {
-    const { festival_id, festival_business_sponsor_id } = req.body;
+    const { festival_id } = req.body;
+    console.log('12345', req.body);
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -687,14 +728,71 @@ router.post(
           message: user_details_from_db.message,
         });
       }
+      const db_user = user_details_from_db.user;
+      const business_details = await authentication_service.getUserByBusinessDetails(
+        req.user.id
+      );
+      if (!business_details.success) {
+        return res.status(403).json({
+          success: false,
+          message: business_details.message,
+        });
+      }
 
-      const response = await festival_service.sponsorToFestival(
+      const response = await festival_service.addSponsorApplication(
         festival_id,
-        festival_business_sponsor_id,
-        user_details_from_db
+        business_details.business_details.business_details_id,
+        db_user,
+        "Sponsor"
       );
       return res.send(response);
     } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
+
+// POST partner application on host dashboard
+router.post(
+  "/partner-application",
+  token_service.authenticateToken,
+  async (req, res) => {
+    const { festival_id } = req.body;
+    
+    try {
+      const user_details_from_db = await user_profile_service.getUserById(
+        req.user.id
+      );
+
+      if (!user_details_from_db.success) {
+        return res.status(403).json({
+          success: false,
+          message: user_details_from_db.message,
+        });
+      }
+      const db_user = user_details_from_db.user;
+      const business_details = await authentication_service.getUserByBusinessDetails(
+        req.user.id
+      );
+      if (!business_details.success) {
+        return res.status(403).json({
+          success: false,
+          message: business_details.message,
+        });
+      }
+      console.log('12345', festival_id);
+      const response = await festival_service.addPartnerApplication(
+        festival_id,
+        db_user,
+      );
+      
+      return res.send(response);
+    } catch (error) {
+      console.log('12345', error);
       res.send({
         success: false,
         message: "Error.",
