@@ -42,7 +42,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
       last_name,
       email,
       password,
-       phone_number,
+      phone_number,
       source,
     };
 
@@ -51,7 +51,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
     if (response.success) {
       res.status(200).send(response);
     } else {
-      console.log("first response", response)
+      //console.log("first response", response)
       return res.status(401).json({
         success: false,
         message: "401 error"
@@ -61,7 +61,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
     console.log(error);
     return res.status(401).json({
       success: false,
-      message: error,
+      message: "error",
     });
   }
 });

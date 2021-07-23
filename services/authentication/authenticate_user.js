@@ -25,10 +25,10 @@ const userRegister = async (new_user, sendEmail = true) => {
         let new_db_user = [];
 
         const userData = {
-          // first_name: new_user.first_name,
-          // last_name: new_user.last_name,
+          first_name: new_user.first_name,
+          last_name: new_user.last_name,
           email: new_user.email,
-          // phone_number: new_user.phone_number,
+          phone_number: new_user.phone_number,
           source: new_user.source,
           status: "ACTIVE",
           passport_id: user.passport_id,
