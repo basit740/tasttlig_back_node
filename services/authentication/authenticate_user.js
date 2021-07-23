@@ -14,6 +14,7 @@ const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 // Save user register information to Tasttlig users table helper function
 const userRegister = async (new_user, sendEmail = true) => {
   try {
+    console.log(new_user);
     const { success, user } = await auth_server_service.authSignup(
       new_user.email,
       new_user.password
