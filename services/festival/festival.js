@@ -31,9 +31,9 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
     .groupBy("festivals.festival_id")
     .orderBy("festival_start_date");
 
-  if (filters.nationalities && filters.nationalities.length) {
-    query.whereIn("nationalities.nationality", filters.nationalities);
-  }
+  // if (filters.nationalities && filters.nationalities.length) {
+  //   query.whereIn("nationalities.nationality", filters.nationalities);
+  // }
 
   if (filters.startDate) {
     query.where("festivals.festival_end_date", ">=", startDate);
@@ -72,12 +72,14 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.nationality, " +
+                // "main.nationality, " +
                 "main.festival_name, " +
                 "main.festival_type, " +
                 "main.festival_price, " +
-                "main.festival_city, " +
-                "main.description)) as search_text"
+
+                "main.festival_city)) as search_text"
+                // "main.festival_city, " +
+                // "main.description)) as search_text"
             )
           )
           .from(query.as("main"))
