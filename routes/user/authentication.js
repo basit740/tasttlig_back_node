@@ -21,11 +21,11 @@ const createAccountLimiter = rateLimit({
 // POST user register
 authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
   const {
-    // first_name,
-    // last_name,
+    first_name,
+    last_name,
     email,
     password,
-    // phone_number,
+    phone_number,
     source,
   } = req.body;
 
@@ -38,11 +38,11 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
 
   try {
     const user = {
-      // first_name,
-      // last_name,
+      first_name,
+      last_name,
       email,
       password,
-      // phone_number,
+      phone_number,
       source,
     };
 
@@ -53,7 +53,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
     } else {
       return res.status(401).json({
         success: false,
-        message: "Email already exists.",
+        message: "Email already exists1.",
       });
     }
   } catch (error) {
