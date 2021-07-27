@@ -321,16 +321,16 @@ const getAllVendorApplications = async () => {
         // add a timer to make sure the application has been created for more than 71 hours to avoid bug after demo June 30
         if (!(application.length === 0)){
             // update the applications table
-          // await db("applications")
-          // .where("user_id", db_user.tasttlig_user_id)
-          // .andWhere("status", "Pending")
-          // .andWhere("type", "vendor")
-          // .andWhere("festival_id", festivalId)
-          // .update("status", "APPROVED")
-          // .returning("*")
-          // .catch((reason) => {
-          //     return { success: false, message: reason };
-          // });
+          await db("applications")
+          .where("user_id", db_user.tasttlig_user_id)
+          .andWhere("status", "Pending")
+          .andWhere("type", "vendor")
+          .andWhere("festival_id", festivalId)
+          .update("status", "APPROVED")
+          .returning("*")
+          .catch((reason) => {
+              return { success: false, message: reason };
+          });
           // add the user to fesstival
           await db("festivals")
             .where("festival_id", festivalId)
@@ -344,9 +344,7 @@ const getAllVendorApplications = async () => {
             .catch(() => {
               return { success: false };
             });        
-            console.log('123456789', typeof(festivalId));
 
-           try  {
 
             // update product pending
             const test = await db("products")
@@ -367,15 +365,12 @@ const getAllVendorApplications = async () => {
             })
             .returning("*")
             .catch((error) => {
-              console.log('12345678', error);
+              console.log(error);
               
             });  
-           }
+           
 
-          catch (error) {
-            console.log('1234567', error);
- 
-          }
+    
 
           // send notification mail to host 
           await Mailer.sendMail({
@@ -646,6 +641,33 @@ const getAllVendorApplications = async () => {
           .catch((reason) => {
               return { success: false, message: reason };
           });
+
+         
+
+            // update product pending
+          await db("products")
+            .where("product_user_id", db_user.tasttlig_user_id)
+            .andWhere("festival_selected_pending", "@>", [Number(festivalId)])
+            .andWhere("product_offering_type", "@>", ['Sponsor'])
+            .update({
+              festival_selected: db.raw(
+                "array_append(festival_selected, ?)",
+                [Number(festivalId)]
+              ),
+            })
+            .update({
+              festival_selected_pending: db.raw(
+                "array_remove(festival_selected_pending, ?)",
+                [Number(festivalId)]
+              ),
+            })
+            .returning("*")
+            .catch((error) => {
+              console.log(error);
+              
+            });  
+      
+
           // add the user to fesstival
           await db("festivals")
             .where("festival_id", festivalId)
@@ -903,7 +925,7 @@ const getAllVendorApplications = async () => {
         // make sure the there is an application in the database with this applicant on this festival and is Pending 
         // add a timer to make sure the application has been created for more than 71 hours to avoid bug after demo June 30
         if (!(application.length === 0)){
-            // update the applications table
+           // update the applications table
           await db("applications")
           .where("user_id", db_user.tasttlig_user_id)
           .andWhere("status", "Pending")
@@ -914,6 +936,31 @@ const getAllVendorApplications = async () => {
           .catch((reason) => {
               return { success: false, message: reason };
           });
+
+
+            // update partner product pending
+            await db("products")
+            .where("product_user_id", db_user.tasttlig_user_id)
+            .andWhere("festival_selected_pending", "@>", [Number(festivalId)])
+            .andWhere("product_offering_type", "@>", ['Host'])
+            .update({
+              festival_selected: db.raw(
+                "array_append(festival_selected, ?)",
+                [Number(festivalId)]
+              ),
+            })
+            .update({
+              festival_selected_pending: db.raw(
+                "array_remove(festival_selected_pending, ?)",
+                [Number(festivalId)]
+              ),
+            })
+            .returning("*")
+            .catch((error) => {
+              console.log(error);
+            });  
+           
+
           // add the user to fesstival
           await db("festivals")
             .where("festival_id", festivalId)
