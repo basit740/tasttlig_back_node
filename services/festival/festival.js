@@ -2,7 +2,10 @@
 
 // Libraries
 const { db } = require("../../db/db-config");
+const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const { formatTime } = require("../../functions/functions");
+const festival_service = require("../../services/festival/festival");
+const user_profile_service = require("../../services/profile/user_profile");
 
 // Get all festivals helper function
 const getAllFestivals = async (currentPage, keyword, filters) => {
@@ -31,9 +34,9 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
     .groupBy("festivals.festival_id")
     .orderBy("festival_start_date");
 
-  if (filters.nationalities && filters.nationalities.length) {
-    query.whereIn("nationalities.nationality", filters.nationalities);
-  }
+  // if (filters.nationalities && filters.nationalities.length) {
+  //   query.whereIn("nationalities.nationality", filters.nationalities);
+  // }
 
   if (filters.startDate) {
     query.where("festivals.festival_end_date", ">=", startDate);
@@ -72,12 +75,15 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.nationality, " +
+                // "main.nationality, " +
                 "main.festival_name, " +
                 "main.festival_type, " +
                 "main.festival_price, " +
+
+                // "main.festival_city)) as search_text"
                 "main.festival_city, " +
-                "main.description)) as search_text"
+                // "main.description)) as search_text"
+                "main.festival_description)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -684,7 +690,6 @@ const addVendorApplication = async (
 
 const addSponsorApplication = async (
   festival_id,
-  foodSamplePreference,
   db_user,
   applicationType
 ) => {
@@ -732,7 +737,6 @@ const addSponsorApplication = async (
           } catch (error) {
             return { success: false };
           }
-          console.log("festival_id coming from host to festival:", typeof foodSamplePreference)
 
         }
       } else {
@@ -757,19 +761,6 @@ const addSponsorApplication = async (
           return { success: false };
         }
 
-        if (typeof foodSamplePreference === "Array") {
-          for (let sample of foodSamplePreference) {
-            const db_host = await trx("products")
-              .where({ product_id: sample })
-              .update({
-                festival_selected: trx.raw(
-                  "array_append(festival_selected, ?)",
-                  festival_id
-                ),
-              })
-              .returning("*");
-          }
-        }
         if (!db_host) {
           return { success: false, details: "Inserting new host failed." };
         }
@@ -1000,6 +991,113 @@ const getFestivalRestaurants = async (host_id, festival_id) => {
     });
 };
 
+const attendFestival = async (user_id, user_email, festival_id) => {
+  try {
+    const festival = await festival_service.getFestivalDetails(festival_id);
+
+    await db.transaction(async (trx) => {
+      const db_guest = await trx("festivals")
+        .where({ festival_id: festival.details[0].festival_id })
+        .update({
+          festival_user_guest_id: trx.raw(
+            "array_append(festival_user_guest_id, ?)",
+            [user_id]
+          ),
+        })
+        .returning("*");
+
+      if (!db_guest) {
+        return { success: false, details: "Inserting guest failed." };
+      }
+    });
+
+    // Email to user on successful purchase
+    // await Mailer.sendMail({
+    //   from: process.env.SES_DEFAULT_FROM,
+    //   to: user_email,
+    //   bcc: ADMIN_EMAIL,
+    //   subject: "[Tasttlig] Festival Attendance Successful",
+    //   template: "festival/attend_festival",
+    //   context: {
+    //     title: festival.details[0].festival_name,
+    //     items: [
+    //       {
+    //         title: festival.details[0].festival_name,
+    //         address: festival.details[0].festival_city,
+    //         day: moment(
+    //           moment(
+    //             new Date(festival.details[0].festival_start_date)
+    //               .toISOString()
+    //               .split("T")[0] +
+    //               "T" +
+    //               festival.details[0].festival_start_time +
+    //               ".000Z"
+    //           ).add(new Date().getTimezoneOffset(), "m")
+    //         ).format("MMM Do YYYY"),
+    //         time:
+    //           moment(
+    //             moment(
+    //               new Date(festival.details[0].festival_start_date)
+    //                 .toISOString()
+    //                 .split("T")[0] +
+    //                 "T" +
+    //                 festival.details[0].festival_start_time +
+    //                 ".000Z"
+    //             ).add(new Date().getTimezoneOffset(), "m")
+    //           ).format("hh:mm a") +
+    //           " - " +
+    //           moment(
+    //             moment(
+    //               new Date(festival.details[0].festival_start_date)
+    //                 .toISOString()
+    //                 .split("T")[0] +
+    //                 "T" +
+    //                 festival.details[0].festival_end_time +
+    //                 ".000Z"
+    //             ).add(new Date().getTimezoneOffset(), "m")
+    //           ).format("hh:mm a"),
+    //         quantity: 1,
+    //       },
+    //     ],
+    //   },
+    // });
+
+    return { success: true, details: "Success" };
+  } catch (error) {
+    console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
+
+// remove attend festival
+const removeAttendance = async (festival_id, user_id) => {
+  try {
+    const festival = await getFestivalDetails(festival_id);
+
+    await db.transaction(async (trx) => {
+      const db_guest = await trx("festivals")
+        .where({ festival_id: festival.details[0].festival_id })
+        .update({
+          festival_user_guest_id: trx.raw(
+            "array_remove(festival_user_guest_id, ?)",
+            [user_id]
+          ),
+        })
+        .returning("*");
+
+      if (!db_guest) {
+        return { success: false, details: "Inserting guest failed." };
+      }
+    });
+
+    return { success: true, details: "Success" };
+  } catch (error) {
+    console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
 module.exports = {
   getAllFestivals,
   getAllFestivalList,
@@ -1017,4 +1115,6 @@ module.exports = {
   addBusinessToFestival,
   getAllHostFestivalList,
   addPartnerApplication,
+  attendFestival,
+  removeAttendance,
 };

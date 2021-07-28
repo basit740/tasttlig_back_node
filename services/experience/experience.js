@@ -361,9 +361,10 @@ const getAllUserExperience = async (
 };
 
 // Get all experiences by user id helper function
-const getUserExperiencesById = async (user_id) => {
+const getUserExperiencesById = async (user_id, keyword) => {
   // console.log("functttttttt", user_id);
-  return await db
+  // return await db
+  let query = db
     .select(
       "experiences.*",
       "business_details.*",
@@ -391,7 +392,37 @@ const getUserExperiencesById = async (user_id) => {
     .groupBy("business_details.business_details_id")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
-    .having("experiences.experience_business_id", "=", Number(user_id))
+    .having("experiences.experience_business_id", "=", Number(user_id));
+
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                "main.experience_name, " +
+                "main.experience_price, " +
+                "main.experience_description)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+
+  return await query
     .then((value) => {
       // console.log("*******************************", value);
       return { success: true, details: value };
@@ -400,6 +431,7 @@ const getUserExperiencesById = async (user_id) => {
       // console.log("err*******************************", reason);
       return { success: false, details: reason };
     });
+
 };
 
 // Submit experience review from admin helper function

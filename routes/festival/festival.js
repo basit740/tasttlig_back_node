@@ -730,19 +730,19 @@ router.post(
         });
       }
       const db_user = user_details_from_db.user;
-      const business_details = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
-      if (!business_details.success) {
-        return res.status(403).json({
-          success: false,
-          message: business_details.message,
-        });
-      }
+      // const business_details = await authentication_service.getUserByBusinessDetails(
+      //   req.user.id
+      // );
+      // if (!business_details.success) {
+      //   return res.status(403).json({
+      //     success: false,
+      //     message: business_details.message,
+      //   });
+      // }
 
       const response = await festival_service.addSponsorApplication(
         festival_id,
-        business_details.business_details.business_details_id,
+        //business_details.business_details.business_details_id,
         db_user,
         "Sponsor"
       );
@@ -938,4 +938,68 @@ router.get("/festival/restaurant/all", async (req, res) => {
     });
   }
 });
+
+// remove festival attandence
+router.post(
+  "/festival/attendance/cancel",
+  token_service.authenticateToken,
+  async (req, res) => {
+    const festival_id = req.body.festival_id;
+    const user_id = req.body.user_id;
+    try {
+      const response = await festival_service.removeAttendance(
+        festival_id,
+        user_id
+      );
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
+
+router.post("/festival/attendance/join", async (req, res) => {
+  const festival_id = req.body.festival_id;
+  const user_id = req.body.user_id;
+  console.log("12345", user_id);
+  try {
+
+    let db_user;
+
+    db_user = await user_profile_service.getUserById(user_id);
+
+    if (!db_user.success) {
+      res.send({
+        success: false,
+        message: "Entered User ID is invalid.",
+      });
+    }
+    console.log('12345', db_user);
+    const response = await festival_service.attendFestival(
+      user_id,
+      db_user.user.email,
+      festival_id
+    );
+
+    if (response.success) {
+      return res.send({
+        success: true,
+      });
+    } else {
+      return res.send(response);
+    }
+  } catch (error) {
+    console.log('1234567', error);
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;
+

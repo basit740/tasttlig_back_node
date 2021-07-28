@@ -260,7 +260,6 @@ const getAllVendorApplications = async () => {
     Details
   ) => {
     try {
-    //   console.log(preference);
       console.log("festivalId from approveOrDeclineVendorApplicationOnFestival: " , festivalId);
       console.log("ticketPrice from approveOrDeclineVendorApplicationOnFestival: " , ticketPrice);
       console.log("userId from approveOrDeclineVendorApplicationOnFestival: " , userId);
@@ -269,9 +268,7 @@ const getAllVendorApplications = async () => {
       console.log("Details from approveOrDeclineVendorApplicationOnFestival: " , Details);
 
       const db_user_row = await getUserById(userId);
-    //   console.log("got db user")
       const db_user = db_user_row.user;
-    //   console.log("user details", db_user);
       let preference = Details.application.business_preference;
       console.log('preferense', preference)
       let role = db_user.role;
@@ -342,12 +339,38 @@ const getAllVendorApplications = async () => {
                 "array_append(festival_vendor_id, ?)",
                 [db_user.tasttlig_user_id]
               ),
-              
             })
             .returning("*")
             .catch(() => {
               return { success: false };
             });        
+
+
+            // update product pending
+            const test = await db("products")
+            .where("product_user_id", db_user.tasttlig_user_id)
+            .andWhere("festival_selected_pending", "@>", [Number(festivalId)])
+            .andWhere("product_offering_type", "@>", ['Vendor'])
+            .update({
+              festival_selected: db.raw(
+                "array_append(festival_selected, ?)",
+                [Number(festivalId)]
+              ),
+            })
+            .update({
+              festival_selected_pending: db.raw(
+                "array_remove(festival_selected_pending, ?)",
+                [Number(festivalId)]
+              ),
+            })
+            .returning("*")
+            .catch((error) => {
+              console.log(error);
+              
+            });  
+           
+
+    
 
           // send notification mail to host 
           await Mailer.sendMail({
@@ -492,22 +515,10 @@ const getAllVendorApplications = async () => {
       console.log(userId);
       let application = await db
         .select(
-          "business_details.*",
-          "business_details_images.*",
           "tasttlig_users.*"
-        )
-        .from("business_details")
-        .leftJoin(
-          "tasttlig_users",
-          "tasttlig_users.tasttlig_user_id",
-          "business_details.business_details_user_id"
-        )
-  
-        .leftJoin(
-          "business_details_images",
-          "business_details.business_details_id",
-          "business_details_images.business_details_id"
-        )
+         )
+         .from("tasttlig_users")
+     
   
         .leftJoin(
           "user_role_lookup",
@@ -515,9 +526,8 @@ const getAllVendorApplications = async () => {
           "user_role_lookup.user_id"
         )
   
-        .groupBy("business_details_images.business_details_image_id")
+
         .groupBy("tasttlig_users.tasttlig_user_id")
-        .groupBy("business_details.business_details_id")
         .groupBy("user_role_lookup.user_role_lookup_id")
         .having("tasttlig_users.tasttlig_user_id", "=", Number(userId))
         .first();
@@ -618,6 +628,33 @@ const getAllVendorApplications = async () => {
           .catch((reason) => {
               return { success: false, message: reason };
           });
+
+         
+
+            // update product pending
+          await db("products")
+            .where("product_user_id", db_user.tasttlig_user_id)
+            .andWhere("festival_selected_pending", "@>", [Number(festivalId)])
+            .andWhere("product_offering_type", "@>", ['Sponsor'])
+            .update({
+              festival_selected: db.raw(
+                "array_append(festival_selected, ?)",
+                [Number(festivalId)]
+              ),
+            })
+            .update({
+              festival_selected_pending: db.raw(
+                "array_remove(festival_selected_pending, ?)",
+                [Number(festivalId)]
+              ),
+            })
+            .returning("*")
+            .catch((error) => {
+              console.log(error);
+              
+            });  
+      
+
           // add the user to fesstival
           await db("festivals")
             .where("festival_id", festivalId)
@@ -875,7 +912,7 @@ const getAllVendorApplications = async () => {
         // make sure the there is an application in the database with this applicant on this festival and is Pending 
         // add a timer to make sure the application has been created for more than 71 hours to avoid bug after demo June 30
         if (!(application.length === 0)){
-            // update the applications table
+           // update the applications table
           await db("applications")
           .where("user_id", db_user.tasttlig_user_id)
           .andWhere("status", "Pending")
@@ -886,6 +923,31 @@ const getAllVendorApplications = async () => {
           .catch((reason) => {
               return { success: false, message: reason };
           });
+
+
+            // update partner product pending
+            await db("products")
+            .where("product_user_id", db_user.tasttlig_user_id)
+            .andWhere("festival_selected_pending", "@>", [Number(festivalId)])
+            .andWhere("product_offering_type", "@>", ['Host'])
+            .update({
+              festival_selected: db.raw(
+                "array_append(festival_selected, ?)",
+                [Number(festivalId)]
+              ),
+            })
+            .update({
+              festival_selected_pending: db.raw(
+                "array_remove(festival_selected_pending, ?)",
+                [Number(festivalId)]
+              ),
+            })
+            .returning("*")
+            .catch((error) => {
+              console.log(error);
+            });  
+           
+
           // add the user to fesstival
           await db("festivals")
             .where("festival_id", festivalId)

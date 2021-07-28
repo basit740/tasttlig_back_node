@@ -504,7 +504,7 @@ router.get("/products/user/:user_id", async (req, res) => {
   try {
     const response = await products_service.getProductsFromUser(
       req.query.user_id,
-      req.body.keyword
+      req.query.keyword
     );
     // console.log('products fetched', response);
     // console.log('userrrr', req.query.user_id);

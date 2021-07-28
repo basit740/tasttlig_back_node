@@ -91,7 +91,7 @@ router.post(
           let user_role_object = db_user.role;
 
           if (user_role_object.includes("ADMIN")) {
-            if (!item.userEmail) {
+            if (!req.user.email) {
               return res.status(403).json({
                 success: false,
                 message: "Required parameters are not available in request.",
@@ -99,7 +99,7 @@ router.post(
             }
 
             const host_details_from_db =
-              await user_profile_service.getUserByEmail(item.userEmail);
+              await user_profile_service.getUserByEmail(req.user.email);
             db_user = host_details_from_db.user;
             createdByAdmin = true;
           }
@@ -170,7 +170,8 @@ router.post(
             quantity: parseInt(item.quantity),
             food_ad_code: generateRandomString(4),
             status: "ACTIVE",
-            festival_selected: item.festivals,
+            festival_selected: item.pending ? null : item.festivals,
+            festival_selected_pending: item.pending ? item.festivals : null,
             claimed_total_quantity: 0,
             redeemed_total_quantity: 0,
             product_offering_type: item.product_offering_type,

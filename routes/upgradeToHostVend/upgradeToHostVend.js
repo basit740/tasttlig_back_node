@@ -249,7 +249,7 @@ router.post(
         "",
         Details)
       
-      }, 60* 1000
+      }, 60 * 60* 1000
       );
 
     } catch (error) {
@@ -367,7 +367,7 @@ router.post(
         "",
         Details)
       
-      }, 60* 1000
+      }, 60 * 60 * 1000
       );
 
     } catch (error) {
@@ -485,7 +485,7 @@ router.post(
         "",
         Details)
       
-      }, 60* 1000
+      }, 60 * 60* 1000
       );
 
     } catch (error) {
