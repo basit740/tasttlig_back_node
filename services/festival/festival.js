@@ -4,6 +4,8 @@
 const { db } = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const { formatTime } = require("../../functions/functions");
+const festival_service = require("../../services/festival/festival");
+const user_profile_service = require("../../services/profile/user_profile");
 
 // Get all festivals helper function
 const getAllFestivals = async (currentPage, keyword, filters) => {
@@ -1010,55 +1012,55 @@ const attendFestival = async (user_id, user_email, festival_id) => {
     });
 
     // Email to user on successful purchase
-    await Mailer.sendMail({
-      from: process.env.SES_DEFAULT_FROM,
-      to: user_email,
-      bcc: ADMIN_EMAIL,
-      subject: "[Tasttlig] Festival Attendance Successful",
-      template: "festival/attend_festival",
-      context: {
-        title: festival.details[0].festival_name,
-        items: [
-          {
-            title: festival.details[0].festival_name,
-            address: festival.details[0].festival_city,
-            day: moment(
-              moment(
-                new Date(festival.details[0].festival_start_date)
-                  .toISOString()
-                  .split("T")[0] +
-                  "T" +
-                  festival.details[0].festival_start_time +
-                  ".000Z"
-              ).add(new Date().getTimezoneOffset(), "m")
-            ).format("MMM Do YYYY"),
-            time:
-              moment(
-                moment(
-                  new Date(festival.details[0].festival_start_date)
-                    .toISOString()
-                    .split("T")[0] +
-                    "T" +
-                    festival.details[0].festival_start_time +
-                    ".000Z"
-                ).add(new Date().getTimezoneOffset(), "m")
-              ).format("hh:mm a") +
-              " - " +
-              moment(
-                moment(
-                  new Date(festival.details[0].festival_start_date)
-                    .toISOString()
-                    .split("T")[0] +
-                    "T" +
-                    festival.details[0].festival_end_time +
-                    ".000Z"
-                ).add(new Date().getTimezoneOffset(), "m")
-              ).format("hh:mm a"),
-            quantity: 1,
-          },
-        ],
-      },
-    });
+    // await Mailer.sendMail({
+    //   from: process.env.SES_DEFAULT_FROM,
+    //   to: user_email,
+    //   bcc: ADMIN_EMAIL,
+    //   subject: "[Tasttlig] Festival Attendance Successful",
+    //   template: "festival/attend_festival",
+    //   context: {
+    //     title: festival.details[0].festival_name,
+    //     items: [
+    //       {
+    //         title: festival.details[0].festival_name,
+    //         address: festival.details[0].festival_city,
+    //         day: moment(
+    //           moment(
+    //             new Date(festival.details[0].festival_start_date)
+    //               .toISOString()
+    //               .split("T")[0] +
+    //               "T" +
+    //               festival.details[0].festival_start_time +
+    //               ".000Z"
+    //           ).add(new Date().getTimezoneOffset(), "m")
+    //         ).format("MMM Do YYYY"),
+    //         time:
+    //           moment(
+    //             moment(
+    //               new Date(festival.details[0].festival_start_date)
+    //                 .toISOString()
+    //                 .split("T")[0] +
+    //                 "T" +
+    //                 festival.details[0].festival_start_time +
+    //                 ".000Z"
+    //             ).add(new Date().getTimezoneOffset(), "m")
+    //           ).format("hh:mm a") +
+    //           " - " +
+    //           moment(
+    //             moment(
+    //               new Date(festival.details[0].festival_start_date)
+    //                 .toISOString()
+    //                 .split("T")[0] +
+    //                 "T" +
+    //                 festival.details[0].festival_end_time +
+    //                 ".000Z"
+    //             ).add(new Date().getTimezoneOffset(), "m")
+    //           ).format("hh:mm a"),
+    //         quantity: 1,
+    //       },
+    //     ],
+    //   },
+    // });
 
     return { success: true, details: "Success" };
   } catch (error) {

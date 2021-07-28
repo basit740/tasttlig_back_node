@@ -961,9 +961,10 @@ router.post(
   }
 );
 
-router.post("/festival/attendance/", async (req, res) => {
+router.post("/festival/attendance/join", async (req, res) => {
   const festival_id = req.body.festival_id;
   const user_id = req.body.user_id;
+  console.log("12345", user_id);
   try {
 
     let db_user;
@@ -976,9 +977,9 @@ router.post("/festival/attendance/", async (req, res) => {
         message: "Entered User ID is invalid.",
       });
     }
-
-    const response = await mobile_services.attendFestival(
-      db_user.user.tasttlig_user_id,
+    console.log('12345', db_user);
+    const response = await festival_service.attendFestival(
+      user_id,
       db_user.user.email,
       festival_id
     );
@@ -991,6 +992,7 @@ router.post("/festival/attendance/", async (req, res) => {
       return res.send(response);
     }
   } catch (error) {
+    console.log('1234567', error);
     res.status(500).send({
       success: false,
       message: error.message,
