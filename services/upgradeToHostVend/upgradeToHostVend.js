@@ -515,22 +515,10 @@ const getAllVendorApplications = async () => {
       console.log(userId);
       let application = await db
         .select(
-          "business_details.*",
-          "business_details_images.*",
           "tasttlig_users.*"
-        )
-        .from("business_details")
-        .leftJoin(
-          "tasttlig_users",
-          "tasttlig_users.tasttlig_user_id",
-          "business_details.business_details_user_id"
-        )
-  
-        .leftJoin(
-          "business_details_images",
-          "business_details.business_details_id",
-          "business_details_images.business_details_id"
-        )
+         )
+         .from("tasttlig_users")
+     
   
         .leftJoin(
           "user_role_lookup",
@@ -538,9 +526,8 @@ const getAllVendorApplications = async () => {
           "user_role_lookup.user_id"
         )
   
-        .groupBy("business_details_images.business_details_image_id")
+
         .groupBy("tasttlig_users.tasttlig_user_id")
-        .groupBy("business_details.business_details_id")
         .groupBy("user_role_lookup.user_role_lookup_id")
         .having("tasttlig_users.tasttlig_user_id", "=", Number(userId))
         .first();

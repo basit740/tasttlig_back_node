@@ -684,7 +684,6 @@ const addVendorApplication = async (
 
 const addSponsorApplication = async (
   festival_id,
-  foodSamplePreference,
   db_user,
   applicationType
 ) => {
@@ -732,7 +731,6 @@ const addSponsorApplication = async (
           } catch (error) {
             return { success: false };
           }
-          console.log("festival_id coming from host to festival:", typeof foodSamplePreference)
 
         }
       } else {
@@ -757,19 +755,6 @@ const addSponsorApplication = async (
           return { success: false };
         }
 
-        if (typeof foodSamplePreference === "Array") {
-          for (let sample of foodSamplePreference) {
-            const db_host = await trx("products")
-              .where({ product_id: sample })
-              .update({
-                festival_selected: trx.raw(
-                  "array_append(festival_selected, ?)",
-                  festival_id
-                ),
-              })
-              .returning("*");
-          }
-        }
         if (!db_host) {
           return { success: false, details: "Inserting new host failed." };
         }

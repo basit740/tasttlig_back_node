@@ -729,15 +729,15 @@ router.post(
         });
       }
       const db_user = user_details_from_db.user;
-      const business_details = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
-      if (!business_details.success) {
-        return res.status(403).json({
-          success: false,
-          message: business_details.message,
-        });
-      }
+      // const business_details = await authentication_service.getUserByBusinessDetails(
+      //   req.user.id
+      // );
+      // if (!business_details.success) {
+      //   return res.status(403).json({
+      //     success: false,
+      //     message: business_details.message,
+      //   });
+      // }
 
       const response = await festival_service.addSponsorApplication(
         festival_id,
