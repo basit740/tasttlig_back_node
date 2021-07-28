@@ -287,13 +287,10 @@ const getHostApplicantDetails = async (userId) => {
 };
 
 const saveApplicationInformation = async (hostDto, is_host, trx) => {
-  console.log("is_host", is_host);
   let applications = [];
   let role_name = "";
 
-  console.log("hello");
   if (is_host === "yes") {
-    console.log("im in is_host", is_host);
     applications.push({
       user_id: hostDto.host_user_id
         ? hostDto.host_user_id
@@ -309,7 +306,6 @@ const saveApplicationInformation = async (hostDto, is_host, trx) => {
     });
     role_name = "HOST_PENDING";
   }
-  console.log("role name", role_name);
 
   // Save sponsor application to applications table
   // if (applications.length == 0 && hostDto.is_sponsor) {
@@ -343,7 +339,6 @@ const saveApplicationInformation = async (hostDto, is_host, trx) => {
     .then((value) => {
       return value[0].role_code;
     });
-  console.log("new role: ", new_role_code);
 
   // Insert new role for this user
   await trx("user_role_lookup").insert({
@@ -352,7 +347,6 @@ const saveApplicationInformation = async (hostDto, is_host, trx) => {
       : hostDto.dbUser.user.tasttlig_user_id,
     role_code: new_role_code,
   });
-  console.log("applications:", applications);
 
   return trx("applications")
     .insert(applications)
@@ -375,7 +369,7 @@ const createHost = async (host_details, is_host, email) => {
         const db_preference = await trx("hosts")
           .insert(host_details)
           .returning("*");
-
+        console.log("db_preference from db call for host details:", db_preference)
         if (!db_preference) {
           return {
             success: false,
@@ -383,8 +377,6 @@ const createHost = async (host_details, is_host, email) => {
           };
         }
       } else {
-        console.log(dbUser);
-        //hostDto.dbUser.user.tasttlig_user_id
         await saveApplicationInformation(host_details, is_host, trx);
         const db_preference = await trx("hosts")
           .insert(host_details)
@@ -398,7 +390,6 @@ const createHost = async (host_details, is_host, email) => {
         }
       }
     });
-    console.log("hello");
     return { success: true, details: "Success." };
   } catch (error) {
     console.log(error);
