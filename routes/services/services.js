@@ -230,7 +230,8 @@ router.get("/services/details/:user_id", async (req, res) => {
 
   try {
     const response = await services_service.getUserServiceDetails(
-      req.params.user_id
+      req.params.user_id,
+      req.query.keyword
     );
 
     return res.send(response);

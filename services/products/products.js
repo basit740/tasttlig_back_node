@@ -252,11 +252,14 @@ const getProductsFromUser = async (user_id, keyword) => {
             db.raw(
               "to_tsvector(concat_ws(' '," +
                 //"main.business_name, " +
-                "main.product_name, " +
+                // "main.product_name, " +
+                "main.title, " +
                 "main.product_size, " +
-                "main.product_price, " +
+                // "main.product_price, " +
+                "main.price, " +
                 //"main.business_city, " +
-                "main.product_description)) as search_text"
+                "main.description)) as search_text"
+                // "main.product_description)) as search_text"
             )
           )
           .from(query.as("main"))

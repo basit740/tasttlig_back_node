@@ -225,7 +225,7 @@ const getAllUserFoodSamples = async (
 
   return await query
     .then((value) => {
-      console.log("value", value)
+      // console.log("value", value)
       return { success: true, details: value };
     })
     .catch((reason) => {
@@ -337,7 +337,7 @@ const getproductOwnerInfo = async (
 
   return await query
     .then((value) => {
-      console.log("value", value)
+      // console.log("value", value)
       return { success: true, details: value };
     })
     .catch((reason) => {

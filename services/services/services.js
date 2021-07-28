@@ -320,8 +320,9 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
 };
 
 //service details for dashboard
-const getUserServiceDetails = async (user_id) => {
-  return await db
+const getUserServiceDetails = async (user_id, keyword) => {
+  // return await db
+  let query = db
     .select(
       "services.*",
       db.raw("ARRAY_AGG(service_images.service_image_url) as image_urls"),
@@ -344,7 +345,40 @@ const getUserServiceDetails = async (user_id) => {
     .groupBy("services.service_nationality_id")
     .groupBy("business_details.business_details_id")
     .groupBy("nationalities.id")
-    .having("services.service_user_id", "=", Number(user_id))
+    .having("services.service_user_id", "=", Number(user_id));
+
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                "main.service_name, " +
+                "main.service_price, " +
+                "main.service_description, " +
+                "main.additional_information, " +
+                "main.service_type, " +
+                "main.service_code)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+
+  return await query
     .then((value) => {
       return { success: true, details: value };
     })

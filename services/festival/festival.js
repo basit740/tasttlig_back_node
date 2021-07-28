@@ -77,9 +77,10 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
                 "main.festival_type, " +
                 "main.festival_price, " +
 
-                "main.festival_city)) as search_text"
-                // "main.festival_city, " +
+                // "main.festival_city)) as search_text"
+                "main.festival_city, " +
                 // "main.description)) as search_text"
+                "main.festival_description)) as search_text"
             )
           )
           .from(query.as("main"))
