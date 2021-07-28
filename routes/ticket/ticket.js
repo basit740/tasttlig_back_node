@@ -49,6 +49,24 @@ router.get("/vend-ticket/:user_id/:festival_id", token_service.authenticateToken
   }
 });
 
+// GET sponsor ticket to a specific festival by a specific user
+router.get("/sponsor-ticket/:user_id/:festival_id", token_service.authenticateToken, async (req, res) => {
+  try {
+    const response = await ticket_service.getSponsorTicket(
+      req.params.user_id,
+      req.params.festival_id,
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 // GET tickets list
 router.get("/ticket-list", async (req, res) => {
   try {

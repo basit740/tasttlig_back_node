@@ -53,6 +53,65 @@ router.get(
     }
   );
 
+  router.get(
+    "/sponsor-application/:userId",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const applications = await upgrade_service.getSponsorApplicantDetails(
+          req.params.userId
+        );
+  
+        return res.send(applications);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+
+  router.get(
+    "/partner-application/:userId",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const applications = await upgrade_service.getPartnerApplicantDetails(
+          req.params.userId
+        );
+  
+        return res.send(applications);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+
+  router.get(
+    "/partner-applications/:userId",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const applications = await upgrade_service.getPartnerApplications(
+          req.params.userId
+        );
+  
+        return res.send(applications);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
 
 
   router.get(
@@ -91,6 +150,25 @@ router.get(
     }
   );
 
+  // fetching sponsor applications for specific host
+  router.get(
+    "/sponsor-applications/:hostId",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const applications = await upgrade_service.getSponsorApplications(
+          req.params.hostId
+        );
+        return res.send(applications);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+  
 
 
   // POST vendor approval from admin
@@ -241,6 +319,239 @@ router.post(
     }
   );
 
+  // POST sponsor approval from timer
+router.post(
+  "/sponsor-application-timer/:festivalId/:ticketPrice/:userId/approve",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const Details = await upgrade_service.getSponsorApplicantDetails(
+        req.params.userId
+      );
+        // get the festival info
+      const festival = await festival_service.getFestivalDetails(
+        req.params.festivalId
+      );
+      // get the host info
+      const host = await user_profile_service.getUserById(
+        festival.details[0].festival_host_admin_id[0]
+       );
+
+       // get the client info
+      const client = await user_profile_service.getUserById(
+        req.params.userId
+       );
+
+       console.log("mail for host", host.user.email);
+       // send a mail to the host
+       await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: (host.user.email + ""),
+        subject: `[Tasttlig] Your have a new sponsor applicant`,
+        template: "sponsor_applicant_notification",
+        context: {
+          first_name: (host.user.first_name + ""),
+          last_name: (host.user.last_name + ""),
+          client_first_name: (client.user.first_name + ""),
+          client_last_name: (client.user.last_name + ""),
+          festival_name: (festival.details[0].festival_name + ""),
+        },
+      });
+
+      // set a timer to accept applicant 
+      setTimeout(() => {upgrade_service.approveOrDeclineSponsorApplicationOnFestival(
+        req.params.festivalId,
+        req.params.ticketPrice,
+        req.params.userId,
+        "APPROVED",
+        "",
+        Details)
+      
+      }, 60* 1000
+      );
+
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+  // POST sponsor approval from host
+  router.post(
+    "/sponsor-applications/:festivalId/:ticketPrice/:userId/approve",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const Details = await upgrade_service.getSponsorApplicantDetails(
+          req.params.userId
+        );
+  
+        const response = await upgrade_service.approveOrDeclineSponsorApplicationOnFestival(
+          req.params.festivalId,
+          req.params.ticketPrice,
+          req.params.userId,
+          "APPROVED",
+          "",
+          Details
+        );
+  
+        return res.send(response);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+
+  
+  // POST sponsor applicant decline from host
+  router.post(
+    "/sponsor-applications/:festivalId/:ticketPrice/:userId/decline",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const Details = await upgrade_service.getSponsorApplicantDetails(
+          req.params.userId
+        );
+        const response = await upgrade_service.approveOrDeclineSponsorApplicationOnFestival(
+          req.params.festivalId,
+          req.params.ticketPrice,
+          req.params.userId,
+          "DECLINED",
+          "",
+          Details
+        );
+  
+        return res.send(response);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+
+  // POST partner approval from timer
+router.post(
+  "/partner-application-timer/:festivalId/:userId/approve",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const Details = await upgrade_service.getPartnerApplicantDetails(
+        req.params.userId
+      );
+        // get the festival info
+      const festival = await festival_service.getFestivalDetails(
+        req.params.festivalId
+      );
+      // get the host info
+      const host = await user_profile_service.getUserById(
+        festival.details[0].festival_host_admin_id[0]
+       );
+
+       // get the client info
+      const client = await user_profile_service.getUserById(
+        req.params.userId
+       );
+
+       console.log("mail for host", host.user.email);
+       // send a mail to the host
+       await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: (host.user.email + ""),
+        subject: `[Tasttlig] Your have a new business partner request`,
+        template: "partner_applicant_notification",
+        context: {
+          first_name: (host.user.first_name + ""),
+          last_name: (host.user.last_name + ""),
+          client_first_name: (client.user.first_name + ""),
+          client_last_name: (client.user.last_name + ""),
+          festival_name: (festival.details[0].festival_name + ""),
+        },
+      });
+
+      // set a timer to accept applicant 
+      setTimeout(() => {upgrade_service.approveOrDeclinePartnerApplicationOnFestival(
+        req.params.festivalId,
+        req.params.ticketPrice,
+        req.params.userId,
+        "APPROVED",
+        "",
+        Details)
+      
+      }, 60* 1000
+      );
+
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+  // POST partner approval from host
+  router.post(
+    "/partner-applications/:festivalId/:userId/approve",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const Details = await upgrade_service.getPartnerApplicantDetails(
+          req.params.userId
+        );
+  
+        const response = await upgrade_service.approveOrDeclinePartnerApplicationOnFestival(
+          req.params.festivalId,
+          req.params.userId,
+          "APPROVED",
+          "",
+          Details
+        );
+  
+        return res.send(response);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
+
+  
+  // POST partner applicant decline from host
+  router.post(
+    "/partner-applications/:festivalId/:userId/decline",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const Details = await upgrade_service.getPartnerApplicantDetails(
+          req.params.userId
+        );
+        const response = await upgrade_service.approveOrDeclinePartnerApplicationOnFestival(
+          req.params.festivalId,
+          req.params.userId,
+          "DECLINED",
+          "",
+          Details
+        );
+  
+        return res.send(response);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
 
     // POST host approval from admin
 router.post(

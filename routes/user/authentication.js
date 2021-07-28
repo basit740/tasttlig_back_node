@@ -51,15 +51,17 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
     if (response.success) {
       res.status(200).send(response);
     } else {
+      //console.log("first response", response)
       return res.status(401).json({
         success: false,
-        message: "Email already exists.",
+        message: "401 error"
       });
     }
   } catch (error) {
+    console.log(error);
     return res.status(401).json({
       success: false,
-      message: "Email already exists.",
+      message: "error",
     });
   }
 });
@@ -159,6 +161,7 @@ authRouter.post("/user/login", async (req, res) => {
       },
     });
   } catch (error) {
+    console.log(error)
     return res.status(401).json({
       success: false,
       message: "Email/password combination is invalid.",
