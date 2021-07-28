@@ -741,7 +741,7 @@ router.post(
 
       const response = await festival_service.addSponsorApplication(
         festival_id,
-        business_details.business_details.business_details_id,
+        //business_details.business_details.business_details_id,
         db_user,
         "Sponsor"
       );
@@ -937,4 +937,28 @@ router.get("/festival/restaurant/all", async (req, res) => {
     });
   }
 });
+
+// remove festival attandence
+router.post(
+  "/festival/attendance/cancel",
+  token_service.authenticateToken,
+  async (req, res) => {
+    const festival_id = req.body.festival_id;
+    const user_id = req.body.user_id;
+    try {
+      const response = await festival_service.removeAttendance(
+        festival_id,
+        user_id
+      );
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
 module.exports = router;
+

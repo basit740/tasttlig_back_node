@@ -985,6 +985,34 @@ const getFestivalRestaurants = async (host_id, festival_id) => {
     });
 };
 
+// remove attend festival
+const removeAttendance = async (festival_id, user_id) => {
+  try {
+    const festival = await getFestivalDetails(festival_id);
+
+    await db.transaction(async (trx) => {
+      const db_guest = await trx("festivals")
+        .where({ festival_id: festival.details[0].festival_id })
+        .update({
+          festival_user_guest_id: trx.raw(
+            "array_remove(festival_user_guest_id, ?)",
+            [user_id]
+          ),
+        })
+        .returning("*");
+
+      if (!db_guest) {
+        return { success: false, details: "Inserting guest failed." };
+      }
+    });
+
+    return { success: true, details: "Success" };
+  } catch (error) {
+    console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
 module.exports = {
   getAllFestivals,
   getAllFestivalList,
@@ -1002,4 +1030,5 @@ module.exports = {
   addBusinessToFestival,
   getAllHostFestivalList,
   addPartnerApplication,
+  removeAttendance,
 };
