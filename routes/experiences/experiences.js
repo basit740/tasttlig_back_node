@@ -240,7 +240,7 @@ router.get("/experiences/:user_id", async (req, res) => {
   let user_details_from_db;
   if (req.params.user_id) {
     user_details_from_db = await user_profile_service.getUserById(
-      req.params.user_id
+      req.params.user_id,
     );
   }
 
@@ -272,7 +272,8 @@ router.get("/experiences/:user_id", async (req, res) => {
 
   try {
     const response = await experience_service.getUserExperiencesById(
-      business_details_id
+      business_details_id,
+      req.query.keyword
     );
     // console.log("response from expereiences get:", response);
     return res.send(response);
