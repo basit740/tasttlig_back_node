@@ -131,80 +131,64 @@ const postBusinessPassportDetails = async (data) => {
         business_preference: data["user_business_preference"],
       };
 
-      var business_details_id = await trx("business_details")
-        .insert(business_details)
-        .returning("business_details_id");
+      // if (data["user_business_preference"] === "Host") {
+      //   console.log('data["user_business_preference"]', data["user_business_preference"]);
+    
+      //       applications.push({
+      //         user_id: data.user_id,
+      //         created_at: new Date(),
+      //         updated_at: new Date(),
+      //         reason: "host application",
+      //         type: "host",
+      //         status: "Pending",
+      //       });
+      //       role_name = "HOST_PENDING";
+    
+      //       // Get role code of new role to be added
+      //       const new_role_code = await trx("roles")
+      //         .select()
+      //         .where({ role: role_name })
+      //         .then((value) => {
+      //           return value[0].role_code;
+      //         });
+    
+      //       // Insert new role for this user
+      //       await trx("user_role_lookup").insert({
+      //         user_id: data.user_id,
+      //         role_code: new_role_code,
+      //       });
 
-      // console.log("details from business passport", data);
+            
+      //       await trx("applications").insert(applications)
+      //       .returning("application_id");
+      //       // console.log("appilcation_details", appilcation_details)
+            
+      //       // var business_details_id = await trx("business_details")
+      //       // .insert(business_details)
+      //       // .returning("business_details_id");
+    
+      //     // const business_details_images = {
+      //     //   business_details_logo: data["user_business_logo"],
+      //     //   food_handling_certificate: data["user_business_food_handling"],
+      //     //   business_details_id: business_details_id[0],
+      //     // };
+    
+      //     // await trx("business_details_images").insert(business_details_images);
 
-      const business_details_images = {
-        business_details_logo: data["user_business_logo"],
-        food_handling_certificate: data["user_business_food_handling"],
-        business_details_id: business_details_id[0],
-      };
+      //     } else {
+            var business_details_id = await trx("business_details")
+            .insert(business_details)
+            .returning("business_details_id");
+    
+          const business_details_images = {
+            business_details_logo: data["user_business_logo"],
+            food_handling_certificate: data["user_business_food_handling"],
+            business_details_id: business_details_id[0],
+          };
+    
+          await trx("business_details_images").insert(business_details_images);
+          // }
 
-      await trx("business_details_images").insert(business_details_images);
-
-      // applications.push({
-      //   user_id: data.user_id,
-      //   created_at: new Date(),
-      //   updated_at: new Date(),
-      //   reason: "host application",
-      //   type: "host",
-      //   status: "Pending",
-      // });
-      // role_name = "HOST_PENDING";
-
-      // if (data["user_business_preference"] === "Vend") {
-      //   applications.push({
-      //     user_id: data.user_id,
-      //     created_at: new Date(),
-      //     updated_at: new Date(),
-      //     reason: "vendor application",
-      //     type: "vendor",
-      //     status: "Pending",
-      //   });
-      //   role_name = "VENDOR_PENDING";
-
-      //   // Get role code of new role to be added
-      //   const new_role_code = await trx("roles")
-      //     .select()
-      //     .where({ role: role_name })
-      //     .then((value) => {
-      //       return value[0].role_code;
-      //     });
-
-      //   // Insert new role for this user
-      //   await trx("user_role_lookup").insert({
-      //     user_id: data.user_id,
-      //     role_code: new_role_code,
-      //   });
-      // } else if (data["user_business_preference"] === "Host") {
-      //   applications.push({
-      //     user_id: data.user_id,
-      //     created_at: new Date(),
-      //     updated_at: new Date(),
-      //     reason: "host application",
-      //     type: "host",
-      //     status: "Pending",
-      //   });
-      //   role_name = "HOST_PENDING";
-
-      //   // Get role code of new role to be added
-      //   const new_role_code = await trx("roles")
-      //     .select()
-      //     .where({ role: role_name })
-      //     .then((value) => {
-      //       return value[0].role_code;
-      //     });
-
-      //   // Insert new role for this user
-      //   await trx("user_role_lookup").insert({
-      //     user_id: data.user_id,
-      //     role_code: new_role_code,
-      //   });
-      // }
-      // await trx("applications").insert(applications);
 
       return { success: true };
     });
@@ -213,10 +197,9 @@ const postBusinessPassportDetails = async (data) => {
       return {
         success: false,
         details:
-          "User Business Information already exists, you can edit your existing information under passport section in your profile",
+          "User Business Information already exists, you can edit your existing information under passport section in your profile. Your application for Host role has been sent to Admin",
       };
     }
-    console.log(error);
     return { success: false, details: error.detail };
   }
 };
