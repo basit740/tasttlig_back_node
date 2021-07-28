@@ -1688,6 +1688,40 @@ const getValidSubscriptionsByUserId = async (userId) => {
     });
 };
 
+const addNeighbourhood =  async (data, userId) => {
+  await db.transaction(async (trx) => {
+    const response = await trx("neighbourhood").insert({
+      neighbourhood_name: data.user_neighbourhood_name,
+      user_id: userId,
+      neighbourhood_city: data.user_neighbourhood_city,
+      neighbourhood_country: data.user_neighbourhood_country,
+      neighbourhood_post_code: data.user_neighbourhood_postal_code,
+      neighbourhood_area_code: data.user_neighbourhood_area_code,
+      neighbourhood_description: data.user_neighbourhood_description,
+      neighbourhood_special_features: data.user_neighbourhood_special_feature,
+    })
+    .returning("*")
+    .catch((error) => {
+
+      return { success: false, message: error };
+    });
+
+    await db("user_role_lookup")
+    .insert({
+    user_id: userId,
+    role_code: "PT",
+    })
+    .returning("*")
+    .catch((error) => {
+      return { success: false, message: error };
+    });
+
+  });
+  return { success: true, details: "Success." };
+};
+
+
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
@@ -1729,4 +1763,5 @@ module.exports = {
   manageUserSubscriptionValidity,
   getAllSubscriptionsByUserId,
   getValidSubscriptionsByUserId,
+  addNeighbourhood,
 };
