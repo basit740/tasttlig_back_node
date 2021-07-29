@@ -636,6 +636,26 @@ router.post(
     }
   );
 
+  // add business to festival
+  router.post(
+    "/addBusinessToFestival",
+    token_service.authenticateToken,
+    async (req, res) => {
+      try {
+        const response = await upgrade_service.addBusinessToFestival(
+          req.body.festival_id,
+          req.user.id
+        );
+
+         return res.send(response);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
+  );
 
 
   module.exports = router;

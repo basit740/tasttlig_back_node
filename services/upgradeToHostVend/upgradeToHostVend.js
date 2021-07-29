@@ -1052,6 +1052,57 @@ const getAllVendorApplications = async () => {
     }
   };
 
+    // add business to festival
+    const addBusinessToFestival = async (festival_id, user_id) => {
+      const userData = await user_profile_service.getUserById(user_id);
+      try {
+        await db("festivals")
+            .where("festival_id", festival_id)
+            .update({
+              festival_business_id: db.raw(
+                "array_append(festival_business_id, ?)",
+                [user_id]
+              ),
+            })
+            .update({
+              festival_vendor_id: db.raw(
+                "array_append(festival_vendor_id, ?)",
+                [user_id]
+              ),
+            })
+            .update({
+              festival_business_sponsor_id: db.raw(
+                "array_append(festival_business_sponsor_id, ?)",
+                [user_id]
+              ),
+            })
+            .returning("*")
+            .catch(() => {
+              return { success: false };
+            });      
+            
+            
+            if (userData.user.food_business_type === 'Restaurant'){
+              await db("festivals")
+                .where("festival_id", festival_id)
+                .update({
+                  festival_business_partner_id: db.raw(
+                    "array_append(festival_business_partner_id, ?)",
+                    [user_id]    
+                  ),
+                })
+                .returning("*")
+                .catch(() => {
+                  return { success: false };
+                });  
+            }
+
+
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    };
+
 
 
   module.exports = {
@@ -1066,4 +1117,5 @@ const getAllVendorApplications = async () => {
     getPartnerApplications,
     getPartnerApplicantDetails,
     approveOrDeclinePartnerApplicationOnFestival,
+    addBusinessToFestival,
   };
