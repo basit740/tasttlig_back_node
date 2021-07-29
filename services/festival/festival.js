@@ -993,7 +993,7 @@ const getFestivalRestaurants = async (host_id, festival_id) => {
 
 const attendFestival = async (user_id, user_email, festival_id) => {
   try {
-    const festival = await festival_service.getFestivalDetails(festival_id);
+    const festival = await getFestivalDetails(festival_id);
 
     await db.transaction(async (trx) => {
       const db_guest = await trx("festivals")
