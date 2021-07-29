@@ -520,8 +520,8 @@ router.post(
         !festival_city ||
         !festival_start_date ||
         !festival_end_date ||
-        !festival_start_time ||
-        !festival_end_time ||
+        // !festival_start_time ||
+        // !festival_end_time ||
         !festival_description
       ) {
         return res.status(403).json({
@@ -564,6 +564,7 @@ router.post(
           festival_details,
           images
         );
+        console.log("response from festival/add:", response)
 
         return res.send(response);
       } catch (error) {
