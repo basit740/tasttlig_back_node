@@ -162,6 +162,8 @@ router.post(
 router.post(
   "/request-host",
   /* token_service.authenticateToken, */ async (req, res) => {
+    console.log("req.bod from host details:", req.body)
+    
     const {
       host_user_id,
       host_video_url,
@@ -187,7 +189,7 @@ router.post(
       subscriptionResponse,
     } = req.body;
     try {
-      if (!host_video_url || !host_description) {
+      if ( !host_description) {
         return res.status(403).json({
           success: false,
           message: "Required parameters are not available in request.",
@@ -196,46 +198,50 @@ router.post(
 
       const host_details = {
         host_user_id: host_user_id ? host_user_id : null,
-        host_video_url,
-        host_description,
-        has_hosted_anything_before,
-        have_a_restaurant,
-        cuisine_type,
-        seating_option,
-        want_people_to_discover_your_cuisine,
-        able_to_provide_food_samples,
-        has_hosted_other_things_before,
-        able_to_explain_the_origins_of_tasting_samples,
-        able_to_proudly_showcase_your_culture,
-        able_to_provie_private_dining_experience,
-        able_to_provide_3_or_more_course_meals_to_guests,
-        able_to_provide_live_entertainment,
-        able_to_provide_other_form_of_entertainment,
-        able_to_abide_by_health_safety_regulations,
-        hosted_tasttlig_festival_before,
-        able_to_provide_excellent_customer_service,
-        able_to_provide_games_about_culture_cuisine,
+        host_video_url: host_video_url ? host_video_url : null,
+        host_description: host_description ? host_description : null,
+        has_hosted_anything_before: has_hosted_anything_before ? has_hosted_anything_before : null,
+        have_a_restaurant: have_a_restaurant ? have_a_restaurant : null,
+        cuisine_type: cuisine_type ? cuisine_type : null,
+        seating_option: seating_option ? seating_option : null,
+        want_people_to_discover_your_cuisine: want_people_to_discover_your_cuisine ? want_people_to_discover_your_cuisine : null,
+        able_to_provide_food_samples: able_to_provide_food_samples ? able_to_provide_food_samples : null,
+        has_hosted_other_things_before: has_hosted_other_things_before ? has_hosted_other_things_before : null,
+        able_to_explain_the_origins_of_tasting_samples: able_to_explain_the_origins_of_tasting_samples ? able_to_explain_the_origins_of_tasting_samples : null,
+        able_to_proudly_showcase_your_culture: able_to_proudly_showcase_your_culture ? able_to_proudly_showcase_your_culture : null,
+        able_to_provie_private_dining_experience: able_to_provie_private_dining_experience ? able_to_provie_private_dining_experience : null,
+        able_to_provide_3_or_more_course_meals_to_guests: able_to_provide_3_or_more_course_meals_to_guests ? able_to_provide_3_or_more_course_meals_to_guests : null,
+        able_to_provide_live_entertainment: able_to_provide_live_entertainment ? able_to_provide_live_entertainment : null,
+        able_to_provide_other_form_of_entertainment: able_to_provide_other_form_of_entertainment ? able_to_provide_other_form_of_entertainment : null,
+        able_to_abide_by_health_safety_regulations: able_to_abide_by_health_safety_regulations ? able_to_abide_by_health_safety_regulations : null,
+        hosted_tasttlig_festival_before: hosted_tasttlig_festival_before ? hosted_tasttlig_festival_before : null,
+        able_to_provide_excellent_customer_service: able_to_provide_excellent_customer_service ? able_to_provide_excellent_customer_service : null,
+        able_to_provide_games_about_culture_cuisine: able_to_provide_games_about_culture_cuisine ? able_to_provide_games_about_culture_cuisine : null,
       };
-      const creatingFreeOrder = await user_order_service.createFreeOrder(
-        subscriptionResponse,
-        host_user_id
-      );
-      if (!creatingFreeOrder.success) {
-        return res.status(200).json({
-          success: false,
-          message: creatingFreeOrder.details,
-        });
-      }
+      console.log("host details:", host_details)
+
+      // const creatingFreeOrder = await user_order_service.createFreeOrder(
+      //   subscriptionResponse,
+      //   host_user_id
+      // );
+      // if (!creatingFreeOrder.success) {
+      //   return res.status(200).json({
+      //     success: false,
+      //     message: creatingFreeOrder.details,
+      //   });
+      // }
       const response = await hosts_service.createHost(
         host_details,
         is_host,
         req.body.email
       );
+      console.log("response from host:", response)
       if (response.success) {
         return res.send(response);
       }
       return res.status(500).send(response);
     } catch (error) {
+      console.log("error from here", error)
       return res.status(403).json({
         success: false,
         message: error,
