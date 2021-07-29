@@ -4,7 +4,7 @@
 const { db } = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const { formatTime } = require("../../functions/functions");
-const festival_service = require("../../services/festival/festival");
+// const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
 
 // Get all festivals helper function
@@ -993,7 +993,8 @@ const getFestivalRestaurants = async (host_id, festival_id) => {
 
 const attendFestival = async (user_id, user_email, festival_id) => {
   try {
-    const festival = await festival_service.getFestivalDetails(festival_id);
+    // const festival = await festival_service.getFestivalDetails(festival_id);
+    const festival = await getFestivalDetails(festival_id);
 
     await db.transaction(async (trx) => {
       const db_guest = await trx("festivals")
