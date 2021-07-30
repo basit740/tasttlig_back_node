@@ -184,6 +184,7 @@ router.post("/payment/stripe/success", async (req, res) => {
         reserved_on: new Date(),
 
       };
+      
       const  quantityAfterClaim = 1;
       const food_claim_response = await food_sample_claim_service.createNewProductClaim(
         db_user.user,
@@ -191,6 +192,7 @@ router.post("/payment/stripe/success", async (req, res) => {
         quantityAfterClaim,
         food_sample_claim_details
       );
+      
       return res.send(food_claim_response);
     }
 

@@ -116,12 +116,15 @@ const createNewProductClaim = async (
   quantityAfterClaim,
   product_claim_details
 ) => {
-
+  console.log('12345',product_claim_details);
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
         .insert(product_claim_details)
-        .returning("*");
+        .returning("*")
+        .catch((error) => {
+          console.log('1234567', error);
+        });
 
       if (!db_food_sample_claim) {
         return {
@@ -129,7 +132,7 @@ const createNewProductClaim = async (
           details: "Inserting new food sample claim failed.",
         };
       }
-
+      console.log('12345', db_food_sample_claim);
       if (quantityAfterClaim >= 0) {
         await db("products")
           .where({ product_id: db_food_sample_claim[0].claimed_product_id })
