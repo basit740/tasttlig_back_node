@@ -416,11 +416,11 @@ router.get("/hostvendors/festival/:user_id", async (req, res) => {
   }
 });
 
-// GET partners in specific festival
-router.get("/hostpartners/festival/:user_id", async (req, res) => {
+// GET restaurants in specific festival
+router.get("/hostrestaurants/festival/:user_id", async (req, res) => {
 
   try {
-    const partners = [];
+    const restaurants = [];
 
     const filters = {
       user_id: req.query.user_id,
@@ -432,19 +432,19 @@ router.get("/hostpartners/festival/:user_id", async (req, res) => {
     );
 
     for(let item of response.details) {
-      if(item.festival_business_partner_id && item.festival_business_partner_id !== null){
+      if(item.festival_restaurant_id && item.festival_restaurant_id !== null){
 
-        for (let partner of item.festival_business_partner_id) {
-          const list = await user_profile_service.getUserById(partner);
+        for (let restaurant of item.festival_restaurant_id) {
+          const list = await user_profile_service.getUserById(restaurant);
     
           if (list.user) {
-            partners.push(list.user);
+            restaurants.push(list.user);
           }
         }
       } 
     }
 
-    return res.send(partners);
+    return res.send(restaurants);
   } catch (error) {
     res.send({
       success: false,
@@ -757,9 +757,9 @@ router.post(
   }
 );
 
-// POST partner application on host dashboard
+// POST restaurant application on host dashboard
 router.post(
-  "/partner-application",
+  "/restaurant-application",
   token_service.authenticateToken,
   async (req, res) => {
     const { festival_id } = req.body;
@@ -785,8 +785,7 @@ router.post(
           message: business_details.message,
         });
       }
-      console.log('12345', festival_id);
-      const response = await festival_service.addPartnerApplication(
+      const response = await festival_service.addRestaurantApplication(
         festival_id,
         db_user,
       );

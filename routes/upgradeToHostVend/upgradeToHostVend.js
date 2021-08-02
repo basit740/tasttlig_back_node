@@ -74,11 +74,11 @@ router.get(
   );
 
   router.get(
-    "/partner-application/:userId",
+    "/restaurant-application/:userId",
     token_service.authenticateToken,
     async (req, res) => {
       try {
-        const applications = await upgrade_service.getPartnerApplicantDetails(
+        const applications = await upgrade_service.getRestaurantApplicantDetails(
           req.params.userId
         );
   
@@ -94,11 +94,11 @@ router.get(
   );
 
   router.get(
-    "/partner-applications/:userId",
+    "/restaurant-applications/:userId",
     token_service.authenticateToken,
     async (req, res) => {
       try {
-        const applications = await upgrade_service.getPartnerApplications(
+        const applications = await upgrade_service.getRestaurantApplications(
           req.params.userId
         );
   
@@ -437,13 +437,13 @@ router.post(
     }
   );
 
-  // POST partner approval from timer
+  // POST restaurant approval from timer
 router.post(
-  "/partner-application-timer/:festivalId/:userId/approve",
+  "/restaurant-application-timer/:festivalId/:userId/approve",
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      const Details = await upgrade_service.getPartnerApplicantDetails(
+      const Details = await upgrade_service.getRestaurantApplicantDetails(
         req.params.userId
       );
         // get the festival info
@@ -465,8 +465,8 @@ router.post(
        await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
         to: (host.user.email + ""),
-        subject: `[Tasttlig] Your have a new business partner request`,
-        template: "partner_applicant_notification",
+        subject: `[Tasttlig] Your have a new restaurant partner request`,
+        template: "restaurant_applicant_notification",
         context: {
           first_name: (host.user.first_name + ""),
           last_name: (host.user.last_name + ""),
@@ -477,7 +477,7 @@ router.post(
       });
 
       // set a timer to accept applicant 
-      setTimeout(() => {upgrade_service.approveOrDeclinePartnerApplicationOnFestival(
+      setTimeout(() => {upgrade_service.approveOrDeclineRestaurantApplicationOnFestival(
         req.params.festivalId,
         req.params.ticketPrice,
         req.params.userId,
@@ -497,17 +497,17 @@ router.post(
   }
 );
 
-  // POST partner approval from host
+  // POST restaurant approval from host
   router.post(
-    "/partner-applications/:festivalId/:userId/approve",
+    "/restaurant-applications/:festivalId/:userId/approve",
     token_service.authenticateToken,
     async (req, res) => {
       try {
-        const Details = await upgrade_service.getPartnerApplicantDetails(
+        const Details = await upgrade_service.getRestaurantApplicantDetails(
           req.params.userId
         );
   
-        const response = await upgrade_service.approveOrDeclinePartnerApplicationOnFestival(
+        const response = await upgrade_service.approveOrDeclineRestaurantApplicationOnFestival(
           req.params.festivalId,
           req.params.userId,
           "APPROVED",
@@ -526,16 +526,16 @@ router.post(
   );
 
   
-  // POST partner applicant decline from host
+  // POST restaurant applicant decline from host
   router.post(
-    "/partner-applications/:festivalId/:userId/decline",
+    "/restaurant-applications/:festivalId/:userId/decline",
     token_service.authenticateToken,
     async (req, res) => {
       try {
-        const Details = await upgrade_service.getPartnerApplicantDetails(
+        const Details = await upgrade_service.getRestaurantApplicantDetails(
           req.params.userId
         );
-        const response = await upgrade_service.approveOrDeclinePartnerApplicationOnFestival(
+        const response = await upgrade_service.approveOrDeclineRestaurantApplicationOnFestival(
           req.params.festivalId,
           req.params.userId,
           "DECLINED",

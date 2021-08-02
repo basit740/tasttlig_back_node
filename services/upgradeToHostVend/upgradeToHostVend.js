@@ -770,8 +770,8 @@ const getAllVendorApplications = async () => {
     }
   };
 
-  // get all partner applications send to specific host using hostId
-  const getPartnerApplications = async (hostId) => {
+  // get all restaurant applications send to specific host using hostId
+  const getRestaurantApplications = async (hostId) => {
     try {
       const applications = await db
         .select("*")
@@ -791,7 +791,7 @@ const getAllVendorApplications = async () => {
           "applications.festival_id",
           "festivals.festival_id"
         )
-        .where("applications.type", "=", "partner")
+        .where("applications.type", "=", "restaurant")
         .groupBy("applications.application_id")
         .groupBy("tasttlig_users.tasttlig_user_id")
         .groupBy("business_details.business_details_id")
@@ -808,7 +808,7 @@ const getAllVendorApplications = async () => {
     }
   };
 
-  const getPartnerApplicantDetails = async (userId) => {
+  const getRestaurantApplicantDetails = async (userId) => {
     try {
       console.log(userId);
       let application = await db
@@ -855,8 +855,8 @@ const getAllVendorApplications = async () => {
     }
   };
 
-  // host approve or decline partner applicant on a specific festival
-  const approveOrDeclinePartnerApplicationOnFestival = async (
+  // host approve or decline restaurant applicant on a specific festival
+  const approveOrDeclineRestaurantApplicationOnFestival = async (
     festivalId,
     userId,
     status,
@@ -865,11 +865,11 @@ const getAllVendorApplications = async () => {
   ) => {
     try {
     //   console.log(preference);
-      console.log("festivalId from approveOrDeclinePartnerApplicationOnFestival: " , festivalId);
-      console.log("userId from approveOrDeclinePartnerApplicationOnFestival: " , userId);
-      console.log("status from approveOrDeclinePartnerApplicationOnFestival: " , status);
-      console.log("declineReason from approveOrDeclinePartnerApplicationOnFestival: " , declineReason);
-      console.log("Details from approveOrDeclinePartnerApplicationOnFestival: " , Details);
+      console.log("festivalId from approveOrDeclineRestaurantApplicationOnFestival: " , festivalId);
+      console.log("userId from approveOrDeclineRestaurantApplicationOnFestival: " , userId);
+      console.log("status from approveOrDeclineRestaurantApplicationOnFestival: " , status);
+      console.log("declineReason from approveOrDeclineRestaurantApplicationOnFestival: " , declineReason);
+      console.log("Details from approveOrDeclineRestaurantApplicationOnFestival: " , Details);
 
       const db_user_row = await getUserById(userId);
     //   console.log("got db user")
@@ -901,7 +901,7 @@ const getAllVendorApplications = async () => {
         const application = await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
-        .andWhere("type", "partner")
+        .andWhere("type", "restaurant")
         .andWhere("festival_id", festivalId)
         .returning("*")
         .catch(() => {
@@ -916,7 +916,7 @@ const getAllVendorApplications = async () => {
           await db("applications")
           .where("user_id", db_user.tasttlig_user_id)
           .andWhere("status", "Pending")
-          .andWhere("type", "partner")
+          .andWhere("type", "restaurant")
           .andWhere("festival_id", festivalId)
           .update("status", "APPROVED")
           .returning("*")
@@ -925,7 +925,7 @@ const getAllVendorApplications = async () => {
           });
 
 
-            // update partner product pending
+            // update restaurant product pending
             await db("products")
             .where("product_user_id", db_user.tasttlig_user_id)
             .andWhere("festival_selected_pending", "@>", [Number(festivalId)])
@@ -952,8 +952,8 @@ const getAllVendorApplications = async () => {
           await db("festivals")
             .where("festival_id", festivalId)
             .update({
-              festival_business_partner_id: db.raw(
-                "array_append(festival_business_partner_id, ?)",
+              festival_restaurant_id: db.raw(
+                "array_append(festival_restaurant_id, ?)",
                 [db_user.tasttlig_user_id]
               ),
               
@@ -967,8 +967,8 @@ const getAllVendorApplications = async () => {
           await Mailer.sendMail({
             from: process.env.SES_DEFAULT_FROM,
             to: (host.user.email + ""),
-            subject: `[Tasttlig] New partner applicant accpeted`,
-            template: "partner_applicant_timeout_notification",
+            subject: `[Tasttlig] New restaurant applicant accpeted`,
+            template: "restaurant_applicant_timeout_notification",
             context: {
               first_name: (host.user.first_name + ""),
               last_name: (host.user.last_name + ""),
@@ -981,8 +981,8 @@ const getAllVendorApplications = async () => {
           await Mailer.sendMail({
             from: process.env.SES_DEFAULT_FROM,
             to: (client.user.email + ""),
-            subject: `[Tasttlig] Partner application accepted`,
-            template: "partner_applicant_accept_notification",
+            subject: `[Tasttlig] Restaurant application accepted`,
+            template: "restaurant_applicant_accept_notification",
             context: {
               first_name: (client.user.first_name + ""),
               last_name: (client.user.last_name + ""),
@@ -1003,7 +1003,7 @@ const getAllVendorApplications = async () => {
         await db("applications")
             .where("user_id", db_user.tasttlig_user_id)
             .andWhere("status", "Pending")
-            .andWhere("type", "partner")
+            .andWhere("type", "restaurant")
             .andWhere("festival_id", festivalId)
             .update("status", "DECLINED")
             .returning("*")
@@ -1035,8 +1035,8 @@ const getAllVendorApplications = async () => {
         await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,
           to: (client.user.email + ""),
-          subject: `[Tasttlig] Partner application rejected`,
-          template: "partner_applicant_reject_notification",
+          subject: `[Tasttlig] Restaurant application rejected`,
+          template: "restaurant_applicant_reject_notification",
           context: {
             first_name: (client.user.first_name + ""),
             last_name: (client.user.last_name + ""),
@@ -1086,8 +1086,8 @@ const getAllVendorApplications = async () => {
               await db("festivals")
                 .where("festival_id", festival_id)
                 .update({
-                  festival_business_partner_id: db.raw(
-                    "array_append(festival_business_partner_id, ?)",
+                  festival_restaurant_id: db.raw(
+                    "array_append(festival_restaurant_id, ?)",
                     [user_id]    
                   ),
                 })
@@ -1114,8 +1114,8 @@ const getAllVendorApplications = async () => {
     getSponsorApplications,
     getSponsorApplicantDetails,
     approveOrDeclineSponsorApplicationOnFestival,
-    getPartnerApplications,
-    getPartnerApplicantDetails,
-    approveOrDeclinePartnerApplicationOnFestival,
+    getRestaurantApplications,
+    getRestaurantApplicantDetails,
+    approveOrDeclineRestaurantApplicationOnFestival,
     addBusinessToFestival,
   };

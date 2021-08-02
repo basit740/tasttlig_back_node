@@ -230,10 +230,10 @@ const approveOrDeclineBusinessMemberApplication = async (
         .catch((reason) => {
           return { success: false, message: reason };
         });
-      // remove partner role if it's already there
+      // remove restaurant role if it's already there
       await db("user_role_lookup")
         .where("user_id", db_user.tasttlig_user_id)
-        .andWhere("role_code", "PT")
+        .andWhere("role_code", "RT")
         .del()
         .catch((reason) => {
           return { success: false, message: reason };
@@ -244,7 +244,7 @@ const approveOrDeclineBusinessMemberApplication = async (
           await db("user_role_lookup")
           .insert({
           user_id: db_user.tasttlig_user_id,
-          role_code: "PT",
+          role_code: "RT",
           })
           .returning("*")
           .catch((reason) => {
