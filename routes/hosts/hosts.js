@@ -7,6 +7,7 @@ const hosts_service = require("../../services/hosts/hosts");
 const business_passport_service = require("../../services/passport/businessPassport");
 const user_profile_service = require("../../services/profile/user_profile");
 const user_order_service = require("../../services/payment/user_orders");
+const neighbourhood_service = require("../../services/neighbourhood/neighbourhood");
 
 // GET applications
 router.get(
@@ -94,8 +95,6 @@ router.post(
         req.params.userId
       );
 
-      // console.log("business details after approval:", businessDetails.application)
-
       const response = await business_passport_service.approveOrDeclineBusinessMemberApplication(
         req.params.userId,
         "APPROVED",
@@ -125,6 +124,53 @@ router.post(
         req.params.userId,
         "DECLINED",
         req.body.declineReason
+      );
+
+      return res.send(response);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// POST neighbourhood application approval from admin
+router.post(
+  "/neighbourhood-applications/:userId/approve",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+
+      const response = await neighbourhood_service.approveOrDeclineNeighbourhoodApplication(
+        req.params.userId,
+        "APPROVED",
+      );
+
+      return res.send(response);
+    } catch (error) {
+      console.log('123', error);
+      res.status(500).send({
+        
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// POST neighbourhood application decline from admin
+router.post(
+  "/neighbourhood-applications/:userId/decline",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+
+
+      const response = await neighbourhood_service.approveOrDeclineNeighbourhoodApplication(
+        req.params.userId,
+        "DECLINED",
       );
 
       return res.send(response);
@@ -269,6 +315,26 @@ router.get(
   }
 );
 
+// get all neighbourhood applications
+router.get(
+  "/neighbourhood-applications",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const applications = await neighbourhood_service.getNeighbourhoodApplications(
+        req.params.userId
+      );
+
+      return res.send(applications);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
 router.get(
   "/business-application/:userId",
   token_service.authenticateToken,
@@ -280,6 +346,25 @@ router.get(
 
       return res.send(applications);
     } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+router.get(
+  "/neighbourhood-application/:userId",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const applications = await neighbourhood_service.getNeighbourhoodApplicantDetails(
+        req.params.userId
+      );
+      return res.send(applications);
+    } catch (error) {
+      
       res.status(500).send({
         success: false,
         message: error.message,

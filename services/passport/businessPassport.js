@@ -131,51 +131,7 @@ const postBusinessPassportDetails = async (data) => {
         business_preference: data["user_business_preference"],
       };
 
-      // if (data["user_business_preference"] === "Host") {
-      //   console.log('data["user_business_preference"]', data["user_business_preference"]);
-    
-      //       applications.push({
-      //         user_id: data.user_id,
-      //         created_at: new Date(),
-      //         updated_at: new Date(),
-      //         reason: "host application",
-      //         type: "host",
-      //         status: "Pending",
-      //       });
-      //       role_name = "HOST_PENDING";
-    
-      //       // Get role code of new role to be added
-      //       const new_role_code = await trx("roles")
-      //         .select()
-      //         .where({ role: role_name })
-      //         .then((value) => {
-      //           return value[0].role_code;
-      //         });
-    
-      //       // Insert new role for this user
-      //       await trx("user_role_lookup").insert({
-      //         user_id: data.user_id,
-      //         role_code: new_role_code,
-      //       });
-
-            
-      //       await trx("applications").insert(applications)
-      //       .returning("application_id");
-      //       // console.log("appilcation_details", appilcation_details)
-            
-      //       // var business_details_id = await trx("business_details")
-      //       // .insert(business_details)
-      //       // .returning("business_details_id");
-    
-      //     // const business_details_images = {
-      //     //   business_details_logo: data["user_business_logo"],
-      //     //   food_handling_certificate: data["user_business_food_handling"],
-      //     //   business_details_id: business_details_id[0],
-      //     // };
-    
-      //     // await trx("business_details_images").insert(business_details_images);
-
-      //     } else {
+     
             var business_details_id = await trx("business_details")
             .insert(business_details)
             .returning("business_details_id");
@@ -187,7 +143,6 @@ const postBusinessPassportDetails = async (data) => {
           };
     
           await trx("business_details_images").insert(business_details_images);
-          // }
 
 
       return { success: true };

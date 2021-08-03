@@ -1699,6 +1699,7 @@ const addNeighbourhood =  async (data, userId) => {
       neighbourhood_area_code: data.user_neighbourhood_area_code,
       neighbourhood_description: data.user_neighbourhood_description,
       neighbourhood_special_features: data.user_neighbourhood_special_feature,
+      status: 'Pending'
     })
     .returning("*")
     .catch((error) => {
@@ -1706,10 +1707,24 @@ const addNeighbourhood =  async (data, userId) => {
       return { success: false, message: error };
     });
 
+     await db("applications")
+    .insert({
+    user_id: userId,
+    reason: "",
+    created_at: new Date(),
+    updated_at: new Date(),
+    type: "neighbourhood",
+    status: "Pending",
+    })
+    .returning("*")
+    .catch((error) => {
+      return { success: false, message: error };
+    });
+
     await db("user_role_lookup")
     .insert({
     user_id: userId,
-    role_code: "PT",
+    role_code: "NHP",
     })
     .returning("*")
     .catch((error) => {
