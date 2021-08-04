@@ -1699,7 +1699,8 @@ const addNeighbourhood =  async (data, userId) => {
       neighbourhood_area_code: data.user_neighbourhood_area_code,
       neighbourhood_description: data.user_neighbourhood_description,
       neighbourhood_special_features: data.user_neighbourhood_special_feature,
-      status: 'Pending'
+      status: 'Pending',
+      neighbourhood_number_of_businesses: data.user_neighbourhood_number_of_businesses
     })
     .returning("*")
     .catch((error) => {
