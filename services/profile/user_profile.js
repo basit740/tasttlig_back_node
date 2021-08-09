@@ -1736,6 +1736,26 @@ const addNeighbourhood =  async (data, userId) => {
   return { success: true, details: "Success." };
 };
 
+const getNeighbourhoodByPostalCode = async (postcode) => {
+  return await db
+    .select("neighbourhood.*")
+    .from("neighbourhood")
+    .where({
+      "neighbourhood.neighbourhood_post_code": postcode,
+    })
+    .then((value) => {
+      if (!value) {
+        return { success: false, message: "No user found." };
+      }
+
+      return { success: true, neighbourhood: value };
+    })
+    .catch((error) => {
+      console.log("subscr", error);
+      return { success: false, message: error };
+    });
+};
+
 
 
 module.exports = {
@@ -1780,4 +1800,5 @@ module.exports = {
   getAllSubscriptionsByUserId,
   getValidSubscriptionsByUserId,
   addNeighbourhood,
+  getNeighbourhoodByPostalCode
 };

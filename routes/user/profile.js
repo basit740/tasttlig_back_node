@@ -872,8 +872,31 @@ router.post(
   }
 );
 
+// add neighbourhood 
 router.post(
   "/add-neighbourhood",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      // add neighbourhood
+      const response = await user_profile_service.addNeighbourhood(
+        req.body,
+        req.user.id
+      );
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error",
+        response: error.message,
+      });
+    }
+  }
+);
+
+// get neighbourhood 
+router.get(
+  "/get-neighbourhood",
   token_service.authenticateToken,
   async (req, res) => {
     try {

@@ -509,6 +509,9 @@ router.post(
       festival_description,
       festival_vendor_price,
       festival_sponsor_price,
+      festival_post_code,
+      festival_country,
+      festival_province,
     } = req.body;
 
     try {
@@ -551,6 +554,9 @@ router.post(
           festival_vendor_price,
           festival_sponsor_price,
           festival_city,
+          festival_post_code,
+          festival_country,
+          festival_province,
           festival_start_date: festival_start_date.substring(0, 10),
           festival_end_date: festival_end_date.substring(0, 10),
           festival_start_time,
@@ -745,6 +751,30 @@ router.post(
         //business_details.business_details.business_details_id,
         db_user,
         "Sponsor"
+      );
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error,
+      });
+    }
+  }
+);
+
+// POST sponsor application on host dashboard
+router.post(
+  "/sponsor-application/neighbourhood",
+  token_service.authenticateToken,
+  async (req, res) => {
+    const { festival_id } = req.body;
+    console.log('12345', req.body);
+    try {
+
+      const response = await festival_service.addNeighbourhoodSponsor(
+        festival_id,
+        req.user.id
       );
       return res.send(response);
     } catch (error) {

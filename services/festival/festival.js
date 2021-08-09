@@ -772,6 +772,55 @@ const addSponsorApplication = async (
   }
 };
 
+// add neighbourhood sponsor
+const addNeighbourhoodSponsor = async (
+  festival_id,
+  user_id
+) => {
+
+  try {
+    await db.transaction(async (trx) => {
+
+
+      try {
+        for (let festival of festival_id) {
+        
+            console.log('123456789', festival);
+            await db.transaction(async (trx) => {
+              await trx("festivals")
+              .where("festival_id", Number(festival))
+              .update({
+                neighbourhood_sponsor_id: db.raw(
+                  "array_append(neighbourhood_sponsor_id, ?)",
+                  [Number(user_id)]
+                )
+              })
+              .returning("*")
+              .catch(() => {
+                console.log('123123123');
+                return { success: false };
+              }); 
+
+            })
+              
+              
+          }
+        
+        
+          
+        
+      } catch (error) {
+        return { success: false };
+      }
+
+    
+  });
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
+
 // create restaurant application
 const addRestaurantApplication = async (
   festival_id,
@@ -1117,4 +1166,5 @@ module.exports = {
   addRestaurantApplication,
   attendFestival,
   removeAttendance,
+  addNeighbourhoodSponsor,
 };

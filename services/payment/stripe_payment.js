@@ -10,6 +10,7 @@ const stripe = new Stripe(keySecret);
 // Stripe payment helper function
 const paymentIntent = async (order_details, vendor_festivals) => {
   try {
+    console.log('1234567', order_details);
     let total_amount_before_tax = 0;
     if (order_details.item.festival_price) {
       total_amount_before_tax = parseFloat(order_details.item.festival_price);
