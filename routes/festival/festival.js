@@ -338,7 +338,41 @@ router.get("/sponsors/festival/:festival_id", async (req, res) => {
     });
   }
 });
-// host-sponsors/festivals/${appContext.state.user.id}
+
+// GET partner in specific festival
+router.get("/partners/festival/:festival_id", async (req, res) => {
+  if (!req.params.festival_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  } 
+  console.log("req from the host-sponsor/festivals:", req)
+
+  try {
+    const sponsors = [];
+
+    const response = await festival_service.getFestivalDetails(
+      req.params.festival_id
+    );
+
+    for (let item of response.details[0].festival_business_partner_id) {
+      const list = await user_profile_service.getUserById(item);
+
+      if (list.user) {
+        sponsors.push(list.user);
+      }
+    }
+
+    return res.send(sponsors);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
 
 
 // GET sponsors in specific festival
