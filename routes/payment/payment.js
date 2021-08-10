@@ -22,6 +22,7 @@ router.post("/payment/stripe", async (req, res) => {
     const order_details = {
       item_id: req.body.item_id,
       item_type: req.body.item_type,
+      
     };
 
     const db_order_details = await user_order_service.getOrderDetails(
