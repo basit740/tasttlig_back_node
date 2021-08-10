@@ -118,12 +118,15 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-
+      const businessDetails = await business_passport_service.getBusinessApplicantDetails(
+        req.params.userId
+      );
 
       const response = await business_passport_service.approveOrDeclineBusinessMemberApplication(
         req.params.userId,
         "DECLINED",
-        req.body.declineReason
+        req.body.declineReason,
+        businessDetails
       );
 
       return res.send(response);

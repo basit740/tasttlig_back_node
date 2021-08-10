@@ -150,9 +150,10 @@ const postBusinessPassportDetails = async (data) => {
   } catch (error) {
     if (error && error.detail && error.detail.includes("already exists")) {
       return {
+        
         success: false,
         details:
-          "User Business Information already exists, you can edit your existing information under passport section in your profile. Your application for Host role has been sent to Admin",
+          "User Business Information already exists, you can edit your existing information under passport section in your profile. Your application for Business Member role has been sent to Admin",
       };
     }
     return { success: false, details: error.detail };
@@ -264,7 +265,7 @@ const approveOrDeclineBusinessMemberApplication = async (
 
       return { success: true, message: status };
     } else {
-      // Remove the role for this user
+      //Remove the role for this user
       await db("user_role_lookup")
         .where({
           user_id: db_user.tasttlig_user_id,
@@ -272,21 +273,32 @@ const approveOrDeclineBusinessMemberApplication = async (
         })
         .del();
       // STEP 3: Update applications table status
-      await db("applications")
-        .where("user_id", db_user.tasttlig_user_id)
-        .andWhere("status", "Pending")
-        .andWhere("type", "business_member")
-        .update("status", "REJECT")
-        .returning("*")
-        .catch((reason) => {
-          return { success: false, message: reason };
-        });
+      // await db("applications")
+      //   .where("user_id", db_user.tasttlig_user_id)
+      //   .andWhere("status", "Pending")
+      //   .andWhere("type", "business_member")
+      //   .update("status", "REJECT")
+      //   .returning("*")
+      //   .catch((reason) => {
+      //     return { success: false, message: reason };
+      //   });
 
-      //Update status is business details table
+      //Remove row in business details images table
+      await db("business_details_images")
+      .where("business_details_id", businessDetails.application.business_details_id)
+      // .update("business_member_status", "REJECTED")
+      // .returning("*")
+      .del()
+      .catch((reason) => {
+        return { success: false, message: reason };
+      });
+
+      //Remove row in business details table
       await db("business_details")
         .where("business_details_user_id", db_user.tasttlig_user_id)
-        .update("business_member_status", "REJECTED")
-        .returning("*")
+        // .update("business_member_status", "REJECTED")
+        // .returning("*")
+        .del()
         .catch((reason) => {
           return { success: false, message: reason };
         });
