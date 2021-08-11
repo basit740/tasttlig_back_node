@@ -543,7 +543,7 @@ router.post(
       festival_description,
       festival_vendor_price,
       festival_sponsor_price,
-      festival_post_code,
+      festival_postal_code,
       festival_country,
       festival_province,
     } = req.body;
@@ -588,7 +588,7 @@ router.post(
           festival_vendor_price,
           festival_sponsor_price,
           festival_city,
-          festival_post_code,
+          festival_postal_code,
           festival_country,
           festival_province,
           festival_start_date: festival_start_date.substring(0, 10),
