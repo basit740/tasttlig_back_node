@@ -784,8 +784,6 @@ const addNeighbourhoodSponsor = async (
 
       try {
         for (let festival of festival_id) {
-        
-            console.log('123456789', festival);
             await db.transaction(async (trx) => {
               await trx("festivals")
               .where("festival_id", Number(festival))
@@ -797,7 +795,6 @@ const addNeighbourhoodSponsor = async (
               })
               .returning("*")
               .catch(() => {
-                console.log('123123123');
                 return { success: false };
               }); 
 
