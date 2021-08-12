@@ -60,13 +60,13 @@ router.post(
       let createdByAdmin = true;
       let business_details_from_db;
       if (req.user) {
-        business_details_from_db = await authentication_service.getUserByBusinessDetails(
-          req.user.id
-        );
+        business_details_from_db =
+          await authentication_service.getUserByBusinessDetails(req.user.id);
       } else {
-        business_details_from_db = await authentication_service.getUserByBusinessDetails(
-          user_details_from_db.user.tasttlig_user_id
-        );
+        business_details_from_db =
+          await authentication_service.getUserByBusinessDetails(
+            user_details_from_db.user.tasttlig_user_id
+          );
       }
 
       if (
@@ -238,13 +238,13 @@ router.post("/products/noUser/add", async (req, res) => {
     let createdByAdmin = true;
     let business_details_from_db;
     if (req.user) {
-      business_details_from_db = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
+      business_details_from_db =
+        await authentication_service.getUserByBusinessDetails(req.user.id);
     } else {
-      business_details_from_db = await authentication_service.getUserByBusinessDetails(
-        user_details_from_db.user.tasttlig_user_id
-      );
+      business_details_from_db =
+        await authentication_service.getUserByBusinessDetails(
+          user_details_from_db.user.tasttlig_user_id
+        );
     }
     if (
       user_details_from_db.user.role.includes("VENDOR") ||
@@ -393,9 +393,8 @@ router.post(
 
       let createdByAdmin = true;
 
-      const business_details_from_db = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
+      const business_details_from_db =
+        await authentication_service.getUserByBusinessDetails(req.user.id);
 
       if (
         user_details_from_db.user.role.includes("VENDOR") ||
@@ -418,7 +417,6 @@ router.post(
         req.body.ps,
         req.user.id,
         user_details_from_db
-
       );
       if (response.success) {
         result = response;

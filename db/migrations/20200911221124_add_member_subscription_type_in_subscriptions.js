@@ -19,7 +19,8 @@ exports.up = function (knex) {
           date_of_expiry: new Date("2020-09-31 00:00:00"),
           validity_in_months: null,
           price: 40,
-          description: "MEMBER SEPTEMBER 2020 FESTIVAL PASS FOR MULTIPLE RESERVE",
+          description:
+            "MEMBER SEPTEMBER 2020 FESTIVAL PASS FOR MULTIPLE RESERVE",
           status: "ACTIVE",
           subscription_type: "FESTIVAL",
         },

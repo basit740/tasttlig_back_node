@@ -54,13 +54,9 @@ const getAllUserOrders = async (user_id) => {
     )
     .where("orders.order_by_user_id", "=", user_id)
     .andWhere(function () {
-      this.where("order_items.item_type", "product").orWhere(
-        "order_items.item_type",
-        "service"
-      ).orWhere(
-        "order_items.item_type",
-        "festival"
-      );;
+      this.where("order_items.item_type", "product")
+        .orWhere("order_items.item_type", "service")
+        .orWhere("order_items.item_type", "festival");
       //.orWhere("order_items.subscription_code", "S_C3")
     });
 

@@ -52,20 +52,18 @@ router.post(
   "/all-products/add",
   token_service.authenticateToken,
   async (req, res) => {
-     
     try {
       req.body.map(async (item) => {
-        console.log("item from /all-products/add:", item)
+        console.log("item from /all-products/add:", item);
         if (
           !item.name ||
           !item.festivals ||
           !item.sample_size ||
           !item.quantity ||
           !item.description ||
-          !item.images
-           ||
+          !item.images ||
           !item.end_time ||
-          !item.start_time 
+          !item.start_time
           // !item.nationality_id
         ) {
           return res.status(403).json({
@@ -107,14 +105,16 @@ router.post(
           const all_product_details = {
             product_user_id: db_user.tasttlig_user_id,
             title: item.name,
-            start_time:
-            item.start_time ? item.start_time.length === 5
+            start_time: item.start_time
+              ? item.start_time.length === 5
                 ? item.start_time
-                : formatTime(item.start_time) : null,
-            end_time:
-            item.end_time ? item.end_time.length === 5
+                : formatTime(item.start_time)
+              : null,
+            end_time: item.end_time
+              ? item.end_time.length === 5
                 ? item.end_time
-                : formatTime(item.end_time) : null,
+                : formatTime(item.end_time)
+              : null,
             description: item.description,
 
             nationality_id: item.nationality_id,
@@ -183,7 +183,7 @@ router.post(
             all_product_details,
             item.images,
             createdByAdmin,
-            item.sponsorType,
+            item.sponsorType
           );
           res.send(response);
           if (response.success) {

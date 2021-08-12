@@ -1,5 +1,5 @@
-exports.up = function(knex) {
-  return knex.schema.table("tasttlig_users", table => {
+exports.up = function (knex) {
+  return knex.schema.table("tasttlig_users", (table) => {
     table.string("profile_tag_line");
     table.string("banner_image_link");
     table.string("address_line_1");
@@ -11,8 +11,8 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
-  return knex.schema.table("tasttlig_users", table => {
+exports.down = function (knex) {
+  return knex.schema.table("tasttlig_users", (table) => {
     table.dropColumn("profile_tag_line");
     table.dropColumn("banner_image_link");
     table.dropColumn("address_line_1");

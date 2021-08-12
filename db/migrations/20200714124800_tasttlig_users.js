@@ -1,6 +1,5 @@
-
-exports.up = function(knex) {
-  return knex.schema.createTable("tasttlig_users", table => {
+exports.up = function (knex) {
+  return knex.schema.createTable("tasttlig_users", (table) => {
     table.increments("tasttlig_user_id").unsigned().primary();
     table.string("first_name").notNullable();
     table.string("last_name").notNullable();
@@ -28,6 +27,6 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
+exports.down = function (knex) {
   return knex.schema.dropTable("tasttlig_users");
 };

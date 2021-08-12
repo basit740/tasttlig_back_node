@@ -59,10 +59,7 @@ const getNeighbourhoodApplicantDetails = async (userId) => {
   try {
     console.log(userId);
     let application = await db
-      .select(
-        "neighbourhood.*",
-        "tasttlig_users.*"
-      )
+      .select("neighbourhood.*", "tasttlig_users.*")
       .from("neighbourhood")
       .leftJoin(
         "tasttlig_users",
@@ -96,12 +93,7 @@ const getNeighbourhoodApplicantDetails = async (userId) => {
   }
 };
 
-
-const approveOrDeclineNeighbourhoodApplication = async (
-  userId,
-  status,
-
-) => {
+const approveOrDeclineNeighbourhoodApplication = async (userId, status) => {
   try {
     console.log("here entry");
     const db_user_row = await getUserById(userId);
@@ -123,8 +115,6 @@ const approveOrDeclineNeighbourhoodApplication = async (
           return { success: false, message: reason };
         });
 
-          
-
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
@@ -135,7 +125,7 @@ const approveOrDeclineNeighbourhoodApplication = async (
           return { success: false, message: reason };
         });
 
-        await db("neighbourhood")
+      await db("neighbourhood")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
         .update("status", "APPROVED")
@@ -143,8 +133,6 @@ const approveOrDeclineNeighbourhoodApplication = async (
         .catch((reason) => {
           return { success: false, message: reason };
         });
-
-
 
       return { success: true, message: status };
     } else {

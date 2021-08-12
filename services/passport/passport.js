@@ -7,7 +7,7 @@ const Mailer = require("../email/nodemailer").nodemailer_transporter;
 // Get passport in festival helper function
 const getPassportDetails = async (userId, currentPage) => {
   const userIdInt = Number(userId);
-  console.log("userIdInt",userIdInt)
+  console.log("userIdInt", userIdInt);
   let query = db
     .select(
       "tasttlig_users.*",
@@ -48,7 +48,7 @@ const getPassportDetails = async (userId, currentPage) => {
       return { success: true, details: value };
     })
     .catch((reason) => {
-      console.log("error from passport:", reason)
+      console.log("error from passport:", reason);
       return { success: false, details: reason };
     });
 };

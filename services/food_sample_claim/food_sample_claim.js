@@ -24,7 +24,6 @@ const createNewFoodSampleClaim = async (
   quantityAfterClaim,
   product_claim_details
 ) => {
-
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
@@ -75,8 +74,6 @@ const createNewFoodSampleClaim = async (
             (sub.subscription_code === "G_AMB" &&
               sub.suscribed_festivals == null)
           ) {
- 
-
             const updateSub = async (subId, subDate, festivalId) => {
               await db("user_subscriptions")
                 .where({
@@ -116,14 +113,14 @@ const createNewProductClaim = async (
   quantityAfterClaim,
   product_claim_details
 ) => {
-  console.log('12345',product_claim_details);
+  console.log("12345", product_claim_details);
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
         .insert(product_claim_details)
         .returning("*")
         .catch((error) => {
-          console.log('1234567', error);
+          console.log("1234567", error);
         });
 
       if (!db_food_sample_claim) {
@@ -132,7 +129,7 @@ const createNewProductClaim = async (
           details: "Inserting new food sample claim failed.",
         };
       }
-      console.log('12345', db_food_sample_claim);
+      console.log("12345", db_food_sample_claim);
       if (quantityAfterClaim >= 0) {
         await db("products")
           .where({ product_id: db_food_sample_claim[0].claimed_product_id })
@@ -150,7 +147,6 @@ const createNewProductClaim = async (
       //   db_all_products,
       //   db_food_sample_claim[0]
       // );
-
     });
 
     return { success: true, details: "Success." };
@@ -158,7 +154,6 @@ const createNewProductClaim = async (
     return { success: false, details: error.message };
   }
 };
-
 
 // User can claim food sample helper function
 const userCanClaimFoodSample = async (email, food_sample_id) => {
@@ -225,8 +220,6 @@ const confirmProductClaim = async (
   totalRedeemQuantity
 ) => {
   try {
-
-    
     let db_product;
     let db_food_sample_claim;
     let db_business;
@@ -301,8 +294,6 @@ const confirmServiceClaim = async (
   totalRedeemQuantity
 ) => {
   try {
-
-    
     let db_product;
     let db_food_sample_claim;
     let db_business;
@@ -355,7 +346,6 @@ const confirmServiceClaim = async (
     return { success: false, details: error.message };
   }
 };
-
 
 // Send claimed food sample email to user helper function
 const sendClaimedEmailToUser = async (
@@ -450,7 +440,6 @@ const sendRedeemedEmailToUser = async (
   db_product,
   db_business
 ) => {
-
   const token = jwt.sign(
     {
       claim_id: db_food_sample_claim.claim_id,
@@ -571,7 +560,7 @@ const getUserProductsRedeems = async (user_id, keyword, db_user) => {
       "user_claims.claim_user_id",
       "tasttlig_users.tasttlig_user_id"
     )
-   
+
     .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .groupBy("products.product_id")
     .groupBy("user_claims.claim_id")
@@ -580,7 +569,7 @@ const getUserProductsRedeems = async (user_id, keyword, db_user) => {
     .groupBy("tasttlig_users.last_name")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
-    .having("product_user_id", "=", user_id,  );
+    .having("product_user_id", "=", user_id);
 
   if (keyword) {
     // keyword=parseInt(keyword)
@@ -620,7 +609,6 @@ const getUserProductsRedeems = async (user_id, keyword, db_user) => {
     });
 };
 
-
 // Get user service redeeming helper function
 const getUserServiceRedeems = async (user_id, keyword, db_user) => {
   let query = db
@@ -649,7 +637,7 @@ const getUserServiceRedeems = async (user_id, keyword, db_user) => {
       "user_claims.claim_user_id",
       "tasttlig_users.tasttlig_user_id"
     )
-   
+
     // .leftJoin("nationalities", "services.nationality_id", "nationalities.id")
     .groupBy("services.service_id")
     .groupBy("user_claims.claim_id")
@@ -658,7 +646,7 @@ const getUserServiceRedeems = async (user_id, keyword, db_user) => {
     .groupBy("tasttlig_users.last_name")
     // .groupBy("nationalities.nationality")
     // .groupBy("nationalities.alpha_2_code")
-    .having("services.service_user_id", "=", user_id,  );
+    .having("services.service_user_id", "=", user_id);
 
   if (keyword) {
     // keyword=parseInt(keyword)
@@ -727,17 +715,18 @@ const getUserExperiencesRedeems = async (user_id, keyword, db_user) => {
       "tasttlig_users.tasttlig_user_id"
     )
 
-    .leftJoin("nationalities",
-     "experiences.experience_nationality_id", 
-     "nationalities.id"
-     )
+    .leftJoin(
+      "nationalities",
+      "experiences.experience_nationality_id",
+      "nationalities.id"
+    )
     .groupBy("user_claims.claim_id")
     .groupBy("experiences.experience_id")
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
-    .having("experience_business_id", "=", db_user.user.business_details_id, )
+    .having("experience_business_id", "=", db_user.user.business_details_id);
 
   if (keyword) {
     // keyword=parseInt(keyword)
@@ -777,7 +766,6 @@ const getUserExperiencesRedeems = async (user_id, keyword, db_user) => {
     });
 };
 
-
 // Confirm food sample claim helper function
 const confirmExperienceClaim = async (
   claimId,
@@ -811,7 +799,6 @@ const confirmExperienceClaim = async (
     return { success: false, details: error.message };
   }
 };
-
 
 // Confirm service claim helper function
 // const confirmServiceClaim = async (
@@ -925,7 +912,6 @@ const userCanClaimExperience = async (email, food_sample_id) => {
   }
 };
 
-
 // User can claim service helper function
 const userCanClaimService = async (email, food_sample_id) => {
   try {
@@ -974,22 +960,22 @@ const createNewExperienceClaim = async (
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
-      .insert(product_claim_details)
-      .returning("*");
-      
+        .insert(product_claim_details)
+        .returning("*");
+
       if (!db_food_sample_claim) {
         return {
           success: false,
           details: "Inserting new food sample claim failed.",
         };
       }
-      
+
       if (quantityAfterClaim >= 0) {
         await db("experiences")
-        .where({
-          experience_id: db_food_sample_claim[0].claimed_experience_id,
-        })
-        .update({ claimed_total_quantity: quantityAfterClaim });
+          .where({
+            experience_id: db_food_sample_claim[0].claimed_experience_id,
+          })
+          .update({ claimed_total_quantity: quantityAfterClaim });
       }
 
       await sendClaimedExperienceEmailToUser(
@@ -1023,8 +1009,6 @@ const createNewExperienceClaim = async (
             (sub.subscription_code === "G_AMB" &&
               sub.suscribed_festivals == null)
           ) {
-         
-
             const updateSub = async (subId, subDate, festivalId) => {
               await db("user_subscriptions")
                 .where({
@@ -1144,7 +1128,6 @@ const sendClaimedExperienceEmailToProvider = async (
   });
 };
 
-
 // Create experience claim helper function
 const createNewServiceClaim = async (
   db_user,
@@ -1155,22 +1138,22 @@ const createNewServiceClaim = async (
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
-      .insert(product_claim_details)
-      .returning("*");
-      
+        .insert(product_claim_details)
+        .returning("*");
+
       if (!db_food_sample_claim) {
         return {
           success: false,
           details: "Inserting new food sample claim failed.",
         };
       }
-      
+
       if (quantityAfterClaim >= 0) {
         await db("services")
-        .where({
-          service_id: db_food_sample_claim[0].claimed_service_id,
-        })
-        .update({ claimed_total_quantity: quantityAfterClaim });
+          .where({
+            service_id: db_food_sample_claim[0].claimed_service_id,
+          })
+          .update({ claimed_total_quantity: quantityAfterClaim });
       }
 
       await sendClaimedServiceEmailToUser(
@@ -1204,8 +1187,6 @@ const createNewServiceClaim = async (
             (sub.subscription_code === "G_AMB" &&
               sub.suscribed_festivals == null)
           ) {
-        
-
             const updateSub = async (subId, subDate, festivalId) => {
               await db("user_subscriptions")
                 .where({
@@ -1306,7 +1287,7 @@ const sendClaimedServiceEmailToProvider = async (
   );
 
   const url = `${process.env.SITE_BASE}/confirm-food-sample/${token}`;
-  return Mailer.sendMail({    
+  return Mailer.sendMail({
     from: process.env.SES_DEFAULT_FROM,
     to: db_food_sample.email,
     bcc: ADMIN_EMAIL,
@@ -1340,10 +1321,10 @@ module.exports = {
   confirmExperienceClaim,
   userCanClaimService,
   createNewServiceClaim,
-  sendClaimedServiceEmailToUser,  
+  sendClaimedServiceEmailToUser,
   sendClaimedServiceEmailToProvider,
   getServiceClaimCount,
   confirmServiceClaim,
   getUserServiceRedeems,
-  getUserExperiencesRedeems
+  getUserExperiencesRedeems,
 };

@@ -175,7 +175,7 @@ const createNewProduct = async (
         Math.random().toString(36).substring(2, 4) +
         Math.random().toString(36).substring(2, 4);
 
-        all_product_details.status = "ACTIVE";
+      all_product_details.status = "ACTIVE";
 
       const db_all_product = await trx("products")
         .insert(all_product_details)
@@ -188,7 +188,6 @@ const createNewProduct = async (
         .update({
           product_id: db_all_product[0].product_id,
         });
-
 
       if (!db_all_product) {
         return { success: false, details: "Inserting new product failed." };
@@ -252,22 +251,19 @@ const createNewProduct = async (
       if (sponsorType === true && !user_role_object.includes("SPONSOR")) {
         // Get role code of new role to be added
         const new_role_code = await trx("roles")
-        .select()
-        .where({ role: "SPONSOR" })
-        .then((value) => {
-          return value[0].role_code;
-        });
+          .select()
+          .where({ role: "SPONSOR" })
+          .then((value) => {
+            return value[0].role_code;
+          });
 
-      // Insert new role for this user
-       await trx("user_role_lookup").insert({
+        // Insert new role for this user
+        await trx("user_role_lookup").insert({
           user_id: db_user.tasttlig_user_id,
           role_code: new_role_code,
         });
-   }
-
+      }
     });
-
-   
 
     return { success: true, details: "Success." };
   } catch (error) {
@@ -292,7 +288,6 @@ const createNewProductFromKodidi = async (
   all_product_details,
   all_product_images
 ) => {
-
   try {
     await db.transaction(async (trx) => {
       const db_all_product = await trx("products")
@@ -327,7 +322,6 @@ const getAllUserProducts = async (
   requestByAdmin = false,
   festival_id
 ) => {
- 
   const startOfDay = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
   const endOfDay = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
   let query = db

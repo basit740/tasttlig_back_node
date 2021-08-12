@@ -260,9 +260,8 @@ const checkEmail = async (email) => {
         };
       }
 
-      const {
-        email_token,
-      } = await auth_server_service.authPasswordResetRequest(email);
+      const { email_token } =
+        await auth_server_service.authPasswordResetRequest(email);
 
       try {
         const url = `${SITE_BASE}/forgot-password/${email_token}/${email}`;

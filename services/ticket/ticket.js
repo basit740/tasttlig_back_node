@@ -65,7 +65,7 @@ const getAllTickets = async (userId, currentPage) => {
     .groupBy("festivals.festival_id")
     .groupBy("festivals.festival_type")
     .orderBy("festivals.festival_start_date", "asc");
-    
+
   query = query.paginate({
     perPage: 12,
     isLengthAware: true,
@@ -130,7 +130,6 @@ const getTicketDetails = async (ticket_id) => {
     });
 };
 
-
 // Get tickets in festival helper function
 const getTicketFestivalDetails = async (festival_id) => {
   return await db
@@ -183,8 +182,8 @@ const getTicketFestivalDetails = async (festival_id) => {
 // Get vendor ticket with user_id and festival_id
 const getVendTicket = async (user_id, festival_id) => {
   return await db
-  .select("ticket_details.*")
-  .from("ticket_details")
+    .select("ticket_details.*")
+    .from("ticket_details")
     .groupBy("ticket_details.ticket_id")
     .having("ticket_details.ticket_user_id", "=", user_id)
     .having("ticket_details.ticket_festival_id", "=", festival_id)
@@ -200,8 +199,8 @@ const getVendTicket = async (user_id, festival_id) => {
 // Get vendor ticket with user_id and festival_id
 const getSponsorTicket = async (user_id, festival_id) => {
   return await db
-  .select("ticket_details.*")
-  .from("ticket_details")
+    .select("ticket_details.*")
+    .from("ticket_details")
     .groupBy("ticket_details.ticket_id")
     .having("ticket_details.ticket_user_id", "=", user_id)
     .having("ticket_details.ticket_festival_id", "=", festival_id)
@@ -230,24 +229,28 @@ const getTicketList = async () => {
 };
 
 const newTicketInfo = async (ticket_details) => {
-  console.log("ticket_details coming from ticet add:", ticket_details.ticket_festival_id[0])
+  console.log(
+    "ticket_details coming from ticet add:",
+    ticket_details.ticket_festival_id[0]
+  );
   try {
-    if(typeof ticket_details.ticket_festival_id === "object") {
+    if (typeof ticket_details.ticket_festival_id === "object") {
       await db.transaction(async (trx) => {
-        const vendorFestival = ticket_details.ticket_festival_id.map((festivalNumber) => ({
-          // ticket_booking_confirmation_id: ticket_details.ticket_booking_confirmation_id,
-          ticket_user_id: ticket_details.ticket_user_id,
-          ticket_festival_id: festivalNumber,
-          no_of_admits: ticket_details.no_of_admits,
-          ticket_price: ticket_details.ticket_price,
-          ticket_type: ticket_details.ticket_type,
-          stripe_receipt_id: ticket_details.stripe_receipt_id,
-
-        }))
+        const vendorFestival = ticket_details.ticket_festival_id.map(
+          (festivalNumber) => ({
+            // ticket_booking_confirmation_id: ticket_details.ticket_booking_confirmation_id,
+            ticket_user_id: ticket_details.ticket_user_id,
+            ticket_festival_id: festivalNumber,
+            no_of_admits: ticket_details.no_of_admits,
+            ticket_price: ticket_details.ticket_price,
+            ticket_type: ticket_details.ticket_type,
+            stripe_receipt_id: ticket_details.stripe_receipt_id,
+          })
+        );
         const db_ticket = await trx("ticket_details")
           .insert(vendorFestival)
           .returning("*");
-  
+
         if (!db_ticket) {
           return { success: false, details: "Inserting new ticket failed." };
         }
@@ -257,12 +260,11 @@ const newTicketInfo = async (ticket_details) => {
         const db_ticket = await trx("ticket_details")
           .insert(ticket_details)
           .returning("*");
-  
+
         if (!db_ticket) {
           return { success: false, details: "Inserting new ticket failed." };
         }
       });
-
     }
 
     return { success: true, details: "Success." };
@@ -271,27 +273,27 @@ const newTicketInfo = async (ticket_details) => {
   }
 };
 
-const deleteTicketsFromUser = async(user_id, delete_items) => {
+const deleteTicketsFromUser = async (user_id, delete_items) => {
   try {
     for (let item of delete_items) {
-      await db.transaction(async(trx) => {
+      await db.transaction(async (trx) => {
         const ticketDelete = await trx("ticket_details")
-        .where({
-          ticket_id: item.ticket_id,
-        })
-        .del()
-        .then(() => {
-          return { success: true };
-        })
-        .catch((reason) => {
-          return { success: false, details: reason };
-        });
-      })
+          .where({
+            ticket_id: item.ticket_id,
+          })
+          .del()
+          .then(() => {
+            return { success: true };
+          })
+          .catch((reason) => {
+            return { success: false, details: reason };
+          });
+      });
     }
-  } catch(error) {
-    return { success: false, details: error}
+  } catch (error) {
+    return { success: false, details: error };
   }
-}
+};
 
 module.exports = {
   getAllTickets,
@@ -301,5 +303,5 @@ module.exports = {
   getTicketList,
   newTicketInfo,
   deleteTicketsFromUser,
-  getTicketFestivalDetails
+  getTicketFestivalDetails,
 };

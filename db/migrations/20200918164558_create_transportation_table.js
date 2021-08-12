@@ -1,9 +1,12 @@
-
-exports.up = function(knex) {
-  return knex.schema.createTable("transportation", table => {
+exports.up = function (knex) {
+  return knex.schema.createTable("transportation", (table) => {
     table.increments("transportation_id").unsigned().primary();
-    table.integer("user_id").notNullable().index()
-      .references("tasttlig_user_id").inTable("tasttlig_users");
+    table
+      .integer("user_id")
+      .notNullable()
+      .index()
+      .references("tasttlig_user_id")
+      .inTable("tasttlig_users");
     table.string("make");
     table.string("model");
     table.string("year");
@@ -15,6 +18,6 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
+exports.down = function (knex) {
   return knex.schema.dropTable("transportation");
 };

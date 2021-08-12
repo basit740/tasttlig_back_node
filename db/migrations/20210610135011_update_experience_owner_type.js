@@ -7,6 +7,5 @@ exports.up = function (knex) {
 exports.down = function (knex) {
   return knex.schema.alterTable("experiences", (table) => {
     table.dropColumn("experience_owner_type");
-
   });
 };

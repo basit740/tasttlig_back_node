@@ -1,6 +1,5 @@
-
-exports.up = function(knex) {
-  return knex.schema.table("experiences", tableBuilder => {
+exports.up = function (knex) {
+  return knex.schema.table("experiences", (tableBuilder) => {
     tableBuilder.dropColumn("category");
     tableBuilder.dropColumn("description");
     tableBuilder.string("type");
@@ -18,11 +17,11 @@ exports.up = function(knex) {
     tableBuilder.text("environmental_consideration_description");
     tableBuilder.text("value_description");
     tableBuilder.text("other_description");
-  })
+  });
 };
 
-exports.down = function(knex) {
-  return knex.schema.table("experiences", tableBuilder => {
+exports.down = function (knex) {
+  return knex.schema.table("experiences", (tableBuilder) => {
     tableBuilder.string("category");
     tableBuilder.text("description");
     tableBuilder.dropColumn("type");
@@ -40,5 +39,5 @@ exports.down = function(knex) {
     tableBuilder.dropColumn("environmental_consideration_description");
     tableBuilder.dropColumn("value_description");
     tableBuilder.dropColumn("other_description");
-  })
+  });
 };

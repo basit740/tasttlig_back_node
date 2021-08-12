@@ -1,6 +1,5 @@
-
-exports.up = function(knex) {
-  return knex.schema.table("entertainment", table => {
+exports.up = function (knex) {
+  return knex.schema.table("entertainment", (table) => {
     table.string("genre");
     table.string("nationality_id");
     table.dropColumn("estimate_price_per_gig");
@@ -10,8 +9,8 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
-  return knex.schema.table("entertainment", table => {
+exports.down = function (knex) {
+  return knex.schema.table("entertainment", (table) => {
     table.dropColumn("genre");
     table.dropColumn("nationality_id");
     table.string("estimate_price_per_gig");

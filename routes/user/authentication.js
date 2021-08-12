@@ -20,14 +20,8 @@ const createAccountLimiter = rateLimit({
 
 // POST user register
 authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
-  const {
-    first_name,
-    last_name,
-    email,
-    password,
-    phone_number,
-    source,
-  } = req.body;
+  const { first_name, last_name, email, password, phone_number, source } =
+    req.body;
 
   if (!email || !password || !source) {
     return res.status(403).json({
@@ -54,7 +48,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
       //console.log("first response", response)
       return res.status(401).json({
         success: false,
-        message: "401 error"
+        message: "401 error",
       });
     }
   } catch (error) {
@@ -68,7 +62,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
 
 // GET user email address verification for registration
 authRouter.get("/user/confirmation/:token", async (req, res) => {
-  console.log("req.params.token coming from verifying:", req.params.token)
+  console.log("req.params.token coming from verifying:", req.params.token);
   if (!req.params.token) {
     return res.status(403).json({
       success: false,
@@ -161,7 +155,7 @@ authRouter.post("/user/login", async (req, res) => {
       },
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(401).json({
       success: false,
       message: "Email/password combination is invalid.",
@@ -298,13 +292,8 @@ authRouter.post(
   "/user/create-new-multi-step-user",
   createAccountLimiter,
   async (req, res) => {
-    const {
-      first_name,
-      last_name,
-      email,
-      phone_number,
-      created_by_admin,
-    } = req.body;
+    const { first_name, last_name, email, phone_number, created_by_admin } =
+      req.body;
 
     if (!email) {
       return res.status(403).json({
@@ -322,9 +311,10 @@ authRouter.post(
       created_by_admin,
     };
 
-    const response = await authenticate_user_service.createBecomeFoodProviderUser(
-      become_food_provider_user
-    );
+    const response =
+      await authenticate_user_service.createBecomeFoodProviderUser(
+        become_food_provider_user
+      );
 
     res.send(response);
   }

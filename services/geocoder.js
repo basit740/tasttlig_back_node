@@ -19,19 +19,18 @@ const setAddressCoordinates = async (details) => {
       details.country,
       details.postal_code,
     ].join(",");
-    
+
     const coordinates = (await geocoder.geocode(address))[0];
-    
+
     details.latitude = coordinates.latitude;
     details.longitude = coordinates.longitude;
     details.coordinates = gis.setSRID(
       gis.makePoint(coordinates.longitude, coordinates.latitude),
       4326
-      );
+    );
 
     return details;
-  } catch (error) {
-  }
+  } catch (error) {}
 };
 
 module.exports = {

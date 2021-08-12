@@ -1,9 +1,12 @@
-
-exports.up = function(knex) {
-  return knex.schema.createTable("documents", table => {
+exports.up = function (knex) {
+  return knex.schema.createTable("documents", (table) => {
     table.increments("document_id").unsigned().primary();
-    table.integer("user_id").unsigned().index()
-      .references("tasttlig_user_id").inTable("tasttlig_users")
+    table
+      .integer("user_id")
+      .unsigned()
+      .index()
+      .references("tasttlig_user_id")
+      .inTable("tasttlig_users")
       .onDelete("CASCADE");
     table.string("document_type").notNullable();
     table.string("document_link").notNullable();
@@ -15,6 +18,6 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
+exports.down = function (knex) {
   return knex.schema.dropTable("documents");
 };

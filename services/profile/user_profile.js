@@ -20,8 +20,14 @@ const EMAIL_SECRET = process.env.EMAIL_SECRET;
 const getUserById = async (id) => {
   console.log("id from here:", id);
   return await db
-    .select("tasttlig_users.*", "business_details.*", db.raw("ARRAY_AGG(roles.role) as role"),
-    db.raw("ARRAY_AGG(business_details_images.business_details_logo) as business_image_urls"))
+    .select(
+      "tasttlig_users.*",
+      "business_details.*",
+      db.raw("ARRAY_AGG(roles.role) as role"),
+      db.raw(
+        "ARRAY_AGG(business_details_images.business_details_logo) as business_image_urls"
+      )
+    )
     .from("tasttlig_users")
     .leftJoin(
       "user_role_lookup",
@@ -29,7 +35,7 @@ const getUserById = async (id) => {
       "user_role_lookup.user_id"
     )
     .leftJoin("roles", "user_role_lookup.role_code", "roles.role_code")
-   
+
     .leftJoin(
       "business_details",
       "tasttlig_users.tasttlig_user_id",
@@ -1080,7 +1086,6 @@ const approveOrDeclineHostAmbassadorApplication = async (
     // Depends on status, we do different things:
     // If status is approved
     if (status === "APPROVED") {
-
       // Update applications table status
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
@@ -1092,7 +1097,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
           return { success: false, message: reason };
         });
 
-      // insert the user role as 
+      // insert the user role as
       // await db("user_role_lookup")
       //   .where("user_id", db_user.tasttlig_user_id)
       //   .andWhere("role_code", "JUCR")
@@ -1104,7 +1109,6 @@ const approveOrDeclineHostAmbassadorApplication = async (
       //   });
 
       // let active_item = "Products";
-
 
       // Email the user that their application is approved
       await Mailer.sendMail({
@@ -1350,8 +1354,7 @@ const createPreferences = async (preference_details, user_id) => {
         food_allergies: preference_details["food_allergies"],
         preferred_country_cuisine:
           preference_details["preferred_country_cuisine"],
-          socialmedia_reference:
-          preference_details["socialmedia_reference"],
+        socialmedia_reference: preference_details["socialmedia_reference"],
       })
       .returning("*")
       .then((value) => {
@@ -1688,50 +1691,50 @@ const getValidSubscriptionsByUserId = async (userId) => {
     });
 };
 
-const addNeighbourhood =  async (data, userId) => {
+const addNeighbourhood = async (data, userId) => {
   await db.transaction(async (trx) => {
-    const response = await trx("neighbourhood").insert({
-      neighbourhood_name: data.user_neighbourhood_name,
-      user_id: userId,
-      neighbourhood_city: data.user_neighbourhood_city,
-      neighbourhood_country: data.user_neighbourhood_country,
-      neighbourhood_post_code: data.user_neighbourhood_postal_code,
-      neighbourhood_area_code: data.user_neighbourhood_area_code,
-      neighbourhood_description: data.user_neighbourhood_description,
-      neighbourhood_special_features: data.user_neighbourhood_special_feature,
-      status: 'Pending',
-      neighbourhood_number_of_businesses: data.user_neighbourhood_number_of_businesses
-    })
-    .returning("*")
-    .catch((error) => {
+    const response = await trx("neighbourhood")
+      .insert({
+        neighbourhood_name: data.user_neighbourhood_name,
+        user_id: userId,
+        neighbourhood_city: data.user_neighbourhood_city,
+        neighbourhood_country: data.user_neighbourhood_country,
+        neighbourhood_post_code: data.user_neighbourhood_postal_code,
+        neighbourhood_area_code: data.user_neighbourhood_area_code,
+        neighbourhood_description: data.user_neighbourhood_description,
+        neighbourhood_special_features: data.user_neighbourhood_special_feature,
+        status: "Pending",
+        neighbourhood_number_of_businesses:
+          data.user_neighbourhood_number_of_businesses,
+      })
+      .returning("*")
+      .catch((error) => {
+        return { success: false, message: error };
+      });
 
-      return { success: false, message: error };
-    });
-
-     await db("applications")
-    .insert({
-    user_id: userId,
-    reason: "",
-    created_at: new Date(),
-    updated_at: new Date(),
-    type: "neighbourhood",
-    status: "Pending",
-    })
-    .returning("*")
-    .catch((error) => {
-      return { success: false, message: error };
-    });
+    await db("applications")
+      .insert({
+        user_id: userId,
+        reason: "",
+        created_at: new Date(),
+        updated_at: new Date(),
+        type: "neighbourhood",
+        status: "Pending",
+      })
+      .returning("*")
+      .catch((error) => {
+        return { success: false, message: error };
+      });
 
     await db("user_role_lookup")
-    .insert({
-    user_id: userId,
-    role_code: "NHP",
-    })
-    .returning("*")
-    .catch((error) => {
-      return { success: false, message: error };
-    });
-
+      .insert({
+        user_id: userId,
+        role_code: "NHP",
+      })
+      .returning("*")
+      .catch((error) => {
+        return { success: false, message: error };
+      });
   });
   return { success: true, details: "Success." };
 };
@@ -1755,8 +1758,6 @@ const getNeighbourhoodByPostalCode = async (postcode) => {
       return { success: false, message: error };
     });
 };
-
-
 
 module.exports = {
   getUserById,
@@ -1800,5 +1801,5 @@ module.exports = {
   getAllSubscriptionsByUserId,
   getValidSubscriptionsByUserId,
   addNeighbourhood,
-  getNeighbourhoodByPostalCode
+  getNeighbourhoodByPostalCode,
 };

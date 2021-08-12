@@ -1,10 +1,10 @@
-
-exports.up = function(knex) {
-  return knex.schema.table("subscriptions", tableBuilder => {
-    tableBuilder.string("subscription_type");
-  }).then(() => {
-    return knex("subscriptions").insert(
-      [
+exports.up = function (knex) {
+  return knex.schema
+    .table("subscriptions", (tableBuilder) => {
+      tableBuilder.string("subscription_type");
+    })
+    .then(() => {
+      return knex("subscriptions").insert([
         {
           subscription_code: "F_SEP_2020_S",
           subscription_name: "FESTIVAL_SEPTEMBER_2020_SINGLE",
@@ -13,7 +13,7 @@ exports.up = function(knex) {
           price: 25,
           description: "SEPTEMBER 2020 FESTIVAL PASS FOR SINGLE RESERVE",
           status: "ACTIVE",
-          subscription_type: "FESTIVAL"
+          subscription_type: "FESTIVAL",
         },
         {
           subscription_code: "F_SEP_2020_M",
@@ -23,15 +23,14 @@ exports.up = function(knex) {
           price: 50,
           description: "SEPTEMBER 2020 FESTIVAL PASS FOR MULTIPLE RESERVE",
           status: "ACTIVE",
-          subscription_type: "FESTIVAL"
-        }
-      ]
-    );
-  })
+          subscription_type: "FESTIVAL",
+        },
+      ]);
+    });
 };
 
-exports.down = function(knex) {
-  return knex.schema.table("subscriptions", tableBuilder => {
+exports.down = function (knex) {
+  return knex.schema.table("subscriptions", (tableBuilder) => {
     tableBuilder.dropColumn("subscription_type");
-  })
+  });
 };

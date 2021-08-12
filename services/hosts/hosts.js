@@ -41,7 +41,6 @@ const getHostApplications = async () => {
   }
 };
 
-
 // Get all applications helper function
 const getAllHostApplications = async () => {
   try {
@@ -369,7 +368,10 @@ const createHost = async (host_details, is_host, email) => {
         const db_preference = await trx("hosts")
           .insert(host_details)
           .returning("*");
-        console.log("db_preference from db call for host details:", db_preference)
+        console.log(
+          "db_preference from db call for host details:",
+          db_preference
+        );
         if (!db_preference) {
           return {
             success: false,

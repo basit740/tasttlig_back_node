@@ -559,14 +559,12 @@ router.get("/food-sample/nationalities", async (req, res) => {
       );
     });
 
-
     const response = await food_sample_service.getDistinctNationalities(
       status_operator,
       food_sample_status,
       keyword,
       alreadySelectedNationalityList
     );
-
 
     return res.send(response);
   } catch (error) {
@@ -590,8 +588,7 @@ router.get("/food-sample/user-nationalities", async (req, res) => {
         message: "Email already exists.",
       });
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 });
 
 // GET food sample by ID

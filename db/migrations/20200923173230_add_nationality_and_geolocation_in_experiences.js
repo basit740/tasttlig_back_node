@@ -1,6 +1,5 @@
-
-exports.up = function(knex) {
-  return knex.schema.table("experiences", table => {
+exports.up = function (knex) {
+  return knex.schema.table("experiences", (table) => {
     table
       .integer("nationality_id")
       .unsigned()
@@ -13,8 +12,8 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
-  return knex.schema.table("experiences", table => {
+exports.down = function (knex) {
+  return knex.schema.table("experiences", (table) => {
     table.dropColumn("nationality_id");
     table.dropColumn("coordinates");
     table.dropColumn("latitude");

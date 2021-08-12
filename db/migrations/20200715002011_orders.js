@@ -1,9 +1,12 @@
-
-exports.up = function(knex) {
-  return knex.schema.createTable("orders", table => {
+exports.up = function (knex) {
+  return knex.schema.createTable("orders", (table) => {
     table.increments("order_id").unsigned().primary();
-    table.integer("order_by_user_id").unsigned().index()
-      .references("tasttlig_user_id").inTable("tasttlig_users");
+    table
+      .integer("order_by_user_id")
+      .unsigned()
+      .index()
+      .references("tasttlig_user_id")
+      .inTable("tasttlig_users");
     table.string("status");
     table.string("phone");
     table.string("address");
@@ -20,6 +23,6 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
+exports.down = function (knex) {
   return knex.schema.dropTable("orders");
 };

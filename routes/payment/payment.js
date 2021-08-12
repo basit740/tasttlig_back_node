@@ -10,7 +10,7 @@ const food_sample_claim_service = require("../../services/food_sample_claim/food
 
 // POST Stripe payment
 router.post("/payment/stripe", async (req, res) => {
-  console.log("req coming from payment/strype: ", req.body)
+  console.log("req coming from payment/strype: ", req.body);
   if (!req.body.item_id || !req.body.item_type || !req.body.email) {
     return res.status(403).json({
       success: false,
@@ -22,7 +22,6 @@ router.post("/payment/stripe", async (req, res) => {
     const order_details = {
       item_id: req.body.item_id,
       item_type: req.body.item_type,
-      
     };
 
     const db_order_details = await user_order_service.getOrderDetails(
@@ -47,10 +46,10 @@ router.post("/payment/stripe", async (req, res) => {
       db_order_details,
       req.body.vendor_festivals
     );
-console.log("response from payment:", response)
+    console.log("response from payment:", response);
     return res.send(response);
   } catch (error) {
-    console.log("error from payment:", error)
+    console.log("error from payment:", error);
     res.send({
       success: false,
       message: error.message,
@@ -72,7 +71,7 @@ router.post("/payment/stripe/success", async (req, res) => {
     });
   }
 
-  console.log("req.body from payment successful pruive:", req.body)
+  console.log("req.body from payment successful pruive:", req.body);
 
   try {
     let db_user;
@@ -114,10 +113,8 @@ router.post("/payment/stripe/success", async (req, res) => {
     const response = await user_order_service.createOrder(
       order_details,
       db_order_details,
-      req.body.additionalEmail,
-      
+      req.body.additionalEmail
     );
-
 
     if (req.body.item_type === "food_sample") {
       const food_sample_claim_details = {
@@ -126,11 +123,12 @@ router.post("/payment/stripe/success", async (req, res) => {
         food_sample_id: db_order_details.item.food_sample_id,
       };
 
-      const food_claim_response = await food_sample_claim_service.createNewFoodSampleClaim(
-        db_user.user,
-        db_order_details.item,
-        food_sample_claim_details
-      );
+      const food_claim_response =
+        await food_sample_claim_service.createNewFoodSampleClaim(
+          db_user.user,
+          db_order_details.item,
+          food_sample_claim_details
+        );
 
       return res.send(food_claim_response);
     }
@@ -141,17 +139,17 @@ router.post("/payment/stripe/success", async (req, res) => {
         claim_user_id: db_user.user.tasttlig_user_id,
         claimed_product_id: db_order_details.item.product_id,
         current_stamp_status: "Claimed",
-        claimed_quantity:1,
+        claimed_quantity: 1,
         reserved_on: new Date(),
-
       };
-      const  quantityAfterClaim = 1;
-      const food_claim_response = await food_sample_claim_service.createNewProductClaim(
-        db_user.user,
-        db_order_details.item,
-        quantityAfterClaim,
-        food_sample_claim_details
-      );
+      const quantityAfterClaim = 1;
+      const food_claim_response =
+        await food_sample_claim_service.createNewProductClaim(
+          db_user.user,
+          db_order_details.item,
+          quantityAfterClaim,
+          food_sample_claim_details
+        );
       return res.send(food_claim_response);
     }
 
@@ -161,17 +159,17 @@ router.post("/payment/stripe/success", async (req, res) => {
         claim_user_id: db_user.user.tasttlig_user_id,
         claimed_experience_id: db_order_details.item.experience_id,
         current_stamp_status: "Claimed",
-        claimed_quantity:1,
+        claimed_quantity: 1,
         reserved_on: new Date(),
-
       };
-      const  quantityAfterClaim = 1;
-      const food_claim_response = await food_sample_claim_service.createNewProductClaim(
-        db_user.user,
-        db_order_details.item,
-        quantityAfterClaim,
-        food_sample_claim_details
-      );
+      const quantityAfterClaim = 1;
+      const food_claim_response =
+        await food_sample_claim_service.createNewProductClaim(
+          db_user.user,
+          db_order_details.item,
+          quantityAfterClaim,
+          food_sample_claim_details
+        );
       return res.send(food_claim_response);
     }
 
@@ -181,19 +179,19 @@ router.post("/payment/stripe/success", async (req, res) => {
         claim_user_id: db_user.user.tasttlig_user_id,
         claimed_service_id: db_order_details.item.service_id,
         current_stamp_status: "Claimed",
-        claimed_quantity:1,
+        claimed_quantity: 1,
         reserved_on: new Date(),
-
       };
-      
-      const  quantityAfterClaim = 1;
-      const food_claim_response = await food_sample_claim_service.createNewProductClaim(
-        db_user.user,
-        db_order_details.item,
-        quantityAfterClaim,
-        food_sample_claim_details
-      );
-      
+
+      const quantityAfterClaim = 1;
+      const food_claim_response =
+        await food_sample_claim_service.createNewProductClaim(
+          db_user.user,
+          db_order_details.item,
+          quantityAfterClaim,
+          food_sample_claim_details
+        );
+
       return res.send(food_claim_response);
     }
 
@@ -212,7 +210,6 @@ router.post("/payment/stripe/success", async (req, res) => {
     });
   }
 });
-
 
 // POST Stripe payment in shopping cart
 router.post("/payment/stripe/cart", async (req, res) => {
@@ -326,7 +323,8 @@ router.post("/payment/stripe/cart/success", async (req, res) => {
 // GET subscription details
 router.get("/vendor-subscription-details", async (req, res) => {
   try {
-    const vendor_subscription_details = await user_order_service.getVendorSubscriptionDetails();
+    const vendor_subscription_details =
+      await user_order_service.getVendorSubscriptionDetails();
 
     return res.send(vendor_subscription_details);
   } catch (error) {

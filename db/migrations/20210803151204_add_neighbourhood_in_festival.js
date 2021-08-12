@@ -1,15 +1,16 @@
-exports.up = function(knex) {
+exports.up = function (knex) {
   return knex.schema.alterTable("festivals", (table) => {
-    table.bigInteger("festival_neighbourhood_id")
+    table
+      .bigInteger("festival_neighbourhood_id")
       .unsigned()
       .index()
       .references("neighbourhood_id")
       .inTable("neighbourhood")
-      .onDelete("CASCADE")
+      .onDelete("CASCADE");
   });
 };
 
-exports.down = function(knex) {
+exports.down = function (knex) {
   return knex.schema.alterTable("festivals", (table) => {
     table.dropColumn("festival_neighbourhood_id");
   });

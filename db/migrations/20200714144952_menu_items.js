@@ -1,9 +1,12 @@
-
-exports.up = function(knex) {
-  return knex.schema.createTable("menu_items", table => {
+exports.up = function (knex) {
+  return knex.schema.createTable("menu_items", (table) => {
     table.increments("menu_item_id").unsigned().primary();
-    table.integer("menu_id").unsigned().index()
-      .references("menu_id").inTable("menus");
+    table
+      .integer("menu_id")
+      .unsigned()
+      .index()
+      .references("menu_id")
+      .inTable("menus");
     table.string("menu_item_code");
     table.string("image_url");
     table.string("name");
@@ -22,6 +25,6 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
+exports.down = function (knex) {
   return knex.schema.dropTable("menu_items");
 };

@@ -48,13 +48,13 @@ router.post(
       }
       let business_details_from_db;
       if (req.user) {
-        business_details_from_db = await authentication_service.getUserByBusinessDetails(
-          req.user.id
-        );
+        business_details_from_db =
+          await authentication_service.getUserByBusinessDetails(req.user.id);
       } else {
-        business_details_from_db = await authentication_service.getUserByBusinessDetails(
-          user_details_from_db.user.tasttlig_user_id
-        );
+        business_details_from_db =
+          await authentication_service.getUserByBusinessDetails(
+            user_details_from_db.user.tasttlig_user_id
+          );
       }
 
       let db_business_details = business_details_from_db.business_details;

@@ -35,7 +35,7 @@ const northAmerica = [
   "Turks and Caicos Island",
   "American",
   "British Virgin Island",
-  "U.S. Virgin Island"
+  "U.S. Virgin Island",
 ];
 
 // Get all ethnicities from Europe
@@ -93,7 +93,7 @@ const europe = [
   "Swiss",
   "Turkish",
   "Ukrainian",
-  "British"
+  "British",
 ];
 
 // Get all ethnicities from Asia
@@ -147,7 +147,7 @@ const asia = [
   "Emirati, Emirian, Emiri",
   "Uzbekistani, Uzbek",
   "Vietnamese",
-  "Yemeni"
+  "Yemeni",
 ];
 
 // Get all ethnicities from South America
@@ -171,7 +171,7 @@ const southAmerica = [
   "Surinamese",
   "Trinidadian or Tobagonian",
   "Uruguayan",
-  "Venezuelan"
+  "Venezuelan",
 ];
 
 // Get all ethnicities from Africa
@@ -231,7 +231,7 @@ const africa = [
   "Ugandan",
   "Sahrawi, Sahrawian, Sahraouian",
   "Zambian",
-  "Zimbabwean"
+  "Zimbabwean",
 ];
 
 // Get all ethnicities from Australia
@@ -260,7 +260,7 @@ const australia = [
   "Tongan",
   "Tuvaluan",
   "Ni-Vanuatu, Vanuatuan",
-  "Wallis and Futuna, Wallisian or Futunan"
+  "Wallis and Futuna, Wallisian or Futunan",
 ];
 
 const nationalities = [
@@ -270,7 +270,7 @@ const nationalities = [
     alpha_3_code: "AFG",
     en_short_name: "Afghanistan",
     nationality: "Afghan",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "248",
@@ -278,7 +278,7 @@ const nationalities = [
     alpha_3_code: "ALA",
     en_short_name: "\u00c5land Islands",
     nationality: "\u00c5land Island",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "8",
@@ -286,7 +286,7 @@ const nationalities = [
     alpha_3_code: "ALB",
     en_short_name: "Albania",
     nationality: "Albanian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "12",
@@ -294,7 +294,7 @@ const nationalities = [
     alpha_3_code: "DZA",
     en_short_name: "Algeria",
     nationality: "Algerian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "840",
@@ -302,7 +302,7 @@ const nationalities = [
     alpha_3_code: "USA",
     en_short_name: "United States of America",
     nationality: "American",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "16",
@@ -310,7 +310,7 @@ const nationalities = [
     alpha_3_code: "ASM",
     en_short_name: "American Samoa",
     nationality: "American Samoan",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "20",
@@ -318,7 +318,7 @@ const nationalities = [
     alpha_3_code: "AND",
     en_short_name: "Andorra",
     nationality: "Andorran",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "24",
@@ -326,7 +326,7 @@ const nationalities = [
     alpha_3_code: "AGO",
     en_short_name: "Angola",
     nationality: "Angolan",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "660",
@@ -334,7 +334,7 @@ const nationalities = [
     alpha_3_code: "AIA",
     en_short_name: "Anguilla",
     nationality: "Anguillan",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "28",
@@ -342,7 +342,7 @@ const nationalities = [
     alpha_3_code: "ATG",
     en_short_name: "Antigua and Barbuda",
     nationality: "Antiguan or Barbudan",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "32",
@@ -350,7 +350,7 @@ const nationalities = [
     alpha_3_code: "ARG",
     en_short_name: "Argentina",
     nationality: "Argentine",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "51",
@@ -358,7 +358,7 @@ const nationalities = [
     alpha_3_code: "ARM",
     en_short_name: "Armenia",
     nationality: "Armenian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "533",
@@ -366,7 +366,7 @@ const nationalities = [
     alpha_3_code: "ABW",
     en_short_name: "Aruba",
     nationality: "Aruban",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "36",
@@ -374,7 +374,7 @@ const nationalities = [
     alpha_3_code: "AUS",
     en_short_name: "Australia",
     nationality: "Australian",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "40",
@@ -382,7 +382,7 @@ const nationalities = [
     alpha_3_code: "AUT",
     en_short_name: "Austria",
     nationality: "Austrian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "31",
@@ -390,7 +390,7 @@ const nationalities = [
     alpha_3_code: "AZE",
     en_short_name: "Azerbaijan",
     nationality: "Azerbaijani, Azeri",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "44",
@@ -398,7 +398,7 @@ const nationalities = [
     alpha_3_code: "BHS",
     en_short_name: "Bahamas",
     nationality: "Bahamian",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "48",
@@ -406,7 +406,7 @@ const nationalities = [
     alpha_3_code: "BHR",
     en_short_name: "Bahrain",
     nationality: "Bahraini",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "50",
@@ -414,7 +414,7 @@ const nationalities = [
     alpha_3_code: "BGD",
     en_short_name: "Bangladesh",
     nationality: "Bangladeshi",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "52",
@@ -422,7 +422,7 @@ const nationalities = [
     alpha_3_code: "BRB",
     en_short_name: "Barbados",
     nationality: "Barbadian",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "112",
@@ -430,7 +430,7 @@ const nationalities = [
     alpha_3_code: "BLR",
     en_short_name: "Belarus",
     nationality: "Belarusian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "56",
@@ -438,7 +438,7 @@ const nationalities = [
     alpha_3_code: "BEL",
     en_short_name: "Belgium",
     nationality: "Belgian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "84",
@@ -446,7 +446,7 @@ const nationalities = [
     alpha_3_code: "BLZ",
     en_short_name: "Belize",
     nationality: "Belizean",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "204",
@@ -454,7 +454,7 @@ const nationalities = [
     alpha_3_code: "BEN",
     en_short_name: "Benin",
     nationality: "Beninese, Beninois",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "60",
@@ -462,7 +462,7 @@ const nationalities = [
     alpha_3_code: "BMU",
     en_short_name: "Bermuda",
     nationality: "Bermudian, Bermudan",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "64",
@@ -470,7 +470,7 @@ const nationalities = [
     alpha_3_code: "BTN",
     en_short_name: "Bhutan",
     nationality: "Bhutanese",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "86",
@@ -478,7 +478,7 @@ const nationalities = [
     alpha_3_code: "IOT",
     en_short_name: "British Indian Ocean Territory",
     nationality: "BIOT",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "68",
@@ -486,7 +486,7 @@ const nationalities = [
     alpha_3_code: "BOL",
     en_short_name: "Bolivia",
     nationality: "Bolivian",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "535",
@@ -494,7 +494,7 @@ const nationalities = [
     alpha_3_code: "BES",
     en_short_name: "Bonaire, Sint Eustatius, and Saba",
     nationality: "Bonaire",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "70",
@@ -502,7 +502,7 @@ const nationalities = [
     alpha_3_code: "BIH",
     en_short_name: "Bosnia and Herzegovina",
     nationality: "Bosnian or Herzegovinian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "72",
@@ -510,7 +510,7 @@ const nationalities = [
     alpha_3_code: "BWA",
     en_short_name: "Botswana",
     nationality: "Motswana, Botswanan",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "74",
@@ -518,7 +518,7 @@ const nationalities = [
     alpha_3_code: "BVT",
     en_short_name: "Bouvet Island",
     nationality: "Bouvet Island",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "76",
@@ -526,7 +526,7 @@ const nationalities = [
     alpha_3_code: "BRA",
     en_short_name: "Brazil",
     nationality: "Brazilian",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "826",
@@ -534,7 +534,7 @@ const nationalities = [
     alpha_3_code: "GBR",
     en_short_name: "United Kingdom",
     nationality: "British",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "96",
@@ -542,7 +542,7 @@ const nationalities = [
     alpha_3_code: "BRN",
     en_short_name: "Brunei",
     nationality: "Bruneian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "100",
@@ -550,7 +550,7 @@ const nationalities = [
     alpha_3_code: "BGR",
     en_short_name: "Bulgaria",
     nationality: "Bulgarian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "854",
@@ -558,7 +558,7 @@ const nationalities = [
     alpha_3_code: "BFA",
     en_short_name: "Burkina Faso",
     nationality: "Burkinab\u00e9",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "108",
@@ -566,7 +566,7 @@ const nationalities = [
     alpha_3_code: "BDI",
     en_short_name: "Burundi",
     nationality: "Burundian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "132",
@@ -574,7 +574,7 @@ const nationalities = [
     alpha_3_code: "CPV",
     en_short_name: "Cabo Verde",
     nationality: "Cabo Verdean",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "116",
@@ -582,7 +582,7 @@ const nationalities = [
     alpha_3_code: "KHM",
     en_short_name: "Cambodia",
     nationality: "Cambodian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "120",
@@ -590,7 +590,7 @@ const nationalities = [
     alpha_3_code: "CMR",
     en_short_name: "Cameroon",
     nationality: "Cameroonian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "124",
@@ -598,7 +598,7 @@ const nationalities = [
     alpha_3_code: "CAN",
     en_short_name: "Canada",
     nationality: "Canadian",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "136",
@@ -606,7 +606,7 @@ const nationalities = [
     alpha_3_code: "CYM",
     en_short_name: "Cayman Islands",
     nationality: "Caymanian",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "140",
@@ -614,7 +614,7 @@ const nationalities = [
     alpha_3_code: "CAF",
     en_short_name: "Central African Republic",
     nationality: "Central African",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "148",
@@ -622,7 +622,7 @@ const nationalities = [
     alpha_3_code: "TCD",
     en_short_name: "Chad",
     nationality: "Chadian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "152",
@@ -630,7 +630,7 @@ const nationalities = [
     alpha_3_code: "CHL",
     en_short_name: "Chile",
     nationality: "Chilean",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "156",
@@ -638,7 +638,7 @@ const nationalities = [
     alpha_3_code: "CHN",
     en_short_name: "China",
     nationality: "Chinese",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "162",
@@ -646,7 +646,7 @@ const nationalities = [
     alpha_3_code: "CXR",
     en_short_name: "Christmas Island",
     nationality: "Christmas Island",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "166",
@@ -654,7 +654,7 @@ const nationalities = [
     alpha_3_code: "CCK",
     en_short_name: "Cocos (Keeling) Islands",
     nationality: "Cocos Island",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "170",
@@ -662,7 +662,7 @@ const nationalities = [
     alpha_3_code: "COL",
     en_short_name: "Colombia",
     nationality: "Colombian",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "174",
@@ -670,7 +670,7 @@ const nationalities = [
     alpha_3_code: "COM",
     en_short_name: "Comoros",
     nationality: "Comoran, Comorian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "178",
@@ -678,7 +678,7 @@ const nationalities = [
     alpha_3_code: "COG",
     en_short_name: "Republic of the Congo",
     nationality: "Congolese",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "180",
@@ -686,7 +686,7 @@ const nationalities = [
     alpha_3_code: "COD",
     en_short_name: "Democratic Republic of the Congo",
     nationality: "Congolese",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "184",
@@ -694,7 +694,7 @@ const nationalities = [
     alpha_3_code: "COK",
     en_short_name: "Cook Islands",
     nationality: "Cook Island",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "188",
@@ -702,7 +702,7 @@ const nationalities = [
     alpha_3_code: "CRI",
     en_short_name: "Costa Rica",
     nationality: "Costa Rican",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "384",
@@ -710,7 +710,7 @@ const nationalities = [
     alpha_3_code: "CIV",
     en_short_name: "C\u00f4te d'Ivoire",
     nationality: "Ivorian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "191",
@@ -718,7 +718,7 @@ const nationalities = [
     alpha_3_code: "HRV",
     en_short_name: "Croatia",
     nationality: "Croatian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "192",
@@ -726,7 +726,7 @@ const nationalities = [
     alpha_3_code: "CUB",
     en_short_name: "Cuba",
     nationality: "Cuban",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "531",
@@ -734,7 +734,7 @@ const nationalities = [
     alpha_3_code: "CUW",
     en_short_name: "Cura\u00e7ao",
     nationality: "Cura\u00e7aoan",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "196",
@@ -742,7 +742,7 @@ const nationalities = [
     alpha_3_code: "CYP",
     en_short_name: "Cyprus",
     nationality: "Cypriot",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "203",
@@ -750,7 +750,7 @@ const nationalities = [
     alpha_3_code: "CZE",
     en_short_name: "Czech Republic",
     nationality: "Czech",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "208",
@@ -758,7 +758,7 @@ const nationalities = [
     alpha_3_code: "DNK",
     en_short_name: "Denmark",
     nationality: "Danish",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "262",
@@ -766,7 +766,7 @@ const nationalities = [
     alpha_3_code: "DJI",
     en_short_name: "Djibouti",
     nationality: "Djiboutian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "212",
@@ -774,7 +774,7 @@ const nationalities = [
     alpha_3_code: "DMA",
     en_short_name: "Dominica",
     nationality: "Dominican",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "214",
@@ -782,7 +782,7 @@ const nationalities = [
     alpha_3_code: "DOM",
     en_short_name: "Dominican Republic",
     nationality: "Dominican",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "218",
@@ -790,7 +790,7 @@ const nationalities = [
     alpha_3_code: "ECU",
     en_short_name: "Ecuador",
     nationality: "Ecuadorian",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "818",
@@ -798,7 +798,7 @@ const nationalities = [
     alpha_3_code: "EGY",
     en_short_name: "Egypt",
     nationality: "Egyptian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "222",
@@ -806,7 +806,7 @@ const nationalities = [
     alpha_3_code: "SLV",
     en_short_name: "El Salvador",
     nationality: "Salvadoran",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "226",
@@ -814,7 +814,7 @@ const nationalities = [
     alpha_3_code: "GNQ",
     en_short_name: "Equatorial Guinea",
     nationality: "Equatorial Guinean, Equatoguinean",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "232",
@@ -822,7 +822,7 @@ const nationalities = [
     alpha_3_code: "ERI",
     en_short_name: "Eritrea",
     nationality: "Eritrean",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "233",
@@ -830,7 +830,7 @@ const nationalities = [
     alpha_3_code: "EST",
     en_short_name: "Estonia",
     nationality: "Estonian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "231",
@@ -838,7 +838,7 @@ const nationalities = [
     alpha_3_code: "ETH",
     en_short_name: "Ethiopia",
     nationality: "Ethiopian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "238",
@@ -846,7 +846,7 @@ const nationalities = [
     alpha_3_code: "FLK",
     en_short_name: "Falkland Islands",
     nationality: "Falkland Island",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "234",
@@ -854,7 +854,7 @@ const nationalities = [
     alpha_3_code: "FRO",
     en_short_name: "Faroe Islands",
     nationality: "Faroese",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "242",
@@ -862,7 +862,7 @@ const nationalities = [
     alpha_3_code: "FJI",
     en_short_name: "Fiji",
     nationality: "Fijian",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "246",
@@ -870,7 +870,7 @@ const nationalities = [
     alpha_3_code: "FIN",
     en_short_name: "Finland",
     nationality: "Finnish",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "250",
@@ -878,7 +878,7 @@ const nationalities = [
     alpha_3_code: "FRA",
     en_short_name: "France",
     nationality: "French",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "254",
@@ -886,7 +886,7 @@ const nationalities = [
     alpha_3_code: "GUF",
     en_short_name: "French Guiana",
     nationality: "French Guianese",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "258",
@@ -894,7 +894,7 @@ const nationalities = [
     alpha_3_code: "PYF",
     en_short_name: "French Polynesia",
     nationality: "French Polynesian",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "266",
@@ -902,7 +902,7 @@ const nationalities = [
     alpha_3_code: "GAB",
     en_short_name: "Gabon",
     nationality: "Gabonese",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "270",
@@ -910,7 +910,7 @@ const nationalities = [
     alpha_3_code: "GMB",
     en_short_name: "Gambia",
     nationality: "Gambian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "268",
@@ -918,7 +918,7 @@ const nationalities = [
     alpha_3_code: "GEO",
     en_short_name: "Georgia",
     nationality: "Georgian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "276",
@@ -926,7 +926,7 @@ const nationalities = [
     alpha_3_code: "DEU",
     en_short_name: "Germany",
     nationality: "German",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "288",
@@ -934,7 +934,7 @@ const nationalities = [
     alpha_3_code: "GHA",
     en_short_name: "Ghana",
     nationality: "Ghanaian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "292",
@@ -942,7 +942,7 @@ const nationalities = [
     alpha_3_code: "GIB",
     en_short_name: "Gibraltar",
     nationality: "Gibraltar",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "300",
@@ -950,7 +950,7 @@ const nationalities = [
     alpha_3_code: "GRC",
     en_short_name: "Greece",
     nationality: "Greek",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "304",
@@ -958,7 +958,7 @@ const nationalities = [
     alpha_3_code: "GRL",
     en_short_name: "Greenland",
     nationality: "Greenlandic",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "308",
@@ -966,7 +966,7 @@ const nationalities = [
     alpha_3_code: "GRD",
     en_short_name: "Grenada",
     nationality: "Grenadian",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "312",
@@ -974,7 +974,7 @@ const nationalities = [
     alpha_3_code: "GLP",
     en_short_name: "Guadeloupe",
     nationality: "Guadeloupe",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "316",
@@ -982,7 +982,7 @@ const nationalities = [
     alpha_3_code: "GUM",
     en_short_name: "Guam",
     nationality: "Guamanian, Guambat",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "320",
@@ -990,7 +990,7 @@ const nationalities = [
     alpha_3_code: "GTM",
     en_short_name: "Guatemala",
     nationality: "Guatemalan",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "831",
@@ -998,7 +998,7 @@ const nationalities = [
     alpha_3_code: "GGY",
     en_short_name: "Guernsey",
     nationality: "Channel Island",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "324",
@@ -1006,7 +1006,7 @@ const nationalities = [
     alpha_3_code: "GIN",
     en_short_name: "Guinea",
     nationality: "Guinean",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "624",
@@ -1014,7 +1014,7 @@ const nationalities = [
     alpha_3_code: "GNB",
     en_short_name: "Guinea-Bissau",
     nationality: "Bissau-Guinean",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "328",
@@ -1022,7 +1022,7 @@ const nationalities = [
     alpha_3_code: "GUY",
     en_short_name: "Guyana",
     nationality: "Guyanese",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "332",
@@ -1030,7 +1030,7 @@ const nationalities = [
     alpha_3_code: "HTI",
     en_short_name: "Haiti",
     nationality: "Haitian",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "336",
@@ -1038,7 +1038,7 @@ const nationalities = [
     alpha_3_code: "VAT",
     en_short_name: "Vatican City",
     nationality: "Vatican",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "340",
@@ -1046,7 +1046,7 @@ const nationalities = [
     alpha_3_code: "HND",
     en_short_name: "Honduras",
     nationality: "Honduran",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "344",
@@ -1054,7 +1054,7 @@ const nationalities = [
     alpha_3_code: "HKG",
     en_short_name: "Hong Kong",
     nationality: "Hong Kongese",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "348",
@@ -1062,7 +1062,7 @@ const nationalities = [
     alpha_3_code: "HUN",
     en_short_name: "Hungary",
     nationality: "Hungarian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "352",
@@ -1070,7 +1070,7 @@ const nationalities = [
     alpha_3_code: "ISL",
     en_short_name: "Iceland",
     nationality: "Icelandic",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "356",
@@ -1078,7 +1078,7 @@ const nationalities = [
     alpha_3_code: "IND",
     en_short_name: "India",
     nationality: "Indian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "360",
@@ -1086,7 +1086,7 @@ const nationalities = [
     alpha_3_code: "IDN",
     en_short_name: "Indonesia",
     nationality: "Indonesian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "364",
@@ -1094,7 +1094,7 @@ const nationalities = [
     alpha_3_code: "IRN",
     en_short_name: "Iran",
     nationality: "Iranian, Persian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "368",
@@ -1102,7 +1102,7 @@ const nationalities = [
     alpha_3_code: "IRQ",
     en_short_name: "Iraq",
     nationality: "Iraqi",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "372",
@@ -1110,7 +1110,7 @@ const nationalities = [
     alpha_3_code: "IRL",
     en_short_name: "Ireland",
     nationality: "Irish",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "833",
@@ -1118,7 +1118,7 @@ const nationalities = [
     alpha_3_code: "IMN",
     en_short_name: "Isle of Man",
     nationality: "Manx",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "376",
@@ -1126,7 +1126,7 @@ const nationalities = [
     alpha_3_code: "ISR",
     en_short_name: "Israel",
     nationality: "Israeli",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "380",
@@ -1134,7 +1134,7 @@ const nationalities = [
     alpha_3_code: "ITA",
     en_short_name: "Italy",
     nationality: "Italian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "388",
@@ -1142,7 +1142,7 @@ const nationalities = [
     alpha_3_code: "JAM",
     en_short_name: "Jamaica",
     nationality: "Jamaican",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "392",
@@ -1150,7 +1150,7 @@ const nationalities = [
     alpha_3_code: "JPN",
     en_short_name: "Japan",
     nationality: "Japanese",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "832",
@@ -1158,7 +1158,7 @@ const nationalities = [
     alpha_3_code: "JEY",
     en_short_name: "Jersey",
     nationality: "Channel Island",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "400",
@@ -1166,7 +1166,7 @@ const nationalities = [
     alpha_3_code: "JOR",
     en_short_name: "Jordan",
     nationality: "Jordanian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "398",
@@ -1174,7 +1174,7 @@ const nationalities = [
     alpha_3_code: "KAZ",
     en_short_name: "Kazakhstan",
     nationality: "Kazakhstani, Kazakh",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "404",
@@ -1182,7 +1182,7 @@ const nationalities = [
     alpha_3_code: "KEN",
     en_short_name: "Kenya",
     nationality: "Kenyan",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "296",
@@ -1190,7 +1190,7 @@ const nationalities = [
     alpha_3_code: "KIR",
     en_short_name: "Kiribati",
     nationality: "I-Kiribati",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "408",
@@ -1198,7 +1198,7 @@ const nationalities = [
     alpha_3_code: "PRK",
     en_short_name: "North Korea",
     nationality: "North Korean",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "410",
@@ -1206,7 +1206,7 @@ const nationalities = [
     alpha_3_code: "KOR",
     en_short_name: "South Korea",
     nationality: "South Korean",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "414",
@@ -1214,7 +1214,7 @@ const nationalities = [
     alpha_3_code: "KWT",
     en_short_name: "Kuwait",
     nationality: "Kuwaiti",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "417",
@@ -1222,7 +1222,7 @@ const nationalities = [
     alpha_3_code: "KGZ",
     en_short_name: "Kyrgyzstan",
     nationality: "Kyrgyzstani, Kyrgyz, Kirgiz, Kirghiz",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "418",
@@ -1230,7 +1230,7 @@ const nationalities = [
     alpha_3_code: "LAO",
     en_short_name: "Laos",
     nationality: "Lao, Laotian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "428",
@@ -1238,7 +1238,7 @@ const nationalities = [
     alpha_3_code: "LVA",
     en_short_name: "Latvia",
     nationality: "Latvian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "422",
@@ -1246,7 +1246,7 @@ const nationalities = [
     alpha_3_code: "LBN",
     en_short_name: "Lebanon",
     nationality: "Lebanese",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "426",
@@ -1254,7 +1254,7 @@ const nationalities = [
     alpha_3_code: "LSO",
     en_short_name: "Lesotho",
     nationality: "Basotho",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "430",
@@ -1262,7 +1262,7 @@ const nationalities = [
     alpha_3_code: "LBR",
     en_short_name: "Liberia",
     nationality: "Liberian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "434",
@@ -1270,7 +1270,7 @@ const nationalities = [
     alpha_3_code: "LBY",
     en_short_name: "Libya",
     nationality: "Libyan",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "438",
@@ -1278,7 +1278,7 @@ const nationalities = [
     alpha_3_code: "LIE",
     en_short_name: "Liechtenstein",
     nationality: "Liechtenstein",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "440",
@@ -1286,7 +1286,7 @@ const nationalities = [
     alpha_3_code: "LTU",
     en_short_name: "Lithuania",
     nationality: "Lithuanian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "442",
@@ -1294,7 +1294,7 @@ const nationalities = [
     alpha_3_code: "LUX",
     en_short_name: "Luxembourg",
     nationality: "Luxembourg, Luxembourgish",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "446",
@@ -1302,7 +1302,7 @@ const nationalities = [
     alpha_3_code: "MAC",
     en_short_name: "Macao",
     nationality: "Macanese",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "807",
@@ -1310,7 +1310,7 @@ const nationalities = [
     alpha_3_code: "MKD",
     en_short_name: "Macedonia",
     nationality: "Macedonian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "450",
@@ -1318,7 +1318,7 @@ const nationalities = [
     alpha_3_code: "MDG",
     en_short_name: "Madagascar",
     nationality: "Malagasy",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "454",
@@ -1326,7 +1326,7 @@ const nationalities = [
     alpha_3_code: "MWI",
     en_short_name: "Malawi",
     nationality: "Malawian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "458",
@@ -1334,7 +1334,7 @@ const nationalities = [
     alpha_3_code: "MYS",
     en_short_name: "Malaysia",
     nationality: "Malaysian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "462",
@@ -1342,7 +1342,7 @@ const nationalities = [
     alpha_3_code: "MDV",
     en_short_name: "Maldives",
     nationality: "Maldivian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "466",
@@ -1350,7 +1350,7 @@ const nationalities = [
     alpha_3_code: "MLI",
     en_short_name: "Mali",
     nationality: "Malian, Malinese",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "470",
@@ -1358,7 +1358,7 @@ const nationalities = [
     alpha_3_code: "MLT",
     en_short_name: "Malta",
     nationality: "Maltese",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "584",
@@ -1366,7 +1366,7 @@ const nationalities = [
     alpha_3_code: "MHL",
     en_short_name: "Marshall Islands",
     nationality: "Marshallese",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "474",
@@ -1374,7 +1374,7 @@ const nationalities = [
     alpha_3_code: "MTQ",
     en_short_name: "Martinique",
     nationality: "Martiniquais, Martinican",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "478",
@@ -1382,7 +1382,7 @@ const nationalities = [
     alpha_3_code: "MRT",
     en_short_name: "Mauritania",
     nationality: "Mauritanian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "480",
@@ -1390,7 +1390,7 @@ const nationalities = [
     alpha_3_code: "MUS",
     en_short_name: "Mauritius",
     nationality: "Mauritian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "175",
@@ -1398,7 +1398,7 @@ const nationalities = [
     alpha_3_code: "MYT",
     en_short_name: "Mayotte",
     nationality: "Mahoran",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "484",
@@ -1406,7 +1406,7 @@ const nationalities = [
     alpha_3_code: "MEX",
     en_short_name: "Mexico",
     nationality: "Mexican",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "583",
@@ -1414,7 +1414,7 @@ const nationalities = [
     alpha_3_code: "FSM",
     en_short_name: "Federated States of Micronesia",
     nationality: "Micronesian",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "498",
@@ -1422,7 +1422,7 @@ const nationalities = [
     alpha_3_code: "MDA",
     en_short_name: "Moldova",
     nationality: "Moldovan",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "492",
@@ -1430,7 +1430,7 @@ const nationalities = [
     alpha_3_code: "MCO",
     en_short_name: "Monaco",
     nationality: "Mon\u00e9gasque, Monacan",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "496",
@@ -1438,7 +1438,7 @@ const nationalities = [
     alpha_3_code: "MNG",
     en_short_name: "Mongolia",
     nationality: "Mongolian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "499",
@@ -1446,7 +1446,7 @@ const nationalities = [
     alpha_3_code: "MNE",
     en_short_name: "Montenegro",
     nationality: "Montenegrin",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "500",
@@ -1454,7 +1454,7 @@ const nationalities = [
     alpha_3_code: "MSR",
     en_short_name: "Montserrat",
     nationality: "Montserratian",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "504",
@@ -1462,7 +1462,7 @@ const nationalities = [
     alpha_3_code: "MAR",
     en_short_name: "Morocco",
     nationality: "Moroccan",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "508",
@@ -1470,7 +1470,7 @@ const nationalities = [
     alpha_3_code: "MOZ",
     en_short_name: "Mozambique",
     nationality: "Mozambican",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "104",
@@ -1478,7 +1478,7 @@ const nationalities = [
     alpha_3_code: "MMR",
     en_short_name: "Myanmar",
     nationality: "Burmese",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "516",
@@ -1486,7 +1486,7 @@ const nationalities = [
     alpha_3_code: "NAM",
     en_short_name: "Namibia",
     nationality: "Namibian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "520",
@@ -1494,7 +1494,7 @@ const nationalities = [
     alpha_3_code: "NRU",
     en_short_name: "Nauru",
     nationality: "Nauruan",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "524",
@@ -1502,7 +1502,7 @@ const nationalities = [
     alpha_3_code: "NPL",
     en_short_name: "Nepal",
     nationality: "Nepali, Nepalese",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "528",
@@ -1510,7 +1510,7 @@ const nationalities = [
     alpha_3_code: "NLD",
     en_short_name: "Netherlands",
     nationality: "Dutch, Netherlandic",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "540",
@@ -1518,7 +1518,7 @@ const nationalities = [
     alpha_3_code: "NCL",
     en_short_name: "New Caledonia",
     nationality: "New Caledonian",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "554",
@@ -1526,7 +1526,7 @@ const nationalities = [
     alpha_3_code: "NZL",
     en_short_name: "New Zealand",
     nationality: "New Zealander",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "558",
@@ -1534,7 +1534,7 @@ const nationalities = [
     alpha_3_code: "NIC",
     en_short_name: "Nicaragua",
     nationality: "Nicaraguan",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "562",
@@ -1542,7 +1542,7 @@ const nationalities = [
     alpha_3_code: "NER",
     en_short_name: "Niger",
     nationality: "Nigerien",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "566",
@@ -1550,7 +1550,7 @@ const nationalities = [
     alpha_3_code: "NGA",
     en_short_name: "Nigeria",
     nationality: "Nigerian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "570",
@@ -1558,7 +1558,7 @@ const nationalities = [
     alpha_3_code: "NIU",
     en_short_name: "Niue",
     nationality: "Niuean",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "574",
@@ -1566,7 +1566,7 @@ const nationalities = [
     alpha_3_code: "NFK",
     en_short_name: "Norfolk Island",
     nationality: "Norfolk Island",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "580",
@@ -1574,7 +1574,7 @@ const nationalities = [
     alpha_3_code: "MNP",
     en_short_name: "Northern Mariana Islands",
     nationality: "Northern Marianan",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "578",
@@ -1582,7 +1582,7 @@ const nationalities = [
     alpha_3_code: "NOR",
     en_short_name: "Norway",
     nationality: "Norwegian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "512",
@@ -1590,7 +1590,7 @@ const nationalities = [
     alpha_3_code: "OMN",
     en_short_name: "Oman",
     nationality: "Omani",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "586",
@@ -1598,7 +1598,7 @@ const nationalities = [
     alpha_3_code: "PAK",
     en_short_name: "Pakistan",
     nationality: "Pakistani",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "585",
@@ -1606,7 +1606,7 @@ const nationalities = [
     alpha_3_code: "PLW",
     en_short_name: "Palau",
     nationality: "Palauan",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "275",
@@ -1614,7 +1614,7 @@ const nationalities = [
     alpha_3_code: "PSE",
     en_short_name: "State of Palestine",
     nationality: "Palestinian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "591",
@@ -1622,7 +1622,7 @@ const nationalities = [
     alpha_3_code: "PAN",
     en_short_name: "Panama",
     nationality: "Panamanian",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "598",
@@ -1630,7 +1630,7 @@ const nationalities = [
     alpha_3_code: "PNG",
     en_short_name: "Papua New Guinea",
     nationality: "Papua New Guinean, Papuan",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "600",
@@ -1638,7 +1638,7 @@ const nationalities = [
     alpha_3_code: "PRY",
     en_short_name: "Paraguay",
     nationality: "Paraguayan",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "604",
@@ -1646,7 +1646,7 @@ const nationalities = [
     alpha_3_code: "PER",
     en_short_name: "Peru",
     nationality: "Peruvian",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "608",
@@ -1654,7 +1654,7 @@ const nationalities = [
     alpha_3_code: "PHL",
     en_short_name: "Philippines",
     nationality: "Philippine, Filipino",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "612",
@@ -1662,7 +1662,7 @@ const nationalities = [
     alpha_3_code: "PCN",
     en_short_name: "Pitcairn",
     nationality: "Pitcairn Island",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "616",
@@ -1670,7 +1670,7 @@ const nationalities = [
     alpha_3_code: "POL",
     en_short_name: "Poland",
     nationality: "Polish",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "620",
@@ -1678,7 +1678,7 @@ const nationalities = [
     alpha_3_code: "PRT",
     en_short_name: "Portugal",
     nationality: "Portuguese",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "630",
@@ -1686,7 +1686,7 @@ const nationalities = [
     alpha_3_code: "PRI",
     en_short_name: "Puerto Rico",
     nationality: "Puerto Rican",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "634",
@@ -1694,7 +1694,7 @@ const nationalities = [
     alpha_3_code: "QAT",
     en_short_name: "Qatar",
     nationality: "Qatari",
-    continent: "Asia"
+    continent: "Asia",
   },
 
   {
@@ -1703,7 +1703,7 @@ const nationalities = [
     alpha_3_code: "ROU",
     en_short_name: "Romania",
     nationality: "Romanian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "643",
@@ -1711,7 +1711,7 @@ const nationalities = [
     alpha_3_code: "RUS",
     en_short_name: "Russia",
     nationality: "Russian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "646",
@@ -1719,7 +1719,7 @@ const nationalities = [
     alpha_3_code: "RWA",
     en_short_name: "Rwanda",
     nationality: "Rwandan",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "652",
@@ -1727,7 +1727,7 @@ const nationalities = [
     alpha_3_code: "BLM",
     en_short_name: "Saint Barth\u00e9lemy",
     nationality: "Barth\u00e9lemois",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "654",
@@ -1735,7 +1735,7 @@ const nationalities = [
     alpha_3_code: "SHN",
     en_short_name: "Saint Helena, Ascension, and Tristan da Cunha",
     nationality: "Saint Helenian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "659",
@@ -1743,7 +1743,7 @@ const nationalities = [
     alpha_3_code: "KNA",
     en_short_name: "Saint Kitts and Nevis",
     nationality: "Kittitian or Nevisian",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "662",
@@ -1751,7 +1751,7 @@ const nationalities = [
     alpha_3_code: "LCA",
     en_short_name: "Saint Lucia",
     nationality: "Saint Lucian",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "663",
@@ -1759,7 +1759,7 @@ const nationalities = [
     alpha_3_code: "MAF",
     en_short_name: "Saint Martin",
     nationality: "Saint-Martinoise",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "666",
@@ -1767,7 +1767,7 @@ const nationalities = [
     alpha_3_code: "SPM",
     en_short_name: "Saint Pierre and Miquelon",
     nationality: "Saint-Pierrais or Miquelonnais",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "670",
@@ -1775,7 +1775,7 @@ const nationalities = [
     alpha_3_code: "VCT",
     en_short_name: "Saint Vincent and the Grenadines",
     nationality: "Saint Vincentian, Vincentian",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "882",
@@ -1783,7 +1783,7 @@ const nationalities = [
     alpha_3_code: "WSM",
     en_short_name: "Samoa",
     nationality: "Samoan",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "674",
@@ -1791,7 +1791,7 @@ const nationalities = [
     alpha_3_code: "SMR",
     en_short_name: "San Marino",
     nationality: "Sammarinese",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "678",
@@ -1799,7 +1799,7 @@ const nationalities = [
     alpha_3_code: "STP",
     en_short_name: "Sao Tome and Principe",
     nationality: "S\u00e3o Tom\u00e9an",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "682",
@@ -1807,7 +1807,7 @@ const nationalities = [
     alpha_3_code: "SAU",
     en_short_name: "Saudi Arabia",
     nationality: "Saudi, Saudi Arabian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "686",
@@ -1815,7 +1815,7 @@ const nationalities = [
     alpha_3_code: "SEN",
     en_short_name: "Senegal",
     nationality: "Senegalese",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "688",
@@ -1823,7 +1823,7 @@ const nationalities = [
     alpha_3_code: "SRB",
     en_short_name: "Serbia",
     nationality: "Serbian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "690",
@@ -1831,7 +1831,7 @@ const nationalities = [
     alpha_3_code: "SYC",
     en_short_name: "Seychelles",
     nationality: "Seychellois",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "694",
@@ -1839,7 +1839,7 @@ const nationalities = [
     alpha_3_code: "SLE",
     en_short_name: "Sierra Leone",
     nationality: "Sierra Leonean",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "702",
@@ -1847,7 +1847,7 @@ const nationalities = [
     alpha_3_code: "SGP",
     en_short_name: "Singapore",
     nationality: "Singaporean",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "534",
@@ -1855,7 +1855,7 @@ const nationalities = [
     alpha_3_code: "SXM",
     en_short_name: "Sint Maarten",
     nationality: "Sint Maarten",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "703",
@@ -1863,7 +1863,7 @@ const nationalities = [
     alpha_3_code: "SVK",
     en_short_name: "Slovakia",
     nationality: "Slovak",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "705",
@@ -1871,7 +1871,7 @@ const nationalities = [
     alpha_3_code: "SVN",
     en_short_name: "Slovenia",
     nationality: "Slovenian, Slovene",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "90",
@@ -1879,7 +1879,7 @@ const nationalities = [
     alpha_3_code: "SLB",
     en_short_name: "Solomon Islands",
     nationality: "Solomon Island",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "706",
@@ -1887,7 +1887,7 @@ const nationalities = [
     alpha_3_code: "SOM",
     en_short_name: "Somalia",
     nationality: "Somali, Somalian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "710",
@@ -1895,7 +1895,7 @@ const nationalities = [
     alpha_3_code: "ZAF",
     en_short_name: "South Africa",
     nationality: "South African",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "239",
@@ -1903,7 +1903,7 @@ const nationalities = [
     alpha_3_code: "SGS",
     en_short_name: "South Georgia and the South Sandwich Islands",
     nationality: "South Georgia, South Sandwich Islands",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "728",
@@ -1911,7 +1911,7 @@ const nationalities = [
     alpha_3_code: "SSD",
     en_short_name: "South Sudan",
     nationality: "South Sudanese",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "724",
@@ -1919,7 +1919,7 @@ const nationalities = [
     alpha_3_code: "ESP",
     en_short_name: "Spain",
     nationality: "Spanish",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "144",
@@ -1927,7 +1927,7 @@ const nationalities = [
     alpha_3_code: "LKA",
     en_short_name: "Sri Lanka",
     nationality: "Sri Lankan",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "729",
@@ -1935,7 +1935,7 @@ const nationalities = [
     alpha_3_code: "SDN",
     en_short_name: "Sudan",
     nationality: "Sudanese",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "740",
@@ -1943,7 +1943,7 @@ const nationalities = [
     alpha_3_code: "SUR",
     en_short_name: "Suriname",
     nationality: "Surinamese",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "744",
@@ -1951,7 +1951,7 @@ const nationalities = [
     alpha_3_code: "SJM",
     en_short_name: "Svalbard and Jan Mayen",
     nationality: "Svalbard",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "748",
@@ -1959,7 +1959,7 @@ const nationalities = [
     alpha_3_code: "SWZ",
     en_short_name: "Swaziland",
     nationality: "Swazi",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "752",
@@ -1967,7 +1967,7 @@ const nationalities = [
     alpha_3_code: "SWE",
     en_short_name: "Sweden",
     nationality: "Swedish",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "756",
@@ -1975,7 +1975,7 @@ const nationalities = [
     alpha_3_code: "CHE",
     en_short_name: "Switzerland",
     nationality: "Swiss",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "760",
@@ -1983,7 +1983,7 @@ const nationalities = [
     alpha_3_code: "SYR",
     en_short_name: "Syria",
     nationality: "Syrian",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "158",
@@ -1991,7 +1991,7 @@ const nationalities = [
     alpha_3_code: "TWN",
     en_short_name: "Taiwan",
     nationality: "Taiwanese",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "762",
@@ -1999,7 +1999,7 @@ const nationalities = [
     alpha_3_code: "TJK",
     en_short_name: "Tajikistan",
     nationality: "Tajikistani",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "834",
@@ -2007,7 +2007,7 @@ const nationalities = [
     alpha_3_code: "TZA",
     en_short_name: "Tanzania",
     nationality: "Tanzanian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "764",
@@ -2015,7 +2015,7 @@ const nationalities = [
     alpha_3_code: "THA",
     en_short_name: "Thailand",
     nationality: "Thai",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "626",
@@ -2023,7 +2023,7 @@ const nationalities = [
     alpha_3_code: "TLS",
     en_short_name: "Timor-Leste",
     nationality: "Timorese",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "768",
@@ -2031,7 +2031,7 @@ const nationalities = [
     alpha_3_code: "TGO",
     en_short_name: "Togo",
     nationality: "Togolese",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "772",
@@ -2039,7 +2039,7 @@ const nationalities = [
     alpha_3_code: "TKL",
     en_short_name: "Tokelau",
     nationality: "Tokelauan",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "776",
@@ -2047,7 +2047,7 @@ const nationalities = [
     alpha_3_code: "TON",
     en_short_name: "Tonga",
     nationality: "Tongan",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "780",
@@ -2055,7 +2055,7 @@ const nationalities = [
     alpha_3_code: "TTO",
     en_short_name: "Trinidad and Tobago",
     nationality: "Trinidadian or Tobagonian",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "788",
@@ -2063,7 +2063,7 @@ const nationalities = [
     alpha_3_code: "TUN",
     en_short_name: "Tunisia",
     nationality: "Tunisian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "792",
@@ -2071,7 +2071,7 @@ const nationalities = [
     alpha_3_code: "TUR",
     en_short_name: "Turkey",
     nationality: "Turkish",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "795",
@@ -2079,7 +2079,7 @@ const nationalities = [
     alpha_3_code: "TKM",
     en_short_name: "Turkmenistan",
     nationality: "Turkmen",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "796",
@@ -2087,7 +2087,7 @@ const nationalities = [
     alpha_3_code: "TCA",
     en_short_name: "Turks and Caicos Islands",
     nationality: "Turks and Caicos Island",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "798",
@@ -2095,7 +2095,7 @@ const nationalities = [
     alpha_3_code: "TUV",
     en_short_name: "Tuvalu",
     nationality: "Tuvaluan",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "800",
@@ -2103,7 +2103,7 @@ const nationalities = [
     alpha_3_code: "UGA",
     en_short_name: "Uganda",
     nationality: "Ugandan",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "804",
@@ -2111,7 +2111,7 @@ const nationalities = [
     alpha_3_code: "UKR",
     en_short_name: "Ukraine",
     nationality: "Ukrainian",
-    continent: "Europe"
+    continent: "Europe",
   },
   {
     num_code: "784",
@@ -2119,7 +2119,7 @@ const nationalities = [
     alpha_3_code: "ARE",
     en_short_name: "United Arab Emirates",
     nationality: "Emirati, Emirian, Emiri",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "858",
@@ -2127,7 +2127,7 @@ const nationalities = [
     alpha_3_code: "URY",
     en_short_name: "Uruguay",
     nationality: "Uruguayan",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "860",
@@ -2135,7 +2135,7 @@ const nationalities = [
     alpha_3_code: "UZB",
     en_short_name: "Uzbekistan",
     nationality: "Uzbekistani, Uzbek",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "548",
@@ -2143,7 +2143,7 @@ const nationalities = [
     alpha_3_code: "VUT",
     en_short_name: "Vanuatu",
     nationality: "Ni-Vanuatu, Vanuatuan",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "862",
@@ -2151,7 +2151,7 @@ const nationalities = [
     alpha_3_code: "VEN",
     en_short_name: "Venezuela",
     nationality: "Venezuelan",
-    continent: "South America"
+    continent: "South America",
   },
   {
     num_code: "704",
@@ -2159,7 +2159,7 @@ const nationalities = [
     alpha_3_code: "VNM",
     en_short_name: "Vietnam",
     nationality: "Vietnamese",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "92",
@@ -2167,7 +2167,7 @@ const nationalities = [
     alpha_3_code: "VGB",
     en_short_name: "British Virgin Islands",
     nationality: "British Virgin Island",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "850",
@@ -2175,7 +2175,7 @@ const nationalities = [
     alpha_3_code: "VIR",
     en_short_name: "U.S. Virgin Islands",
     nationality: "U.S. Virgin Island",
-    continent: "North America"
+    continent: "North America",
   },
   {
     num_code: "876",
@@ -2183,7 +2183,7 @@ const nationalities = [
     alpha_3_code: "WLF",
     en_short_name: "Wallis and Futuna",
     nationality: "Wallis and Futuna, Wallisian or Futunan",
-    continent: "Australia"
+    continent: "Australia",
   },
   {
     num_code: "732",
@@ -2191,7 +2191,7 @@ const nationalities = [
     alpha_3_code: "ESH",
     en_short_name: "Western Sahara",
     nationality: "Sahrawi, Sahrawian, Sahraouian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "887",
@@ -2199,7 +2199,7 @@ const nationalities = [
     alpha_3_code: "YEM",
     en_short_name: "Yemen",
     nationality: "Yemeni",
-    continent: "Asia"
+    continent: "Asia",
   },
   {
     num_code: "894",
@@ -2207,7 +2207,7 @@ const nationalities = [
     alpha_3_code: "ZMB",
     en_short_name: "Zambia",
     nationality: "Zambian",
-    continent: "Africa"
+    continent: "Africa",
   },
   {
     num_code: "716",
@@ -2215,8 +2215,8 @@ const nationalities = [
     alpha_3_code: "ZWE",
     en_short_name: "Zimbabwe",
     nationality: "Zimbabwean",
-    continent: "Africa"
-  }
+    continent: "Africa",
+  },
 ];
 
 module.exports = {
@@ -2226,5 +2226,5 @@ module.exports = {
   europe,
   northAmerica,
   southAmerica,
-  nationalities
-}
+  nationalities,
+};

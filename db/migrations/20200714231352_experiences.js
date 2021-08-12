@@ -1,9 +1,12 @@
-
-exports.up = function(knex) {
-  return knex.schema.createTable("experiences", table => {
+exports.up = function (knex) {
+  return knex.schema.createTable("experiences", (table) => {
     table.increments("experience_id").unsigned().primary();
-    table.integer("experience_creator_user_id").unsigned().index()
-      .references("tasttlig_user_id").inTable("tasttlig_users");
+    table
+      .integer("experience_creator_user_id")
+      .unsigned()
+      .index()
+      .references("tasttlig_user_id")
+      .inTable("tasttlig_users");
     table.string("title");
     table.decimal("price");
     table.string("category");
@@ -25,6 +28,6 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
+exports.down = function (knex) {
   return knex.schema.dropTable("experiences");
 };

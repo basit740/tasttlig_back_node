@@ -41,9 +41,8 @@ router.get("/subscription/:userId", async (req, res) => {
   const user_id = req.params.userId;
 
   try {
-    const db_subscription_details = await user_profile_service.getVendorUserBySubscriptionId(
-      user_id
-    );
+    const db_subscription_details =
+      await user_profile_service.getVendorUserBySubscriptionId(user_id);
 
     return res.send(db_subscription_details);
   } catch (error) {
@@ -63,13 +62,13 @@ router.post(
     const user_subscription_id = req.body.user_subscription_id;
 
     try {
-      const db_subscription_details = await subscription_service.addFestivalToUserSubscription(
-        festival_id,
-        user_subscription_id
-      );
-      const business_details = await authentication_service.getUserByBusinessDetails(
-        user_id
-      );
+      const db_subscription_details =
+        await subscription_service.addFestivalToUserSubscription(
+          festival_id,
+          user_subscription_id
+        );
+      const business_details =
+        await authentication_service.getUserByBusinessDetails(user_id);
       if (!business_details.success) {
         return res.status(403).json({
           success: false,

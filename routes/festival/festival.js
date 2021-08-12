@@ -73,7 +73,6 @@ router.get("/festival/all", async (req, res) => {
   }
 });
 
-
 // GET all festivals (including expired ones)from a specific user
 router.get("/festivals/:user_id", async (req, res) => {
   if (!req.params.user_id) {
@@ -123,14 +122,11 @@ router.get("/host-festivals/:user_id", async (req, res) => {
     });
   }
   try {
-
     const filters = {
       user_id: req.query.user_id,
     };
 
-    const response = await festival_service.getAllHostFestivalList(
-      filters
-    );
+    const response = await festival_service.getAllHostFestivalList(filters);
     console.log("response", response);
     return res.send(response);
   } catch (error) {
@@ -141,7 +137,6 @@ router.get("/host-festivals/:user_id", async (req, res) => {
     });
   }
 });
-
 
 router.get("/festival/allFestival", async (req, res) => {
   try {
@@ -311,8 +306,8 @@ router.get("/sponsors/festival/:festival_id", async (req, res) => {
       success: false,
       message: "Required parameters are not available in request.",
     });
-  } 
-  console.log("req from the host-sponsor/festivals:", req)
+  }
+  console.log("req from the host-sponsor/festivals:", req);
 
   try {
     const sponsors = [];
@@ -346,8 +341,8 @@ router.get("/partners/festival/:festival_id", async (req, res) => {
       success: false,
       message: "Required parameters are not available in request.",
     });
-  } 
-  console.log("req from the host-sponsor/festivals:", req)
+  }
+  console.log("req from the host-sponsor/festivals:", req);
 
   try {
     const sponsors = [];
@@ -374,10 +369,8 @@ router.get("/partners/festival/:festival_id", async (req, res) => {
   }
 });
 
-
 // GET sponsors in specific festival
 router.get("/hostsponsors/festival/:user_id", async (req, res) => {
-
   try {
     const sponsors = [];
 
@@ -385,22 +378,21 @@ router.get("/hostsponsors/festival/:user_id", async (req, res) => {
       user_id: req.query.user_id,
     };
 
-    const response = await festival_service.getAllHostFestivalList(
-  
-      filters
-    );
+    const response = await festival_service.getAllHostFestivalList(filters);
 
-    for(let item of response.details) {
-      if(item.festival_business_sponsor_id && item.festival_business_sponsor_id !== null){
-
+    for (let item of response.details) {
+      if (
+        item.festival_business_sponsor_id &&
+        item.festival_business_sponsor_id !== null
+      ) {
         for (let sponsor of item.festival_business_sponsor_id) {
           const list = await user_profile_service.getUserById(sponsor);
-    
+
           if (list.user) {
             sponsors.push(list.user);
           }
         }
-      } 
+      }
     }
 
     return res.send(sponsors);
@@ -415,7 +407,6 @@ router.get("/hostsponsors/festival/:user_id", async (req, res) => {
 
 // GET vendors in specific festival
 router.get("/hostvendors/festival/:user_id", async (req, res) => {
-
   try {
     const vendors = [];
 
@@ -423,21 +414,18 @@ router.get("/hostvendors/festival/:user_id", async (req, res) => {
       user_id: req.query.user_id,
     };
 
-    const response = await festival_service.getAllHostFestivalList(
-      filters
-    );
+    const response = await festival_service.getAllHostFestivalList(filters);
 
-    for(let item of response.details) {
-      if(item.festival_vendor_id && item.festival_vendor_id !== null){
-
+    for (let item of response.details) {
+      if (item.festival_vendor_id && item.festival_vendor_id !== null) {
         for (let vendor of item.festival_vendor_id) {
           const list = await user_profile_service.getUserById(vendor);
-    
+
           if (list.user) {
             vendors.push(list.user);
           }
         }
-      } 
+      }
     }
 
     return res.send(vendors);
@@ -452,7 +440,6 @@ router.get("/hostvendors/festival/:user_id", async (req, res) => {
 
 // GET restaurants in specific festival
 router.get("/hostrestaurants/festival/:user_id", async (req, res) => {
-
   try {
     const restaurants = [];
 
@@ -460,22 +447,18 @@ router.get("/hostrestaurants/festival/:user_id", async (req, res) => {
       user_id: req.query.user_id,
     };
 
-    const response = await festival_service.getAllHostFestivalList(
-  
-      filters
-    );
+    const response = await festival_service.getAllHostFestivalList(filters);
 
-    for(let item of response.details) {
-      if(item.festival_restaurant_id && item.festival_restaurant_id !== null){
-
+    for (let item of response.details) {
+      if (item.festival_restaurant_id && item.festival_restaurant_id !== null) {
         for (let restaurant of item.festival_restaurant_id) {
           const list = await user_profile_service.getUserById(restaurant);
-    
+
           if (list.user) {
             restaurants.push(list.user);
           }
         }
-      } 
+      }
     }
 
     return res.send(restaurants);
@@ -490,7 +473,6 @@ router.get("/hostrestaurants/festival/:user_id", async (req, res) => {
 
 // GET guests in specific festival
 router.get("/hostguests/festival/:user_id", async (req, res) => {
-
   try {
     const guests = [];
 
@@ -498,21 +480,18 @@ router.get("/hostguests/festival/:user_id", async (req, res) => {
       user_id: req.query.user_id,
     };
 
-    const response = await festival_service.getAllHostFestivalList(
-      filters
-    );
+    const response = await festival_service.getAllHostFestivalList(filters);
 
-    for(let item of response.details) {
-      if(item.festival_user_guest_id && item.festival_user_guest_id !== null){
-
+    for (let item of response.details) {
+      if (item.festival_user_guest_id && item.festival_user_guest_id !== null) {
         for (let guest of item.festival_user_guest_id) {
           const list = await user_profile_service.getUserById(guest);
-    
+
           if (list.user) {
             guests.push(list.user);
           }
         }
-      } 
+      }
     }
 
     return res.send(guests);
@@ -604,7 +583,7 @@ router.post(
           festival_details,
           images
         );
-        console.log("response from festival/add:", response)
+        console.log("response from festival/add:", response);
 
         return res.send(response);
       } catch (error) {
@@ -716,7 +695,7 @@ router.post(
   "/host-festival",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("festival_id from host-festival:", req.body)
+    console.log("festival_id from host-festival:", req.body);
     const { festival_id, festival_restaurant_host_id, foodSamplePreference } =
       req.body;
 
@@ -757,7 +736,7 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     const { festival_id } = req.body;
-    console.log('12345', req.body);
+    console.log("12345", req.body);
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -803,9 +782,8 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     const { festival_id } = req.body;
-    console.log('12345', req.body);
+    console.log("12345", req.body);
     try {
-
       const response = await festival_service.addNeighbourhoodSponsor(
         festival_id,
         req.user.id
@@ -827,7 +805,7 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     const { festival_id } = req.body;
-    
+
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -840,9 +818,8 @@ router.post(
         });
       }
       const db_user = user_details_from_db.user;
-      const business_details = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
+      const business_details =
+        await authentication_service.getUserByBusinessDetails(req.user.id);
       if (!business_details.success) {
         return res.status(403).json({
           success: false,
@@ -851,12 +828,12 @@ router.post(
       }
       const response = await festival_service.addRestaurantApplication(
         festival_id,
-        db_user,
+        db_user
       );
-      
+
       return res.send(response);
     } catch (error) {
-      console.log('12345', error);
+      console.log("12345", error);
       res.send({
         success: false,
         message: "Error.",
@@ -905,9 +882,8 @@ router.post(
         });
       }
       const db_user = user_details_from_db.user;
-      const business_details = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
+      const business_details =
+        await authentication_service.getUserByBusinessDetails(req.user.id);
       if (!business_details.success) {
         return res.status(403).json({
           success: false,
@@ -950,9 +926,8 @@ router.post(
         });
       }
       const db_user = user_details_from_db.user;
-      const business_details = await authentication_service.getUserByBusinessDetails(
-        req.user.id
-      );
+      const business_details =
+        await authentication_service.getUserByBusinessDetails(req.user.id);
       if (!business_details.success) {
         return res.status(403).json({
           success: false,
@@ -1030,7 +1005,6 @@ router.post("/festival/attendance/join", async (req, res) => {
   const user_id = req.body.user_id;
   console.log("12345", user_id);
   try {
-
     let db_user;
 
     db_user = await user_profile_service.getUserById(user_id);
@@ -1041,7 +1015,7 @@ router.post("/festival/attendance/join", async (req, res) => {
         message: "Entered User ID is invalid.",
       });
     }
-    console.log('12345', db_user);
+    console.log("12345", db_user);
     const response = await festival_service.attendFestival(
       user_id,
       db_user.user.email,
@@ -1056,7 +1030,7 @@ router.post("/festival/attendance/join", async (req, res) => {
       return res.send(response);
     }
   } catch (error) {
-    console.log('1234567', error);
+    console.log("1234567", error);
     res.status(500).send({
       success: false,
       message: error.message,
@@ -1065,4 +1039,3 @@ router.post("/festival/attendance/join", async (req, res) => {
 });
 
 module.exports = router;
-

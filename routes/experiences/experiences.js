@@ -46,7 +46,6 @@ router.post(
         });
       }
 
-
       let createdByAdmin = false;
 
       const business_details_from_db =
@@ -68,7 +67,7 @@ router.post(
         experience_business_id: createdByAdmin
           ? null
           : db_business_details.business_details_id,
-         
+
         experience_name: req.body.experience_name,
         experience_nationality_id: req.body.experience_nationality_id
           ? req.body.experience_nationality_id
@@ -78,8 +77,8 @@ router.post(
           : 2,
         experience_capacity: req.body.experience_capacity,
         experience_user_id: createdByAdmin
-        ? null
-        : user_details_from_db.user.tasttlig_user_id,
+          ? null
+          : user_details_from_db.user.tasttlig_user_id,
         experience_size_scope: req.body.experience_size_scope,
         experience_description: req.body.experience_description,
         experience_type: req.body.experience_type
@@ -93,7 +92,7 @@ router.post(
         additional_information: req.body.additional_information
           ? req.body.additional_information
           : null,
-          experience_offering_type: req.body.experience_offering_type,
+        experience_offering_type: req.body.experience_offering_type,
         festival_selected:
           req.body.festival_selected &&
           Array.isArray(req.body.festival_selected)
@@ -128,8 +127,7 @@ router.post(
         user_details_from_db,
         experience_information,
         req.body.experience_images,
-        req.body.sponsorType,
-
+        req.body.sponsorType
       );
       res.send(response);
       if (response.success) {
@@ -240,7 +238,7 @@ router.get("/experiences/:user_id", async (req, res) => {
   let user_details_from_db;
   if (req.params.user_id) {
     user_details_from_db = await user_profile_service.getUserById(
-      req.params.user_id,
+      req.params.user_id
     );
   }
 

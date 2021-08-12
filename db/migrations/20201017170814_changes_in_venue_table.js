@@ -1,6 +1,5 @@
-
-exports.up = function(knex) {
-  return knex.schema.table("venue", table => {
+exports.up = function (knex) {
+  return knex.schema.table("venue", (table) => {
     table.string("unit");
     table.renameColumn("user_id", "creator_user_id");
     table.string("address");
@@ -14,8 +13,8 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
-  return knex.schema.table("venue", table => {
+exports.down = function (knex) {
+  return knex.schema.table("venue", (table) => {
     table.dropColumn("unit");
     table.renameColumn("creator_user_id", "user_id");
     table.dropColumn("address");

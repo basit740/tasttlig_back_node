@@ -1,6 +1,5 @@
-
-exports.up = function(knex) {
-  return knex.schema.table("food_samples", table => {
+exports.up = function (knex) {
+  return knex.schema.table("food_samples", (table) => {
     table.dropColumn("frequency");
     table.string("sample_size");
     table.boolean("is_available_on_monday");
@@ -13,8 +12,8 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
-  return knex.schema.table("food_samples", table => {
+exports.down = function (knex) {
+  return knex.schema.table("food_samples", (table) => {
     table.string("frequency");
     table.dropColumn("sample_size");
     table.dropColumn("is_available_on_monday");

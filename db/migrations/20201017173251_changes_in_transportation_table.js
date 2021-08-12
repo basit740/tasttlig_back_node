@@ -1,6 +1,5 @@
-
-exports.up = function(knex) {
-  return knex.schema.table("transportation", table => {
+exports.up = function (knex) {
+  return knex.schema.table("transportation", (table) => {
     table.renameColumn("user_id", "creator_user_id");
     table.dropColumn("make");
     table.dropColumn("model");
@@ -15,8 +14,8 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
-  return knex.schema.table("transportation", table => {
+exports.down = function (knex) {
+  return knex.schema.table("transportation", (table) => {
     table.renameColumn("creator_user_id", "user_id");
     table.string("make");
     table.string("model");

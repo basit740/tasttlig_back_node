@@ -1,7 +1,8 @@
 exports.up = function (knex) {
-  return knex.schema.createTable("business_services", table => {
+  return knex.schema.createTable("business_services", (table) => {
     table.increments("business_service_id").unsigned().primary();
-    table.integer("user_id")
+    table
+      .integer("user_id")
       .notNullable()
       .index()
       .references("tasttlig_user_id")

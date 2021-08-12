@@ -1,9 +1,12 @@
-
-exports.up = function(knex) {
-  return knex.schema.createTable("forum_posts", table => {
+exports.up = function (knex) {
+  return knex.schema.createTable("forum_posts", (table) => {
     table.increments("post_id").unsigned().primary();
-    table.integer("forum_by_user_id").unsigned().index()
-      .references("tasttlig_user_id").inTable("tasttlig_users");
+    table
+      .integer("forum_by_user_id")
+      .unsigned()
+      .index()
+      .references("tasttlig_user_id")
+      .inTable("tasttlig_users");
     table.string("title").notNullable();
     table.string("category").notNullable();
     table.string("body");
@@ -14,6 +17,6 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
+exports.down = function (knex) {
   return knex.schema.dropTable("forum_posts");
 };

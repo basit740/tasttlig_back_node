@@ -69,11 +69,7 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
       "products.product_id",
       "product_images.product_id"
     )
-    .join(
-      "festivals",
-      "products.festival_selected[1]",
-      "festivals.festival_id"
-    )
+    .join("festivals", "products.festival_selected[1]", "festivals.festival_id")
     .leftJoin(
       "business_details",
       "products.product_business_id",
@@ -218,11 +214,7 @@ const getProductsFromUser = async (user_id, keyword) => {
       "products.product_user_id",
       "business_details.business_details_user_id"
     )
-    .leftJoin(
-      "nationalities",
-      "products.nationality_id",
-      "nationalities.id"
-    )
+    .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .groupBy("products.product_id")
     .groupBy("business_details.business_details_id")
     // .groupBy("business_details.business_address_1")
@@ -259,7 +251,7 @@ const getProductsFromUser = async (user_id, keyword) => {
                 "main.price, " +
                 //"main.business_city, " +
                 "main.description)) as search_text"
-                // "main.product_description)) as search_text"
+              // "main.product_description)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -319,7 +311,12 @@ const findProduct = async (product_id) => {
     });
 };
 // Find product helper function
-const addProductToFestival = async (festival_id, product_id, product_user_id, user_details_from_db ) => {
+const addProductToFestival = async (
+  festival_id,
+  product_id,
+  product_user_id,
+  user_details_from_db
+) => {
   try {
     await db.transaction(async (trx) => {
       if (Array.isArray(product_id)) {
@@ -333,7 +330,6 @@ const addProductToFestival = async (festival_id, product_id, product_user_id, us
             })
             .returning("*");
 
-          
           if (!db_product) {
             return {
               success: false,
@@ -341,7 +337,6 @@ const addProductToFestival = async (festival_id, product_id, product_user_id, us
             };
           }
         }
-
       } else {
         const db_product = await trx("products")
           .where({ product_id })
@@ -351,7 +346,6 @@ const addProductToFestival = async (festival_id, product_id, product_user_id, us
             ]),
           })
           .returning("*");
-
 
         if (!db_product) {
           return {
@@ -413,48 +407,48 @@ const updateProduct = async (db_user, data) => {
         })
         .update(updateData);
 
-        // for each festival
-        updateData.product_festivals_id.map(async (festival_id) => {
-          try {
-            if (db_user.role.includes("HOST"))
-          {   
+      // for each festival
+      updateData.product_festivals_id.map(async (festival_id) => {
+        try {
+          if (db_user.role.includes("HOST")) {
             var host_ids = await db("festivals")
-            .select("festival_host_id")
-            .where("festival_id", "=", festival_id)
-            .then( (resp) => {return resp})
+              .select("festival_host_id")
+              .where("festival_id", "=", festival_id)
+              .then((resp) => {
+                return resp;
+              });
 
             // console.log('hosts to add ', host_ids)
 
-            if(!host_ids.includes(db_user.tasttlig_user_id)) {
+            if (!host_ids.includes(db_user.tasttlig_user_id)) {
               host_ids.push(db_user.tasttlig_user_id);
               await db("festivals")
-              .where({"festival_id": festival_id})
-              .update({"festival_host_id": host_ids}) 
+                .where({ festival_id: festival_id })
+                .update({ festival_host_id: host_ids });
             }
-          } 
-          else if (db_user.role.includes("VENDOR"))
-          {
+          } else if (db_user.role.includes("VENDOR")) {
             var vendor_ids = await db("festivals")
-            .select("festival_vendor_id")
-            .where("festival_id", "=", festival_id)
-            .then( (resp) => {return resp})
+              .select("festival_vendor_id")
+              .where("festival_id", "=", festival_id)
+              .then((resp) => {
+                return resp;
+              });
 
             // console.log('vendors to add ', vendor_ids);
 
             var vendor_ids_array = vendor_ids[0].festival_vendor_id || [];
             // console.log('VENDOR array ', vendor_ids_array);
-            if(!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
+            if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
               vendor_ids_array.push(db_user.tasttlig_user_id);
               await db("festivals")
-              .where({"festival_id": festival_id})
-              .update({"festival_vendor_id": vendor_ids_array})
+                .where({ festival_id: festival_id })
+                .update({ festival_vendor_id: vendor_ids_array });
             }
           }
-          } catch (error) {
-            return {success: false}
-          }
-          
-        });
+        } catch (error) {
+          return { success: false };
+        }
+      });
 
       /* if (product_images && product_images.length) {
         await db("product_images").whereIn("product_id", product_id).del();

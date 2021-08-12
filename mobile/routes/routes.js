@@ -623,47 +623,49 @@ router.get("/mobile/unsubscribed-festivals/:userId", async (req, res) => {
   }
 });
 
+router.get(
+  "/mobile/unsubscribed-sponsor-festivals/:userId",
+  async (req, res) => {
+    const user_id = req.params.userId;
 
-router.get("/mobile/unsubscribed-sponsor-festivals/:userId", async (req, res) => {
-  const user_id = req.params.userId;
+    try {
+      const getFestivals = await getFestivalList();
+      let festivals = getFestivals.festival_list;
 
-  try {
-    const getFestivals = await getFestivalList();
-    let festivals = getFestivals.festival_list;
-
-    const db_subscription_details =
-      await mobile_services.getSponsorUnsubscribedFestivalsById(user_id);
-    console.log("subs", db_subscription_details.user);
-    let subscribed = [];
-    db_subscription_details.user.map((user) => {
-      user.suscribed_festivals.map((festivalId) => {
-        subscribed.push(festivalId);
+      const db_subscription_details =
+        await mobile_services.getSponsorUnsubscribedFestivalsById(user_id);
+      console.log("subs", db_subscription_details.user);
+      let subscribed = [];
+      db_subscription_details.user.map((user) => {
+        user.suscribed_festivals.map((festivalId) => {
+          subscribed.push(festivalId);
+        });
       });
-    });
-    console.log("suscribed", subscribed);
+      console.log("suscribed", subscribed);
 
-    let unsubscribedFestivals = [];
-    festivals.map((festival) => {
-      if (subscribed.length > 0) {
-        if (!subscribed.includes(festival.festival_id)) {
-          console.log("iteration", festival.festival_id);
+      let unsubscribedFestivals = [];
+      festivals.map((festival) => {
+        if (subscribed.length > 0) {
+          if (!subscribed.includes(festival.festival_id)) {
+            console.log("iteration", festival.festival_id);
+            unsubscribedFestivals.push(festival);
+          }
+        } else {
           unsubscribedFestivals.push(festival);
         }
-      } else {
-        unsubscribedFestivals.push(festival);
-      }
-    });
+      });
 
-    return res.send({
-      success: true,
-      unsubscribedFestivals: unsubscribedFestivals,
-    });
-  } catch (error) {
-    res.send({
-      success: false,
-      message: error.message,
-    });
+      return res.send({
+        success: true,
+        unsubscribedFestivals: unsubscribedFestivals,
+      });
+    } catch (error) {
+      res.send({
+        success: false,
+        message: error.message,
+      });
+    }
   }
-});
+);
 
 module.exports = router;

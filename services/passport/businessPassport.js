@@ -131,26 +131,23 @@ const postBusinessPassportDetails = async (data) => {
         business_preference: data["user_business_preference"],
       };
 
-     
-            var business_details_id = await trx("business_details")
-            .insert(business_details)
-            .returning("business_details_id");
-    
-          const business_details_images = {
-            business_details_logo: data["user_business_logo"],
-            food_handling_certificate: data["user_business_food_handling"],
-            business_details_id: business_details_id[0],
-          };
-    
-          await trx("business_details_images").insert(business_details_images);
+      var business_details_id = await trx("business_details")
+        .insert(business_details)
+        .returning("business_details_id");
 
+      const business_details_images = {
+        business_details_logo: data["user_business_logo"],
+        food_handling_certificate: data["user_business_food_handling"],
+        business_details_id: business_details_id[0],
+      };
+
+      await trx("business_details_images").insert(business_details_images);
 
       return { success: true };
     });
   } catch (error) {
     if (error && error.detail && error.detail.includes("already exists")) {
       return {
-        
         success: false,
         details:
           "User Business Information already exists, you can edit your existing information under passport section in your profile. Your application for Business Member role has been sent to Admin",
@@ -195,20 +192,19 @@ const approveOrDeclineBusinessMemberApplication = async (
           return { success: false, message: reason };
         });
 
-        if (businessDetails.application.food_business_type === "Restaurant") {
-          console.log(businessDetails.application.food_business_type);
-          await db("user_role_lookup")
+      if (businessDetails.application.food_business_type === "Restaurant") {
+        console.log(businessDetails.application.food_business_type);
+        await db("user_role_lookup")
           .insert({
-          user_id: db_user.tasttlig_user_id,
-          role_code: "RT",
+            user_id: db_user.tasttlig_user_id,
+            role_code: "RT",
           })
           .returning("*")
           .catch((reason) => {
-          console.log("Reason", reason);
-          return { success: false, message: reason };
+            console.log("Reason", reason);
+            return { success: false, message: reason };
           });
-          }
-          
+      }
 
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
@@ -285,13 +281,16 @@ const approveOrDeclineBusinessMemberApplication = async (
 
       //Remove row in business details images table
       await db("business_details_images")
-      .where("business_details_id", businessDetails.application.business_details_id)
-      // .update("business_member_status", "REJECTED")
-      // .returning("*")
-      .del()
-      .catch((reason) => {
-        return { success: false, message: reason };
-      });
+        .where(
+          "business_details_id",
+          businessDetails.application.business_details_id
+        )
+        // .update("business_member_status", "REJECTED")
+        // .returning("*")
+        .del()
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
 
       //Remove row in business details table
       await db("business_details")

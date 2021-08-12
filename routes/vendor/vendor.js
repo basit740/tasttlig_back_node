@@ -21,7 +21,7 @@ router.post(
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
-      })
+      });
     }
 
     try {
@@ -29,7 +29,6 @@ router.post(
       user_details_from_db = await user_profile_service.getUserById(
         req.user.id
       );
-
 
       if (!user_details_from_db.success) {
         return res.status(403).json({
@@ -39,8 +38,8 @@ router.post(
       }
 
       let business_details_from_db;
-      business_details_from_db = await authentication_service.getUserByBusinessDetails(
-        req.user.id)
+      business_details_from_db =
+        await authentication_service.getUserByBusinessDetails(req.user.id);
 
       if (
         user_details_from_db.user.role.includes("VENDOR") ||
@@ -56,34 +55,32 @@ router.post(
 
       let db_business_details = business_details_from_db.business_details;
       console.log("business_details", db_business_details);
-      console.log("user id" , user_details_from_db);
+      console.log("user id", user_details_from_db);
       const vendor_information = {
         vendor_user_id: req.user.id,
-       // vendor_business_id: db_business_details.business_details_id,
-        cooking_area: req.body.cooking_area, 
-        food_temperature_maintenance_plan: req.body.food_temperature_maintenance_plan,
+        // vendor_business_id: db_business_details.business_details_id,
+        cooking_area: req.body.cooking_area,
+        food_temperature_maintenance_plan:
+          req.body.food_temperature_maintenance_plan,
         equipment_required: req.body.equipment_required,
-        other_info: req.body.other_info ? req.body.other_info : null
+        other_info: req.body.other_info ? req.body.other_info : null,
       };
       const response = await vendor_service.insertVendorDetails(
         user_details_from_db,
-        vendor_information,
+        vendor_information
       );
       let result;
       console.log(response);
       if (response.success) {
-        result = response
+        result = response;
       } else {
         return res.send({
           success: false,
-          message: "Error."
-        })
-
-
+          message: "Error.",
+        });
       }
       console.log("new response", result);
       return res.send(result);
-
     } catch (error) {
       console.log(error);
       res.send({
@@ -91,7 +88,6 @@ router.post(
         message: "Error.",
         response: error,
       });
-
     }
   }
 );

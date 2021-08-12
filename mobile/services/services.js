@@ -933,15 +933,14 @@ const getVendorUnsubscribedFestivalsById = async (id) => {
     });
 };
 
-
 const getSponsorUnsubscribedFestivalsById = async (id) => {
   return await db("user_subscriptions")
     .select("user_subscriptions.suscribed_festivals")
     .where("user_subscriptions.user_id", "=", id)
     .andWhere(function () {
-      this.where("user_subscriptions.subscription_code", "S_KMIN")
-        // .orWhere("user_subscriptions.subscription_code", "V_MOD")
-        // .orWhere("user_subscriptions.subscription_code", "V_ULTRA");
+      this.where("user_subscriptions.subscription_code", "S_KMIN");
+      // .orWhere("user_subscriptions.subscription_code", "V_MOD")
+      // .orWhere("user_subscriptions.subscription_code", "V_ULTRA");
     })
     .then((value) => {
       if (!value) {

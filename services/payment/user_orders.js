@@ -21,7 +21,6 @@ const getVendorSubscriptionDetails = async () => {
     .where("subscription_name", "LIKE", "vendor%");
 };
 
-
 // Get order details helper function
 const getOrderDetails = async (order_details) => {
   const sponsorshipPackagesAdapter = () => {
@@ -181,7 +180,7 @@ const getOrderDetails = async (order_details) => {
       .catch((error) => {
         return { success: false, message: error };
       });
-  }else if (order_details.item_type === "service") {
+  } else if (order_details.item_type === "service") {
     return await db("services")
       .where({
         service_id: order_details.item_id,
@@ -198,7 +197,7 @@ const getOrderDetails = async (order_details) => {
       .catch((error) => {
         return { success: false, message: error };
       });
-    }
+  }
   return { success: false, message: "Item type not supported." };
 };
 
@@ -274,7 +273,11 @@ const getCartOrderDetails = async (cartItems) => {
 };
 
 // Create order helper function
-const createOrder = async (order_details, db_order_details, additionalEmail) => {
+const createOrder = async (
+  order_details,
+  db_order_details,
+  additionalEmail
+) => {
   if (
     order_details.item_type === "plan" ||
     order_details.item_type === "subscription"
@@ -357,7 +360,7 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
 
       const membership_plan_name = _.startCase(order_details.item_id);
 
-      if(additionalEmail !== '') {
+      if (additionalEmail !== "") {
         await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,
           to: additionalEmail,
@@ -443,69 +446,29 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
           subscription_end_datetime = db_order_details.item.date_of_expiry;
         }
 
-        if(order_details.discount < 1) {
-
-          for(let festival_id of db_order_details.subscribed_festivals) {
-          console.log("festival for rejection:", festival_id)
+        if (order_details.discount < 1) {
+          for (let festival_id of db_order_details.subscribed_festivals) {
+            console.log("festival for rejection:", festival_id);
 
             await db("user_subscriptions")
-            .where("user_id", order_details.user_id)
-            .andWhere("subscription_code", order_details.item_id)
-            .update({
-              suscribed_festivals: trx.raw(
-                "array_append(suscribed_festivals, ?)",
-                [festival_id]
-              ),
-            })
-            .returning("*")
-            .catch((reason) => {
-              console.log("reason for rejection:", reason)
-              return { success: false, message: reason };
-            });
+              .where("user_id", order_details.user_id)
+              .andWhere("subscription_code", order_details.item_id)
+              .update({
+                suscribed_festivals: trx.raw(
+                  "array_append(suscribed_festivals, ?)",
+                  [festival_id]
+                ),
+              })
+              .returning("*")
+              .catch((reason) => {
+                console.log("reason for rejection:", reason);
+                return { success: false, message: reason };
+              });
 
             await db("festivals")
-            .where("festival_id", festival_id)
-            .update({
-              // FY: instead of adding user to festival_vendor_id, add user to vendor_request_id 
-              // festival_vendor_id: trx.raw(
-              //   "array_append(festival_vendor_id, ?)",
-              //   [order_details.user_id]
-              // ),
-               vendor_request_id: trx.raw(
-                 "array_append(vendor_request_id, ?)",
-                 [order_details.user_id]
-                 ),
-            })
-            .returning("*")
-            .catch((reason) => {
-              console.log("reason for rejection:", reason)
-              return { success: false, message: reason };
-            });
-
-          }
-        
-        } else {
-          await trx("user_subscriptions").insert({
-            subscription_code: db_order_details.item.subscription_code,
-            user_id: order_details.user_id,
-            subscription_start_datetime: new Date(),
-            subscription_end_datetime: subscription_end_datetime,
-            suscribed_festivals: db_order_details.subscribed_festivals,
-            cash_payment_received: db_order_details.item.price,
-            user_subscription_status: "ACTIVE",
-          });
-          console.log('1234567', db_order_details.item.subscription_code);
-          if (db_order_details.subscribed_festivals && db_order_details.item.subscription_code === 'V_MIN') {
-            for(let festival_id of db_order_details.subscribed_festivals) {
-              let db_festival;
-              db_festival = await festival_service.getFestivalDetails(
-                   festival_id
-                )
-              console.log("festival for rejection from here:", festival_id)
-              await db("festivals")
               .where("festival_id", festival_id)
               .update({
-                // FY: instead of adding user to festival_vendor_id, add user to vendor_request_id 
+                // FY: instead of adding user to festival_vendor_id, add user to vendor_request_id
                 // festival_vendor_id: trx.raw(
                 //   "array_append(festival_vendor_id, ?)",
                 //   [order_details.user_id]
@@ -517,9 +480,49 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
               })
               .returning("*")
               .catch((reason) => {
-                console.log("reason for rejection:", reason)
+                console.log("reason for rejection:", reason);
                 return { success: false, message: reason };
               });
+          }
+        } else {
+          await trx("user_subscriptions").insert({
+            subscription_code: db_order_details.item.subscription_code,
+            user_id: order_details.user_id,
+            subscription_start_datetime: new Date(),
+            subscription_end_datetime: subscription_end_datetime,
+            suscribed_festivals: db_order_details.subscribed_festivals,
+            cash_payment_received: db_order_details.item.price,
+            user_subscription_status: "ACTIVE",
+          });
+          console.log("1234567", db_order_details.item.subscription_code);
+          if (
+            db_order_details.subscribed_festivals &&
+            db_order_details.item.subscription_code === "V_MIN"
+          ) {
+            for (let festival_id of db_order_details.subscribed_festivals) {
+              let db_festival;
+              db_festival = await festival_service.getFestivalDetails(
+                festival_id
+              );
+              console.log("festival for rejection from here:", festival_id);
+              await db("festivals")
+                .where("festival_id", festival_id)
+                .update({
+                  // FY: instead of adding user to festival_vendor_id, add user to vendor_request_id
+                  // festival_vendor_id: trx.raw(
+                  //   "array_append(festival_vendor_id, ?)",
+                  //   [order_details.user_id]
+                  // ),
+                  vendor_request_id: trx.raw(
+                    "array_append(vendor_request_id, ?)",
+                    [order_details.user_id]
+                  ),
+                })
+                .returning("*")
+                .catch((reason) => {
+                  console.log("reason for rejection:", reason);
+                  return { success: false, message: reason };
+                });
 
               await trx("applications").insert({
                 user_id: order_details.user_id,
@@ -532,27 +535,29 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
                 festival_id: festival_id,
               });
             }
-          } 
-          else if (db_order_details.subscribed_festivals && db_order_details.item.subscription_code === 'S_KMIN') {
-            for(let festival_id of db_order_details.subscribed_festivals) {
+          } else if (
+            db_order_details.subscribed_festivals &&
+            db_order_details.item.subscription_code === "S_KMIN"
+          ) {
+            for (let festival_id of db_order_details.subscribed_festivals) {
               let db_festival;
               db_festival = await festival_service.getFestivalDetails(
-                   festival_id
-                )
-              console.log("festival for rejection from here:", festival_id)
+                festival_id
+              );
+              console.log("festival for rejection from here:", festival_id);
               await db("festivals")
-              .where("festival_id", festival_id)
-              .update({
-                sponsor_request_id: trx.raw(
-                  "array_append(sponsor_request_id, ?)",
-                  [order_details.user_id]
-                ),
-              })
-              .returning("*")
-              .catch((reason) => {
-                console.log("reason for rejection:", reason)
-                return { success: false, message: reason };
-              });
+                .where("festival_id", festival_id)
+                .update({
+                  sponsor_request_id: trx.raw(
+                    "array_append(sponsor_request_id, ?)",
+                    [order_details.user_id]
+                  ),
+                })
+                .returning("*")
+                .catch((reason) => {
+                  console.log("reason for rejection:", reason);
+                  return { success: false, message: reason };
+                });
 
               await trx("applications").insert({
                 user_id: order_details.user_id,
@@ -565,17 +570,15 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
                 festival_id: festival_id,
               });
             }
-          } 
           }
-
-
+        }
       });
 
       const package_plan_name = _.startCase(
         db_order_details.item.subscription_name
       );
 
-      if(additionalEmail !== '') {
+      if (additionalEmail !== "") {
         await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,
           to: additionalEmail,
@@ -647,8 +650,7 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
         );
       });
 
-      
-      if(additionalEmail !== '') {
+      if (additionalEmail !== "") {
         await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,
           to: additionalEmail,
@@ -735,8 +737,7 @@ const createOrder = async (order_details, db_order_details, additionalEmail) => 
         }
       });
 
-
-      if(additionalEmail !== '') {
+      if (additionalEmail !== "") {
         await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,
           to: additionalEmail,
@@ -1152,7 +1153,6 @@ const createCartOrder = async (order_details, db_order_details) => {
 // Get all user orders helper function
 const getAllUserOrders = async (user_id) => {
   try {
-
     const db_orders = await Orders.query()
       .withGraphFetched("[order_items, payments]")
       .where("orders.order_by_user_id", user_id)

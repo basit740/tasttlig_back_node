@@ -5,7 +5,7 @@ const { db } = require("../../db/db-config");
 
 const insertVendorDetails = async (
   user_details_from_db,
-  vendor_information,
+  vendor_information
 ) => {
   try {
     await db.transaction(async (trx) => {
@@ -24,7 +24,6 @@ const insertVendorDetails = async (
   }
 };
 
-
 module.exports = {
-  insertVendorDetails
-}
+  insertVendorDetails,
+};

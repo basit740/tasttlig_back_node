@@ -1,6 +1,5 @@
-
-exports.up = function(knex) {
-  return knex.schema.table("business_details", table => {
+exports.up = function (knex) {
+  return knex.schema.table("business_details", (table) => {
     table.dropColumn("address");
 
     table.string("business_name");
@@ -12,13 +11,12 @@ exports.up = function(knex) {
     table.string("facebook");
     table.string("instagram");
 
-    table.unique('user_id')
+    table.unique("user_id");
   });
-
 };
 
-exports.down = function(knex) {
-  return knex.schema.table("business_details", table => {
+exports.down = function (knex) {
+  return knex.schema.table("business_details", (table) => {
     table.string("address");
     table.dropColumn("business_name");
     table.dropColumn("ethnicity_of_restaurant");
@@ -28,7 +26,6 @@ exports.down = function(knex) {
     table.dropColumn("business_registration_number");
     table.dropColumn("facebook");
     table.dropColumn("instagram");
-    table.dropUnique('user_id')
-
+    table.dropUnique("user_id");
   });
 };

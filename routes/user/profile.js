@@ -830,7 +830,7 @@ router.post(
   "/business-passport",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log("business passport coming from host:", req.body)
+    console.log("business passport coming from host:", req.body);
     try {
       const response = await passport_service.postBusinessPassportDetails(
         req.body
@@ -872,7 +872,7 @@ router.post(
   }
 );
 
-// add neighbourhood 
+// add neighbourhood
 router.post(
   "/add-neighbourhood",
   token_service.authenticateToken,
@@ -894,7 +894,7 @@ router.post(
   }
 );
 
-// get neighbourhood 
+// get neighbourhood
 router.get(
   "/get-neighbourhood",
   token_service.authenticateToken,

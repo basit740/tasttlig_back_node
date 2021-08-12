@@ -48,13 +48,11 @@ const addNewMenuItem = async (
       city: menu_item_details.menuCity,
       state: menu_item_details.menuProvinceTerritory,
       postal_code: menu_item_details.menuPostalCode,
-      is_vegetarian: menu_item_details.dietaryRestrictions.includes(
-        "vegetarian"
-      ),
+      is_vegetarian:
+        menu_item_details.dietaryRestrictions.includes("vegetarian"),
       is_vegan: menu_item_details.dietaryRestrictions.includes("vegan"),
-      is_gluten_free: menu_item_details.dietaryRestrictions.includes(
-        "glutenFree"
-      ),
+      is_gluten_free:
+        menu_item_details.dietaryRestrictions.includes("glutenFree"),
       is_halal: menu_item_details.dietaryRestrictions.includes("halal"),
       is_available_on_monday: menu_item_details.daysAvailable.includes(
         "available_on_monday"

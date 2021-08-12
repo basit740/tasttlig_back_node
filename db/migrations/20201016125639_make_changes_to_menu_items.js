@@ -1,5 +1,4 @@
-
-exports.up = function(knex) {
+exports.up = function (knex) {
   return knex.schema.table("menu_items", (table) => {
     table.dropColumn("quantity_type");
     table.dropColumn("start_date");
@@ -23,7 +22,7 @@ exports.up = function(knex) {
   });
 };
 
-exports.down = function(knex) {
+exports.down = function (knex) {
   return knex.schema.table("menu_items", (table) => {
     table.string("quantity_type");
     table.date("start_date");

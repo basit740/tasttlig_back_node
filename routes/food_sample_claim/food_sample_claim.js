@@ -46,14 +46,11 @@ router.post("/all-products-claim", async (req, res) => {
 
   try {
     if (!new_user) {
-      const {
-        canClaim,
-        message,
-        error,
-      } = await food_sample_claim_service.userCanClaimFoodSample(
-        db_user.email,
-        req.body.food_sample_id
-      );
+      const { canClaim, message, error } =
+        await food_sample_claim_service.userCanClaimFoodSample(
+          db_user.email,
+          req.body.food_sample_id
+        );
 
       if (!canClaim) {
         return res.status(error ? 500 : 200).json({
@@ -63,9 +60,10 @@ router.post("/all-products-claim", async (req, res) => {
         });
       }
 
-      const user_details_from_db = await user_profile_service.getUserByEmailWithSubscription(
-        db_user.email
-      );
+      const user_details_from_db =
+        await user_profile_service.getUserByEmailWithSubscription(
+          db_user.email
+        );
 
       if (!canClaim && !user_details_from_db.user.user_subscription_id) {
         return res.status(403).json({
@@ -177,10 +175,8 @@ router.get(
   token_service.authenticateToken,
   async (req, res) => {
     try {
-     
-      const db_food_claims = await food_sample_claim_service.getUserProductsClaims(
-        req.user.id
-      );
+      const db_food_claims =
+        await food_sample_claim_service.getUserProductsClaims(req.user.id);
 
       return res.send(db_food_claims);
     } catch (error) {
@@ -201,15 +197,14 @@ router.get(
     // console.log("req.user:", req.user)
     const keyword = req.query.keyword || "";
     try {
-     const db_user = await user_profile_service.getUserById(
-        req.user.id
-      );
+      const db_user = await user_profile_service.getUserById(req.user.id);
 
-      const db_food_claims = await food_sample_claim_service.getUserProductsRedeems(
-        req.user.id,
-        keyword, 
-        db_user
-      );
+      const db_food_claims =
+        await food_sample_claim_service.getUserProductsRedeems(
+          req.user.id,
+          keyword,
+          db_user
+        );
 
       return res.send(db_food_claims);
     } catch (error) {
@@ -230,16 +225,15 @@ router.get(
     // console.log("req.user:", req.user)
     const keyword = req.query.keyword || "";
     try {
-     const db_user = await user_profile_service.getUserById(
-        req.user.id
-      );
+      const db_user = await user_profile_service.getUserById(req.user.id);
       // console.log("<<<<<<<<<<<<<<<<db_user coming from redeem fetch:>>>>>>?????", db_user)
 
-      const db_food_claims = await food_sample_claim_service.getUserServiceRedeems(
-        req.user.id,
-        keyword, 
-        db_user
-      );
+      const db_food_claims =
+        await food_sample_claim_service.getUserServiceRedeems(
+          req.user.id,
+          keyword,
+          db_user
+        );
       // console.log('service redeem list', db_food_claims );
       return res.send(db_food_claims);
     } catch (error) {
@@ -260,16 +254,15 @@ router.get(
     // console.log("req.user:", req.user)
     const keyword = req.query.keyword || "";
     try {
-     const db_user = await user_profile_service.getUserById(
-        req.user.id
-      );
+      const db_user = await user_profile_service.getUserById(req.user.id);
       // console.log("<<<<<<<<<<<<<<<<db_user coming from redeem fetch:>>>>>>?????", db_user)
 
-      const db_experience_claims = await food_sample_claim_service.getUserExperiencesRedeems(
-        req.user.id,
-        keyword, 
-        db_user
-      );
+      const db_experience_claims =
+        await food_sample_claim_service.getUserExperiencesRedeems(
+          req.user.id,
+          keyword,
+          db_user
+        );
       return res.send(db_experience_claims);
     } catch (error) {
       res.send({
@@ -280,7 +273,6 @@ router.get(
     }
   }
 );
-
 
 // POST food sample claim
 router.post("/all-experiences-claim", async (req, res) => {
@@ -318,14 +310,11 @@ router.post("/all-experiences-claim", async (req, res) => {
 
   try {
     if (!new_user) {
-      const {
-        canClaim,
-        message,
-        error,
-      } = await food_sample_claim_service.userCanClaimExperience(
-        db_user.email,
-        req.body.food_sample_id
-      );
+      const { canClaim, message, error } =
+        await food_sample_claim_service.userCanClaimExperience(
+          db_user.email,
+          req.body.food_sample_id
+        );
 
       if (!canClaim) {
         return res.status(error ? 500 : 200).json({
@@ -335,9 +324,10 @@ router.post("/all-experiences-claim", async (req, res) => {
         });
       }
 
-      const user_details_from_db = await user_profile_service.getUserByEmailWithSubscription(
-        db_user.email
-      );
+      const user_details_from_db =
+        await user_profile_service.getUserByEmailWithSubscription(
+          db_user.email
+        );
 
       if (!canClaim && !user_details_from_db.user.user_subscription_id) {
         return res.status(403).json({
@@ -389,7 +379,6 @@ router.post("/all-experiences-claim", async (req, res) => {
   }
 });
 
-
 // POST food sample claim
 router.post("/all-services-claim", async (req, res) => {
   if (!req.body.food_sample_claim_user || !req.body.food_sample_id) {
@@ -426,14 +415,11 @@ router.post("/all-services-claim", async (req, res) => {
 
   try {
     if (!new_user) {
-      const {
-        canClaim,
-        message,
-        error,
-      } = await food_sample_claim_service.userCanClaimExperience(
-        db_user.email,
-        req.body.food_sample_id
-      );
+      const { canClaim, message, error } =
+        await food_sample_claim_service.userCanClaimExperience(
+          db_user.email,
+          req.body.food_sample_id
+        );
 
       if (!canClaim) {
         return res.status(error ? 500 : 200).json({
@@ -443,9 +429,10 @@ router.post("/all-services-claim", async (req, res) => {
         });
       }
 
-      const user_details_from_db = await user_profile_service.getUserByEmailWithSubscription(
-        db_user.email
-      );
+      const user_details_from_db =
+        await user_profile_service.getUserByEmailWithSubscription(
+          db_user.email
+        );
 
       if (!canClaim && !user_details_from_db.user.user_subscription_id) {
         return res.status(403).json({
