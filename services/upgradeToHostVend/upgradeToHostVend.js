@@ -1096,6 +1096,323 @@ const addBusinessToFestival = async (festival_id, user_id) => {
   }
 };
 
+const autoApproveVendorFestivalApplications = async () => {
+  const pendingLimit = new Date();
+  pendingLimit.setHours(pendingLimit.getHours() - 72);
+
+  let query = db.select("festivals.*").from("festivals");
+  const fests = await query;
+  let vReqs = [];
+  vReqs = fests.filter(
+    (fst) => fst.vendor_request_id !== null && fst.vendor_request_id.length > 0
+  );
+  let festByReqUser = [];
+  function setFestByReqUser(fest) {
+    fest.vendor_request_id !== null &&
+      fest.vendor_request_id.length > 0 &&
+      fest.vendor_request_id.map((vendor_request_id) => {
+        const userId = vendor_request_id;
+        delete fest.vendor_request_id;
+        festByReqUser.push({ userId: userId, ...fest });
+      });
+  }
+  vReqs.length > 0 && vReqs.map(async (fest) => setFestByReqUser(fest));
+  festByReqUser.length > 0 &&
+    festByReqUser.map(async (fest) => await processApp(fest));
+  async function isAppOverdue(userId, festId) {
+    let app = null;
+    await db("applications")
+      .where("user_id", userId)
+      .andWhere("status", "Pending")
+      .andWhere("festival_id", festId)
+      .andWhere("created_at", "<=", pendingLimit)
+      .first()
+      .then((val) => {
+        app = val;
+      })
+      .catch((error) => {
+        console.log("err", error);
+        return { success: false };
+      });
+
+    if (!app) {
+      console.log("No OverDue Vendor Application");
+      return false;
+    }
+
+    console.log("There's OverDue Vendor Application");
+    return true;
+  }
+
+  async function processApp(fest) {
+    try {
+      if ((await isAppOverdue(fest.userId, fest.festival_id)) === false) {
+        return;
+      }
+      const db_user_row = await getUserById(fest.userId);
+      const db_user = db_user_row.user;
+
+      // get the festival info
+      const festival = await festival_service.getFestivalDetails(
+        fest.festival_id
+      );
+      // get the host info
+      const host = await user_profile_service.getUserById(
+        fest.festival_host_admin_id[0]
+      );
+
+      // get the client info
+      const client = await user_profile_service.getUserById(fest.userId);
+
+      if (!db_user_row.success) {
+        return { success: false, message: db_user_row.message };
+      }
+
+      // update the applications table
+      await db("applications")
+        .where("user_id", fest.userId)
+        .andWhere("status", "Pending")
+        .andWhere("type", "vendor")
+        .andWhere("festival_id", fest.festival_id)
+        .update("status", "APPROVED")
+        .returning("*")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
+
+      // remove vendor from vendor_request_id
+      await db("festivals")
+        .where("festival_id", fest.festival_id)
+        .update({
+          vendor_request_id: db.raw("array_remove(vendor_request_id, ?)", [
+            fest.userId,
+          ]),
+          festival_vendor_id: db.raw("array_append(festival_vendor_id, ?)", [
+            fest.userId,
+          ]),
+        })
+        .returning("*")
+        .catch(() => {
+          return { success: false };
+        });
+
+      // update product pending
+      const test = await db("products")
+        .where("product_user_id", fest.userId)
+        .andWhere("festival_selected_pending", "@>", [Number(fest.festival_id)])
+        .andWhere("product_offering_type", "@>", ["Vendor"])
+        .update({
+          festival_selected: db.raw("array_append(festival_selected, ?)", [
+            Number(fest.festival_id),
+          ]),
+        })
+        .update({
+          festival_selected_pending: db.raw(
+            "array_remove(festival_selected_pending, ?)",
+            [Number(fest.festival_id)]
+          ),
+        })
+        .returning("*")
+        .catch((error) => {
+          console.log(error);
+        });
+
+      // send notification mail to host
+      await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: host.user.email + "",
+        subject: `[Tasttlig] New vendor applicant accpeted`,
+        template: "vendor_applicant_timeout_notification",
+        context: {
+          first_name: host.user.first_name + "",
+          last_name: host.user.last_name + "",
+          client_first_name: client.user.first_name + "",
+          client_last_name: client.user.last_name + "",
+          festival_name: festival.details[0].festival_name + "",
+        },
+      });
+      // send notification mail to client
+      await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: client.user.email + "",
+        subject: `[Tasttlig] Vendor application accepted`,
+        template: "vendor_applicant_accept_notification",
+        context: {
+          first_name: client.user.first_name + "",
+          last_name: client.user.last_name + "",
+          host_first_name: host.user.first_name + "",
+          host_last_name: host.user.last_name + "",
+          festival_name: festival.details[0].festival_name + "",
+          host_phone: host.user.phone_number + "",
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+};
+
+const autoApproveSponsorFestivalApplications = async () => {
+  const pendingLimit = new Date();
+  pendingLimit.setHours(pendingLimit.getHours() - 72);
+
+  let query = db.select("festivals.*").from("festivals");
+  const fests = await query;
+  let vReqs = [];
+  vReqs = fests.filter(
+    (fst) =>
+      fst.sponsor_request_id !== null && fst.sponsor_request_id.length > 0
+  );
+  let festByReqUser = [];
+  function setFestByReqUser(fest) {
+    fest.sponsor_request_id !== null &&
+      fest.sponsor_request_id.length > 0 &&
+      fest.sponsor_request_id.map((sponsor_request_id) => {
+        const userId = sponsor_request_id;
+        delete fest.sponsor_request_id;
+        festByReqUser.push({ userId: userId, ...fest });
+      });
+  }
+  vReqs.length > 0 && vReqs.map(async (fest) => setFestByReqUser(fest));
+  festByReqUser.length > 0 &&
+    festByReqUser.map(async (fest) => await processApp(fest));
+  async function isAppOverdue(userId, festId) {
+    let app = null;
+    await db("applications")
+      .where("user_id", userId)
+      .andWhere("status", "Pending")
+      .andWhere("festival_id", festId)
+      .andWhere("created_at", "<=", pendingLimit)
+      .first()
+      .then((val) => {
+        app = val;
+      })
+      .catch((error) => {
+        console.log("err", error);
+        return { success: false };
+      });
+
+    if (!app) {
+      console.log("No OverDue Sponsor Application");
+      return false;
+    }
+
+    console.log("There's OverDue Sponsor Application");
+    return true;
+  }
+
+  async function processApp(fest) {
+    try {
+      if ((await isAppOverdue(fest.userId, fest.festival_id)) === false) {
+        return;
+      }
+      const db_user_row = await getUserById(fest.userId);
+      const db_user = db_user_row.user;
+
+      // get the festival info
+      const festival = await festival_service.getFestivalDetails(
+        fest.festival_id
+      );
+      // get the host info
+      const host = await user_profile_service.getUserById(
+        fest.festival_host_admin_id[0]
+      );
+
+      // get the client info
+      const client = await user_profile_service.getUserById(fest.userId);
+
+      if (!db_user_row.success) {
+        return { success: false, message: db_user_row.message };
+      }
+
+      // update the applications table
+      await db("applications")
+        .where("user_id", fest.userId)
+        .andWhere("status", "Pending")
+        .andWhere("type", "sponsor")
+        .andWhere("festival_id", fest.festival_id)
+        .update("status", "APPROVED")
+        .returning("*")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
+
+      // remove vendor from vendor_request_id
+      await db("festivals")
+        .where("festival_id", fest.festival_id)
+        .update({
+          sponsor_request_id: db.raw("array_remove(sponsor_request_id, ?)", [
+            fest.userId,
+          ]),
+          festival_business_sponsor_id: db.raw(
+            "array_append(festival_business_sponsor_id, ?)",
+            [fest.userId]
+          ),
+        })
+        .returning("*")
+        .catch(() => {
+          return { success: false };
+        });
+
+      // update product pending
+      const test = await db("products")
+        .where("product_user_id", fest.userId)
+        .andWhere("festival_selected_pending", "@>", [Number(fest.festival_id)])
+        .andWhere("product_offering_type", "@>", ["Sponsor"])
+        .update({
+          festival_selected: db.raw("array_append(festival_selected, ?)", [
+            Number(fest.festival_id),
+          ]),
+        })
+        .update({
+          festival_selected_pending: db.raw(
+            "array_remove(festival_selected_pending, ?)",
+            [Number(fest.festival_id)]
+          ),
+        })
+        .returning("*")
+        .catch((error) => {
+          console.log(error);
+        });
+
+      // send notification mail to host
+      await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: host.user.email + "",
+        subject: `[Tasttlig] New Sponsor applicant accpeted`,
+        template: "sponsor_applicant_timeout_notification",
+        context: {
+          first_name: host.user.first_name + "",
+          last_name: host.user.last_name + "",
+          client_first_name: client.user.first_name + "",
+          client_last_name: client.user.last_name + "",
+          festival_name: festival.details[0].festival_name + "",
+        },
+      });
+      // send notification mail to client
+      await Mailer.sendMail({
+        from: process.env.SES_DEFAULT_FROM,
+        to: client.user.email + "",
+        subject: `[Tasttlig] Sponsor application accepted`,
+        template: "sponsor_applicant_accept_notification",
+        context: {
+          first_name: client.user.first_name + "",
+          last_name: client.user.last_name + "",
+          host_first_name: host.user.first_name + "",
+          host_last_name: host.user.last_name + "",
+          festival_name: festival.details[0].festival_name + "",
+          host_phone: host.user.phone_number + "",
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+};
+/* (async function runAutoApprove() {
+  await autoApproveVendorFestivalApplications();
+})(); */
+
 module.exports = {
   getAllVendorApplications,
   getVendorApplications,
@@ -1109,4 +1426,6 @@ module.exports = {
   getRestaurantApplicantDetails,
   approveOrDeclineRestaurantApplicationOnFestival,
   addBusinessToFestival,
+  autoApproveVendorFestivalApplications,
+  autoApproveSponsorFestivalApplications,
 };
