@@ -652,4 +652,15 @@ router.post(
   }
 );
 
+router.post("/auto-application-approval", async (req, res) => {
+  try {
+    const response =
+      await upgrade_service.autoApproveVendorFestivalApplications();
+    await upgrade_service.autoApproveSponsorFestivalApplications();
+    return res.send({ success: true });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error });
+  }
+});
+
 module.exports = router;
