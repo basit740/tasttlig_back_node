@@ -44,7 +44,8 @@ router.post("/payment/stripe", async (req, res) => {
 
     const response = await stripe_payment_service.paymentIntent(
       db_order_details,
-      req.body.vendor_festivals
+      req.body.vendor_festivals,
+      req.body.email
     );
     console.log("response from payment:", response);
     return res.send(response);
