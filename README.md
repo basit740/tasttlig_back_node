@@ -79,7 +79,7 @@ Tasttlig Auth Server (<https://bitbucket.org/tasttlig/tasttlig-auth-server/src/m
 9. Enter Node.js console: `node`.
 10. Get the key: `require('crypto').randomBytes(64).toString('hex')` (you will get a hexadecimal string).
 11. Copy the key to access token secret to the `.env` file.
-12. Repeat Steps 10 and 11 for refresh token secret and email secret to the `.env` file.
+12. Repeat Steps 10 and 11 for refresh token secret, session secret, and email secret to the `.env` file.
 13. Exit Node.js console: `.exit`.
 14. Create a new Gmail account at <https://accounts.google.com/signup/v2/webcreateaccount?flowName=GlifWebSignIn&flowEntry=SignUp> (skip this step if you already have one).
 15. Download the Gmail app on your smartphone from Google Play or App Store (skip this step if you already have one).
