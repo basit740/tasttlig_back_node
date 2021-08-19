@@ -9,7 +9,7 @@ const { authenticateToken } = require("../../services/authentication/token");
 
 stripeAccountRouter.use(
   session({
-    secret: process.env.SESSION_SECRET_KEY,
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
   })
@@ -50,6 +50,7 @@ stripeAccountRouter.post(
       console.log("ONBOARDING SUCCESSFUL");
       res.send({ url: accountLinkURL });
     } catch (err) {
+      console.log("ONBOARDING USER FAILED", err);
       res.status(500).send({
         error: err.message,
       });
@@ -72,7 +73,7 @@ stripeAccountRouter.get("/onboard-user/refresh", async (req, res) => {
     );
     res.redirect(accountLinkURL);
   } catch (err) {
-    console.log(err.message);
+    console.log("link refresh failed", err);
     res.status(500).send({
       error: err.message,
     });
