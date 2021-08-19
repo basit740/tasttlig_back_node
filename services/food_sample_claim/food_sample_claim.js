@@ -367,6 +367,8 @@ const sendClaimedEmailToUser = async (
   );
 
   const url = `${process.env.SITE_BASE}/confirm-food-sample/${token}`;
+  console.log("db_food_sample.start_time", db_food_sample.start_time);
+  console.log("db_food_sample.end_time", db_food_sample.end_time);
 
   return Mailer.sendMail({
     from: process.env.SES_DEFAULT_FROM,
@@ -385,11 +387,11 @@ const sendClaimedEmailToUser = async (
       postal_code: db_food_sample.postal_code,
       start_date: formatDate(db_food_sample.start_date),
       end_date: formatDate(db_food_sample.end_date),
-      start_time: formatMilitaryToStandardTime(db_food_sample.start_time),
-      end_time: formatMilitaryToStandardTime(db_food_sample.end_time),
+      // start_time: formatMilitaryToStandardTime(db_food_sample.start_time),
+      // end_time: formatMilitaryToStandardTime(db_food_sample.end_time),
       description: db_food_sample.description,
-      frequency: db_food_sample.frequency,
-      code: db_food_sample.food_ad_code,
+      // frequency: db_food_sample.frequency,
+      // code: db_food_sample.food_ad_code,
       url,
     },
   });
@@ -1079,8 +1081,8 @@ const sendClaimedExperienceEmailToUser = async (
       postal_code: db_food_sample.postal_code,
       start_date: formatDate(db_food_sample.start_date),
       end_date: formatDate(db_food_sample.end_date),
-      start_time: formatMilitaryToStandardTime(db_food_sample.start_time),
-      end_time: formatMilitaryToStandardTime(db_food_sample.end_time),
+      // start_time: formatMilitaryToStandardTime(db_food_sample.start_time),
+      // end_time: formatMilitaryToStandardTime(db_food_sample.end_time),
       description: db_food_sample.experience_description,
       //frequency: db_food_sample.frequency,
       code: db_food_sample.experience_code,

@@ -307,7 +307,7 @@ router.get("/sponsors/festival/:festival_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
-  console.log("req from the host-sponsor/festivals:", req);
+  // console.log("req from the host-sponsor/festivals:", req);
 
   try {
     const sponsors = [];
@@ -342,7 +342,7 @@ router.get("/partners/festival/:festival_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
-  console.log("req from the host-sponsor/festivals:", req);
+  // console.log("req from the host-sponsor/festivals:", req);
 
   try {
     const sponsors = [];

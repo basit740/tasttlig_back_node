@@ -7,6 +7,7 @@ const { db } = require("../../db/db-config");
 // Use Stripe secret key
 const keySecret = process.env.STRIPE_SECRET_KEY;
 const stripe = new Stripe(keySecret);
+const stripe_account_service = require("../stripe_accounts/stripe_accounts");
 
 // Stripe payment helper function
 const paymentIntent = async (order_details, vendor_festivals, email) => {
@@ -54,6 +55,46 @@ const paymentIntent = async (order_details, vendor_festivals, email) => {
       description: order_details.item.description,
     });
 
+    // find the user id that posted the item
+    let user_id;
+    if (order_details.item.product_user_id) {
+      user_id = order_details.item.product_user_id;
+    }
+    if (order_details.item.service_user_id) {
+      user_id = order_details.item.service_user_id;
+    }
+    if (order_details.item.experience_user_id) {
+      user_id = order_details.item.experience_user_id;
+    }
+
+    // if user_id exists, get the account id for it
+    // and if the account id exists, create a transfer for that account
+    if (user_id) {
+      stripe_account_service
+        .getStripeAccountId(user_id)
+        .then(({ account_id }) => {
+          if (account_id) {
+            console.log("ACCOUNT ID FOR TRANSFER", account_id);
+            // business gets 75 percent of payment
+            stripe.transfers
+              .create({
+                amount: Math.round(total_amount_after_tax * 75),
+                currency: "cad",
+                description: order_details.item.description,
+                destination: account_id,
+              })
+              .then(() => {
+                console.log("transfer created");
+              })
+              .catch((err) => {
+                console.log("transfer error", err);
+              });
+          } else {
+            console.log("no commission", account_id);
+          }
+        });
+    }
+
     return {
       success: true,
       // customer: payment.customer,
@@ -62,7 +103,7 @@ const paymentIntent = async (order_details, vendor_festivals, email) => {
       // bankAccount: bankAccount  
     };  
   } catch (error) {
-    console.log(error);
+    console.log("stripe payment error", error);
     return { success: false, message: error.message };
   }
 };
