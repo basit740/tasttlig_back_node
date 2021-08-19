@@ -9,7 +9,7 @@ const { authenticateToken } = require("../../services/authentication/token");
 
 stripeAccountRouter.use(
   session({
-    secret: process.env.SESSION_SECRET_KEY,
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
   })
