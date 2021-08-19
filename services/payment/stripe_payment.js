@@ -89,13 +89,13 @@ const createAccountId = async (bank_account_country, bank_account_currency, bank
 
     );
 
-    const payout = await await stripe.payouts.create({
-      amount: 1100,
-      currency: 'cad',
-      destination: "ba_1JPsZbKiKjECHoUbXixxmQGt"
-    });
+    // const payout = await await stripe.payouts.create({
+    //   amount: 1100,
+    //   currency: 'cad',
+    //   destination: "ba_1JPsZbKiKjECHoUbXixxmQGt"
+    // });
 
-    console.log("12345", payout);
+    // console.log("12345", payout);
 
 
 // insert stripe customer id and bank account id into stripe table
