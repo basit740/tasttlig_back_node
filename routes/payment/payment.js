@@ -336,4 +336,33 @@ router.get("/vendor-subscription-details", async (req, res) => {
   }
 });
 
+// POST stripe bank account
+router.post("/add-stripe-ids", async (req, res) => {
+
+  try {
+   
+    const db_user = await user_profile_service.getUserById(
+      Number(req.body.user_id)
+    );
+    const response = await stripe_payment_service.createAccountId(
+      req.body.bank_account_country,
+      req.body.bank_account_currency,
+      req.body.bank_account_number,
+      req.body.bank_account_routing_number,
+      req.body.bank_account_holder_name,
+      req.body.bank_account_holder_type,
+      req.body.user_id,
+      db_user.user.email
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+
 module.exports = router;
