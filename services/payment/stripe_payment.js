@@ -119,16 +119,15 @@ const createAccountId = async (bank_account_country, bank_account_currency, bank
     const bankAccount = await stripe.customers.createSource(
       customer.id,
       {source: {
-        object: "bank_account",
-        account_holder_name: bank_account_holder_name,
-        account_holder_type: bank_account_holder_type,
-        country: bank_account_country,
-        currency: bank_account_currency,
-        account_number: bank_account_number,
-        routing_number: bank_account_routing_number
+        object: "card",
+        number: '4242424242424242',
+        exp_month: 8,
+        exp_year: 2022,
+        cvc: '314',
       }}
 
     );
+console.log('1234567', bankAccount);
 
     // const payout = await await stripe.payouts.create({
     //   amount: 1100,
@@ -145,7 +144,7 @@ const createAccountId = async (bank_account_country, bank_account_currency, bank
           .insert({
             user_id: user_id,
             customer_id: customer.id,
-            bank_account_id: bankAccount.id
+            // bank_account_id: bankAccount.id
           })
           .returning("*")
           .catch((error) => {
