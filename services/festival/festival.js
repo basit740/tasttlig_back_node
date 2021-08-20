@@ -1003,13 +1003,11 @@ const getFestivalRestaurants = async (host_id, festival_id) => {
     });
 };
 
-const attendFestival = async (user_id, user_email, festival_id) => {
+const attendFestival = async (user_id, festival_id) => {
   try {
-    const festival = await getFestivalDetails(festival_id);
-
     await db.transaction(async (trx) => {
       const db_guest = await trx("festivals")
-        .where({ festival_id: festival.details[0].festival_id })
+        .where({ festival_id: festival_id })
         .update({
           festival_user_guest_id: trx.raw(
             "array_append(festival_user_guest_id, ?)",

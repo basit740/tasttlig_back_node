@@ -1017,8 +1017,7 @@ router.post("/festival/attendance/join", async (req, res) => {
     }
     console.log("12345", db_user);
     const response = await festival_service.attendFestival(
-      user_id,
-      db_user.user.email,
+      db_user.user.tasttlig_user_id,
       festival_id
     );
 
