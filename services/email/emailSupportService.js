@@ -9,13 +9,13 @@ const emailSupportService = async (data) => {
     if (process.env.NODE_ENV === "production") {
       adminEmail = "admin@tasttlig.com";
     } else if (process.env.NODE_ENV === "staging") {
-      adminEmail = process.env.GMAIL_USER;
+      adminEmail = "keara.block@ethereal.email";
     } else {
       adminEmail = process.env.GMAIL_USER;
     }
 
     await Mailer.sendMail({
-      from: data.email,
+      from: process.env.SES_DEFAULT_FROM,
       to: adminEmail,
       subject: `[Tasttlig] Support Service`,
       template: "email_support",
