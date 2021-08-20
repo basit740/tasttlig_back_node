@@ -69,8 +69,9 @@ const emailSupportService = async (data) => {
     }
 
     await nodemailer_transporter.sendMail({
-      from: data.email,
-      to: adminEmail,
+      from: process.env.SES_DEFAULT_FROM,
+      to: adminEmail + "",
+      bcc: process.env.TASTTLIG_ADMIN_EMAIL,
       subject: `[Tasttlig] Support Service`,
       template: "email_support",
       context: {
