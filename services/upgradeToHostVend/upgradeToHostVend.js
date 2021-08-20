@@ -1094,6 +1094,7 @@ const addBusinessToFestival = async (festival_id, user_id) => {
   } catch (error) {
     return { success: false, error: error.message };
   }
+  return { success: true };
 };
 
 const autoApproveVendorFestivalApplications = async () => {
