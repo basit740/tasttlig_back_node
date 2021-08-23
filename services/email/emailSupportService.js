@@ -72,6 +72,7 @@ const emailSupportService = async (data) => {
         message: data.message + "",
       },
     });
+    console.log("send", send);
     return { success: true, message: send };
   } catch (error) {
     console.log("error", error);
