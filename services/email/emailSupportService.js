@@ -59,7 +59,7 @@ nodemailer_transporter.use("compile", hbs(options));
 
 const emailSupportService = async (data) => {
   try {
-    await nodemailer_transporter.sendMail({
+    const send = await nodemailer_transporter.sendMail({
       from: process.env.SES_DEFAULT_FROM,
       to: "admin@tasttlig.com",
       bcc: data.email,
@@ -72,9 +72,10 @@ const emailSupportService = async (data) => {
         message: data.message + "",
       },
     });
-    return { success: true };
-  } catch (e) {
-    return { success: false, error: e };
+    return { success: true, message: send };
+  } catch (error) {
+    console.log("error", error);
+    return { success: false, error: error };
   }
 };
 
