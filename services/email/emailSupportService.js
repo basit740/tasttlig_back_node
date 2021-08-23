@@ -59,20 +59,11 @@ nodemailer_transporter.use("compile", hbs(options));
 
 const emailSupportService = async (data) => {
   try {
-    let adminEmail = "";
-    if (process.env.NODE_ENV === "production") {
-      adminEmail = "admin@tasttlig.com";
-    } else if (process.env.NODE_ENV === "staging") {
-      adminEmail = process.env.GMAIL_USER;
-    } else {
-      adminEmail = process.env.GMAIL_USER;
-    }
-
     await nodemailer_transporter.sendMail({
       from: process.env.SES_DEFAULT_FROM,
-      to: adminEmail + "",
-      bcc: process.env.TASTTLIG_ADMIN_EMAIL,
-      subject: `[Tasttlig] Support Service`,
+      to: "admin@tasttlig.com",
+      bcc: data.email,
+      subject: `[Tasttlig] Host Support Service`,
       template: "email_support",
       context: {
         email: data.email + "",
