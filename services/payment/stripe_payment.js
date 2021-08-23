@@ -116,26 +116,31 @@ const createAccountId = async (bank_account_country, bank_account_currency, bank
     const customer = await stripe.customers.create({
       email: email
     });
-    const bankAccount = await stripe.customers.createSource(
-      customer.id,
-      {source: {
-        object: "card",
-        number: '4242424242424242',
-        exp_month: 8,
-        exp_year: 2022,
-        cvc: '314',
-      }}
-
-    );
-console.log('1234567', bankAccount);
-
-    // const payout = await await stripe.payouts.create({
-    //   amount: 1100,
-    //   currency: 'cad',
-    //   destination: "ba_1JPsZbKiKjECHoUbXixxmQGt"
+    // const token = await stripe.tokens.create({
+    //   card: {
+    //     number: '4242424242424242',
+    //     exp_month: 8,
+    //     exp_year: 2022,
+    //     cvc: '314',
+    //   },
     // });
 
-    // console.log("12345", payout);
+    
+
+
+// const card = await stripe.customers.createSource(
+//   customer.id,
+//   {source: 'tok_1JRiL9KiKjECHoUb0fSEtkTK'}
+// );
+
+// console.log('1234567card', card);
+    const payout = await await stripe.payouts.create({
+      amount: 1100,
+      currency: 'cad',
+      destination: "card_1JRiL9KiKjECHoUbnvDvAhTW"
+    });
+
+    console.log("12345", payout);
 
 
 // insert stripe customer id and bank account id into stripe table
