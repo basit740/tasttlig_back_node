@@ -125,39 +125,39 @@ const createAccountId = async (bank_account_country, bank_account_currency, bank
     //   },
     // });
 
-    
+    // console.log('1234567token', token);
 
 
-// const card = await stripe.customers.createSource(
-//   customer.id,
-//   {source: 'tok_1JRiL9KiKjECHoUb0fSEtkTK'}
-// );
+const card = await stripe.customers.createSource(
+  customer.id,
+  {source: 'tok_1JS3f8KiKjECHoUbh9Rg9dhO'}
+);
 
 // console.log('1234567card', card);
     const payout = await await stripe.payouts.create({
       amount: 1100,
       currency: 'cad',
-      destination: "card_1JRiL9KiKjECHoUbnvDvAhTW"
+      destination: "card_1JS3f8KiKjECHoUbxe9AV7I0"
     });
 
     console.log("12345", payout);
 
 
 // insert stripe customer id and bank account id into stripe table
-      await db.transaction(async (trx) => {
-        const response = await trx("stripe")
-          .insert({
-            user_id: user_id,
-            customer_id: customer.id,
-            // bank_account_id: bankAccount.id
-          })
-          .returning("*")
-          .catch((error) => {
-            return { success: false, message: error };
-          });
+      // await db.transaction(async (trx) => {
+      //   const response = await trx("stripe")
+      //     .insert({
+      //       user_id: user_id,
+      //       customer_id: customer.id,
+      //       // bank_account_id: bankAccount.id
+      //     })
+      //     .returning("*")
+      //     .catch((error) => {
+      //       return { success: false, message: error };
+      //     });
     
 
-      });
+      // });
     
     return {
       success: false,

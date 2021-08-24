@@ -20,7 +20,8 @@ const createAccountLimiter = rateLimit({
 
 // POST user register
 authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
-  const { first_name, last_name, email, password, phone_number, source } =
+  console.log('123456789',req.body);
+  const { first_name, last_name, email, password, phone_number, passport_type, source } =
     req.body;
 
   if (!email || !password || !source) {
@@ -37,6 +38,7 @@ authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
       email,
       password,
       phone_number,
+      passport_type,
       source,
     };
 

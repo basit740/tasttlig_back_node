@@ -32,6 +32,7 @@ const userRegister = async (new_user, sendEmail = true) => {
           source: new_user.source,
           status: "ACTIVE",
           passport_id: user.passport_id,
+          passport_type: new_user.passport_type,
           auth_user_id: user.id,
           created_at_datetime: new Date(),
           updated_at_datetime: new Date(),
