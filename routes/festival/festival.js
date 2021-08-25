@@ -558,7 +558,7 @@ router.post(
           });
         }
 
-        const sponsored = req.body?.sponsored ? req.body.sponsored : null;
+        const sponsored = req.body.sponsored ? req.body.sponsored : null;
 
         const festival_details = {
           festival_host_admin_id: [req.user.id],
