@@ -558,6 +558,8 @@ router.post(
           });
         }
 
+        const sponsored = req.body?.sponsored ? req.body.sponsored : null;
+
         const festival_details = {
           festival_host_admin_id: [req.user.id],
           festival_vendor_id: [req.user.id],
@@ -577,6 +579,7 @@ router.post(
           festival_description,
           festival_created_at_datetime: new Date(),
           festival_updated_at_datetime: new Date(),
+          sponsored,
         };
 
         const response = await festival_service.createNewFestival(
