@@ -80,4 +80,27 @@ stripeAccountRouter.get("/onboard-user/refresh", async (req, res) => {
   }
 });
 
+stripeAccountRouter.get(
+  "/dashboard-link",
+  authenticateToken,
+  async (req, res) => {
+    console.log(req.user.id);
+    try {
+      const account_id = await stripeAccountService.getStripeAccountId(
+        req.user.id
+      );
+      let link = "";
+      if (account_id) {
+        link = await stripe.accounts.createLoginLink(account_id.account_id);
+      }
+      res.send({ link });
+    } catch (err) {
+      console.log("request for dashboard link failed", err);
+      res.status(500).send({
+        error: err.message,
+      });
+    }
+  }
+);
+
 module.exports = stripeAccountRouter;
