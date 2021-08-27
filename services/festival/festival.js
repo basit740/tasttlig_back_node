@@ -378,7 +378,6 @@ function */
 const createNewFestival = async (festival_details, festival_images) => {
   try {
     festival_details.basic_passport_id = ("M" + generateRandomString("6"));
-    console.log('123456789', festival_details)
     await db.transaction(async (trx) => {
       const db_festival = await trx("festivals")
         .insert(festival_details)
@@ -1021,6 +1020,23 @@ const attendFestival = async (user_id, festival_id) => {
 
       if (!db_guest) {
         return { success: false, details: "Inserting guest failed." };
+      }
+
+      // fetch festival passport id
+      const festival = await getFestivalDetails(festival_id);
+
+
+      // insert festival passport into user
+      const db_passport = await trx("passport_details")
+      .insert({
+        passport_user_id: user_id,
+        passport_festival_id: festival_id,
+        passport_id: festival.details[0].basic_passport_id
+        })
+        .returning("*");
+
+      if (!db_passport) {
+        return { success: false, details: "Inserting passport failed." };
       }
     });
 
