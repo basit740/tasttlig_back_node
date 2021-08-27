@@ -6,6 +6,7 @@ const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const { formatTime } = require("../../functions/functions");
 // const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
+const { generateRandomString } = require("../../functions/functions");
 
 // Get all festivals helper function
 const getAllFestivals = async (currentPage, keyword, filters) => {
@@ -376,6 +377,8 @@ const getFestivalList = async () => {
 function */
 const createNewFestival = async (festival_details, festival_images) => {
   try {
+    festival_details.basic_passport_id = ("M" + generateRandomString("6"));
+    console.log('123456789', festival_details)
     await db.transaction(async (trx) => {
       const db_festival = await trx("festivals")
         .insert(festival_details)
