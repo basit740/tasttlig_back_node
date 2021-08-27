@@ -23,18 +23,17 @@ stripeAccountRouter.post(
     try {
       const account = await stripe.accounts.create({ type: "express" });
 
-      // set payout schedule to weekly
-      /*
-    stripe.accounts.update(account.id, {
-      settings: {
-        payouts: {
-          schedule: {
-            interval: "weekly",
+      // set payout schedule to weekly every friday
+      stripe.accounts.update(account.id, {
+        settings: {
+          payouts: {
+            schedule: {
+              interval: "weekly",
+              weekly_anchor: "friday",
+            },
           },
         },
-      },
-    });
-    */
+      });
 
       // store stripe account id in databse
       await stripeAccountService.storeStripeAccountId(req.user.id, account.id);
