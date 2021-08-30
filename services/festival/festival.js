@@ -6,6 +6,7 @@ const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const { formatTime } = require("../../functions/functions");
 // const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
+const { generateRandomString } = require("../../functions/functions");
 
 // Get all festivals helper function
 const getAllFestivals = async (currentPage, keyword, filters) => {
@@ -376,6 +377,7 @@ const getFestivalList = async () => {
 function */
 const createNewFestival = async (festival_details, festival_images) => {
   try {
+    festival_details.basic_passport_id = ("M" + generateRandomString("6"));
     await db.transaction(async (trx) => {
       const db_festival = await trx("festivals")
         .insert(festival_details)
@@ -1018,6 +1020,25 @@ const attendFestival = async (user_id, festival_id) => {
 
       if (!db_guest) {
         return { success: false, details: "Inserting guest failed." };
+      }
+
+      // fetch festival passport id
+      const festival = await getFestivalDetails(festival_id);
+      console.log('12345', festival
+      )
+
+      // insert festival passport into user
+      const db_passport = await trx("passport_details")
+      .insert({
+        passport_user_id: user_id,
+        passport_festival_id: festival_id,
+        passport_id: festival.details[0].basic_passport_id,
+        passport_type: "BASIC"
+        })
+        .returning("*");
+
+      if (!db_passport) {
+        return { success: false, details: "Inserting passport failed." };
       }
     });
 

@@ -468,7 +468,7 @@ const createOrder = async (
             await db("festivals")
               .where("festival_id", festival_id)
               .update({
-                // FY: instead of adding user to festival_vendor_id, add user to vendor_request_id
+                // instead of adding user to festival_vendor_id, add user to vendor_request_id
                 // festival_vendor_id: trx.raw(
                 //   "array_append(festival_vendor_id, ?)",
                 //   [order_details.user_id]
@@ -494,7 +494,6 @@ const createOrder = async (
             cash_payment_received: db_order_details.item.price,
             user_subscription_status: "ACTIVE",
           });
-          console.log("1234567", db_order_details.item.subscription_code);
           if (
             db_order_details.subscribed_festivals &&
             db_order_details.item.subscription_code === "V_MIN"
@@ -735,6 +734,28 @@ const createOrder = async (
         if (!db_guest) {
           return { success: false, details: "Inserting new host failed." };
         }
+
+        let db_festival;
+        db_festival = await festival_service.getFestivalDetails(
+          order_details.item_id
+        );
+        if (!db_festival) {
+          return { success: false, details: "Get festival detail failed." };
+        }
+
+        const db_passport = await trx("passport_details")
+        .insert({
+          passport_user_id: order_details.user_id,
+          passport_festival_id: order_details.item_id,
+          passport_id: db_festival.details[0].basic_passport_id,
+          passport_type: "BASIC"
+          })
+          .returning("*");
+  
+        if (!db_passport) {
+          return { success: false, details: "Inserting new passport failed." };
+        }
+
       });
 
       if (additionalEmail !== "") {
