@@ -1024,14 +1024,16 @@ const attendFestival = async (user_id, festival_id) => {
 
       // fetch festival passport id
       const festival = await getFestivalDetails(festival_id);
-
+      console.log('12345', festival
+      )
 
       // insert festival passport into user
       const db_passport = await trx("passport_details")
       .insert({
         passport_user_id: user_id,
         passport_festival_id: festival_id,
-        passport_id: festival.details[0].basic_passport_id
+        passport_id: festival.details[0].basic_passport_id,
+        passport_type: "BASIC"
         })
         .returning("*");
 

@@ -579,6 +579,7 @@ router.post(
           festival_description,
           festival_created_at_datetime: new Date(),
           festival_updated_at_datetime: new Date(),
+          basic_passport_id,
           sponsored,
         };
 
