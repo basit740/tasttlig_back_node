@@ -1024,8 +1024,7 @@ const attendFestival = async (user_id, festival_id) => {
 
       // fetch festival passport id
       const festival = await getFestivalDetails(festival_id);
-      console.log('12345', festival
-      )
+
 
       // insert festival passport into user
       const db_passport = await trx("passport_details")
@@ -1128,6 +1127,60 @@ const removeAttendance = async (festival_id, user_id) => {
   }
 };
 
+// get festival using a passport id
+const getFestivalByPassport = async (passport_id) => {
+   return await db
+    .select(
+      "festivals.*",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("festivals")
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    )
+    .where("festivals.basic_passport_id", "=", passport_id)
+    .where("festivals.festival_end_date", ">=", new Date())
+    .groupBy("festivals.festival_id")
+    .then((value) => {
+      return { success: true, details: value, };
+    })
+    .catch((error) => {
+      return { success: false, details: error };
+    });
+};
+
+// get festivals using array of passport ids
+const getFestivalByPassports = async (passport_ids) => {
+  let festival_list = [];
+  for (let passport_id of passport_ids) {
+   await db
+    .select(
+      "festivals.*",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("festivals")
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    )
+    .where("festivals.basic_passport_id", "=", passport_id)
+    .where("festivals.festival_end_date", ">=", new Date())
+    .groupBy("festivals.festival_id")
+    .then((value) => {
+      festival_list = festival_list.concat(value);
+     // return { success: true, festival_list: value };
+    })
+    .catch((error) => {
+
+      return { success: false, details: error };
+    });
+  }
+  return { success: true, value: festival_list }
+};
+
 module.exports = {
   getAllFestivals,
   getAllFestivalList,
@@ -1148,4 +1201,6 @@ module.exports = {
   attendFestival,
   removeAttendance,
   addNeighbourhoodSponsor,
+  getFestivalByPassport,
+  getFestivalByPassports,
 };

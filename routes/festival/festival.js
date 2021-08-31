@@ -740,7 +740,6 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     const { festival_id } = req.body;
-    console.log("12345", req.body);
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -786,7 +785,6 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     const { festival_id } = req.body;
-    console.log("12345", req.body);
     try {
       const response = await festival_service.addNeighbourhoodSponsor(
         festival_id,
@@ -837,7 +835,6 @@ router.post(
 
       return res.send(response);
     } catch (error) {
-      console.log("12345", error);
       res.send({
         success: false,
         message: "Error.",
@@ -1007,7 +1004,6 @@ router.post(
 router.post("/festival/attendance/join", async (req, res) => {
   const festival_id = req.body.festival_id;
   const user_id = req.body.user_id;
-  console.log("12345", user_id);
   try {
     let db_user;
 
@@ -1019,7 +1015,6 @@ router.post("/festival/attendance/join", async (req, res) => {
         message: "Entered User ID is invalid.",
       });
     }
-    console.log("12345", db_user);
     const response = await festival_service.attendFestival(
       db_user.user.tasttlig_user_id,
       festival_id
@@ -1033,10 +1028,57 @@ router.post("/festival/attendance/join", async (req, res) => {
       return res.send(response);
     }
   } catch (error) {
-    console.log("1234567", error);
     res.status(500).send({
       success: false,
       message: error.message,
+    });
+  }
+});
+
+// GET festival wih passprot
+router.get("/festival-passport/:passport_id", async (req, res) => {
+
+  if (!req.params.passport_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await festival_service.getFestivalByPassport(
+      req.params.passport_id,
+    );
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// GET festival wih passprots
+router.post("/festival-passports", async (req, res) => {
+  if (!req.body.passport_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await festival_service.getFestivalByPassports(
+      req.body.passport_id,
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
     });
   }
 });

@@ -140,7 +140,6 @@ const card = await stripe.customers.createSource(
       destination: "card_1JS3f8KiKjECHoUbxe9AV7I0"
     });
 
-    console.log("12345", payout);
 
 
 // insert stripe customer id and bank account id into stripe table
