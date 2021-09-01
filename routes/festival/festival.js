@@ -1083,4 +1083,29 @@ router.post("/festival-passports", async (req, res) => {
   }
 });
 
+
+router.post("/festival-passport/register", async (req, res) => {
+  console.log('1234567',req.body);
+  if (!req.body.user_id || !req.body.festival_ids) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    const response = await festival_service.registerUserToFestivals(
+      req.body.user_id,
+      req.body.festival_ids,
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 module.exports = router;

@@ -1181,6 +1181,61 @@ const getFestivalByPassports = async (passport_ids) => {
   return { success: true, value: festival_list }
 };
 
+const registerUserToFestivals = async (user_id, festival_ids) => {
+  
+  try {
+  for (let festival_id of festival_ids) {
+    // insert user id into festival guest array
+    await db.transaction(async (trx) => {
+      const db_guest = await trx("festivals")
+      .where({ festival_id: festival_id })
+      .update({
+        festival_user_guest_id: trx.raw(
+          "array_append(festival_user_guest_id, ?)",
+          [user_id]
+        ),
+      })
+      .returning("*");
+      
+      if (!db_guest) {
+        return { success: false, details: "Inserting new guest failed." };
+      }
+
+      // get festival passport using festival id
+      var festival_passport = await db("festivals")
+        .select("basic_passport_id")
+        .where({ festival_id })
+        .then((resp) => {
+          return resp;
+        });
+      console.log('1234567', festival_passport[0].basic_passport_id);
+
+      // create new business passport
+      const db_passport = await trx("passport_details")
+      .insert({
+        passport_user_id: user_id,
+        passport_festival_id: festival_id,
+        passport_id: festival_passport[0].basic_passport_id,
+        passport_type: "BASIC"
+        })
+        .returning("*");
+
+      if (!db_passport) {
+        return { success: false, details: "Inserting passport failed." };
+      }
+      
+
+    })
+
+    return { success: true, details: "Success." };
+  }
+  } catch (error) {
+    return { success: false, details: error };
+  }
+
+
+  
+}
 module.exports = {
   getAllFestivals,
   getAllFestivalList,
@@ -1203,4 +1258,5 @@ module.exports = {
   addNeighbourhoodSponsor,
   getFestivalByPassport,
   getFestivalByPassports,
+  registerUserToFestivals
 };
