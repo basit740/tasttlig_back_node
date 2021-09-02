@@ -835,6 +835,7 @@ router.post(
       const response = await passport_service.postBusinessPassportDetails(
         req.body
       );
+      console.log('1234567', response);
       if (!response.success) {
         return res.status(200).json({
           success: false,
