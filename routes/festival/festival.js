@@ -507,6 +507,7 @@ router.get("/hostguests/festival/:user_id", async (req, res) => {
 // POST festival
 router.post(
   "/festival/add",
+
   token_service.authenticateToken,
   async (req, res) => {
     const {
@@ -526,7 +527,7 @@ router.post(
       festival_country,
       festival_province,
     } = req.body;
-
+    
     try {
       if (
         !images ||
@@ -550,7 +551,7 @@ router.post(
         const user_details_from_db = await user_profile_service.getUserById(
           req.user.id
         );
-
+          
         if (!user_details_from_db.success) {
           return res.status(403).json({
             success: false,
@@ -559,7 +560,6 @@ router.post(
         }
 
         const sponsored = req.body.sponsored ? req.body.sponsored : null;
-
         const festival_details = {
           festival_host_admin_id: [req.user.id],
           festival_vendor_id: [req.user.id],
@@ -579,10 +579,9 @@ router.post(
           festival_description,
           festival_created_at_datetime: new Date(),
           festival_updated_at_datetime: new Date(),
-          basic_passport_id,
           sponsored,
         };
-
+        
         const response = await festival_service.createNewFestival(
           festival_details,
           images
