@@ -1014,6 +1014,22 @@ router.post("/festival/attendance/join", async (req, res) => {
         message: "Entered User ID is invalid.",
       });
     }
+
+    
+    let db_festival = await festival_service.getFestivalDetails(festival_id);
+    console.log('1234567', db_festival);
+    if (!db_festival.success) {
+      res.send({
+        success: false,
+        message: "Entered Festival ID is invalid.",
+      });
+    } else if (Number(db_festival.festival_price) > 0) {
+      res.send({
+        success: false,
+        message: "Entered Festival is not free.",
+      });
+    }
+
     const response = await festival_service.attendFestival(
       db_user.user.tasttlig_user_id,
       festival_id
