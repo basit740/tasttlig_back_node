@@ -188,6 +188,13 @@ router.post(
         });
       }
 
+      if (Number(ticket_user_id) !== Number(req.user.id)) {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
       try {
         const user_details_from_db = await user_profile_service.getUserById(
           req.user.id
