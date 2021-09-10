@@ -1017,7 +1017,6 @@ router.post("/festival/attendance/join", async (req, res) => {
 
     
     let db_festival = await festival_service.getFestivalDetails(festival_id);
-    console.log('1234567', db_festival);
     if (!db_festival.success) {
       res.send({
         success: false,
@@ -1100,7 +1099,6 @@ router.post("/festival-passports", async (req, res) => {
 
 
 router.post("/festival-passport/register", async (req, res) => {
-  console.log('1234567',req.body);
   if (!req.body.user_id || !req.body.festival_ids) {
     return res.status(403).json({
       success: false,

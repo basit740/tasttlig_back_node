@@ -344,52 +344,55 @@ const getAllUserFoodSamplesNotInFestival = async (
   requestByAdmin,
   festival_name
 ) => {
-  const food_samples_in_festival = await db
-    .select("food_samples.original_food_sample_id")
-    .from("food_samples")
-    .leftJoin("festivals", "food_samples.festival_id", "festivals.festival_id")
-    .where("festivals.festival_name", "=", festival_name)
-    .then((db_food_samples) => {
-      return db_food_samples.map(
-        (db_food_sample) => db_food_sample.original_food_sample_id
-      );
-    });
+  // const food_samples_in_festival = await db
+  //   .select("food_samples.original_food_sample_id")
+  //   .from("food_samples")
+  //   .leftJoin("festivals", "food_samples.festival_id", "festivals.festival_id")
+  //   .where("festivals.festival_name", "=", festival_name)
+  //   .then((db_food_samples) => {
+  //     return db_food_samples.map(
+  //       (db_food_sample) => db_food_sample.original_food_sample_id
+  //     );
+  //   });
   let query = db
     .select(
-      "food_samples.*",
-      "nationalities.nationality",
-      "nationalities.alpha_2_code",
-      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
+      "products.*",
+      // "nationalities.nationality",
+      // "nationalities.alpha_2_code",
+      // db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
     )
-    .from("food_samples")
-    .leftJoin(
-      "food_sample_images",
-      "food_samples.food_sample_id",
-      "food_sample_images.food_sample_id"
-    )
-    .leftJoin(
-      "nationalities",
-      "food_samples.nationality_id",
-      "nationalities.id"
-    )
-    .groupBy("food_samples.food_sample_id")
-    .groupBy("nationalities.nationality")
-    .groupBy("nationalities.alpha_2_code")
-    .havingNotIn(
-      "food_samples.original_food_sample_id",
-      food_samples_in_festival
-    );
+    .from("products")
+    // .leftJoin(
+    //   "food_sample_images",
+    //   "food_samples.food_sample_id",
+    //   "food_sample_images.food_sample_id"
+    // )
+    // .leftJoin(
+    //   "nationalities",
+    //   "food_samples.nationality_id",
+    //   "nationalities.id"
+    // )
+    // .groupBy("food_samples.food_sample_id")
+    // .groupBy("nationalities.nationality")
+    // .groupBy("nationalities.alpha_2_code")
+    // .havingNotIn(
+    //   "food_samples.original_food_sample_id",
+    //   food_samples_in_festival
+    // )
+    .where("product_user_id", Number(189))
+    ;
 
-  if (!requestByAdmin) {
-    query = query
-      .having("food_sample_creater_user_id", "=", user_id)
-      .having("food_samples.status", operator, status);
-  } else {
-    query = query.having("food_samples.status", operator, status);
-  }
-
+  // if (!requestByAdmin) {
+  //   query = query
+  //     .having("food_sample_creater_user_id", "=", user_id)
+  //     .having("food_samples.status", operator, status);
+  // } else {
+  //   query = query.having("food_samples.status", operator, status);
+  // }
+      
   return await query
     .then((value) => {
+      console.log('1234567', value);
       return { success: true, details: value };
     })
     .catch((reason) => {
@@ -882,33 +885,33 @@ const getAllFoodSamplesInFestival = async (
 const getFoodSample = async (food_sample_id) => {
   return await db
     .select(
-      "food_samples.*",
-      "nationalities.nationality",
-      "nationalities.alpha_2_code",
+      "products.*",
+      // "nationalities.nationality",
+      // "nationalities.alpha_2_code",
       "business_details.business_name",
-      db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
-    )
-    .from("food_samples")
-    .leftJoin(
-      "food_sample_images",
-      "food_samples.food_sample_id",
-      "food_sample_images.food_sample_id"
-    )
-    .leftJoin(
-      "nationalities",
-      "food_samples.nationality_id",
-      "nationalities.id"
-    )
+    //   db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
+     )
+    .from("products")
+    // .leftJoin(
+    //   "food_sample_images",
+    //   "food_samples.food_sample_id",
+    //   "food_sample_images.food_sample_id"
+    // )
+    // .leftJoin(
+    //   "nationalities",
+    //   "food_samples.nationality_id",
+    //   "nationalities.id"
+    // )
     .leftJoin(
       "business_details",
-      "food_samples.food_sample_creater_user_id",
+      "products.product_user_id",
       "business_details.business_details_user_id"
     )
-    .groupBy("food_samples.food_sample_id")
-    .groupBy("nationalities.nationality")
-    .groupBy("nationalities.alpha_2_code")
+    .groupBy("products.product_id")
+    // .groupBy("nationalities.nationality")
+    // .groupBy("nationalities.alpha_2_code")
     .groupBy("business_details.business_name")
-    .having("food_samples.food_sample_id", "=", food_sample_id)
+    .having("products.product_id", "=", food_sample_id)
     .then((value) => {
       return { success: true, details: value };
     })

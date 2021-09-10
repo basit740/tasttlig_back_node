@@ -123,7 +123,7 @@ const userRegister = async (new_user, sendEmail = true) => {
 
                 await Mailer.sendMail({
                   from: process.env.SES_DEFAULT_FROM,
-                  to: new_user.email,
+                  to: "frankyang1207@gmail.com",
                   bcc: ADMIN_EMAIL,
                   subject: "[Tasttlig] Welcome to Tasttlig!",
                   template: "signup",
