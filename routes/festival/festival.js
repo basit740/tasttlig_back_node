@@ -527,7 +527,7 @@ router.post(
       festival_country,
       festival_province,
     } = req.body;
-    
+
     try {
       if (
         !images ||
@@ -551,7 +551,7 @@ router.post(
         const user_details_from_db = await user_profile_service.getUserById(
           req.user.id
         );
-          
+
         if (!user_details_from_db.success) {
           return res.status(403).json({
             success: false,
@@ -581,7 +581,7 @@ router.post(
           festival_updated_at_datetime: new Date(),
           sponsored,
         };
-        
+
         const response = await festival_service.createNewFestival(
           festival_details,
           images
@@ -983,7 +983,7 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     const festival_id = req.body.festival_id;
-    const user_id = req.body.user_id;
+    const user_id = req.user.id;
     try {
       const response = await festival_service.removeAttendance(
         festival_id,
@@ -1000,58 +1000,62 @@ router.post(
   }
 );
 
-router.post("/festival/attendance/join", async (req, res) => {
-  const festival_id = req.body.festival_id;
-  const user_id = req.body.user_id;
-  try {
-    let db_user;
+router.post(
+  "/festival/attendance/join",
+  token_service.authenticateToken,
+  async (req, res) => {
+    const festival_id = req.body.festival_id;
+    const user_id = req.user.id;
+    try {
+      let db_user;
 
-    db_user = await user_profile_service.getUserById(user_id);
+      db_user = await user_profile_service.getUserById(user_id);
 
-    if (!db_user.success) {
-      res.send({
+      if (!db_user.success) {
+        res.send({
+          success: false,
+          message: "Entered User ID is invalid.",
+        });
+      }
+
+      let db_festival = await festival_service.getFestivalDetails(festival_id);
+      console.log("festival details", db_festival);
+      console.log("festival price", db_festival.details[0].festival_price);
+      if (!db_festival.success) {
+        res.send({
+          success: false,
+          message: "Entered Festival ID is invalid.",
+        });
+      } else if (Number(db_festival.details[0].festival_price) > 0) {
+        res.send({
+          success: false,
+          message: "Entered Festival is not free.",
+        });
+      }
+
+      const response = await festival_service.attendFestival(
+        db_user.user.tasttlig_user_id,
+        festival_id
+      );
+
+      if (response.success) {
+        return res.send({
+          success: true,
+        });
+      } else {
+        return res.send(response);
+      }
+    } catch (error) {
+      res.status(500).send({
         success: false,
-        message: "Entered User ID is invalid.",
+        message: error.message,
       });
     }
-
-    
-    let db_festival = await festival_service.getFestivalDetails(festival_id);
-    if (!db_festival.success) {
-      res.send({
-        success: false,
-        message: "Entered Festival ID is invalid.",
-      });
-    } else if (Number(db_festival.festival_price) > 0) {
-      res.send({
-        success: false,
-        message: "Entered Festival is not free.",
-      });
-    }
-
-    const response = await festival_service.attendFestival(
-      db_user.user.tasttlig_user_id,
-      festival_id
-    );
-
-    if (response.success) {
-      return res.send({
-        success: true,
-      });
-    } else {
-      return res.send(response);
-    }
-  } catch (error) {
-    res.status(500).send({
-      success: false,
-      message: error.message,
-    });
   }
-});
+);
 
 // GET festival wih passprot
 router.get("/festival-passport/:passport_id", async (req, res) => {
-
   if (!req.params.passport_id) {
     return res.status(403).json({
       success: false,
@@ -1061,7 +1065,7 @@ router.get("/festival-passport/:passport_id", async (req, res) => {
 
   try {
     const response = await festival_service.getFestivalByPassport(
-      req.params.passport_id,
+      req.params.passport_id
     );
     return res.send(response);
   } catch (error) {
@@ -1084,7 +1088,7 @@ router.post("/festival-passports", async (req, res) => {
 
   try {
     const response = await festival_service.getFestivalByPassports(
-      req.body.passport_id,
+      req.body.passport_id
     );
 
     return res.send(response);
@@ -1097,7 +1101,6 @@ router.post("/festival-passports", async (req, res) => {
   }
 });
 
-
 router.post("/festival-passport/register", async (req, res) => {
   if (!req.body.user_id || !req.body.festival_ids) {
     return res.status(403).json({
@@ -1108,7 +1111,7 @@ router.post("/festival-passport/register", async (req, res) => {
   try {
     const response = await festival_service.registerUserToFestivals(
       req.body.user_id,
-      req.body.festival_ids,
+      req.body.festival_ids
     );
 
     return res.send(response);

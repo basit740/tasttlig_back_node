@@ -96,6 +96,20 @@ router.post("/payment/stripe/success", async (req, res) => {
       discount: req.body.discount,
       festivalDiscount: req.body.festivalDiscount,
     };
+
+    const payment_details =
+      await stripe_payment_service.getPaymentDetailsFromReference(
+        order_details.payment_id
+      );
+
+    if (payment_details.length !== 0 && payment_details[0].used) {
+      return res
+        .status(403)
+        .json({ success: "false", message: "Payment is invalid." });
+    }
+
+    console.log("Payment details", payment_details);
+
     const db_order_details = await user_order_service.getOrderDetails(
       order_details
     );
@@ -195,6 +209,8 @@ router.post("/payment/stripe/success", async (req, res) => {
 
       return res.send(food_claim_response);
     }
+
+    await stripe_payment_service.usePayment(order_details.payment_id);
 
     if (response.success) {
       return res.send({
@@ -338,9 +354,7 @@ router.get("/vendor-subscription-details", async (req, res) => {
 
 // POST stripe bank account
 router.post("/add-stripe-ids", async (req, res) => {
-
   try {
-   
     const db_user = await user_profile_service.getUserById(
       Number(req.body.user_id)
     );
@@ -363,6 +377,5 @@ router.post("/add-stripe-ids", async (req, res) => {
     });
   }
 });
-
 
 module.exports = router;

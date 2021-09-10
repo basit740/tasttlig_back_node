@@ -100,21 +100,27 @@ const paymentIntent = async (order_details, vendor_festivals, email) => {
       // customer: payment.customer,
       client_secret: payment.client_secret,
       paymentIntent_id: payment.id,
-      // bankAccount: bankAccount  
-    };  
+      // bankAccount: bankAccount
+    };
   } catch (error) {
     console.log("stripe payment error", error);
     return { success: false, message: error.message };
   }
 };
 
-
-const createAccountId = async (bank_account_country, bank_account_currency, bank_account_number,
-  bank_account_routing_number, bank_account_holder_name,  bank_account_holder_type, user_id, email) => {
+const createAccountId = async (
+  bank_account_country,
+  bank_account_currency,
+  bank_account_number,
+  bank_account_routing_number,
+  bank_account_holder_name,
+  bank_account_holder_type,
+  user_id,
+  email
+) => {
   try {
-    
     const customer = await stripe.customers.create({
-      email: email
+      email: email,
     });
     // const token = await stripe.tokens.create({
     //   card: {
@@ -127,50 +133,72 @@ const createAccountId = async (bank_account_country, bank_account_currency, bank
 
     // console.log('1234567token', token);
 
-
-const card = await stripe.customers.createSource(
-  customer.id,
-  {source: 'tok_1JS3f8KiKjECHoUbh9Rg9dhO'}
-);
-
-// console.log('1234567card', card);
-    const payout = await await stripe.payouts.create({
-      amount: 1100,
-      currency: 'cad',
-      destination: "card_1JS3f8KiKjECHoUbxe9AV7I0"
+    const card = await stripe.customers.createSource(customer.id, {
+      source: "tok_1JS3f8KiKjECHoUbh9Rg9dhO",
     });
 
+    // console.log('1234567card', card);
+    const payout = await await stripe.payouts.create({
+      amount: 1100,
+      currency: "cad",
+      destination: "card_1JS3f8KiKjECHoUbxe9AV7I0",
+    });
 
+    // insert stripe customer id and bank account id into stripe table
+    // await db.transaction(async (trx) => {
+    //   const response = await trx("stripe")
+    //     .insert({
+    //       user_id: user_id,
+    //       customer_id: customer.id,
+    //       // bank_account_id: bankAccount.id
+    //     })
+    //     .returning("*")
+    //     .catch((error) => {
+    //       return { success: false, message: error };
+    //     });
 
-// insert stripe customer id and bank account id into stripe table
-      // await db.transaction(async (trx) => {
-      //   const response = await trx("stripe")
-      //     .insert({
-      //       user_id: user_id,
-      //       customer_id: customer.id,
-      //       // bank_account_id: bankAccount.id
-      //     })
-      //     .returning("*")
-      //     .catch((error) => {
-      //       return { success: false, message: error };
-      //     });
-    
+    // });
 
-      // });
-    
     return {
       success: false,
- 
-    };  
+    };
   } catch (error) {
     console.log(error);
     return { success: false, message: error.message };
   }
 };
 
+const getPaymentDetailsFromReference = async (payment_ref) => {
+  try {
+    const result = await db("payments")
+      .select()
+      .where({ payment_reference_number: payment_ref });
+    return result;
+  } catch (err) {
+    console.log("getting payment failed", payment_ref);
+    return {
+      success: false,
+      message: err,
+    };
+  }
+};
 
+const usePayment = async (payment_ref) => {
+  try {
+    await db("payments")
+      .update({ used: true })
+      .where("payment_reference_number", payment_ref);
+  } catch (err) {
+    return {
+      success: false,
+      message: err,
+    };
+  }
+};
 
 module.exports = {
   paymentIntent,
-  createAccountId
+  createAccountId,
+  getPaymentDetailsFromReference,
+  usePayment,
 };
