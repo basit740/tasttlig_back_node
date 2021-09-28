@@ -406,6 +406,38 @@ router.get("/hostsponsors/festival/:user_id", async (req, res) => {
   }
 });
 
+// GET business in specific festival
+router.get("/business/festival/:festival_id", async (req, res) => {
+  if (!req.params.festival_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const businesses = [];
+
+    const response = await festival_service.getFestivalDetails(
+      req.params.festival_id
+    );
+    for (let item of response.details[0].festival_business_id) {
+      const list = await business_service.getBusinessById(item);
+      if (list) {
+        businesses.push(list.business[0]);
+      }
+    }
+    return res.send(businesses);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+
 // GET vendors in specific festival
 router.get("/hostvendors/festival/:user_id", async (req, res) => {
   try {

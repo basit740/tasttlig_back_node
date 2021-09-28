@@ -55,6 +55,22 @@ const getBusinessApplications = async () => {
   }
 };
 
+const getBusinessById = async (business_id) => {
+  try {
+    const business = await db
+      .select("*")
+      .from("business_details")
+      .where("business_details_id", "=", business_id);
+
+    return {
+      success: true,
+      business,
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
 const getBusinessApplicantDetails = async (userId) => {
   try {
     console.log(userId);
@@ -344,4 +360,5 @@ module.exports = {
   getBusinessApplicantDetails,
   approveOrDeclineBusinessMemberApplication,
   postBusinessThroughFile,
+  getBusinessById,
 };
