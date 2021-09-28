@@ -157,6 +157,36 @@ const postBusinessPassportDetails = async (data) => {
   }
 };
 
+const postBusinessThroughFile = async (business_name, business_category, business_location, business_contact_info) => {
+  try {
+    return await db.transaction(async (trx) => {
+      const business_details = {
+        business_name: business_name,
+        business_category: business_category,
+        business_location: business_location,
+        business_phone_number: business_contact_info,
+      };
+      
+      var business_details_id = await trx("business_details")
+        .insert(business_details)
+        .returning("business_details_id");
+        
+      
+
+      return { success: true };
+    });
+  } catch (error) {
+    if (error && error.detail && error.detail.includes("already exists")) {
+      return {
+        success: false,
+        details:
+          "User Business Information already exists, you can edit your existing information under passport section in your profile. Your application for Business Member role has been sent to Admin",
+      };
+    }
+    return { success: false, details: error.detail };
+  }
+};
+
 const approveOrDeclineBusinessMemberApplication = async (
   userId,
   status,
@@ -313,4 +343,5 @@ module.exports = {
   getBusinessApplications,
   getBusinessApplicantDetails,
   approveOrDeclineBusinessMemberApplication,
+  postBusinessThroughFile,
 };

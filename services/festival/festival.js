@@ -377,9 +377,10 @@ const getFestivalList = async () => {
 function */
 const createNewFestival = async (festival_details, festival_images) => {
   try {
+    let db_festival;
     festival_details.basic_passport_id = ("M" + generateRandomString("6"));
     await db.transaction(async (trx) => {
-      const db_festival = await trx("festivals")
+      db_festival = await trx("festivals")
         .insert(festival_details)
         .returning("*");
 
@@ -395,7 +396,7 @@ const createNewFestival = async (festival_details, festival_images) => {
       await trx("festival_images").insert(images);
     });
 
-    return { success: true, details: "Success." };
+    return { success: true, details: db_festival[0].festival_id };
   } catch (error) {
     return { success: false, details: error.message };
   }

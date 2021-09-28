@@ -6,6 +6,7 @@ const token_service = require("../../services/authentication/token");
 const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
+const business_service = require("../../services/passport/businessPassport");
 const { compareSync } = require("bcrypt");
 const { compose } = require("objection");
 
@@ -526,6 +527,7 @@ router.post(
       festival_postal_code,
       festival_country,
       festival_province,
+      festival_participating_business,
     } = req.body;
 
     try {
@@ -581,12 +583,28 @@ router.post(
           festival_updated_at_datetime: new Date(),
           sponsored,
         };
+        //Temporary commented out
+        // const response = await festival_service.createNewFestival(
+        //   festival_details,
+        //   images
+        // );
+        // console.log("response from festival/add:", response.details);
 
-        const response = await festival_service.createNewFestival(
-          festival_details,
-          images
-        );
-        console.log("response from festival/add:", response);
+        // insert the business list into buiness table
+        if (festival_participating_business) {
+          const business_arr = festival_participating_business.split("|");
+          console.log('12345', business_arr[6]);
+          for (let i = 5; i < business_arr.length - 2; i=i+5) {
+            const response = await business_service.postBusinessThroughFile(
+              business_arr[i+1],
+              business_arr[i+2],
+              business_arr[i+3],
+              business_arr[i+4],
+            );
+          }
+          
+        }
+
 
         return res.send(response);
       } catch (error) {
@@ -596,6 +614,8 @@ router.post(
           response: error,
         });
       }
+
+
     } catch (error) {
       res.send({
         success: false,
