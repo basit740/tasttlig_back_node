@@ -851,8 +851,31 @@ const addBusinessToFestival = async (festival_id, user_id) => {
       }
     });
     return { success: true, details: "Success." };
-  } catch (error) {}
+  } catch (error) {return { success: false, details: error.message };}
 };
+
+// add participating business listed in excel file to festival
+const addBusinessInFestival = async (festival_id, business_id) => {
+  try {
+    await db.transaction(async (trx) => {
+      const db_business = await trx("festivals")
+        .where({ festival_id: festival_id })
+        .update({
+          festival_business_id: trx.raw(
+            "array_append(festival_business_id, ?)",
+            [business_id]
+          ),
+        })
+        .returning("*");
+
+      if (!db_business) {
+        return { success: false, details: "Inserting guest failed." };
+      }
+    });
+    return { success: true, details: "Success." };
+  } catch (error) {return { success: false, details: error.message };}
+};
+
 
 const updateFestival = async (data, festival_images) => {
   try {
@@ -1259,5 +1282,6 @@ module.exports = {
   addNeighbourhoodSponsor,
   getFestivalByPassport,
   getFestivalByPassports,
-  registerUserToFestivals
+  registerUserToFestivals,
+  addBusinessInFestival,
 };

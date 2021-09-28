@@ -583,24 +583,25 @@ router.post(
           festival_updated_at_datetime: new Date(),
           sponsored,
         };
-        //Temporary commented out
-        // const response = await festival_service.createNewFestival(
-        //   festival_details,
-        //   images
-        // );
-        // console.log("response from festival/add:", response.details);
+
+        const response = await festival_service.createNewFestival(
+          festival_details,
+          images
+        );
+        console.log("response from festival/add:", response);
 
         // insert the business list into buiness table
         if (festival_participating_business) {
           const business_arr = festival_participating_business.split("|");
-          console.log('12345', business_arr[6]);
           for (let i = 5; i < business_arr.length - 2; i=i+5) {
-            const response = await business_service.postBusinessThroughFile(
+            const business_response = await business_service.postBusinessThroughFile(
               business_arr[i+1],
               business_arr[i+2],
               business_arr[i+3],
               business_arr[i+4],
             );
+
+            await festival_service.addBusinessInFestival(response.details, business_response.details[0])
           }
           
         }

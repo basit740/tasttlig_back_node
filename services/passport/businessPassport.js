@@ -173,7 +173,7 @@ const postBusinessThroughFile = async (business_name, business_category, busines
         
       
 
-      return { success: true };
+      return { success: true, details: business_details_id};
     });
   } catch (error) {
     if (error && error.detail && error.detail.includes("already exists")) {
