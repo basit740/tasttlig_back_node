@@ -5,10 +5,17 @@ const authRouter = require("express").Router();
 const jwt = require("jsonwebtoken");
 const rateLimit = require("express-rate-limit");
 const token_service = require("../../services/authentication/token");
+const bcrypt = require("bcrypt");
+
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const user_profile_service = require("../../services/profile/user_profile");
 const auth_server_service = require("../../services/authentication/auth_server_service");
-const { generateRandomString } = require("../../functions/functions");
+const {
+  encryptString,
+  generateRandomString,
+} = require("../../functions/functions");
+const User = require("../../models/User");
+const password_preprocessor = require("../../middleware/password_preprocessor");
 
 // Limit the number of accounts created from the same IP address
 const createAccountLimiter = rateLimit({
@@ -19,47 +26,59 @@ const createAccountLimiter = rateLimit({
 });
 
 // POST user register
-authRouter.post("/user/register", createAccountLimiter, async (req, res) => {
-  const { first_name, last_name, email, password, phone_number, passport_type, source } =
-    req.body;
-
-  if (!email || !password || !source) {
-    return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
-    });
-  }
-
-  try {
-    const user = {
+authRouter.post(
+  "/user/register",
+  createAccountLimiter,
+  password_preprocessor,
+  async (req, res) => {
+    const {
       first_name,
       last_name,
       email,
-      password,
+      password_digest,
       phone_number,
       passport_type,
       source,
-    };
+    } = req.body;
 
-    const response = await authenticate_user_service.userRegister(user);
-
-    if (response.success) {
-      res.status(200).send(response);
-    } else {
-      //console.log("first response", response)
-      return res.status(401).json({
+    if (!email || !password_digest || !source) {
+      return res.status(403).json({
         success: false,
-        message: "401 error",
+        message: "Required parameters are not available in request.",
       });
     }
-  } catch (error) {
-    console.log(error);
-    return res.status(401).json({
-      success: false,
-      message: "error",
-    });
+
+    try {
+      const user = {
+        first_name,
+        last_name,
+        email,
+        password: password_digest,
+        phone_number,
+        passport_type,
+        source,
+      };
+
+      const response = await authenticate_user_service.userRegister(user);
+
+      if (response.success) {
+        res.status(200).send(response);
+      } else {
+        //console.log("first response", response)
+        return res.status(401).json({
+          success: false,
+          message: "401 error",
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(401).json({
+        success: false,
+        message: "error",
+      });
+    }
   }
-});
+);
 
 // GET user email address verification for registration
 authRouter.get("/user/confirmation/:token", async (req, res) => {
@@ -87,6 +106,10 @@ authRouter.get("/user/confirmation/:token", async (req, res) => {
 });
 
 // POST user login
+// TODO: move central server to tasttlig
+// Step 1: if a user exist on central server and password match, we ask the user
+//         renew their password, remove that row from central server.
+// Step 2: if a user not exist on central server, check login on tasttlig backend.
 authRouter.post("/user/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -98,12 +121,38 @@ authRouter.post("/user/login", async (req, res) => {
   }
 
   try {
-    const { success, user } = await auth_server_service.authLogin(
-      email,
-      password
-    );
+    const { userState } = await auth_server_service.authLogin(email, password);
+    let passwordsMatch = false;
+    if (userState === 3) {
+      // so this user exist on auth server and password match
+      // we need to force them change their password.
+      const users = await User.query().where({ email });
+      // user not exist on tasttlig but on other apps. We can ignore this case now.
+      if (users.length !== 0) {
+        const email_token = jwt.sign(
+          { user: users[0].tasttlig_user_id },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "28d",
+          }
+        );
 
-    if (!success) {
+        res.send({
+          success: false,
+          redirect: true,
+          reset_token: email_token,
+          email: email,
+        });
+      }
+    } else if (userState === 2) {
+      // so this user exist on auth server but password not match
+    } else {
+      // so this user do not exist on auth server
+      const user = (await User.query().where("email", email))[0];
+      passwordsMatch = bcrypt.compareSync(password, user.password_digest);
+    }
+
+    if (!passwordsMatch) {
       return res.status(401).json({
         success: false,
         message: "Invalid password.",
@@ -217,48 +266,52 @@ authRouter.post(
 );
 
 // PUT user enter new password
-authRouter.put("/user/update-password/:token", async (req, res) => {
-  if (!req.body.email || !req.body.password || !req.params.token) {
-    return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
-    });
-  }
-
-  try {
-    const email = req.body.email;
-    const password = req.body.password;
-    const token = req.params.token;
-
-    if (email) {
-      const response = await authenticate_user_service.updatePassword(
-        email,
-        password,
-        token
-      );
-
-      res.send({
-        success: true,
-        message: "Success.",
-        response,
+authRouter.put(
+  "/user/update-password/:token",
+  password_preprocessor,
+  async (req, res) => {
+    if (!req.body.email || !req.body.password_digest || !req.params.token) {
+      return res.status(403).json({
+        success: false,
+        message: "Required parameters are not available in request.",
       });
     }
-  } catch (error) {
-    if (error.message === "jwt expired") {
-      res.send({
-        success: false,
-        message: "Error.",
-        response: "Token is expired.",
-      });
-    } else {
-      res.send({
-        success: false,
-        message: "Error.",
-        response: error.message,
-      });
+
+    try {
+      const email = req.body.email;
+      const password = req.body.password_digest;
+      const token = req.params.token;
+
+      if (email) {
+        const response = await authenticate_user_service.updatePassword(
+          email,
+          password,
+          token
+        );
+
+        res.send({
+          success: true,
+          message: "Success.",
+          response,
+        });
+      }
+    } catch (error) {
+      if (error.message === "jwt expired") {
+        res.send({
+          success: false,
+          message: "Error.",
+          response: "Token is expired.",
+        });
+      } else {
+        res.send({
+          success: false,
+          message: "Error.",
+          response: error.message,
+        });
+      }
     }
   }
-});
+);
 
 // POST visitor account
 authRouter.post(
@@ -307,7 +360,7 @@ authRouter.post(
       first_name,
       last_name,
       email,
-      password: generateRandomString(8),
+      password: encryptString(generateRandomString(8)),
       phone_number,
       created_by_admin,
     };

@@ -1,5 +1,6 @@
 // Libraries
 const axios = require("axios");
+const User = require("../../models/User");
 const user_profile_service = require("../profile/user_profile");
 
 // Environment variables
@@ -7,14 +8,10 @@ const auth_server_url = process.env.AUTH_SERVER;
 
 // Authenticate user sign up helper function
 const authSignup = async (email, password, passport_id = "") => {
-  let response = await axios({
-    url: `${auth_server_url}/auth/register`,
-    method: "POST",
-    data: {
-      email,
-      password,
-      passport_id,
-    },
+  await User.query().insert({
+    email,
+    password,
+    passport_id,
   });
 
   return response.data;
@@ -23,7 +20,7 @@ const authSignup = async (email, password, passport_id = "") => {
 // Authenticate user login helper function
 const authLogin = async (email, password) => {
   let response = await axios({
-    url: `${auth_server_url}/auth/login`,
+    url: `${auth_server_url}/auth/check-state`,
     method: "POST",
     headers: {
       "access-control-allow-origin": "*",
@@ -31,6 +28,21 @@ const authLogin = async (email, password) => {
     data: {
       email,
       password,
+    },
+  });
+
+  return response.data;
+};
+
+const authRemove = async (user_id) => {
+  let response = await axios({
+    url: `${auth_server_url}/auth/remove-user`,
+    method: "DELETE",
+    headers: {
+      "access-control-allow-origin": "*",
+    },
+    data: {
+      user_id,
     },
   });
 
@@ -167,6 +179,7 @@ module.exports = {
   authPasswordReset,
   authAddRole,
   authRemoveRole,
+  authRemove,
   authAddPoints,
   createNewProductInCentralServer,
   createNewExperienceInCentralServer,

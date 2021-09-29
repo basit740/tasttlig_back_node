@@ -3,9 +3,12 @@
 // Libraries
 const { db } = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
+const { raw } = require("objection");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const { generateRandomString } = require("../../functions/functions");
 const auth_server_service = require("../../services/authentication/auth_server_service");
+const User = require("../../models/User");
+const Access = require("../../models/AppAccess");
 
 // Environment variables
 const SITE_BASE = process.env.SITE_BASE;
@@ -14,87 +17,70 @@ const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 // Save user register information to Tasttlig users table helper function
 const userRegister = async (new_user, sendEmail = true) => {
   try {
-    console.log(new_user);
-    const { success, user } = await auth_server_service.authSignup(
-      new_user.email,
-      new_user.password
-    );
+    return db.transaction(async (trx) => {
+      let new_db_user = [];
 
-    if (success) {
-      return db.transaction(async (trx) => {
-        let new_db_user = [];
+      const userData = {
+        password_digest: new_user.password,
+        first_name: new_user.first_name,
+        last_name: new_user.last_name,
+        email: new_user.email,
+        phone_number: new_user.phone_number,
+        source: new_user.source,
+        status: "ACTIVE",
+        // passport_id: user.passport_id,
+        // passport_type: new_user.passport_type,
+        created_at_datetime: new Date(),
+        updated_at_datetime: new Date(),
+      };
 
-        const userData = {
-          first_name: new_user.first_name,
-          last_name: new_user.last_name,
-          email: new_user.email,
-          phone_number: new_user.phone_number,
-          source: new_user.source,
-          status: "ACTIVE",
-          // passport_id: user.passport_id,
-          // passport_type: new_user.passport_type,
-          auth_user_id: user.id,
-          created_at_datetime: new Date(),
-          updated_at_datetime: new Date(),
-        };
+      if (new_user.is_participating_in_festival) {
+        userData.is_participating_in_festival =
+          new_user.is_participating_in_festival;
+      }
 
-        if (new_user.is_participating_in_festival) {
-          userData.is_participating_in_festival =
-            new_user.is_participating_in_festival;
-        }
+      new_db_user = trx("tasttlig_users").insert(userData).returning("*");
 
-        new_db_user = trx("tasttlig_users").insert(userData).returning("*");
+      return await new_db_user.then(async (value1) => {
+        // Get role code of new role to be added
+        db("roles")
+          .select()
+          .where({
+            role: "GUEST",
+          })
+          .then(async (value) => {
+            // Insert new role in auth server
+            const { success, user } = await auth_server_service.authAddRole(
+              value1[0].auth_user_id,
+              value[0].role_code
+            );
 
-        return await new_db_user.then(async (value1) => {
-          // Get role code of new role to be added
-          db("roles")
-            .select()
-            .where({
-              role: "GUEST",
-            })
-            .then(async (value) => {
-              // Insert new role in auth server
-              const { success, user } = await auth_server_service.authAddRole(
-                value1[0].auth_user_id,
-                value[0].role_code
-              );
-
-              // Insert new role for this user
-              await db("user_role_lookup").insert({
-                user_id: value1[0].tasttlig_user_id,
-                role_code: value[0].role_code,
-              });
+            // Insert new role for this user
+            await db("user_role_lookup").insert({
+              user_id: value1[0].tasttlig_user_id,
+              role_code: value[0].role_code,
             });
 
-          //basic guest subscription
-          const subDetails = await db("subscriptions")
-            .where({
-              subscription_code: "G_BASIC",
-              //status: "ACTIVE",
-            })
-            .first()
-            .then((value) => {
-              if (!value) {
-                return { success: false, message: "No plan found." };
-              }
+            // Insert new Access for this user
+            const targetUser = await User.query().findById(
+              value1[0].tasttlig_user_id
+            );
+            const targetAccess = (await Access.query().select("id")).map(
+              (e) => e.id
+            );
+            await targetUser.$relatedQuery("access").relate(targetAccess);
+          });
 
-              return { success: true, item: value };
-            })
-            .catch((error) => {
-              return { success: false, message: error };
-            });
-          if (subDetails.success) {
-            let subscription_end_datetime = null;
-
-            if (subDetails.item.validity_in_months) {
-              subscription_end_datetime = new Date(
-                new Date().setMonth(
-                  new Date().getMonth() +
-                    Number(subDetails.item.validity_in_months)
-                )
-              );
-            } else {
-              subscription_end_datetime = subDetails.item.date_of_expiry;
+        //basic guest subscription
+        const subDetails = await db("subscriptions")
+          .where({
+            subscription_code: "G_BASIC",
+            //status: "ACTIVE",
+          })
+          .first()
+          .then((value) => {
+            if (!value) {
+              return { success: false, message: "No plan found." };
             }
 
             await trx("user_subscriptions").insert({
@@ -134,14 +120,52 @@ const userRegister = async (new_user, sendEmail = true) => {
                 });
               }
             );
+          } else {
+            subscription_end_datetime = subDetails.item.date_of_expiry;
           }
 
-          return { success: true, data: value1[0] };
-        });
+          await trx("user_subscriptions").insert({
+            subscription_code: subDetails.item.subscription_code,
+            user_id: value1[0].tasttlig_user_id,
+            subscription_start_datetime: new Date(),
+            subscription_end_datetime: subscription_end_datetime,
+            cash_payment_received: subDetails.item.price,
+            user_subscription_status: "ACTIVE",
+          });
+        }
+
+        // Send sign up email confirmation to the user
+        if (sendEmail) {
+          jwt.sign(
+            {
+              user: value1[0].tasttlig_user_id,
+            },
+            process.env.EMAIL_SECRET,
+            {
+              expiresIn: "28d",
+            },
+            async (err, emailToken) => {
+              const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
+              console.log("urlVerifyEmail", urlVerifyEmail);
+
+              await Mailer.sendMail({
+                from: process.env.SES_DEFAULT_FROM,
+                to: new_user.email,
+                bcc: ADMIN_EMAIL,
+                subject: "[Tasttlig] Welcome to Tasttlig!",
+                template: "signup",
+                context: {
+                  passport_id: new_db_user._single.insert.passport_id,
+                  urlVerifyEmail,
+                },
+              });
+            }
+          );
+        }
+
+        return { success: true, data: value1[0] };
       });
-    } else {
-      return { success: false, data: "Error from auth server." };
-    }
+    });
   } catch (error) {
     return { success: false, data: error.message };
   }
@@ -261,8 +285,13 @@ const checkEmail = async (email) => {
         };
       }
 
-      const { email_token } =
-        await auth_server_service.authPasswordResetRequest(email);
+      const email_token = jwt.sign(
+        { user: value.tasttlig_user_id },
+        process.env.EMAIL_SECRET,
+        {
+          expiresIn: "28d",
+        }
+      );
 
       try {
         const url = `${SITE_BASE}/forgot-password/${email_token}/${email}`;
@@ -301,12 +330,19 @@ const checkEmail = async (email) => {
 
 // Update password from user helper function
 const updatePassword = async (email, password, token) => {
-  const { success, user } = await auth_server_service.authPasswordReset(
-    token,
-    password
-  );
+  // const { success, user } = await auth_server_service.authPasswordReset(
+  //   token,
+  //   password
+  // );
+
+  const encrypted = jwt.verify(token, process.env.EMAIL_SECRET);
+  const user_id = encrypted.user;
+  const success = await User.query()
+    .findById(user_id)
+    .patch({ password_digest: password });
 
   if (success) {
+    await auth_server_service.authRemove(user_id);
     await Mailer.sendMail({
       from: process.env.SES_DEFAULT_FROM,
       to: email,
@@ -327,59 +363,51 @@ const updatePassword = async (email, password, token) => {
 // Save visitor account information to Tasttlig users table helper function
 const createDummyUser = async (email) => {
   try {
-    const { success, user } = await auth_server_service.authSignup(
-      email,
-      generateRandomString(8)
-    );
-
-    if (success) {
-      return await db("tasttlig_users")
-        .insert({
-          first_name: "NA",
-          last_name: "NA",
-          email,
-          phone_number: "NA",
-          status: "DUMMY",
-          passport_id: user.passport_id,
-          auth_user_id: user.id,
-          created_at_datetime: new Date(),
-          updated_at_datetime: new Date(),
-        })
-        .returning("*")
-        .then(async (value) => {
-          // Get role code of new role to be added
-          let role_code = await db("roles")
-            .select()
-            .where({
-              role: "VISITOR",
-            })
-            .then((value) => {
-              return value[0].role_code;
-            });
-
-          // Insert new role in auth server
-          auth_server_service.authAddRole(user.id, role_code).then(() => {
-            // Insert new role for this user
-            db("user_role_lookup").insert({
-              user_id: value[0].tasttlig_user_id,
-              role_code,
-            });
+    return await db("tasttlig_users")
+      .insert({
+        password: generateRandomString(8),
+        first_name: "NA",
+        last_name: "NA",
+        email,
+        phone_number: "NA",
+        status: "DUMMY",
+        passport_id: user.passport_id,
+        auth_user_id: user.id,
+        created_at_datetime: new Date(),
+        updated_at_datetime: new Date(),
+      })
+      .returning("*")
+      .then(async (value) => {
+        // Get role code of new role to be added
+        let role_code = await db("roles")
+          .select()
+          .where({
+            role: "VISITOR",
+          })
+          .then((value) => {
+            return value[0].role_code;
           });
 
-          return { success: true, user: value[0] };
-        })
-        .catch((reason) => {
-          return { success: false, data: reason };
+        // Insert new role in auth server
+        auth_server_service.authAddRole(user.id, role_code).then(() => {
+          // Insert new role for this user
+          db("user_role_lookup").insert({
+            user_id: value[0].tasttlig_user_id,
+            role_code,
+          });
         });
-    } else {
-      return { success: false, data: "Error from auth server." };
-    }
+
+        return { success: true, user: value[0] };
+      })
+      .catch((reason) => {
+        return { success: false, data: reason };
+      });
   } catch (error) {
     return { success: false, data: error.message };
   }
 };
 
-/* Email to new user from multi-step form with login details and password reset 
+/* Email to new user from multi-step form with login details and password reset
 link helper function */
 const sendNewUserEmail = async (new_user) => {
   const email = new_user.email;
@@ -399,7 +427,7 @@ const sendNewUserEmail = async (new_user) => {
         first_name: new_user.first_name,
         last_name: new_user.last_name,
         email,
-        password: new_user.password,
+        password_digest: new_user.password,
         url,
       },
     });
@@ -421,58 +449,50 @@ const sendNewUserEmail = async (new_user) => {
 /* Save user information from multi-step form to Tasttlig users table helper function */
 const createBecomeFoodProviderUser = async (become_food_provider_user) => {
   try {
-    const { success, user } = await auth_server_service.authSignup(
-      become_food_provider_user.email,
-      become_food_provider_user.password
-    );
-
-    if (success) {
-      return await db("tasttlig_users")
-        .insert({
-          first_name: become_food_provider_user.first_name,
-          last_name: become_food_provider_user.last_name,
-          email: become_food_provider_user.email,
-          phone_number: become_food_provider_user.phone_number,
-          status: "ACTIVE",
-          passport_id: user.passport_id,
-          auth_user_id: user.id,
-          created_by_admin: become_food_provider_user.created_by_admin,
-          created_at_datetime: new Date(),
-          updated_at_datetime: new Date(),
-        })
-        .returning("*")
-        .then(async (value) => {
-          // Get role code of new role to be added
-          let role_code = await db("roles")
-            .select()
-            .where({
-              role: "GUEST",
-            })
-            .then((value) => {
-              return value[0].role_code;
-            });
-
-          // Insert new role in auth server
-          auth_server_service.authAddRole(user.id, role_code).then(() => {
-            // Insert new role for this user
-            db("user_role_lookup")
-              .insert({
-                user_id: value[0].tasttlig_user_id,
-                role_code,
-              })
-              .then(async () => {
-                await sendNewUserEmail(become_food_provider_user);
-              });
+    return await db("tasttlig_users")
+      .insert({
+        first_name: become_food_provider_user.first_name,
+        last_name: become_food_provider_user.last_name,
+        password_digest: become_food_provider_user.password,
+        email: become_food_provider_user.email,
+        phone_number: become_food_provider_user.phone_number,
+        status: "ACTIVE",
+        passport_id: user.passport_id,
+        auth_user_id: user.id,
+        created_by_admin: become_food_provider_user.created_by_admin,
+        created_at_datetime: new Date(),
+        updated_at_datetime: new Date(),
+      })
+      .returning("*")
+      .then(async (value) => {
+        // Get role code of new role to be added
+        let role_code = await db("roles")
+          .select()
+          .where({
+            role: "GUEST",
+          })
+          .then((value) => {
+            return value[0].role_code;
           });
 
-          return { success: true, user: value[0] };
-        })
-        .catch((reason) => {
-          return { success: false, data: reason };
+        // Insert new role in auth server
+        auth_server_service.authAddRole(user.id, role_code).then(() => {
+          // Insert new role for this user
+          db("user_role_lookup")
+            .insert({
+              user_id: value[0].tasttlig_user_id,
+              role_code,
+            })
+            .then(async () => {
+              await sendNewUserEmail(become_food_provider_user);
+            });
         });
-    } else {
-      return { success: false, data: "Error from auth server." };
-    }
+
+        return { success: true, user: value[0] };
+      })
+      .catch((reason) => {
+        return { success: false, data: reason };
+      });
   } catch (error) {
     // Duplicate key
     if (error.code === 23505) {
@@ -635,6 +655,19 @@ const userMigrationFromAuthServer = async (new_user) => {
   }
 };
 
+const getAllUsers = async (page, searchText) => {
+  return User.query()
+    .withGraphFetched("[roles, access]")
+    .page(page, 100)
+    .where(
+      raw(
+        "first_name || ' ' ||  last_name || ' ' ||  email || ' ' || phone_number"
+      ),
+      "like",
+      `%${searchText}%`
+    );
+};
+
 module.exports = {
   userRegister,
   verifyAccount,
@@ -648,4 +681,5 @@ module.exports = {
   findUserByBusinessName,
   getUserByBusinessDetails,
   userMigrationFromAuthServer,
+  getAllUsers,
 };
