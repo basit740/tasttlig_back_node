@@ -621,7 +621,7 @@ router.post(
           images
         );
         console.log("response from festival/add:", response);
-
+          console.log("business_list:", festival_participating_business)
         // insert the business list into buiness table
         if (festival_participating_business) {
           const business_arr = festival_participating_business.split("|");
