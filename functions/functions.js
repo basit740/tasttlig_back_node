@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt");
 // Date formatting helper function
 const formatDate = (event) => {
   const utcDate = new Date(event);
@@ -39,7 +40,8 @@ const formatPhone = (phone) => {
 
 /* Generate string of 4 random alphanumeric characters for the Food Sample code 
 helper function */
-const generateRandomString = (len, seed = "tasttlig") => {
+const generateRandomString = (len) => {
+  seed = process.env.SESSION_SECRET;
   seed = parseInt(seed, 36) % 10;
   if (seed === 0) {
     seed += 1;
@@ -50,6 +52,12 @@ const generateRandomString = (len, seed = "tasttlig") => {
     rand.toString(36).substring(2, 2 + len / 2) +
     rand2.toString(36).substring(2, 2 + len / 2)
   ).toUpperCase();
+};
+
+const encryptString = (text) => {
+  const saltRounds = 10;
+  const salt = bcrypt.genSaltSync(saltRounds);
+  return bcrypt.hashSync(req.body.password, salt);
 };
 
 module.exports = {
