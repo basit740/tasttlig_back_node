@@ -621,9 +621,10 @@ router.post(
           images
         );
         console.log("response from festival/add:", response);
-
+        console.log("123");
         // insert the business list into buiness table
         if (festival_participating_business) {
+          console.log("12345");
           const business_arr = festival_participating_business.split("|");
           for (let i = 5; i < business_arr.length - 2; i=i+5) {
             const business_response = await business_service.postBusinessThroughFile(
