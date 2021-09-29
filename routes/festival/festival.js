@@ -633,7 +633,7 @@ router.post(
               business_arr[i+3],
               business_arr[i+4],
             );
-             console.log("123456", business_response.details[0]);
+             console.log("123456", business_response);
             await festival_service.addBusinessInFestival(response.details, business_response.details[0])
           }
           
