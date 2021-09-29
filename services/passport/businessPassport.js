@@ -183,7 +183,7 @@ const postBusinessThroughFile = async (business_name, business_category, busines
         business_location: business_location,
         business_phone_number: business_contact_info,
       };
-      
+      console.log('123123186');
       var business_details_id = await trx("business_details")
         .insert(business_details)
         .returning("business_details_id");
