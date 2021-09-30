@@ -35,10 +35,6 @@ const userRegister = async (new_user, sendEmail = true) => {
         updated_at_datetime: new Date(),
       };
 
-      // Insert new Access for this user
-      const targetUser = await User.query().findById(
-        value1[0].tasttlig_user_id
-      );
       const targetAccess = (await Access.query().select("id")).map((e) => e.id);
       await targetUser.$relatedQuery("access").relate(targetAccess);
 
@@ -69,6 +65,11 @@ const userRegister = async (new_user, sendEmail = true) => {
               role_code: value[0].role_code,
             });
           });
+
+        // Insert new Access for this user
+        const targetUser = await User.query().findById(
+          value1[0].tasttlig_user_id
+        );
 
         //basic guest subscription
         const subDetails = await db("subscriptions")
