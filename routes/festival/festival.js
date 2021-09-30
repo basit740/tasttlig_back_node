@@ -746,17 +746,16 @@ router.put(
         }
 
         
-
         if (festival_participating_business) {
           const business_arr = festival_participating_business.split("|");
           for (let i = 5; i < business_arr.length - 2; i=i+5) {
+
             const business_response = await business_service.postBusinessThroughFile(
               business_arr[i+1],
               business_arr[i+2],
               business_arr[i+3],
               business_arr[i+4],
             );
-            console.log(business_response);
             const r = await festival_service.addBusinessInFestival(festival_id, business_response.details);
             console.log('12345', r);
           }

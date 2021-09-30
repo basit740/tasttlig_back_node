@@ -856,7 +856,17 @@ const addBusinessToFestival = async (festival_id, user_id) => {
 
 // insert business_id into festival_business_id array
 const addBusinessInFestival = async (festival_id, business_id) => {
-  // check if array already contains this id
+  // check if array already contains this business id, skip the insertion
+  const festivalBusinesses = await db("festivals")
+    .select("festival_business_id")
+    .where({ festival_id: festival_id })
+
+  // console.log('current festival businesses', festivalBusinesses[0].festival_business_id);
+  if (festivalBusinesses && festivalBusinesses.length > 1 && festivalBusinesses[0].festival_business_id.includes(business_id)){
+    console.log("duplicate");
+  }
+
+
   try {
     await db.transaction(async (trx) => {
       const db_business = await trx("festivals")
