@@ -15,6 +15,7 @@ const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
 // Save user register information to Tasttlig users table helper function
+// Save user register information to Tasttlig users table helper function
 const userRegister = async (new_user, sendEmail = true) => {
   try {
     return db.transaction(async (trx) => {
@@ -33,6 +34,13 @@ const userRegister = async (new_user, sendEmail = true) => {
         created_at_datetime: new Date(),
         updated_at_datetime: new Date(),
       };
+
+      // Insert new Access for this user
+      const targetUser = await User.query().findById(
+        value1[0].tasttlig_user_id
+      );
+      const targetAccess = (await Access.query().select("id")).map((e) => e.id);
+      await targetUser.$relatedQuery("access").relate(targetAccess);
 
       if (new_user.is_participating_in_festival) {
         userData.is_participating_in_festival =
@@ -60,15 +68,6 @@ const userRegister = async (new_user, sendEmail = true) => {
               user_id: value1[0].tasttlig_user_id,
               role_code: value[0].role_code,
             });
-
-            // Insert new Access for this user
-            const targetUser = await User.query().findById(
-              value1[0].tasttlig_user_id
-            );
-            const targetAccess = (await Access.query().select("id")).map(
-              (e) => e.id
-            );
-            await targetUser.$relatedQuery("access").relate(targetAccess);
           });
 
         //basic guest subscription
@@ -83,55 +82,34 @@ const userRegister = async (new_user, sendEmail = true) => {
               return { success: false, message: "No plan found." };
             }
 
-            await trx("user_subscriptions").insert({
-              subscription_code: subDetails.item.subscription_code,
-              user_id: value1[0].tasttlig_user_id,
-              subscription_start_datetime: new Date(),
-              subscription_end_datetime: subscription_end_datetime,
-              cash_payment_received: subDetails.item.price,
-              user_subscription_status: "ACTIVE",
-            });
+            return { success: true, item: value };
+          })
+          .catch((error) => {
+            return { success: false, message: error };
           });
+        if (subDetails.success) {
+          let subscription_end_datetime = null;
 
-        // Send sign up email confirmation to the user
-        if (sendEmail) {
-          jwt.sign(
-            {
-              user: value1[0].tasttlig_user_id,
-            },
-            process.env.EMAIL_SECRET,
-            {
-              expiresIn: "28d",
-            },
-            async (err, emailToken) => {
-              const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
-              console.log("urlVerifyEmail", urlVerifyEmail);
+          if (subDetails.item.validity_in_months) {
+            subscription_end_datetime = new Date(
+              new Date().setMonth(
+                new Date().getMonth() +
+                  Number(subDetails.item.validity_in_months)
+              )
+            );
+          } else {
+            subscription_end_datetime = subDetails.item.date_of_expiry;
+          }
 
-              await Mailer.sendMail({
-                from: process.env.SES_DEFAULT_FROM,
-                to: "frankyang1207@gmail.com",
-                bcc: ADMIN_EMAIL,
-                subject: "[Tasttlig] Welcome to Tasttlig!",
-                template: "signup",
-                context: {
-                  passport_id: new_db_user._single.insert.passport_id,
-                  urlVerifyEmail,
-                },
-              });
-            }
-          );
-        } else {
-          subscription_end_datetime = subDetails.item.date_of_expiry;
+          await trx("user_subscriptions").insert({
+            subscription_code: subDetails.item.subscription_code,
+            user_id: value1[0].tasttlig_user_id,
+            subscription_start_datetime: new Date(),
+            subscription_end_datetime: subscription_end_datetime,
+            cash_payment_received: subDetails.item.price,
+            user_subscription_status: "ACTIVE",
+          });
         }
-
-        await trx("user_subscriptions").insert({
-          subscription_code: subDetails.item.subscription_code,
-          user_id: value1[0].tasttlig_user_id,
-          subscription_start_datetime: new Date(),
-          subscription_end_datetime: subscription_end_datetime,
-          cash_payment_received: subDetails.item.price,
-          user_subscription_status: "ACTIVE",
-        });
 
         // Send sign up email confirmation to the user
         if (sendEmail) {
