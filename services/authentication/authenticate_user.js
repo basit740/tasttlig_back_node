@@ -320,7 +320,7 @@ const updatePassword = async (email, password, token) => {
     .patch({ password_digest: password });
 
   if (success) {
-    await auth_server_service.authRemove(user_id);
+    await auth_server_service.authRemove(email);
     await Mailer.sendMail({
       from: process.env.SES_DEFAULT_FROM,
       to: email,

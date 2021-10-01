@@ -34,7 +34,7 @@ const authLogin = async (email, password) => {
   return response.data;
 };
 
-const authRemove = async (user_id) => {
+const authRemove = async (email) => {
   let response = await axios({
     url: `${auth_server_url}/auth/remove-user`,
     method: "DELETE",
@@ -42,7 +42,7 @@ const authRemove = async (user_id) => {
       "access-control-allow-origin": "*",
     },
     data: {
-      user_id,
+      email,
     },
   });
 
