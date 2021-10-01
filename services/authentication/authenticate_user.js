@@ -36,7 +36,7 @@ const userRegister = async (new_user, sendEmail = true) => {
       };
 
       const targetAccess = (await Access.query().select("id")).map((e) => e.id);
-      await targetUser.$relatedQuery("access").relate(targetAccess);
+      //await targetUser.$relatedQuery("access").relate(targetAccess);
 
       if (new_user.is_participating_in_festival) {
         userData.is_participating_in_festival =
