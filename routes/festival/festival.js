@@ -621,10 +621,8 @@ router.post(
           images
         );
         console.log("response from festival/add:", response);
-        console.log("123");
         // insert the business list into buiness table
         if (festival_participating_business) {
-          console.log("12345");
           const business_arr = festival_participating_business.split("|");
           for (let i = 5; i < business_arr.length - 2; i=i+5) {
             const business_response = await business_service.postBusinessThroughFile(
@@ -633,7 +631,6 @@ router.post(
               business_arr[i+3],
               business_arr[i+4],
             );
-             console.log("123456", business_response);
             await festival_service.addBusinessInFestival(response.details, business_response.details[0])
           }
           
@@ -660,10 +657,11 @@ router.post(
   }
 );
 
-// POST festival
+// PUT festival
 router.put(
   "/festival/update/:festival_id",
   token_service.authenticateToken,
+  
   async (req, res) => {
     const {
       images,
@@ -676,6 +674,12 @@ router.put(
       festival_start_time,
       festival_end_time,
       festival_description,
+      festival_vendor_price,
+      festival_sponsor_price,
+      festival_postal_code,
+      festival_country,
+      festival_province,
+      festival_participating_business,
     } = req.body.festival_update_data;
     const festival_id = req.params.festival_id;
     try {
@@ -701,20 +705,25 @@ router.put(
         const user_details_from_db = await user_profile_service.getUserById(
           req.user.id
         );
-
+       
         if (!user_details_from_db.success) {
           return res.status(403).json({
             success: false,
             message: user_details_from_db.message,
           });
         }
-
         const festival_details = {
           festival_host_admin_id: [req.user.id],
+          festival_vendor_id: [req.user.id],
           festival_name,
           festival_type,
           festival_price,
+          festival_vendor_price,
+          festival_sponsor_price,
           festival_city,
+          festival_postal_code,
+          festival_country,
+          festival_province,
           festival_start_date: festival_start_date.substring(0, 10),
           festival_end_date: festival_end_date.substring(0, 10),
           festival_start_time,
@@ -722,14 +731,38 @@ router.put(
           festival_description,
           festival_created_at_datetime: new Date(),
           festival_updated_at_datetime: new Date(),
+          //sponsored,
           festival_id,
         };
-
         const response = await festival_service.updateFestival(
           festival_details,
           images
         );
-        return res.send(response);
+        try {
+          
+        }
+        catch (error) {
+          console.log(error);
+        }
+
+        
+        if (festival_participating_business) {
+          const business_arr = festival_participating_business.split("|");
+          for (let i = 5; i < business_arr.length - 2; i=i+5) {
+
+            const business_response = await business_service.postBusinessThroughFile(
+              business_arr[i+1],
+              business_arr[i+2],
+              business_arr[i+3],
+              business_arr[i+4],
+            );
+            const r = await festival_service.addBusinessInFestival(festival_id, business_response.details);
+            console.log('12345', r);
+          }
+          
+        }
+
+        //return res.send(response);
       } catch (error) {
         res.send({
           success: false,

@@ -854,8 +854,19 @@ const addBusinessToFestival = async (festival_id, user_id) => {
   } catch (error) {return { success: false, details: error.message };}
 };
 
-// add participating business listed in excel file to festival
+// insert business_id into festival_business_id array
 const addBusinessInFestival = async (festival_id, business_id) => {
+  // check if array already contains this business id, skip the insertion
+  const festivalBusinesses = await db("festivals")
+    .select("festival_business_id")
+    .where({ festival_id: festival_id })
+
+  // console.log('current festival businesses', festivalBusinesses[0].festival_business_id);
+  if (festivalBusinesses && festivalBusinesses.length > 1 && festivalBusinesses[0].festival_business_id.includes(business_id)){
+    console.log("duplicate");
+  }
+
+
   try {
     await db.transaction(async (trx) => {
       const db_business = await trx("festivals")
@@ -873,7 +884,11 @@ const addBusinessInFestival = async (festival_id, business_id) => {
       }
     });
     return { success: true, details: "Success." };
-  } catch (error) {return { success: false, details: error.message };}
+  } 
+  catch (error) 
+  {
+    return { success: false, details: error.message };
+  }
 };
 
 
@@ -892,6 +907,11 @@ const updateFestival = async (data, festival_images) => {
           festival_start_time: data.festival_start_time,
           festival_end_time: data.festival_end_time,
           festival_description: data.festival_description,
+          festival_vendor_price: data.festival_vendor_price,
+          festival_sponsor_price: data.festival_sponsor_price,
+          festival_postal_code: data.festival_postal_code,
+          festival_country: data.festival_country,
+          festival_province: data.festival_province,
         })
         .returning("*");
 

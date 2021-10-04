@@ -173,37 +173,45 @@ const postBusinessPassportDetails = async (data) => {
   }
 };
 
+// This function gets name, category, location, contact_info and insert them into business_details table
 const postBusinessThroughFile = async (business_name, business_category, business_location, business_contact_info) => {
-  try {
-    return await db.transaction(async (trx) => {
-      console.log('123123179');
-      const business_details = {
-        business_name: business_name,
-        business_category: business_category,
-        business_location: business_location,
-        business_phone_number: business_contact_info,
-      };
-      console.log('123123186');
-      var business_details_id = await trx("business_details")
-        .insert(business_details)
-        .returning("business_details_id");
-        
-        console.log('123123191');
+  let duplication_id = await db
+  .select("*")
+  .from("business_details")
+  .where("business_name", "=", business_name)
+  .andWhere("business_location", "=", business_location)
+  .first()
 
-      return { success: true, details: business_details_id};
-    });
-  } catch (error) {
-    console.log('123123196');
-    if (error && error.detail && error.detail.includes("already exists")) {
-      console.log('123123198');
-      return {
-        success: false,
-        details:
-          "User Business Information already exists, you can edit your existing information under passport section in your profile. Your application for Business Member role has been sent to Admin",
-      };
+  if (duplication_id) {
+    return { success: false, details: duplication_id.business_details_id};
+  }
+
+  else {
+    try {
+      return await db.transaction(async (trx) => {
+        const business_details = {
+          business_name: business_name,
+          business_category: business_category,
+          business_location: business_location,
+          business_phone_number: business_contact_info,
+        };
+        var business_details_id = await trx("business_details")
+          .insert(business_details)
+          .returning("business_details_id");
+          
+
+        return { success: true, details: business_details_id};
+      });
+    } catch (error) {
+      if (error && error.detail && error.detail.includes("already exists")) {
+        return {
+          success: false,
+          details:
+            "User Business Information already exists, you can edit your existing information under passport section in your profile. Your application for Business Member role has been sent to Admin",
+        };
+      }
+      return { success: false, details: error.detail };
     }
-    console.log('123123205');
-    return { success: false, details: error.detail };
   }
 };
 
