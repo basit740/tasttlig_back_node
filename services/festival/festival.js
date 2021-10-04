@@ -859,11 +859,11 @@ const addBusinessInFestival = async (festival_id, business_id) => {
   // check if array already contains this business id, skip the insertion
   const festivalBusinesses = await db("festivals")
     .select("festival_business_id")
-    .where({ festival_id: festival_id })
-
+    .where({ "festival_id": festival_id })
   // console.log('current festival businesses', festivalBusinesses[0].festival_business_id);
-  if (festivalBusinesses && festivalBusinesses.length > 1 && festivalBusinesses[0].festival_business_id.includes(business_id)){
-    console.log("duplicate");
+  if (festivalBusinesses && festivalBusinesses.length > 0
+    && festivalBusinesses[0].festival_business_id && festivalBusinesses[0].festival_business_id.includes(business_id)){
+      return { success: true, details: "Success." };
   }
 
 
@@ -1252,7 +1252,6 @@ const registerUserToFestivals = async (user_id, festival_ids) => {
         .then((resp) => {
           return resp;
         });
-      console.log('1234567', festival_passport[0].basic_passport_id);
 
       // create new business passport
       const db_passport = await trx("passport_details")

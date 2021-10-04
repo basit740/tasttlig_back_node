@@ -757,12 +757,11 @@ router.put(
               business_arr[i+4],
             );
             const r = await festival_service.addBusinessInFestival(festival_id, business_response.details);
-            console.log('12345', r);
           }
           
         }
 
-        //return res.send(response);
+        return res.send(response);
       } catch (error) {
         res.send({
           success: false,
