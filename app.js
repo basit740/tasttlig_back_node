@@ -65,6 +65,7 @@ app.use(logger("combined"));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+
 // Use routes
 app.use(user_authentication_router);
 app.use(profile_router);

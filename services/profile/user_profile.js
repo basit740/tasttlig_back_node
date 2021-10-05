@@ -1759,6 +1759,37 @@ const getNeighbourhoodByPostalCode = async (postcode) => {
     });
 };
 
+const claimBusiness = async (userId, businessId) => {
+  await db.transaction(async (trx) => {
+    const response = await trx("tasttlig_users")
+      .where({ tasttlig_user_id: userId })
+      .update({
+        user_claimed_business: trx.raw(
+          "array_append(user_claimed_business, ?)",
+          [businessId]
+        ),
+      })
+      .returning("*");
+    if (!response) {
+      return { success: false, details: "Inserting business ID failed." };
+    }
+
+    console.log("userid: " + userId + " businessid: " + businessId)
+    await db("business_details")
+      .where({ business_details_id: businessId })
+      .update({
+        business_user_id: userId
+      })
+      .catch((error) => {
+        return { success: false, details: error };
+      });
+
+  
+  
+})
+return { success: true, details: "Success." };
+};
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
@@ -1802,4 +1833,5 @@ module.exports = {
   getValidSubscriptionsByUserId,
   addNeighbourhood,
   getNeighbourhoodByPostalCode,
+  claimBusiness,
 };

@@ -1210,4 +1210,28 @@ router.post("/festival-passport/register", async (req, res) => {
   }
 });
 
+// add business to a tasttlig-user
+router.post("/claim-business", async (req, res) => {
+  if (!req.body.user_id || !req.body.business_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    const response = await user_profile_service.claimBusiness(
+      req.body.user_id,
+      req.body.business_id
+    );
+      console.log('1234567', response);
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 module.exports = router;

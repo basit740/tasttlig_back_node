@@ -507,11 +507,6 @@ const createOrder = async (
               await db("festivals")
                 .where("festival_id", festival_id)
                 .update({
-                  // FY: instead of adding user to festival_vendor_id, add user to vendor_request_id
-                  // festival_vendor_id: trx.raw(
-                  //   "array_append(festival_vendor_id, ?)",
-                  //   [order_details.user_id]
-                  // ),
                   vendor_request_id: trx.raw(
                     "array_append(vendor_request_id, ?)",
                     [order_details.user_id]
