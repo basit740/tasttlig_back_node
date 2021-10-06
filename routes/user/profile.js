@@ -10,6 +10,30 @@ const menu_item_service = require("../../services/menu_items/menu_items");
 const authentication_service = require("../../services/authentication/authenticate_user");
 const user_order_service = require("../../services/payment/user_orders");
 
+// get user using user id
+router.get("/userinfo/:user_id", async (req, res) => {
+  if (!req.params.user_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await user_profile_service.getUserById(
+      req.params.user_id
+    );
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+
 //get user subscription by user id
 router.get(
   "/user-subscription",
