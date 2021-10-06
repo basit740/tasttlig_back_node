@@ -1778,7 +1778,7 @@ const claimBusiness = async (userId, businessId) => {
     await db("business_details")
       .where({ business_details_id: businessId })
       .update({
-        business_user_id: userId
+        business_details_user_id: userId
       })
       .catch((error) => {
         return { success: false, details: error };

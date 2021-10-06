@@ -1223,7 +1223,6 @@ router.post("/claim-business", async (req, res) => {
       req.body.user_id,
       req.body.business_id
     );
-      console.log('1234567', response);
     return res.send(response);
   } catch (error) {
     res.send({
@@ -1233,5 +1232,31 @@ router.post("/claim-business", async (req, res) => {
     });
   }
 });
+
+// GET specific business details
+router.get("/business/:business_id", async (req, res) => {
+  if (!req.params.business_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  try {
+    const response = await business_service.getBusinessById(
+      req.params.business_id
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+
 
 module.exports = router;
