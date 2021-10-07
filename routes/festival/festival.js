@@ -540,7 +540,6 @@ router.get("/hostguests/festival/:user_id", async (req, res) => {
 // POST festival
 router.post(
   "/festival/add",
-
   token_service.authenticateToken,
   async (req, res) => {
     const {
@@ -631,7 +630,7 @@ router.post(
               business_arr[i+3],
               business_arr[i+4],
             );
-            await festival_service.addBusinessInFestival(response.details, business_response.details[0])
+            const r = await festival_service.addBusinessInFestival(response.details, business_response.details);
           }
           
         }
