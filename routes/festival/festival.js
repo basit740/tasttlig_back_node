@@ -558,9 +558,9 @@ router.post(
       festival_postal_code,
       festival_country,
       festival_province,
-      festival_participating_business,
+      festival_business_file,
     } = req.body;
-
+    console.log(req.body);
     try {
       if (
         !images ||
@@ -615,11 +615,11 @@ router.post(
           sponsored,
         };
 
-        const response = await festival_service.createNewFestival(
-          festival_details,
-          images
-        );
-        console.log("response from festival/add:", response);
+        // const response = await festival_service.createNewFestival(
+        //   festival_details,
+        //   images
+        // );
+        // console.log("response from festival/add:", response);
         // insert the business list into buiness table
         if (festival_participating_business) {
           const business_arr = festival_participating_business.split("|");
