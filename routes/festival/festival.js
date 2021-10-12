@@ -664,10 +664,6 @@ router.post(
           }
         }
 
-<<<<<<< HEAD
-        
-=======
->>>>>>> be9c46df61461563589911889db67d5c0d87beaf
         return res.send(response);
       } catch (error) {
         console.log(error);

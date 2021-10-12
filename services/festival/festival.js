@@ -397,7 +397,10 @@ function */
 const createNewFestival = async (festival_details, festival_images) => {
   try {
     let db_festival;
-    festival_details.basic_passport_id = "M" + generateRandomString("6");
+    
+
+    await db.transaction(async (trx) => {
+      festival_details.basic_passport_id = "M" + generateRandomString("6");
 
     let promo_code = generateRandomString(10);
     const existing = await trx("festivals").select("promo_code");
@@ -406,7 +409,6 @@ const createNewFestival = async (festival_details, festival_images) => {
     }
     festival_details.promo_code = promo_code;
 
-    await db.transaction(async (trx) => {
       db_festival = await trx("festivals")
         .insert(festival_details)
         .returning("*");
@@ -425,6 +427,7 @@ const createNewFestival = async (festival_details, festival_images) => {
 
     return { success: true, details: db_festival[0].festival_id };
   } catch (error) {
+    console.log(error.message);
     return { success: false, details: error.message };
   }
 };
@@ -1039,9 +1042,9 @@ const getFestivalDetails = async (festival_id, user = null) => {
     .then((value) => {
       value.map((festival) => {
         if (
-          !user?.role?.includes("ADMIN") &&
-          !festival.festival_host_id?.includes(user?.id) &&
-          !festival.festival_host_admin_id?.includes(user?.id)
+          !user.role.includes("ADMIN") &&
+          !festival.festival_host_id.includes(user.id) &&
+          !festival.festival_host_admin_id.includes(user.id)
         ) {
           delete festival.promo_code;
         }
