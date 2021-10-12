@@ -584,7 +584,7 @@ router.post(
       festival_country,
       festival_province,
       festival_business_file,
-      festival_participating_business
+      festival_participating_business,
     } = req.body;
     console.log(req.body);
     try {
@@ -664,10 +664,6 @@ router.post(
           }
         }
 
-<<<<<<< HEAD
-        
-=======
->>>>>>> be9c46df61461563589911889db67d5c0d87beaf
         return res.send(response);
       } catch (error) {
         console.log(error);
