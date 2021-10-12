@@ -1,7 +1,7 @@
 "use strict";
 
 // Libraries
-const { db } = require("../../db/db-config");
+const {db} = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const user_profile_service = require("../profile/user_profile");
@@ -39,8 +39,8 @@ const createNewFoodSampleClaim = async (
 
       if (quantityAfterClaim >= 0) {
         await db("products")
-          .where({ product_id: db_food_sample_claim[0].claimed_product_id })
-          .update({ claimed_total_quantity: quantityAfterClaim });
+          .where({product_id: db_food_sample_claim[0].claimed_product_id})
+          .update({claimed_total_quantity: quantityAfterClaim});
       }
 
       await sendClaimedEmailToUser(
@@ -65,44 +65,44 @@ const createNewFoodSampleClaim = async (
       );
       const getFestivalEndDate = response.details[0].festival_end_date;
       subs &&
-        subs.user.map((sub) => {
-          if (
-            sub.subscription_code === "G_BASIC" ||
-            sub.subscription_code === "G_MSHIP1" ||
-            sub.subscription_code === "G_MSHIP2" ||
-            sub.subscription_code === "G_MSHIP3" ||
-            (sub.subscription_code === "G_AMB" &&
-              sub.suscribed_festivals == null)
-          ) {
-            const updateSub = async (subId, subDate, festivalId) => {
-              await db("user_subscriptions")
-                .where({
-                  user_subscription_id: subId,
-                  user_subscription_status: "ACTIVE",
-                })
-                .update({
-                  subscription_end_datetime: subDate,
-                  suscribed_festivals: [festivalId],
-                })
-                .returning("*")
-                .catch((reason) => {
-                  return { success: false, message: reason };
-                });
-            };
+      subs.user.map((sub) => {
+        if (
+          sub.subscription_code === "G_BASIC" ||
+          sub.subscription_code === "G_MSHIP1" ||
+          sub.subscription_code === "G_MSHIP2" ||
+          sub.subscription_code === "G_MSHIP3" ||
+          (sub.subscription_code === "G_AMB" &&
+            sub.suscribed_festivals == null)
+        ) {
+          const updateSub = async (subId, subDate, festivalId) => {
+            await db("user_subscriptions")
+              .where({
+                user_subscription_id: subId,
+                user_subscription_status: "ACTIVE",
+              })
+              .update({
+                subscription_end_datetime: subDate,
+                suscribed_festivals: [festivalId],
+              })
+              .returning("*")
+              .catch((reason) => {
+                return {success: false, message: reason};
+              });
+          };
 
-            updateSub(
-              sub.user_subscription_id,
-              getFestivalEndDate,
-              product_claim_details.festival_id
-            );
-          }
-        });
+          updateSub(
+            sub.user_subscription_id,
+            getFestivalEndDate,
+            product_claim_details.festival_id
+          );
+        }
+      });
       //assign festival end-date and festival to guest subscription package after product claim ended
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -130,8 +130,8 @@ const createNewProductClaim = async (
       }
       if (quantityAfterClaim >= 0) {
         await db("products")
-          .where({ product_id: db_food_sample_claim[0].claimed_product_id })
-          .update({ claimed_total_quantity: quantityAfterClaim });
+          .where({product_id: db_food_sample_claim[0].claimed_product_id})
+          .update({claimed_total_quantity: quantityAfterClaim});
       }
 
       await sendClaimedEmailToUser(
@@ -147,16 +147,16 @@ const createNewProductClaim = async (
       // );
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
 // User can claim food sample helper function
 const userCanClaimFoodSample = async (email, food_sample_id) => {
   try {
-    const { user } = await user_profile_service.getUserByEmailWithSubscription(
+    const {user} = await user_profile_service.getUserByEmailWithSubscription(
       email
     );
 
@@ -185,9 +185,9 @@ const userCanClaimFoodSample = async (email, food_sample_id) => {
       }
     }
 
-    return { success: true, canClaim: true };
+    return {success: true, canClaim: true};
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -205,9 +205,9 @@ const getFoodClaimCount = async (email, food_sample_id) => {
 
     const count = await query;
 
-    return { success: true, count };
+    return {success: true, count};
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -224,7 +224,7 @@ const confirmProductClaim = async (
     let db_user;
     await db.transaction(async (trx) => {
       db_food_sample_claim = await trx("user_claims")
-        .where({ claim_viewable_id: parseInt(claimId) })
+        .where({claim_viewable_id: parseInt(claimId)})
         .update({
           stamp_status: Food_Sample_Claim_Status.CONFIRMED,
           current_stamp_status: "Redeemed",
@@ -232,7 +232,7 @@ const confirmProductClaim = async (
         .returning("*");
       if (quantityAfterRedeem >= 0) {
         db_product = await db("products")
-          .where({ product_id: db_food_sample_claim[0].claimed_product_id })
+          .where({product_id: db_food_sample_claim[0].claimed_product_id})
           .update({
             quantity: quantityAfterRedeem,
             redeemed_total_quantity: totalRedeemQuantity,
@@ -249,8 +249,8 @@ const confirmProductClaim = async (
       });
     });
     if (db_product && db_food_sample_claim) {
-      db_business = await user_profile_service.getBusinessDetailsByUserId(
-        db_product[0].product_user_id
+      db_business = await user_profile_service.getBusinessDetailsById(
+        db_product[0].product_business_id
       );
       db_user = await user_profile_service.getUserById(
         db_food_sample_claim[0].claim_user_id
@@ -264,9 +264,9 @@ const confirmProductClaim = async (
       db_business
     );
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -298,7 +298,7 @@ const confirmServiceClaim = async (
     let db_user;
     await db.transaction(async (trx) => {
       db_food_sample_claim = await trx("user_claims")
-        .where({ claim_viewable_id: parseInt(claimId) })
+        .where({claim_viewable_id: parseInt(claimId)})
         .update({
           stamp_status: Food_Sample_Claim_Status.CONFIRMED,
           current_stamp_status: "Redeemed",
@@ -306,7 +306,7 @@ const confirmServiceClaim = async (
         .returning("*");
       if (quantityAfterRedeem >= 0) {
         db_product = await db("services")
-          .where({ service_id: db_food_sample_claim[0].claimed_service_id })
+          .where({service_id: db_food_sample_claim[0].claimed_service_id})
           .update({
             service_capacity: quantityAfterRedeem,
             redeemed_total_quantity: totalRedeemQuantity,
@@ -339,9 +339,9 @@ const confirmServiceClaim = async (
       db_business
     );
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -526,9 +526,9 @@ const getUserProductsClaims = async (user_id) => {
       .groupBy("nationalities.alpha_2_code")
       .having("claim_user_id", "=", user_id);
 
-    return { success: true, details: db_food_sample_claim };
+    return {success: true, details: db_food_sample_claim};
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -551,6 +551,11 @@ const getUserProductsRedeems = async (user_id, keyword, db_user) => {
       "products.product_id"
     )
     .leftJoin(
+      "business_details",
+      "business_details.business_details_id",
+      "products.product_business_id"
+    )
+    .leftJoin(
       "product_images",
       "products.product_id",
       "product_images.product_id"
@@ -564,12 +569,12 @@ const getUserProductsRedeems = async (user_id, keyword, db_user) => {
     .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .groupBy("products.product_id")
     .groupBy("user_claims.claim_id")
-    .groupBy("products.product_user_id")
+    .groupBy("business_details.business_details_user_id")
     .groupBy("tasttlig_users.first_name")
     .groupBy("tasttlig_users.last_name")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
-    .having("product_user_id", "=", user_id);
+    .having("business_details_user_id", "=", user_id);
 
   if (keyword) {
     // keyword=parseInt(keyword)
@@ -578,8 +583,8 @@ const getUserProductsRedeems = async (user_id, keyword, db_user) => {
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -589,9 +594,9 @@ const getUserProductsRedeems = async (user_id, keyword, db_user) => {
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.title, " +
-                "main.claim_viewable_id, " +
-                "main.first_name)) as search_text"
+              "main.title, " +
+              "main.claim_viewable_id, " +
+              "main.first_name)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -602,10 +607,10 @@ const getUserProductsRedeems = async (user_id, keyword, db_user) => {
 
   return await query
     .then((value) => {
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -655,8 +660,8 @@ const getUserServiceRedeems = async (user_id, keyword, db_user) => {
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -666,9 +671,9 @@ const getUserServiceRedeems = async (user_id, keyword, db_user) => {
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.title, " +
-                "main.claim_viewable_id, " +
-                "main.first_name)) as search_text"
+              "main.title, " +
+              "main.claim_viewable_id, " +
+              "main.first_name)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -679,10 +684,10 @@ const getUserServiceRedeems = async (user_id, keyword, db_user) => {
 
   return await query
     .then((value) => {
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -735,8 +740,8 @@ const getUserExperiencesRedeems = async (user_id, keyword, db_user) => {
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -746,9 +751,9 @@ const getUserExperiencesRedeems = async (user_id, keyword, db_user) => {
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.title, " +
-                "main.claim_viewable_id, " +
-                "main.first_name)) as search_text"
+              "main.title, " +
+              "main.claim_viewable_id, " +
+              "main.first_name)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -759,10 +764,10 @@ const getUserExperiencesRedeems = async (user_id, keyword, db_user) => {
 
   return await query
     .then((value) => {
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -775,7 +780,7 @@ const confirmExperienceClaim = async (
   try {
     await db.transaction(async (trx) => {
       const db_food_sample_claim = await trx("user_claims")
-        .where({ claim_viewable_id: parseInt(claimId) })
+        .where({claim_viewable_id: parseInt(claimId)})
         .update({
           stamp_status: Food_Sample_Claim_Status.CONFIRMED,
           current_stamp_status: "Redeemed",
@@ -794,9 +799,9 @@ const confirmExperienceClaim = async (
       }
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -848,9 +853,9 @@ const getExperienceClaimCount = async (email, food_sample_id) => {
 
     const count = await query;
 
-    return { success: true, count };
+    return {success: true, count};
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -868,16 +873,16 @@ const getServiceClaimCount = async (email, food_sample_id) => {
 
     const count = await query;
 
-    return { success: true, count };
+    return {success: true, count};
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
 // User can claim food sample helper function
 const userCanClaimExperience = async (email, food_sample_id) => {
   try {
-    const { user } = await user_profile_service.getUserByEmailWithSubscription(
+    const {user} = await user_profile_service.getUserByEmailWithSubscription(
       email
     );
 
@@ -906,16 +911,16 @@ const userCanClaimExperience = async (email, food_sample_id) => {
       }
     }
 
-    return { success: true, canClaim: true };
+    return {success: true, canClaim: true};
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
 // User can claim service helper function
 const userCanClaimService = async (email, food_sample_id) => {
   try {
-    const { user } = await user_profile_service.getUserByEmailWithSubscription(
+    const {user} = await user_profile_service.getUserByEmailWithSubscription(
       email
     );
 
@@ -944,9 +949,9 @@ const userCanClaimService = async (email, food_sample_id) => {
       }
     }
 
-    return { success: true, canClaim: true };
+    return {success: true, canClaim: true};
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -975,7 +980,7 @@ const createNewExperienceClaim = async (
           .where({
             experience_id: db_food_sample_claim[0].claimed_experience_id,
           })
-          .update({ claimed_total_quantity: quantityAfterClaim });
+          .update({claimed_total_quantity: quantityAfterClaim});
       }
 
       await sendClaimedExperienceEmailToUser(
@@ -1000,44 +1005,44 @@ const createNewExperienceClaim = async (
       );
       const getFestivalEndDate = response.details[0].festival_end_date;
       subs &&
-        subs.user.map((sub) => {
-          if (
-            sub.subscription_code === "G_BASIC" ||
-            sub.subscription_code === "G_MSHIP1" ||
-            sub.subscription_code === "G_MSHIP2" ||
-            sub.subscription_code === "G_MSHIP3" ||
-            (sub.subscription_code === "G_AMB" &&
-              sub.suscribed_festivals == null)
-          ) {
-            const updateSub = async (subId, subDate, festivalId) => {
-              await db("user_subscriptions")
-                .where({
-                  user_subscription_id: subId,
-                  user_subscription_status: "ACTIVE",
-                })
-                .update({
-                  subscription_end_datetime: subDate,
-                  suscribed_festivals: [festivalId],
-                })
-                .returning("*")
-                .catch((reason) => {
-                  return { success: false, message: reason };
-                });
-            };
+      subs.user.map((sub) => {
+        if (
+          sub.subscription_code === "G_BASIC" ||
+          sub.subscription_code === "G_MSHIP1" ||
+          sub.subscription_code === "G_MSHIP2" ||
+          sub.subscription_code === "G_MSHIP3" ||
+          (sub.subscription_code === "G_AMB" &&
+            sub.suscribed_festivals == null)
+        ) {
+          const updateSub = async (subId, subDate, festivalId) => {
+            await db("user_subscriptions")
+              .where({
+                user_subscription_id: subId,
+                user_subscription_status: "ACTIVE",
+              })
+              .update({
+                subscription_end_datetime: subDate,
+                suscribed_festivals: [festivalId],
+              })
+              .returning("*")
+              .catch((reason) => {
+                return {success: false, message: reason};
+              });
+          };
 
-            updateSub(
-              sub.user_subscription_id,
-              getFestivalEndDate,
-              product_claim_details.festival_id
-            );
-          }
-        });
+          updateSub(
+            sub.user_subscription_id,
+            getFestivalEndDate,
+            product_claim_details.festival_id
+          );
+        }
+      });
       //assign festival end-date and festival to guest subscription package after product claim ended
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -1153,7 +1158,7 @@ const createNewServiceClaim = async (
           .where({
             service_id: db_food_sample_claim[0].claimed_service_id,
           })
-          .update({ claimed_total_quantity: quantityAfterClaim });
+          .update({claimed_total_quantity: quantityAfterClaim});
       }
 
       await sendClaimedServiceEmailToUser(
@@ -1178,44 +1183,44 @@ const createNewServiceClaim = async (
       );
       const getFestivalEndDate = response.details[0].festival_end_date;
       subs &&
-        subs.user.map((sub) => {
-          if (
-            sub.subscription_code === "G_BASIC" ||
-            sub.subscription_code === "G_MSHIP1" ||
-            sub.subscription_code === "G_MSHIP2" ||
-            sub.subscription_code === "G_MSHIP3" ||
-            (sub.subscription_code === "G_AMB" &&
-              sub.suscribed_festivals == null)
-          ) {
-            const updateSub = async (subId, subDate, festivalId) => {
-              await db("user_subscriptions")
-                .where({
-                  user_subscription_id: subId,
-                  user_subscription_status: "ACTIVE",
-                })
-                .update({
-                  subscription_end_datetime: subDate,
-                  suscribed_festivals: [festivalId],
-                })
-                .returning("*")
-                .catch((reason) => {
-                  return { success: false, message: reason };
-                });
-            };
+      subs.user.map((sub) => {
+        if (
+          sub.subscription_code === "G_BASIC" ||
+          sub.subscription_code === "G_MSHIP1" ||
+          sub.subscription_code === "G_MSHIP2" ||
+          sub.subscription_code === "G_MSHIP3" ||
+          (sub.subscription_code === "G_AMB" &&
+            sub.suscribed_festivals == null)
+        ) {
+          const updateSub = async (subId, subDate, festivalId) => {
+            await db("user_subscriptions")
+              .where({
+                user_subscription_id: subId,
+                user_subscription_status: "ACTIVE",
+              })
+              .update({
+                subscription_end_datetime: subDate,
+                suscribed_festivals: [festivalId],
+              })
+              .returning("*")
+              .catch((reason) => {
+                return {success: false, message: reason};
+              });
+          };
 
-            updateSub(
-              sub.user_subscription_id,
-              getFestivalEndDate,
-              product_claim_details.festival_id
-            );
-          }
-        });
+          updateSub(
+            sub.user_subscription_id,
+            getFestivalEndDate,
+            product_claim_details.festival_id
+          );
+        }
+      });
       //assign festival end-date and festival to guest subscription package after product claim ended
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 

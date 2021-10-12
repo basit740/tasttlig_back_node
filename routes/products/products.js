@@ -6,7 +6,7 @@ const token_service = require("../../services/authentication/token");
 const products_service = require("../../services/products/products");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
-const { generateRandomString } = require("../../functions/functions");
+const {generateRandomString} = require("../../functions/functions");
 
 // POST products
 router.post(
@@ -101,7 +101,7 @@ router.post(
               : db_business_details.business_details_id,
             product_name: product.product_name,
             product_made_in_nationality_id:
-              product.product_made_in_nationality_id,
+            product.product_made_in_nationality_id,
             product_price: product.product_price,
             product_quantity: product.product_quantity,
             product_size: product.product_size,
@@ -111,14 +111,13 @@ router.post(
             product_festivals_id: Array.isArray(productInFestival)
               ? productInFestival
               : productInFestival
-              ? [productInFestival]
-              : null,
+                ? [productInFestival]
+                : null,
             product_code: generateRandomString(4),
             product_status: "ACTIVE",
             product_created_at_datetime: new Date(),
             product_updated_at_datetime: new Date(),
             product_creator_type: req.body.product_creator_type,
-            product_user_id: req.user.id,
           };
           const response = await products_service.createNewProduct(
             user_details_from_db,
@@ -157,14 +156,13 @@ router.post(
           product_festivals_id: Array.isArray(productInFestival)
             ? productInFestival
             : productInFestival
-            ? [productInFestival]
-            : null,
+              ? [productInFestival]
+              : null,
           product_code: generateRandomString(4),
           product_status: "ACTIVE",
           product_created_at_datetime: new Date(),
           product_updated_at_datetime: new Date(),
           product_creator_type: req.body.product_creator_type,
-          product_user_id: req.user.id,
         };
         const response = await products_service.createNewProduct(
           user_details_from_db,
@@ -278,7 +276,7 @@ router.post("/products/noUser/add", async (req, res) => {
             : db_business_details.business_details_id,
           product_name: product.product_name,
           product_made_in_nationality_id:
-            product.product_made_in_nationality_id,
+          product.product_made_in_nationality_id,
           product_price: product.product_price,
           product_quantity: product.product_quantity,
           product_size: product.product_size,
@@ -288,14 +286,13 @@ router.post("/products/noUser/add", async (req, res) => {
           product_festivals_id: Array.isArray(productInFestival)
             ? productInFestival
             : productInFestival
-            ? [productInFestival]
-            : null,
+              ? [productInFestival]
+              : null,
           product_code: generateRandomString(4),
           product_status: "ACTIVE",
           product_created_at_datetime: new Date(),
           product_updated_at_datetime: new Date(),
           product_creator_type: req.body.product_creator_type,
-          product_user_id: req.user.id,
         };
         const response = await products_service.createNewProduct(
           user_details_from_db,
@@ -333,16 +330,13 @@ router.post("/products/noUser/add", async (req, res) => {
         product_festivals_id: Array.isArray(productInFestival)
           ? productInFestival
           : productInFestival
-          ? [productInFestival]
-          : null,
+            ? [productInFestival]
+            : null,
         product_code: generateRandomString(4),
         product_status: "ACTIVE",
         product_created_at_datetime: new Date(),
         product_updated_at_datetime: new Date(),
         product_creator_type: req.body.product_creator_type,
-        product_user_id: req.user.id,
-        product_creator_type: req.body.product_creator_type,
-        product_user_id: req.user.id,
       };
       const response = await products_service.createNewProduct(
         user_details_from_db,
@@ -540,7 +534,7 @@ router.delete("/products/delete/user/:user_id", async (req, res) => {
 
 // POST claim product in specific festival
 router.post("/claim-product", async (req, res) => {
-  const { product_claim_user, product_id } = req.body;
+  const {product_claim_user, product_id} = req.body;
 
   if (!product_claim_user || !product_id) {
     return res.status(403).json({

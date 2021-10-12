@@ -1,7 +1,7 @@
 "use strict";
 
 // Libraries
-const { db } = require("../../db/db-config");
+const {db} = require("../../db/db-config");
 
 const getAllUserOrders = async (user_id) => {
   let query = db
@@ -63,11 +63,11 @@ const getAllUserOrders = async (user_id) => {
   return await query
     .then((value) => {
       console.log(value);
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
       console.log(reason);
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 const getAllCurrentOrders = async (user_id) => {
@@ -102,6 +102,11 @@ const getAllCurrentOrders = async (user_id) => {
       "services.festivals_selected[1]",
       "f2.festival_id"
     )
+    .leftJoin(
+      "business_details",
+      "business_details.business_details_id",
+      "products.product_business_id"
+    )
     .groupBy(
       "orders.*",
       "order_items.*",
@@ -120,12 +125,12 @@ const getAllCurrentOrders = async (user_id) => {
       "f2.festival_id"
     )
     .andWhere(function () {
-      this.where("products.product_user_id", user_id).orWhere(
+      this.where("business_details.business_details_user_id", user_id).orWhere(
         "services.service_user_id",
         user_id
       );
     })
-    //.where("products.product_user_id", "=", user_id)
+    //.where("business_details.business_details_user_id", "=", user_id)
     //.orWhere("services.service_user_id", "=", user_id )
     .andWhere(function () {
       this.where("order_items.item_type", "product").orWhere(
@@ -138,11 +143,11 @@ const getAllCurrentOrders = async (user_id) => {
   return await query
     .then((value) => {
       console.log(value);
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
       console.log(reason);
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
