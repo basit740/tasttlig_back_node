@@ -1036,9 +1036,9 @@ const getFestivalDetails = async (festival_id, user = null) => {
     .then((value) => {
       value.map((festival) => {
         if (
-          !user?.role?.includes("ADMIN") &&
-          !festival.festival_host_id?.includes(user?.id) &&
-          !festival.festival_host_admin_id?.includes(user?.id)
+          !(user && user.role.includes("ADMIN")) &&
+          !festival.festival_host_id.includes(user.id) &&
+          !festival.festival_host_admin_id.includes(user.id)
         ) {
           delete festival.promo_code;
         }
