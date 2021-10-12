@@ -1,4 +1,6 @@
 const bcrypt = require("bcrypt");
+const slugify = require("slugify");
+
 // Date formatting helper function
 const formatDate = (event) => {
   const utcDate = new Date(event);
@@ -60,10 +62,18 @@ const encryptString = (text) => {
   return bcrypt.hashSync(req.body.password, salt);
 };
 
+const generateSlug = (str) => {
+  return slugify(str, {
+    remove: /[*+~.()'":@]/g,
+    lower: true,
+  });
+};
+
 module.exports = {
   formatDate,
   formatTime,
   formatMilitaryToStandardTime,
   formatPhone,
   generateRandomString,
+  generateSlug,
 };

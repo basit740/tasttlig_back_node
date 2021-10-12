@@ -100,6 +100,9 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
 
   return await query
     .then((value) => {
+      value.map((festival) => {
+        delete festival.promo_code;
+      });
       return { success: true, details: value };
     })
     .catch((reason) => {
@@ -201,6 +204,10 @@ const getAllFestivalList = async (currentPage, keyword, filters) => {
 
   return await query
     .then((value) => {
+      value.map((festival) => {
+        delete festival.promo_code;
+      });
+
       return { success: true, details: value };
     })
     .catch((reason) => {
@@ -233,6 +240,9 @@ const getAllHostFestivalList = async (filters) => {
 
   return await query
     .then((value) => {
+      value.map((festival) => {
+        delete festival.promo_code;
+      });
       return { success: true, details: value };
     })
     .catch((reason) => {
@@ -256,6 +266,9 @@ const getAllFestivalsPresent = async () => {
     .where("festivals.festival_end_date", ">=", new Date())
     .groupBy("festivals.festival_id")
     .then((value) => {
+      value.map((festival) => {
+        delete festival.promo_code;
+      });
       return { success: true, festival_list: value };
     })
     .catch((reason) => {
@@ -336,6 +349,9 @@ const getThreeFestivals = async (currentPage, keyword, filters) => {
 
   return await query
     .then((value) => {
+      value.map((festival) => {
+        delete festival.promo_code;
+      });
       return { success: true, details: value };
     })
     .catch((reason) => {
@@ -366,6 +382,9 @@ const getFestivalList = async () => {
     .where("festivals.festival_end_date", ">=", new Date())
     .groupBy("festivals.festival_id")
     .then((value) => {
+      value.map((festival) => {
+        delete festival.promo_code;
+      });
       return { success: true, festival_list: value };
     })
     .catch((reason) => {
@@ -378,7 +397,15 @@ function */
 const createNewFestival = async (festival_details, festival_images) => {
   try {
     let db_festival;
-    festival_details.basic_passport_id = ("M" + generateRandomString("6"));
+    festival_details.basic_passport_id = "M" + generateRandomString("6");
+
+    let promo_code = generateRandomString(10);
+    const existing = await trx("festivals").select("promo_code");
+    while (existing.includes(promo_code)) {
+      promo_code = generateRandomString(10);
+    }
+    festival_details.promo_code = promo_code;
+
     await db.transaction(async (trx) => {
       db_festival = await trx("festivals")
         .insert(festival_details)
@@ -851,7 +878,9 @@ const addBusinessToFestival = async (festival_id, user_id) => {
       }
     });
     return { success: true, details: "Success." };
-  } catch (error) {return { success: false, details: error.message };}
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
 };
 
 // insert business_id into festival_business_id array
@@ -859,13 +888,16 @@ const addBusinessInFestival = async (festival_id, business_id) => {
   // check if array already contains this business id, skip the insertion
   const festivalBusinesses = await db("festivals")
     .select("festival_business_id")
-    .where({ "festival_id": festival_id })
+    .where({ festival_id: festival_id });
   // console.log('current festival businesses', festivalBusinesses[0].festival_business_id);
-  if (festivalBusinesses && festivalBusinesses.length > 0
-    && festivalBusinesses[0].festival_business_id && festivalBusinesses[0].festival_business_id.includes(business_id)){
-      return { success: true, details: "Success." };
+  if (
+    festivalBusinesses &&
+    festivalBusinesses.length > 0 &&
+    festivalBusinesses[0].festival_business_id &&
+    festivalBusinesses[0].festival_business_id.includes(business_id)
+  ) {
+    return { success: true, details: "Success." };
   }
-
 
   try {
     await db.transaction(async (trx) => {
@@ -884,13 +916,10 @@ const addBusinessInFestival = async (festival_id, business_id) => {
       }
     });
     return { success: true, details: "Success." };
-  } 
-  catch (error) 
-  {
+  } catch (error) {
     return { success: false, details: error.message };
   }
 };
-
 
 const updateFestival = async (data, festival_images) => {
   try {
@@ -973,7 +1002,7 @@ const sponsorToFestival = async (
 };
 
 // Get festival details helper function
-const getFestivalDetails = async (festival_id) => {
+const getFestivalDetails = async (festival_id, user = null) => {
   return await db
     .select(
       "festivals.*",
@@ -1008,6 +1037,16 @@ const getFestivalDetails = async (festival_id) => {
     .having("festivals.festival_id", "=", festival_id)
     .having("festivals.festival_end_date", ">=", new Date())
     .then((value) => {
+      value.map((festival) => {
+        if (
+          !user?.role?.includes("ADMIN") &&
+          !festival.festival_host_id?.includes(user?.id) &&
+          !festival.festival_host_admin_id?.includes(user?.id)
+        ) {
+          delete festival.promo_code;
+        }
+      });
+
       return {
         success: true,
         details: value,
@@ -1016,6 +1055,18 @@ const getFestivalDetails = async (festival_id) => {
     .catch((reason) => {
       return { success: false, details: reason };
     });
+};
+
+const getFestivalDetailsBySlug = async (slug, user = null) => {
+  const festival_ids = await db("festivals")
+    .select("festival_id")
+    .where("slug", slug)
+    .orderBy("festival_id");
+  if (festival_ids.length === 0) {
+    // then slug must be an id
+    festival_ids = [slug];
+  }
+  return await getFestivalDetails(festival_ids[0].festival_id, user);
 };
 
 const getFestivalRestaurants = async (host_id, festival_id) => {
@@ -1069,14 +1120,13 @@ const attendFestival = async (user_id, festival_id) => {
       // fetch festival passport id
       const festival = await getFestivalDetails(festival_id);
 
-
       // insert festival passport into user
       const db_passport = await trx("passport_details")
-      .insert({
-        passport_user_id: user_id,
-        passport_festival_id: festival_id,
-        passport_id: festival.details[0].basic_passport_id,
-        passport_type: "BASIC"
+        .insert({
+          passport_user_id: user_id,
+          passport_festival_id: festival_id,
+          passport_id: festival.details[0].basic_passport_id,
+          passport_type: "BASIC",
         })
         .returning("*");
 
@@ -1173,7 +1223,7 @@ const removeAttendance = async (festival_id, user_id) => {
 
 // get festival using a passport id
 const getFestivalByPassport = async (passport_id) => {
-   return await db
+  return await db
     .select(
       "festivals.*",
       db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
@@ -1188,7 +1238,10 @@ const getFestivalByPassport = async (passport_id) => {
     .where("festivals.festival_end_date", ">=", new Date())
     .groupBy("festivals.festival_id")
     .then((value) => {
-      return { success: true, details: value, };
+      value.map((festival) => {
+        delete festival.promo_code;
+      });
+      return { success: true, details: value };
     })
     .catch((error) => {
       return { success: false, details: error };
@@ -1199,86 +1252,90 @@ const getFestivalByPassport = async (passport_id) => {
 const getFestivalByPassports = async (passport_ids) => {
   let festival_list = [];
   for (let passport_id of passport_ids) {
-   await db
-    .select(
-      "festivals.*",
-      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
-    )
-    .from("festivals")
-    .leftJoin(
-      "festival_images",
-      "festivals.festival_id",
-      "festival_images.festival_id"
-    )
-    .where("festivals.basic_passport_id", "=", passport_id)
-    .where("festivals.festival_end_date", ">=", new Date())
-    .groupBy("festivals.festival_id")
-    .then((value) => {
-      festival_list = festival_list.concat(value);
-     // return { success: true, festival_list: value };
-    })
-    .catch((error) => {
-
-      return { success: false, details: error };
-    });
+    await db
+      .select(
+        "festivals.*",
+        db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+      )
+      .from("festivals")
+      .leftJoin(
+        "festival_images",
+        "festivals.festival_id",
+        "festival_images.festival_id"
+      )
+      .where("festivals.basic_passport_id", "=", passport_id)
+      .where("festivals.festival_end_date", ">=", new Date())
+      .groupBy("festivals.festival_id")
+      .then((value) => {
+        value.map((festival) => {
+          delete festival.promo_code;
+        });
+        festival_list = festival_list.concat(value);
+        // return { success: true, festival_list: value };
+      })
+      .catch((error) => {
+        return { success: false, details: error };
+      });
   }
-  return { success: true, value: festival_list }
+  return { success: true, value: festival_list };
 };
 
 const registerUserToFestivals = async (user_id, festival_ids) => {
-  
   try {
-  for (let festival_id of festival_ids) {
-    // insert user id into festival guest array
-    await db.transaction(async (trx) => {
-      const db_guest = await trx("festivals")
-      .where({ festival_id: festival_id })
-      .update({
-        festival_user_guest_id: trx.raw(
-          "array_append(festival_user_guest_id, ?)",
-          [user_id]
-        ),
-      })
-      .returning("*");
-      
-      if (!db_guest) {
-        return { success: false, details: "Inserting new guest failed." };
-      }
+    for (let festival_id of festival_ids) {
+      // insert user id into festival guest array
+      await db.transaction(async (trx) => {
+        const db_guest = await trx("festivals")
+          .where({ festival_id: festival_id })
+          .update({
+            festival_user_guest_id: trx.raw(
+              "array_append(festival_user_guest_id, ?)",
+              [user_id]
+            ),
+          })
+          .returning("*");
 
-      // get festival passport using festival id
-      var festival_passport = await db("festivals")
-        .select("basic_passport_id")
-        .where({ festival_id })
-        .then((resp) => {
-          return resp;
-        });
+        if (!db_guest) {
+          return { success: false, details: "Inserting new guest failed." };
+        }
 
-      // create new business passport
-      const db_passport = await trx("passport_details")
-      .insert({
-        passport_user_id: user_id,
-        passport_festival_id: festival_id,
-        passport_id: festival_passport[0].basic_passport_id,
-        passport_type: "BASIC"
-        })
-        .returning("*");
+        // get festival passport using festival id
+        var festival_passport = await db("festivals")
+          .select("basic_passport_id")
+          .where({ festival_id })
+          .then((resp) => {
+            return resp;
+          });
 
-      if (!db_passport) {
-        return { success: false, details: "Inserting passport failed." };
-      }
-      
+        // create new business passport
+        const db_passport = await trx("passport_details")
+          .insert({
+            passport_user_id: user_id,
+            passport_festival_id: festival_id,
+            passport_id: festival_passport[0].basic_passport_id,
+            passport_type: "BASIC",
+          })
+          .returning("*");
 
-    })
+        if (!db_passport) {
+          return { success: false, details: "Inserting passport failed." };
+        }
+      });
 
-    return { success: true, details: "Success." };
-  }
+      return { success: true, details: "Success." };
+    }
   } catch (error) {
     return { success: false, details: error };
   }
+};
 
+const validatePromoCode = async (festival_id, promo_code) => {
+  const festival_promo_code = await db("festivals")
+    .select("promo_code")
+    .where("festival_id", festival_id);
+  return festival_promo_code === promo_code;
+};
 
-  
-}
 module.exports = {
   getAllFestivals,
   getAllFestivalList,
@@ -1303,4 +1360,6 @@ module.exports = {
   getFestivalByPassports,
   registerUserToFestivals,
   addBusinessInFestival,
+  getFestivalDetailsBySlug,
+  validatePromoCode,
 };

@@ -10,6 +10,8 @@ const business_service = require("../../services/passport/businessPassport");
 const { compareSync } = require("bcrypt");
 const { compose } = require("objection");
 
+const jwt = require("jsonwebtoken");
+
 router.get("/festival/landing-page", async (req, res) => {
   try {
     const current_page = req.query.page || 1;
@@ -177,18 +179,42 @@ router.get("/festival/:festival_id", async (req, res) => {
     });
   }
 
+  // authenticateToken is an auth guard; we want the token to be optional
+  let user = null;
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (token) {
+    try {
+      user = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    } catch (err) {
+      user = null;
+    }
+  }
+
   try {
-    const response = await festival_service.getFestivalDetails(
-      req.params.festival_id
+    // assume first that festival identifier is the slug
+    const response = await festival_service.getFestivalDetailsBySlug(
+      req.params.festival_id,
+      user // send user details to check if they can view promo code
     );
 
     return res.send(response);
-  } catch (error) {
-    res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
-    });
+  } catch {
+    // if search by slug fails => it must be the numeric festival id
+    try {
+      const response = await festival_service.getFestivalDetails(
+        req.params.festival_id,
+        user // send user details to check if they can view promo code
+      );
+
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
   }
 });
 
@@ -437,7 +463,6 @@ router.get("/business/festival/:festival_id", async (req, res) => {
   }
 });
 
-
 // GET vendors in specific festival
 router.get("/hostvendors/festival/:user_id", async (req, res) => {
   try {
@@ -623,18 +648,20 @@ router.post(
         // insert the business list into buiness table
         if (festival_participating_business) {
           const business_arr = festival_participating_business.split("|");
-          for (let i = 5; i < business_arr.length - 2; i=i+5) {
-            const business_response = await business_service.postBusinessThroughFile(
-              business_arr[i+1],
-              business_arr[i+2],
-              business_arr[i+3],
-              business_arr[i+4],
+          for (let i = 5; i < business_arr.length - 2; i = i + 5) {
+            const business_response =
+              await business_service.postBusinessThroughFile(
+                business_arr[i + 1],
+                business_arr[i + 2],
+                business_arr[i + 3],
+                business_arr[i + 4]
+              );
+            const r = await festival_service.addBusinessInFestival(
+              response.details,
+              business_response.details
             );
-            const r = await festival_service.addBusinessInFestival(response.details, business_response.details);
           }
-          
         }
-
 
         return res.send(response);
       } catch (error) {
@@ -644,8 +671,6 @@ router.post(
           response: error,
         });
       }
-
-
     } catch (error) {
       res.send({
         success: false,
@@ -660,7 +685,7 @@ router.post(
 router.put(
   "/festival/update/:festival_id",
   token_service.authenticateToken,
-  
+
   async (req, res) => {
     const {
       images,
@@ -704,7 +729,7 @@ router.put(
         const user_details_from_db = await user_profile_service.getUserById(
           req.user.id
         );
-       
+
         if (!user_details_from_db.success) {
           return res.status(403).json({
             success: false,
@@ -738,26 +763,25 @@ router.put(
           images
         );
         try {
-          
-        }
-        catch (error) {
+        } catch (error) {
           console.log(error);
         }
 
-        
         if (festival_participating_business) {
           const business_arr = festival_participating_business.split("|");
-          for (let i = 5; i < business_arr.length - 2; i=i+5) {
-
-            const business_response = await business_service.postBusinessThroughFile(
-              business_arr[i+1],
-              business_arr[i+2],
-              business_arr[i+3],
-              business_arr[i+4],
+          for (let i = 5; i < business_arr.length - 2; i = i + 5) {
+            const business_response =
+              await business_service.postBusinessThroughFile(
+                business_arr[i + 1],
+                business_arr[i + 2],
+                business_arr[i + 3],
+                business_arr[i + 4]
+              );
+            const r = await festival_service.addBusinessInFestival(
+              festival_id,
+              business_response.details
             );
-            const r = await festival_service.addBusinessInFestival(festival_id, business_response.details);
           }
-          
         }
 
         return res.send(response);
@@ -1255,7 +1279,5 @@ router.get("/business/:business_id", async (req, res) => {
     });
   }
 });
-
-
 
 module.exports = router;
