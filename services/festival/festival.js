@@ -100,9 +100,6 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
 
   return await query
     .then((value) => {
-      value.map((festival) => {
-        delete festival.promo_code;
-      });
       return { success: true, details: value };
     })
     .catch((reason) => {
