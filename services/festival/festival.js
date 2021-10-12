@@ -100,9 +100,6 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
 
   return await query
     .then((value) => {
-      value.map((festival) => {
-        delete festival.promo_code;
-      });
       return { success: true, details: value };
     })
     .catch((reason) => {
@@ -1042,7 +1039,11 @@ const getFestivalDetails = async (festival_id, user = null) => {
     .then((value) => {
       value.map((festival) => {
         if (
+<<<<<<< HEAD
           !user.role.includes("ADMIN") &&
+=======
+          !(user && user.role.includes("ADMIN")) &&
+>>>>>>> 1729640c94a06ae00bf32a6fb08fdecab945f0b2
           !festival.festival_host_id.includes(user.id) &&
           !festival.festival_host_admin_id.includes(user.id)
         ) {
