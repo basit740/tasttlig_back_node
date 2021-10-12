@@ -193,11 +193,49 @@ const postBusinessThroughFile = async (business_name, business_category, busines
     const verificationCode = str1.concat(str2);
     try {
       return await db.transaction(async (trx) => {
+        let myString = business_location
+        let myCity = "Toronto";
+        let myState = "ON";
+        let myCountry = "Canada";
+        let myZipPostalCode = "";
+        let myBusinessStreetNumber = "";
+        let myBusinessStreetName = "";
+        let myUnit = null;
+
+        // split location string at ,
+        const myArr = myString.split(",").map(item => item.trim());
+
+        // find street name after first space
+        let firstSplit = myArr[0];
+        myBusinessStreetName = firstSplit.substr(firstSplit.indexOf(' ') +1);
+
+        // find unit number in format #-# else null
+        if (myArr[0].split(" ")[0].includes("-")) {
+          let myRe2 = /(\d+)-\d+/;
+          myUnit = myArr[0].split(" ")[0].match(myRe2)[1]
+        }
+
+        // find street number
+        let myRe = /(\d+)\s(\w+)/;
+        const myMatch = myArr[0].match(myRe)
+        myBusinessStreetNumber = myMatch[1];
+
+        // find city and postal code
+        myCity = myArr[1];
+        myZipPostalCode = myArr[2].slice(3,myArr[2].length);
+
         const business_details = {
           business_name: business_name,
           business_category: business_category,
           business_location: business_location,
           business_phone_number: business_contact_info,
+          city: myCity,
+          state: myState,
+          country: myCountry,
+          zip_postal_code: myZipPostalCode,
+          business_unit: myUnit,
+          business_street_number: myBusinessStreetNumber,
+          business_street_name: myBusinessStreetName,
           business_verification_code: verificationCode
         };
         var business_details_id = await trx("business_details")
