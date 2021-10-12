@@ -1036,11 +1036,20 @@ const getFestivalDetails = async (festival_id, user = null) => {
     .having("festivals.festival_id", "=", festival_id)
     .having("festivals.festival_end_date", ">=", new Date())
     .then((value) => {
+      console.log(value);
       value.map((festival) => {
         if (
           !(user && user.role.includes("ADMIN")) &&
-          !festival.festival_host_id.includes(user.id) &&
-          !festival.festival_host_admin_id.includes(user.id)
+          !(
+            festival &&
+            festival.festival_host_id &&
+            festival.festival_host_id.includes(user && user.id)
+          ) &&
+          !(
+            festival &&
+            festival.festival_host_admin_id &&
+            festival.festival_host_admin_id.includes(user && user.id)
+          )
         ) {
           delete festival.promo_code;
         }
@@ -1052,6 +1061,7 @@ const getFestivalDetails = async (festival_id, user = null) => {
       };
     })
     .catch((reason) => {
+      console.log("LOOKUP FAILED", reason);
       return { success: false, details: reason };
     });
 };
