@@ -1,7 +1,7 @@
 "use strict";
 
 // Libraries
-const { db } = require("../../db/db-config");
+const {db} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
@@ -22,13 +22,13 @@ const getUserById = async (id) => {
     .first()
     .then((value) => {
       if (!value) {
-        return { success: false, message: "No user found." };
+        return {success: false, message: "No user found."};
       }
 
-      return { success: true, user: value };
+      return {success: true, user: value};
     })
     .catch((error) => {
-      return { success: false, message: error };
+      return {success: false, message: error};
     });
 };
 
@@ -59,7 +59,7 @@ const getAllVendorApplications = async () => {
       applications,
     };
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -97,7 +97,7 @@ const getVendorApplications = async (hostId) => {
       applications,
     };
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -144,7 +144,7 @@ const getVendorApplicantDetails = async (userId) => {
     };
   } catch (error) {
     console.log(error);
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -168,7 +168,7 @@ const approveOrDeclineHostVendorApplication = async (
     let role = db_user.role;
 
     if (!db_user_row.success) {
-      return { success: false, message: db_user_row.message };
+      return {success: false, message: db_user_row.message};
     }
 
     // If status is approved
@@ -181,7 +181,7 @@ const approveOrDeclineHostVendorApplication = async (
         .update("status", "APPROVED")
         .returning("*")
         .catch((reason) => {
-          return { success: false, message: reason };
+          return {success: false, message: reason};
         });
 
       // update the user role as host
@@ -192,7 +192,7 @@ const approveOrDeclineHostVendorApplication = async (
         .returning("*")
         .catch((reason) => {
           console.log("Reason", reason);
-          return { success: false, message: reason };
+          return {success: false, message: reason};
         });
 
       // Email the user that their application is approved
@@ -209,7 +209,7 @@ const approveOrDeclineHostVendorApplication = async (
       });
       console.log("updated application status");
 
-      return { success: true, message: status };
+      return {success: true, message: status};
     } else {
       // reject
       // Update applications table status
@@ -220,7 +220,7 @@ const approveOrDeclineHostVendorApplication = async (
         .update("status", "DECLINED")
         .returning("*")
         .catch((reason) => {
-          return { success: false, message: reason };
+          return {success: false, message: reason};
         });
 
       // remove in pending status
@@ -231,11 +231,11 @@ const approveOrDeclineHostVendorApplication = async (
         .returning("*")
         .catch((reason) => {
           console.log("Reason", reason);
-          return { success: false, message: reason };
+          return {success: false, message: reason};
         });
     }
   } catch (error) {
-    return { success: false, message: error };
+    return {success: false, message: error};
   }
 };
 
@@ -291,7 +291,7 @@ const approveOrDeclineVendorApplicationOnFestival = async (
     const client = await user_profile_service.getUserById(userId);
 
     if (!db_user_row.success) {
-      return { success: false, message: db_user_row.message };
+      return {success: false, message: db_user_row.message};
     }
 
     // remove vendor from vendor_request_id
@@ -304,7 +304,7 @@ const approveOrDeclineVendorApplicationOnFestival = async (
       })
       .returning("*")
       .catch(() => {
-        return { success: false };
+        return {success: false};
       });
 
     const application = await db("applications")
@@ -314,7 +314,7 @@ const approveOrDeclineVendorApplicationOnFestival = async (
       .andWhere("festival_id", festivalId)
       .returning("*")
       .catch(() => {
-        return { success: false };
+        return {success: false};
       });
     // If status is approved
     if (status === "APPROVED") {
@@ -330,7 +330,7 @@ const approveOrDeclineVendorApplicationOnFestival = async (
           .update("status", "APPROVED")
           .returning("*")
           .catch((reason) => {
-            return { success: false, message: reason };
+            return {success: false, message: reason};
           });
         // add the user to fesstival
         await db("festivals")
@@ -342,12 +342,17 @@ const approveOrDeclineVendorApplicationOnFestival = async (
           })
           .returning("*")
           .catch(() => {
-            return { success: false };
+            return {success: false};
           });
 
         // update product pending
         const test = await db("products")
-          .where("product_user_id", db_user.tasttlig_user_id)
+          .leftJoin(
+            "business_details",
+            "business_details.business_details_id",
+            "products.product_business_id"
+          )
+          .where("business_details_user_id", db_user.tasttlig_user_id)
           .andWhere("festival_selected_pending", "@>", [Number(festivalId)])
           .andWhere("product_offering_type", "@>", ["Vendor"])
           .update({
@@ -399,7 +404,7 @@ const approveOrDeclineVendorApplicationOnFestival = async (
 
       console.log("updated application status");
 
-      return { success: true, message: status };
+      return {success: true, message: status};
     } else {
       // else DECLINE the application
       await db("applications")
@@ -410,7 +415,7 @@ const approveOrDeclineVendorApplicationOnFestival = async (
         .update("status", "DECLINED")
         .returning("*")
         .catch((reason) => {
-          return { success: false, message: reason };
+          return {success: false, message: reason};
         });
       // add ticketPrice to user credit
 
@@ -419,7 +424,7 @@ const approveOrDeclineVendorApplicationOnFestival = async (
         .where("tasttlig_user_id", userId)
         .returning("*")
         .catch(() => {
-          return { success: false };
+          return {success: false};
         });
       // get the sum of tickprice and user credit
       let sum = Number(user[0].credit) + Number(ticketPrice);
@@ -430,7 +435,7 @@ const approveOrDeclineVendorApplicationOnFestival = async (
         .update("credit", sum)
         .returning("*")
         .catch(() => {
-          return { success: false };
+          return {success: false};
         });
 
       // deletes the corresponding ticket
@@ -441,7 +446,7 @@ const approveOrDeclineVendorApplicationOnFestival = async (
         .del()
         .returning("*")
         .catch(() => {
-          return { success: false };
+          return {success: false};
         });
 
       // send a mail to clent for rejection
@@ -461,7 +466,7 @@ const approveOrDeclineVendorApplicationOnFestival = async (
       });
     }
   } catch (error) {
-    return { success: false, message: error };
+    return {success: false, message: error};
   }
 };
 
@@ -499,7 +504,7 @@ const getSponsorApplications = async (hostId) => {
       applications,
     };
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -529,7 +534,7 @@ const getSponsorApplicantDetails = async (userId) => {
     };
   } catch (error) {
     console.log(error);
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -588,7 +593,7 @@ const approveOrDeclineSponsorApplicationOnFestival = async (
     const client = await user_profile_service.getUserById(userId);
 
     if (!db_user_row.success) {
-      return { success: false, message: db_user_row.message };
+      return {success: false, message: db_user_row.message};
     }
 
     // remove sponsor from sponsor_request_id
@@ -601,7 +606,7 @@ const approveOrDeclineSponsorApplicationOnFestival = async (
       })
       .returning("*")
       .catch(() => {
-        return { success: false };
+        return {success: false};
       });
 
     const application = await db("applications")
@@ -611,7 +616,7 @@ const approveOrDeclineSponsorApplicationOnFestival = async (
       .andWhere("festival_id", festivalId)
       .returning("*")
       .catch(() => {
-        return { success: false };
+        return {success: false};
       });
     // If status is approved
     if (status === "APPROVED") {
@@ -627,12 +632,17 @@ const approveOrDeclineSponsorApplicationOnFestival = async (
           .update("status", "APPROVED")
           .returning("*")
           .catch((reason) => {
-            return { success: false, message: reason };
+            return {success: false, message: reason};
           });
 
         // update product pending
         await db("products")
-          .where("product_user_id", db_user.tasttlig_user_id)
+          .leftJoin(
+            "business_details",
+            "business_details.business_details_id",
+            "products.product_business_id"
+          )
+          .where("business_details_user_id", db_user.tasttlig_user_id)
           .andWhere("festival_selected_pending", "@>", [Number(festivalId)])
           .andWhere("product_offering_type", "@>", ["Sponsor"])
           .update({
@@ -662,7 +672,7 @@ const approveOrDeclineSponsorApplicationOnFestival = async (
           })
           .returning("*")
           .catch(() => {
-            return { success: false };
+            return {success: false};
           });
 
         // send notification mail to host
@@ -698,7 +708,7 @@ const approveOrDeclineSponsorApplicationOnFestival = async (
 
       console.log("updated application status");
 
-      return { success: true, message: status };
+      return {success: true, message: status};
     } else {
       // else DECLINE the application
       await db("applications")
@@ -709,7 +719,7 @@ const approveOrDeclineSponsorApplicationOnFestival = async (
         .update("status", "DECLINED")
         .returning("*")
         .catch((reason) => {
-          return { success: false, message: reason };
+          return {success: false, message: reason};
         });
       // add ticketPrice to user credit
 
@@ -718,7 +728,7 @@ const approveOrDeclineSponsorApplicationOnFestival = async (
         .where("tasttlig_user_id", userId)
         .returning("*")
         .catch(() => {
-          return { success: false };
+          return {success: false};
         });
       // get the sum of tickprice and user credit
       let sum = Number(user[0].credit) + Number(ticketPrice);
@@ -729,7 +739,7 @@ const approveOrDeclineSponsorApplicationOnFestival = async (
         .update("credit", sum)
         .returning("*")
         .catch(() => {
-          return { success: false };
+          return {success: false};
         });
 
       // deletes the corresponding ticket
@@ -740,7 +750,7 @@ const approveOrDeclineSponsorApplicationOnFestival = async (
         .del()
         .returning("*")
         .catch(() => {
-          return { success: false };
+          return {success: false};
         });
 
       // send a mail to clent for rejection
@@ -760,7 +770,7 @@ const approveOrDeclineSponsorApplicationOnFestival = async (
       });
     }
   } catch (error) {
-    return { success: false, message: error };
+    return {success: false, message: error};
   }
 };
 
@@ -798,7 +808,7 @@ const getRestaurantApplications = async (hostId) => {
       applications,
     };
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -845,7 +855,7 @@ const getRestaurantApplicantDetails = async (userId) => {
     };
   } catch (error) {
     console.log(error);
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -899,7 +909,7 @@ const approveOrDeclineRestaurantApplicationOnFestival = async (
     const client = await user_profile_service.getUserById(userId);
 
     if (!db_user_row.success) {
-      return { success: false, message: db_user_row.message };
+      return {success: false, message: db_user_row.message};
     }
 
     const application = await db("applications")
@@ -909,7 +919,7 @@ const approveOrDeclineRestaurantApplicationOnFestival = async (
       .andWhere("festival_id", festivalId)
       .returning("*")
       .catch(() => {
-        return { success: false };
+        return {success: false};
       });
     // If status is approved
     if (status === "APPROVED") {
@@ -925,12 +935,17 @@ const approveOrDeclineRestaurantApplicationOnFestival = async (
           .update("status", "APPROVED")
           .returning("*")
           .catch((reason) => {
-            return { success: false, message: reason };
+            return {success: false, message: reason};
           });
 
         // update restaurant product pending
         await db("products")
-          .where("product_user_id", db_user.tasttlig_user_id)
+          .leftJoin(
+            "business_details",
+            "business_details.business_details_id",
+            "products.product_business_id"
+          )
+          .where("business_details_user_id", db_user.tasttlig_user_id)
           .andWhere("festival_selected_pending", "@>", [Number(festivalId)])
           .andWhere("product_offering_type", "@>", ["Host"])
           .update({
@@ -960,7 +975,7 @@ const approveOrDeclineRestaurantApplicationOnFestival = async (
           })
           .returning("*")
           .catch(() => {
-            return { success: false };
+            return {success: false};
           });
 
         // send notification mail to host
@@ -996,7 +1011,7 @@ const approveOrDeclineRestaurantApplicationOnFestival = async (
 
       console.log("updated application status");
 
-      return { success: true, message: status };
+      return {success: true, message: status};
     } else {
       // else DECLINE the application
       await db("applications")
@@ -1007,7 +1022,7 @@ const approveOrDeclineRestaurantApplicationOnFestival = async (
         .update("status", "DECLINED")
         .returning("*")
         .catch((reason) => {
-          return { success: false, message: reason };
+          return {success: false, message: reason};
         });
 
       // get the current user credit
@@ -1015,7 +1030,7 @@ const approveOrDeclineRestaurantApplicationOnFestival = async (
         .where("tasttlig_user_id", userId)
         .returning("*")
         .catch(() => {
-          return { success: false };
+          return {success: false};
         });
       // get the sum of tickprice and user credit
       let sum = Number(user[0].credit) + Number(ticketPrice);
@@ -1026,7 +1041,7 @@ const approveOrDeclineRestaurantApplicationOnFestival = async (
         .update("credit", sum)
         .returning("*")
         .catch(() => {
-          return { success: false };
+          return {success: false};
         });
 
       // send a mail to clent for rejection
@@ -1046,7 +1061,7 @@ const approveOrDeclineRestaurantApplicationOnFestival = async (
       });
     }
   } catch (error) {
-    return { success: false, message: error };
+    return {success: false, message: error};
   }
 };
 
@@ -1074,7 +1089,7 @@ const addBusinessToFestival = async (festival_id, user_id) => {
       })
       .returning("*")
       .catch(() => {
-        return { success: false };
+        return {success: false};
       });
 
     if (userData.user.food_business_type === "Restaurant") {
@@ -1088,13 +1103,13 @@ const addBusinessToFestival = async (festival_id, user_id) => {
         })
         .returning("*")
         .catch(() => {
-          return { success: false };
+          return {success: false};
         });
     }
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
-  return { success: true };
+  return {success: true};
 };
 
 const autoApproveVendorFestivalApplications = async () => {
@@ -1108,18 +1123,21 @@ const autoApproveVendorFestivalApplications = async () => {
     (fst) => fst.vendor_request_id !== null && fst.vendor_request_id.length > 0
   );
   let festByReqUser = [];
+
   function setFestByReqUser(fest) {
     fest.vendor_request_id !== null &&
-      fest.vendor_request_id.length > 0 &&
-      fest.vendor_request_id.map((vendor_request_id) => {
-        const userId = vendor_request_id;
-        delete fest.vendor_request_id;
-        festByReqUser.push({ userId: userId, ...fest });
-      });
+    fest.vendor_request_id.length > 0 &&
+    fest.vendor_request_id.map((vendor_request_id) => {
+      const userId = vendor_request_id;
+      delete fest.vendor_request_id;
+      festByReqUser.push({userId: userId, ...fest});
+    });
   }
+
   vReqs.length > 0 && vReqs.map(async (fest) => setFestByReqUser(fest));
   festByReqUser.length > 0 &&
-    festByReqUser.map(async (fest) => await processApp(fest));
+  festByReqUser.map(async (fest) => await processApp(fest));
+
   async function isAppOverdue(userId, festId) {
     let app = null;
     await db("applications")
@@ -1133,7 +1151,7 @@ const autoApproveVendorFestivalApplications = async () => {
       })
       .catch((error) => {
         console.log("err", error);
-        return { success: false };
+        return {success: false};
       });
 
     if (!app) {
@@ -1166,7 +1184,7 @@ const autoApproveVendorFestivalApplications = async () => {
       const client = await user_profile_service.getUserById(fest.userId);
 
       if (!db_user_row.success) {
-        return { success: false, message: db_user_row.message };
+        return {success: false, message: db_user_row.message};
       }
 
       // update the applications table
@@ -1178,7 +1196,7 @@ const autoApproveVendorFestivalApplications = async () => {
         .update("status", "APPROVED")
         .returning("*")
         .catch((reason) => {
-          return { success: false, message: reason };
+          return {success: false, message: reason};
         });
 
       // remove vendor from vendor_request_id
@@ -1194,12 +1212,17 @@ const autoApproveVendorFestivalApplications = async () => {
         })
         .returning("*")
         .catch(() => {
-          return { success: false };
+          return {success: false};
         });
 
       // update product pending
       const test = await db("products")
-        .where("product_user_id", fest.userId)
+        .leftJoin(
+          "business_details",
+          "business_details.business_details_id",
+          "products.product_business_id"
+        )
+        .where("business_details_user_id", fest.userId)
         .andWhere("festival_selected_pending", "@>", [Number(fest.festival_id)])
         .andWhere("product_offering_type", "@>", ["Vendor"])
         .update({
@@ -1265,18 +1288,21 @@ const autoApproveSponsorFestivalApplications = async () => {
       fst.sponsor_request_id !== null && fst.sponsor_request_id.length > 0
   );
   let festByReqUser = [];
+
   function setFestByReqUser(fest) {
     fest.sponsor_request_id !== null &&
-      fest.sponsor_request_id.length > 0 &&
-      fest.sponsor_request_id.map((sponsor_request_id) => {
-        const userId = sponsor_request_id;
-        delete fest.sponsor_request_id;
-        festByReqUser.push({ userId: userId, ...fest });
-      });
+    fest.sponsor_request_id.length > 0 &&
+    fest.sponsor_request_id.map((sponsor_request_id) => {
+      const userId = sponsor_request_id;
+      delete fest.sponsor_request_id;
+      festByReqUser.push({userId: userId, ...fest});
+    });
   }
+
   vReqs.length > 0 && vReqs.map(async (fest) => setFestByReqUser(fest));
   festByReqUser.length > 0 &&
-    festByReqUser.map(async (fest) => await processApp(fest));
+  festByReqUser.map(async (fest) => await processApp(fest));
+
   async function isAppOverdue(userId, festId) {
     let app = null;
     await db("applications")
@@ -1290,7 +1316,7 @@ const autoApproveSponsorFestivalApplications = async () => {
       })
       .catch((error) => {
         console.log("err", error);
-        return { success: false };
+        return {success: false};
       });
 
     if (!app) {
@@ -1323,7 +1349,7 @@ const autoApproveSponsorFestivalApplications = async () => {
       const client = await user_profile_service.getUserById(fest.userId);
 
       if (!db_user_row.success) {
-        return { success: false, message: db_user_row.message };
+        return {success: false, message: db_user_row.message};
       }
 
       // update the applications table
@@ -1335,7 +1361,7 @@ const autoApproveSponsorFestivalApplications = async () => {
         .update("status", "APPROVED")
         .returning("*")
         .catch((reason) => {
-          return { success: false, message: reason };
+          return {success: false, message: reason};
         });
 
       // remove vendor from vendor_request_id
@@ -1352,12 +1378,17 @@ const autoApproveSponsorFestivalApplications = async () => {
         })
         .returning("*")
         .catch(() => {
-          return { success: false };
+          return {success: false};
         });
 
       // update product pending
       const test = await db("products")
-        .where("product_user_id", fest.userId)
+        .leftJoin(
+          "business_details",
+          "business_details.business_details_id",
+          "products.product_business_id"
+        )
+        .where("business_details_user_id", fest.userId)
         .andWhere("festival_selected_pending", "@>", [Number(fest.festival_id)])
         .andWhere("product_offering_type", "@>", ["Sponsor"])
         .update({

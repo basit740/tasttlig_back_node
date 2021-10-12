@@ -1,8 +1,8 @@
 "use strict";
 
 // Libraries
-const { Stripe } = require("stripe");
-const { db } = require("../../db/db-config");
+const {Stripe} = require("stripe");
+const {db} = require("../../db/db-config");
 
 // Use Stripe secret key
 const keySecret = process.env.STRIPE_SECRET_KEY;
@@ -72,7 +72,7 @@ const paymentIntent = async (order_details, vendor_festivals, email) => {
     if (user_id) {
       stripe_account_service
         .getStripeAccountId(user_id)
-        .then(({ account_id }) => {
+        .then(({account_id}) => {
           if (account_id) {
             console.log("ACCOUNT ID FOR TRANSFER", account_id);
             // business gets 75 percent of payment
@@ -104,7 +104,7 @@ const paymentIntent = async (order_details, vendor_festivals, email) => {
     };
   } catch (error) {
     console.log("stripe payment error", error);
-    return { success: false, message: error.message };
+    return {success: false, message: error.message};
   }
 };
 
@@ -164,7 +164,7 @@ const createAccountId = async (
     };
   } catch (error) {
     console.log(error);
-    return { success: false, message: error.message };
+    return {success: false, message: error.message};
   }
 };
 
@@ -172,7 +172,7 @@ const getPaymentDetailsFromReference = async (payment_ref) => {
   try {
     const result = await db("payments")
       .select()
-      .where({ payment_reference_number: payment_ref });
+      .where({payment_reference_number: payment_ref});
     return result;
   } catch (err) {
     console.log("getting payment failed", payment_ref);
@@ -186,7 +186,7 @@ const getPaymentDetailsFromReference = async (payment_ref) => {
 const usePayment = async (payment_ref) => {
   try {
     await db("payments")
-      .update({ used: true })
+      .update({used: true})
       .where("payment_reference_number", payment_ref);
   } catch (err) {
     return {

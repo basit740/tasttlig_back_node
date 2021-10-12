@@ -1,7 +1,7 @@
 "use strict";
 
 // Libraries
-const { db } = require("../../db/db-config");
+const {db} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 
 // Environment variables
@@ -20,7 +20,7 @@ const createNewProduct = async (
         .returning("*");
 
       if (!db_product) {
-        return { success: false, details: "Inserting new product failed." };
+        return {success: false, details: "Inserting new product failed."};
       }
 
       const images = product_images.map((product_image) => ({
@@ -44,9 +44,9 @@ const createNewProduct = async (
       });
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -92,18 +92,18 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
   let orderByArray = [];
   if (filters.price) {
     if (filters.price === "lowest_to_highest") {
-      orderByArray.push({ column: "products.product_price", order: "asc" });
+      orderByArray.push({column: "products.product_price", order: "asc"});
       //query.orderBy("products.product_price", "asc")
     } else if (filters.price === "highest_to_lowest") {
-      orderByArray.push({ column: "products.product_price", order: "desc" });
+      orderByArray.push({column: "products.product_price", order: "desc"});
       //query.orderBy("products.product_price", "desc")
     }
   }
   if (filters.quantity) {
     if (filters.quantity === "lowest_to_highest") {
-      orderByArray.push({ column: "products.product_quantity", order: "asc" });
+      orderByArray.push({column: "products.product_quantity", order: "asc"});
     } else if (filters.quantity === "highest_to_lowest") {
-      orderByArray.push({ column: "products.product_quantity", order: "desc" });
+      orderByArray.push({column: "products.product_quantity", order: "desc"});
     }
   }
 
@@ -127,8 +127,8 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -138,12 +138,12 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                //"main.business_name, " +
-                "main.product_name, " +
-                "main.product_size, " +
-                "main.product_price, " +
-                //"main.business_city, " +
-                "main.product_description)) as search_text"
+              //"main.business_name, " +
+              "main.product_name, " +
+              "main.product_size, " +
+              "main.product_price, " +
+              //"main.business_city, " +
+              "main.product_description)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -155,10 +155,10 @@ const getProductsInFestival = async (festival_id, filters, keyword) => {
   return await query
     .then((value) => {
       // console.log(value);
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -177,15 +177,20 @@ const getUserProductDetails = async (user_id) => {
       "products.product_made_in_nationality_id",
       "nationalities.id"
     )
+    .leftJoin(
+      "business_details",
+      "business_details.business_details_id",
+      "products.product_business_id"
+    )
     .groupBy("products.product_id")
     .groupBy("products.product_made_in_nationality_id")
     .groupBy("nationalities.id")
-    .having("products.product_user_id", "=", Number(user_id))
+    .having("business_details.business_details_user_id", "=", Number(user_id))
     .then((value) => {
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -211,8 +216,8 @@ const getProductsFromUser = async (user_id, keyword) => {
     )
     .leftJoin(
       "business_details",
-      "products.product_user_id",
-      "business_details.business_details_user_id"
+      "products.product_business_id",
+      "business_details.business_details_id"
     )
     .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .groupBy("products.product_id")
@@ -232,8 +237,8 @@ const getProductsFromUser = async (user_id, keyword) => {
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -243,14 +248,14 @@ const getProductsFromUser = async (user_id, keyword) => {
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                //"main.business_name, " +
-                // "main.product_name, " +
-                "main.title, " +
-                "main.product_size, " +
-                // "main.product_price, " +
-                "main.price, " +
-                //"main.business_city, " +
-                "main.description)) as search_text"
+              //"main.business_name, " +
+              // "main.product_name, " +
+              "main.title, " +
+              "main.product_size, " +
+              // "main.product_price, " +
+              "main.price, " +
+              //"main.business_city, " +
+              "main.description)) as search_text"
               // "main.product_description)) as search_text"
             )
           )
@@ -262,10 +267,10 @@ const getProductsFromUser = async (user_id, keyword) => {
   return await query
     .then((value) => {
       // console.log('products fetched', value);
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -284,15 +289,15 @@ const deleteProductsFromUser = async (user_id, delete_items) => {
           })
           .del()
           .then(() => {
-            return { success: true };
+            return {success: true};
           })
           .catch((reason) => {
-            return { success: false, details: reason };
+            return {success: false, details: reason};
           });
       });
     }
   } catch (error) {
-    return { success: false, details: error };
+    return {success: false, details: error};
   }
 };
 
@@ -304,25 +309,23 @@ const findProduct = async (product_id) => {
     .where("products.product_id", "=", product_id)
     .first()
     .then((value) => {
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 // Find product helper function
 const addProductToFestival = async (
   festival_id,
-  product_id,
-  product_user_id,
-  user_details_from_db
+  product_id
 ) => {
   try {
     await db.transaction(async (trx) => {
       if (Array.isArray(product_id)) {
         for (let product of product_id) {
           const db_product = await trx("products")
-            .where({ product_id: product })
+            .where({product_id: product})
             .update({
               festival_selected: trx.raw("array_append(festival_selected, ?)", [
                 festival_id,
@@ -339,7 +342,7 @@ const addProductToFestival = async (
         }
       } else {
         const db_product = await trx("products")
-          .where({ product_id })
+          .where({product_id})
           .update({
             festival_selected: trx.raw("array_append(festival_selected, ?)", [
               festival_id,
@@ -356,9 +359,9 @@ const addProductToFestival = async (
       }
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -367,7 +370,7 @@ const claimProduct = async (db_user, product_id) => {
   try {
     await db.transaction(async (trx) => {
       const db_product = await trx("products")
-        .where({ product_id })
+        .where({product_id})
         .update({
           product_user_guest_id: trx.raw(
             "array_append(product_user_guest_id, ?)",
@@ -384,15 +387,15 @@ const claimProduct = async (db_user, product_id) => {
       }
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
 // Update product helper function
 const updateProduct = async (db_user, data) => {
-  const { product_images, ...product_update_data } = data;
+  const {product_images, ...product_update_data} = data;
   let updateData = {};
   updateData.product_festivals_id = data.product_festivals_id;
 
@@ -402,7 +405,7 @@ const updateProduct = async (db_user, data) => {
         .whereIn("product_id", data.product_id)
         .where((builder) => {
           return builder.where({
-            product_user_id: db_user.tasttlig_user_id,
+            product_business_id: db_user.business_details_id,
           });
         })
         .update(updateData);
@@ -423,8 +426,8 @@ const updateProduct = async (db_user, data) => {
             if (!host_ids.includes(db_user.tasttlig_user_id)) {
               host_ids.push(db_user.tasttlig_user_id);
               await db("festivals")
-                .where({ festival_id: festival_id })
-                .update({ festival_host_id: host_ids });
+                .where({festival_id: festival_id})
+                .update({festival_host_id: host_ids});
             }
           } else if (db_user.role.includes("VENDOR")) {
             var vendor_ids = await db("festivals")
@@ -441,12 +444,12 @@ const updateProduct = async (db_user, data) => {
             if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
               vendor_ids_array.push(db_user.tasttlig_user_id);
               await db("festivals")
-                .where({ festival_id: festival_id })
-                .update({ festival_vendor_id: vendor_ids_array });
+                .where({festival_id: festival_id})
+                .update({festival_vendor_id: vendor_ids_array});
             }
           }
         } catch (error) {
-          return { success: false };
+          return {success: false};
         }
       });
 
@@ -461,13 +464,13 @@ const updateProduct = async (db_user, data) => {
         );
       } */
 
-      return { success: true };
+      return {success: true};
     } else {
       await db("products")
         .where((builder) => {
           return builder.where({
             product_id,
-            product_user_id: db_user.tasttlig_user_id,
+            product_business_id: db_user.business_details_id,
           });
         })
         .update(product_update_data);
@@ -483,10 +486,10 @@ const updateProduct = async (db_user, data) => {
         );
       }
 
-      return { success: true };
+      return {success: true};
     }
   } catch (error) {
-    return { success: false, details: error };
+    return {success: false, details: error};
   }
 };
 
@@ -501,16 +504,12 @@ const deleteProduct = async (user_id, product_id) => {
       .del()
       .then(async () => {
         await db("products")
-          .where({
-            /* product_id, */
-            product_user_id: user_id,
-          })
           .whereIn("product_id", product_id)
           .del();
-        return { success: true };
+        return {success: true};
       })
       .catch((reason) => {
-        return { success: false, details: reason };
+        return {success: false, details: reason};
       });
   } else {
     return await db("product_images")
@@ -521,14 +520,13 @@ const deleteProduct = async (user_id, product_id) => {
       .then(async () => {
         await db("products")
           .where({
-            product_id,
-            product_user_id: user_id,
+            product_id
           })
           .del();
-        return { success: true };
+        return {success: true};
       })
       .catch((reason) => {
-        return { success: false, details: reason };
+        return {success: false, details: reason};
       });
   }
 };

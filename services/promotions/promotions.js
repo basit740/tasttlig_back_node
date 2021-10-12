@@ -1,7 +1,7 @@
 "use strict";
 
 // Libraries
-const { db } = require("../../db/db-config");
+const {db} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 
 // Create service helper function
@@ -16,14 +16,14 @@ const createNewPromotion = async (
         .returning("*");
 
       if (!db_service) {
-        return { success: false, details: "Inserting new promotion failed." };
+        return {success: false, details: "Inserting new promotion failed."};
       }
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
     console.log(error);
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -44,13 +44,13 @@ const getPromotionsByUser = async (user_id) => {
     //   .first()
     .then((value) => {
       if (!value) {
-        return { success: false, message: "No promotions found for this user" };
+        return {success: false, message: "No promotions found for this user"};
       }
 
-      return { success: true, promotions_all: value };
+      return {success: true, promotions_all: value};
     })
     .catch((error) => {
-      return { success: false, message: error };
+      return {success: false, message: error};
     });
 };
 
@@ -64,9 +64,14 @@ const deletePromotionsOfUser = async (user_id, delete_items) => {
           .where("business_details_user_id", "=", user_id)
           .first();
         promotionDelete = await trx("products")
+          .leftJoin(
+            "business_details",
+            "business_details.business_details_id",
+            "products.product_business_id"
+          )
           .where("promotional_discount_id", "=", item)
-          .andWhere("product_user_id", "=", user_id)
-          .update({ promotional_discount_id: null, discounted_price: null })
+          .andWhere("business_details_user_id", "=", user_id)
+          .update({promotional_discount_id: null, discounted_price: null})
           .then(async () => {
             return await trx("promotions")
               .where({
@@ -75,21 +80,21 @@ const deletePromotionsOfUser = async (user_id, delete_items) => {
               })
               .del()
               .then(() => {
-                return { success: true };
+                return {success: true};
               })
               .catch((reason) => {
-                return { success: false, details: reason };
+                return {success: false, details: reason};
               });
           })
           .catch((reason) => {
-            return { success: false, details: reason };
+            return {success: false, details: reason};
           });
       });
     }
     return promotionDelete;
   } catch (error) {
     console.log(error.message);
-    return { success: false, details: error };
+    return {success: false, details: error};
   }
 };
 
@@ -150,10 +155,10 @@ const applyPromotionToProducts = async (promotion, products) => {
         };
       }
     }
-    return { success: true };
+    return {success: true};
   } catch (error) {
     console.log(error);
-    return { success: false, details: error };
+    return {success: false, details: error};
   }
 };
 
@@ -167,7 +172,7 @@ const removePromotionFromProducts = async (products) => {
         await db.transaction(async (trx) => {
           const update_product = await trx("products")
             .where("product_id", "=", product.product_id)
-            .update({ promotional_discount_id: null, discounted_price: null });
+            .update({promotional_discount_id: null, discounted_price: null});
         });
       } else {
         return {
@@ -178,10 +183,10 @@ const removePromotionFromProducts = async (products) => {
         };
       }
     }
-    return { success: true };
+    return {success: true};
   } catch (error) {
     console.log(error);
-    return { success: false, details: error };
+    return {success: false, details: error};
   }
 };
 
@@ -238,13 +243,13 @@ const updatePromotion = async (data) => {
       })
       .returning("*")
       .then((value) => {
-        return { success: true, details: value[0] };
+        return {success: true, details: value[0]};
       })
       .catch((reason) => {
-        return { success: false, details: reason };
+        return {success: false, details: reason};
       });
   } catch (error) {
-    return { success: false, message: error };
+    return {success: false, message: error};
   }
 };
 

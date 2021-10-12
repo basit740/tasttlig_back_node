@@ -2,7 +2,7 @@
 
 // Libraries
 const Food_Sample_Claim_Status = require("../../enums/food_sample_claim_status");
-const { db, gis } = require("../../db/db-config");
+const {db, gis} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const {
   formatTime,
@@ -10,7 +10,7 @@ const {
 } = require("../../functions/functions");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
-const { setAddressCoordinates } = require("../geocoder");
+const {setAddressCoordinates} = require("../geocoder");
 
 // Environment variables
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -21,7 +21,6 @@ const getAllProductsInFestival = async (
   operator,
   status,
   keyword,
-
   filters,
   festival_id
 ) => {
@@ -61,14 +60,14 @@ const getAllProductsInFestival = async (
       "product_images.product_id"
     )
     .leftJoin(
-      "tasttlig_users",
-      "products.product_user_id",
-      "tasttlig_users.tasttlig_user_id"
+      "business_details",
+      "products.product_business_id",
+      "business_details.business_details_id"
     )
     .leftJoin(
-      "business_details",
-      "products.product_user_id",
-      "business_details.business_details_user_id"
+      "tasttlig_users",
+      "business_details.business_details_user_id",
+      "tasttlig_users.tasttlig_user_id"
     )
     .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .leftJoin(
@@ -96,16 +95,16 @@ const getAllProductsInFestival = async (
   let orderByArray = [];
   if (filters.price) {
     if (filters.price === "lowest_to_highest") {
-      orderByArray.push({ column: "products.price", order: "asc" });
+      orderByArray.push({column: "products.price", order: "asc"});
     } else if (filters.price === "highest_to_lowest") {
-      orderByArray.push({ column: "products.price", order: "desc" });
+      orderByArray.push({column: "products.price", order: "desc"});
     }
   }
   if (filters.quantity) {
     if (filters.quantity === "lowest_to_highest") {
-      orderByArray.push({ column: "products.quantity", order: "asc" });
+      orderByArray.push({column: "products.quantity", order: "asc"});
     } else if (filters.quantity === "highest_to_lowest") {
-      orderByArray.push({ column: "products.quantity", order: "desc" });
+      orderByArray.push({column: "products.quantity", order: "desc"});
     }
   }
 
@@ -129,8 +128,8 @@ const getAllProductsInFestival = async (
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -140,10 +139,10 @@ const getAllProductsInFestival = async (
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.title, " +
-                "main.description, " +
-                "main.first_name, " +
-                "main.last_name)) as search_text"
+              "main.title, " +
+              "main.description, " +
+              "main.first_name, " +
+              "main.last_name)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -154,10 +153,10 @@ const getAllProductsInFestival = async (
 
   return await query
     .then((value) => {
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -190,7 +189,7 @@ const createNewProduct = async (
         });
 
       if (!db_all_product) {
-        return { success: false, details: "Inserting new product failed." };
+        return {success: false, details: "Inserting new product failed."};
       }
 
       const images = all_product_images.map((all_product_image) => ({
@@ -252,7 +251,7 @@ const createNewProduct = async (
         // Get role code of new role to be added
         const new_role_code = await trx("roles")
           .select()
-          .where({ role: "SPONSOR" })
+          .where({role: "SPONSOR"})
           .then((value) => {
             return value[0].role_code;
           });
@@ -265,7 +264,7 @@ const createNewProduct = async (
       }
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
     // Duplicate key
     if (error.code === 23505) {
@@ -280,7 +279,7 @@ const createNewProduct = async (
       );
     }
 
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 const createNewProductFromKodidi = async (
@@ -295,7 +294,7 @@ const createNewProductFromKodidi = async (
         .returning("*");
 
       if (!db_all_product) {
-        return { success: false, details: "Inserting new product failed." };
+        return {success: false, details: "Inserting new product failed."};
       }
 
       const images = all_product_images.map((all_product_image) => ({
@@ -306,9 +305,9 @@ const createNewProductFromKodidi = async (
       await trx("product_images").insert(images);
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -368,7 +367,7 @@ const getAllUserProducts = async (
 
   if (!requestByAdmin) {
     query = query
-      .having("product_user_id", "=", user_id)
+      .having("business_details_user_id", "=", user_id)
       .having("products.status", operator, status);
   } else {
     query = query.having("products.status", operator, status);
@@ -389,8 +388,8 @@ const getAllUserProducts = async (
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -400,10 +399,10 @@ const getAllUserProducts = async (
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.title, " +
-                "main.description, " +
-                "main.nationality" +
-                ")) as search_text"
+              "main.title, " +
+              "main.description, " +
+              "main.nationality" +
+              ")) as search_text"
             )
           )
           .from(query.as("main"))
@@ -420,10 +419,10 @@ const getAllUserProducts = async (
 
   return await query
     .then((value) => {
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -433,24 +432,24 @@ const getProductById = async (id) => {
     .where("product_id", id)
     .first()
     .leftJoin(
-      "tasttlig_users",
-      "products.product_user_id",
-      "tasttlig_users.tasttlig_user_id"
+      "business_details",
+      "products.product_business_id",
+      "business_details.business_details_id"
     )
     .leftJoin(
-      "business_details",
-      "products.product_user_id",
-      "business_details.business_details_user_id"
+      "tasttlig_users",
+      "business_details.business_details_user_id",
+      "tasttlig_users.tasttlig_user_id"
     )
     .then((value) => {
       if (!value) {
-        return { success: false, message: "No food sample found." };
+        return {success: false, message: "No food sample found."};
       }
 
-      return { success: true, food_sample: value };
+      return {success: true, food_sample: value};
     })
     .catch((error) => {
-      return { success: false, message: error };
+      return {success: false, message: error};
     });
 };
 

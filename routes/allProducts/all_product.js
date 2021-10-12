@@ -103,7 +103,7 @@ router.post(
           }
 
           const all_product_details = {
-            product_user_id: db_user.tasttlig_user_id,
+            product_business_id: db_user.business_details_id,
             title: item.name,
             start_time: item.start_time
               ? item.start_time.length === 5
@@ -293,7 +293,7 @@ router.post("/add-product-from-kodidi", async (req, res) => {
     }
     const product_information = req.body.all_product_details;
     const product_insertion = {
-      product_user_id: user_details_from_db.user
+      product_business_id: user_details_from_db.business_details_id
         ? user_details_from_db.user.tasttlig_user_id
         : null,
       title: product_information.title,

@@ -81,7 +81,7 @@ router.post(
           }
 
           const all_product_details = {
-            product_user_id: db_user.tasttlig_user_id,
+            product_business_id: db_user.business_details_id,
             title: item.title,
             // start_date: item.start_date.substring(0, 10),
             // end_date: item.end_date.substring(0, 10),
@@ -588,7 +588,8 @@ router.get("/food-sample/user-nationalities", async (req, res) => {
         message: "Email already exists.",
       });
     }
-  } catch (error) {}
+  } catch (error) {
+  }
 });
 
 // GET food sample by ID
@@ -996,12 +997,14 @@ router.put(
         updatedByAdmin
       );
       res.send(response);
-      const send_to_central_server =
+
+      /* TODO: commented out because this method does not exist */
+      /*const send_to_central_server =
         await auth_server_service.editProductInCentralServer(
           db_user.email,
           prev_product_details,
           req.body.food_sample_update_data
-        );
+        );*/
       return {
         success: true,
       };

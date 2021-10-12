@@ -2,7 +2,7 @@
 
 // Libraries
 const Food_Sample_Claim_Status = require("../../enums/food_sample_claim_status");
-const { db, gis } = require("../../db/db-config");
+const {db, gis} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const {
   formatTime,
@@ -10,7 +10,7 @@ const {
 } = require("../../functions/functions");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
-const { setAddressCoordinates } = require("../geocoder");
+const {setAddressCoordinates} = require("../geocoder");
 
 // Environment variables
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
@@ -52,7 +52,7 @@ const createNewFoodSample = async (
         });
 
       if (!db_all_product) {
-        return { success: false, details: "Inserting new product failed." };
+        return {success: false, details: "Inserting new product failed."};
       }
 
       const images = all_product_images.map((all_product_image) => ({
@@ -111,7 +111,7 @@ const createNewFoodSample = async (
       }
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
     // Duplicate key
     if (error.code === 23505) {
@@ -125,7 +125,7 @@ const createNewFoodSample = async (
       );
     }
 
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -155,6 +155,11 @@ const getAllUserFoodSamples = async (
     )
     .from("products")
     .leftJoin(
+      "business_details",
+      "business_details.business_details_id",
+      "products.product_business_id"
+    )
+    .leftJoin(
       "product_images",
       "products.product_id",
       "product_images.product_id"
@@ -172,7 +177,8 @@ const getAllUserFoodSamples = async (
 
   if (!requestByAdmin) {
     query = query
-      .having("product_user_id", "=", user_id)
+      .groupBy("business_details.business_details_user_id")
+      .having("business_details_user_id", "=", user_id)
       .having("products.status", operator, status);
   } else {
     query = query.having("products.status", operator, status);
@@ -188,8 +194,8 @@ const getAllUserFoodSamples = async (
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -199,10 +205,10 @@ const getAllUserFoodSamples = async (
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.title, " +
-                "main.description, " +
-                "main.nationality" +
-                ")) as search_text"
+              "main.title, " +
+              "main.description, " +
+              "main.nationality" +
+              ")) as search_text"
             )
           )
           .from(query.as("main"))
@@ -220,11 +226,11 @@ const getAllUserFoodSamples = async (
   return await query
     .then((value) => {
       // console.log("value", value)
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
       console.log("reason", reason);
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -265,10 +271,10 @@ const getproductOwnerInfo = async (
     .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .leftJoin(
       "business_details",
-      "products.product_user_id",
-      "business_details.business_details_user_id"
+      "products.product_business_id",
+      "business_details.business_details_id"
     )
-    .where("products.product_user_id", "=", user_id)
+    .where("business_details.business_details_user_id", "=", user_id)
 
     .groupBy("products.product_id")
     .groupBy("festivals.festival_id")
@@ -278,7 +284,7 @@ const getproductOwnerInfo = async (
 
   // if (!requestByAdmin) {
   //   query = query
-  //     .having("product_user_id", "=", user_id)
+  //     .having("business_details_user_id", "=", user_id)
   //     .having("products.status", operator, status);
   // } else {
   //   query = query.having("products.status", operator, status);
@@ -326,11 +332,11 @@ const getproductOwnerInfo = async (
   return await query
     .then((value) => {
       // console.log("value", value)
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
       console.log("reason", reason);
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -362,6 +368,11 @@ const getAllUserFoodSamplesNotInFestival = async (
       // db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
     )
     .from("products")
+    .leftJoin(
+      "business_details",
+      "business_details.business_details_id",
+      "products.product_business_id"
+    )
     // .leftJoin(
     //   "food_sample_images",
     //   "food_samples.food_sample_id",
@@ -379,8 +390,8 @@ const getAllUserFoodSamplesNotInFestival = async (
     //   "food_samples.original_food_sample_id",
     //   food_samples_in_festival
     // )
-    .where("product_user_id", Number(189))
-    ;
+    .where("business_details_user_id", Number(189))
+  ;
 
   // if (!requestByAdmin) {
   //   query = query
@@ -389,14 +400,14 @@ const getAllUserFoodSamplesNotInFestival = async (
   // } else {
   //   query = query.having("food_samples.status", operator, status);
   // }
-      
+
   return await query
     .then((value) => {
       console.log('1234567', value);
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -407,7 +418,7 @@ const updateFoodSample = async (
   update_data,
   updatedByAdmin
 ) => {
-  const { images, ...food_sample_update_data } = update_data;
+  const {images, ...food_sample_update_data} = update_data;
   console.log("product data", update_data);
   if (!food_sample_update_data.status) {
     food_sample_update_data.status = "ACTIVE";
@@ -424,7 +435,7 @@ const updateFoodSample = async (
         } else {
           return builder.where({
             product_id,
-            product_user_id: db_user.tasttlig_user_id,
+            product_business_id: db_user.business_details_id,
           });
         }
       })
@@ -445,14 +456,14 @@ const updateFoodSample = async (
         is_halal: food_sample_update_data.is_halal,
         is_available_on_monday: food_sample_update_data.is_available_on_monday,
         is_available_on_tuesday:
-          food_sample_update_data.is_available_on_tuesday,
+        food_sample_update_data.is_available_on_tuesday,
         is_available_on_wednesday:
-          food_sample_update_data.is_available_on_wednesday,
+        food_sample_update_data.is_available_on_wednesday,
         is_available_on_thursday:
-          food_sample_update_data.is_available_on_thursday,
+        food_sample_update_data.is_available_on_thursday,
         is_available_on_friday: food_sample_update_data.is_available_on_friday,
         is_available_on_saturday:
-          food_sample_update_data.is_available_on_saturday,
+        food_sample_update_data.is_available_on_saturday,
         is_available_on_sunday: food_sample_update_data.is_available_on_sunday,
       });
 
@@ -467,10 +478,10 @@ const updateFoodSample = async (
       );
     }
 
-    return { success: true };
+    return {success: true};
   } catch (error) {
     console.log(error);
-    return { success: false, details: error };
+    return {success: false, details: error};
   }
 };
 
@@ -486,10 +497,10 @@ const deleteFoodSample = async (
     })
     .del()
     .then(() => {
-      return { success: true };
+      return {success: true};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -529,14 +540,14 @@ const getAllFoodSamples = async (
       "product_images.product_id"
     )
     .leftJoin(
-      "tasttlig_users",
-      "products.product_user_id",
-      "tasttlig_users.tasttlig_user_id"
+      "business_details",
+      "products.product_business_id",
+      "business_details.business_details_id"
     )
     .leftJoin(
-      "business_details",
-      "products.product_user_id",
-      "business_details.business_details_user_id"
+      "tasttlig_users",
+      "business_details.business_details_user_id",
+      "tasttlig_users.tasttlig_user_id"
     )
     .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .leftJoin("festivals", "food_samples.festival_id", "festivals.festival_id")
@@ -609,8 +620,8 @@ const getAllFoodSamples = async (
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -620,16 +631,16 @@ const getAllFoodSamples = async (
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.nationality, " +
-                "main.title, " +
-                "main.description, " +
-                "main.business_name, " +
-                "main.first_name, " +
-                "main.last_name, " +
-                "main.address, " +
-                "main.city, " +
-                "main.state, " +
-                "main.postal_code)) as search_text"
+              "main.nationality, " +
+              "main.title, " +
+              "main.description, " +
+              "main.business_name, " +
+              "main.first_name, " +
+              "main.last_name, " +
+              "main.address, " +
+              "main.city, " +
+              "main.state, " +
+              "main.postal_code)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -646,10 +657,10 @@ const getAllFoodSamples = async (
 
   return await query
     .then((value) => {
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 // Get all food samples in festival helper function
@@ -720,14 +731,14 @@ const getAllFoodSamplesInFestival = async (
       "product_images.product_id"
     )
     .leftJoin(
-      "tasttlig_users",
-      "products.product_user_id",
-      "tasttlig_users.tasttlig_user_id"
+      "business_details",
+      "products.product_business_id",
+      "business_details.business_details_id"
     )
     .leftJoin(
-      "business_details",
-      "products.product_user_id",
-      "business_details.business_details_user_id"
+      "tasttlig_users",
+      "usiness_details.business_details_user_id",
+      "tasttlig_users.tasttlig_user_id"
     )
     .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
     .leftJoin(
@@ -750,19 +761,19 @@ const getAllFoodSamplesInFestival = async (
   if (filters.price) {
     if (filters.price === "lowest_to_highest") {
       //console.log("lowest to highest")
-      orderByArray.push({ column: "food_samples.price", order: "asc" });
+      orderByArray.push({column: "food_samples.price", order: "asc"});
       //query.orderBy("products.product_price", "asc")
     } else if (filters.price === "highest_to_lowest") {
       //console.log("highest to lowest");
-      orderByArray.push({ column: "food_samples.price", order: "desc" });
+      orderByArray.push({column: "food_samples.price", order: "desc"});
       //query.orderBy("products.product_price", "desc")
     }
   }
   if (filters.quantity) {
     if (filters.quantity === "lowest_to_highest") {
-      orderByArray.push({ column: "food_samples.quantity", order: "asc" });
+      orderByArray.push({column: "food_samples.quantity", order: "asc"});
     } else if (filters.quantity === "highest_to_lowest") {
-      orderByArray.push({ column: "food_samples.quantity", order: "desc" });
+      orderByArray.push({column: "food_samples.quantity", order: "desc"});
     }
   }
 
@@ -846,8 +857,8 @@ const getAllFoodSamplesInFestival = async (
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -857,12 +868,12 @@ const getAllFoodSamplesInFestival = async (
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                //"main.nationality, " +
-                "main.title, " +
-                "main.description, " +
-                // "main.business_name, " +
-                "main.first_name, " +
-                "main.last_name)) as search_text"
+              //"main.nationality, " +
+              "main.title, " +
+              "main.description, " +
+              // "main.business_name, " +
+              "main.first_name, " +
+              "main.last_name)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -873,11 +884,11 @@ const getAllFoodSamplesInFestival = async (
 
   return await query
     .then((value) => {
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
       console.log("service", reason);
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -889,8 +900,8 @@ const getFoodSample = async (food_sample_id) => {
       // "nationalities.nationality",
       // "nationalities.alpha_2_code",
       "business_details.business_name",
-    //   db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
-     )
+      //   db.raw("ARRAY_AGG(food_sample_images.image_url) as image_urls")
+    )
     .from("products")
     // .leftJoin(
     //   "food_sample_images",
@@ -904,8 +915,8 @@ const getFoodSample = async (food_sample_id) => {
     // )
     .leftJoin(
       "business_details",
-      "products.product_user_id",
-      "business_details.business_details_user_id"
+      "products.product_business_id",
+      "business_details.business_details_id"
     )
     .groupBy("products.product_id")
     // .groupBy("nationalities.nationality")
@@ -913,10 +924,10 @@ const getFoodSample = async (food_sample_id) => {
     .groupBy("business_details.business_name")
     .having("products.product_id", "=", food_sample_id)
     .then((value) => {
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -943,7 +954,7 @@ const updateReviewFoodSample = async (
           context: {
             title: value[0].title,
             review_food_sample_reason:
-              food_sample_update_data.review_food_sample_reason,
+            food_sample_update_data.review_food_sample_reason,
           },
         });
       } else {
@@ -955,16 +966,16 @@ const updateReviewFoodSample = async (
           context: {
             title: value[0].title,
             review_food_sample_reason:
-              food_sample_update_data.review_food_sample_reason,
+            food_sample_update_data.review_food_sample_reason,
           },
         });
       }
     })
     .then(() => {
-      return { success: true };
+      return {success: true};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -1001,8 +1012,8 @@ const getDistinctNationalities = async (
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -1012,8 +1023,8 @@ const getDistinctNationalities = async (
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.nationality" +
-                ")) as search_text"
+              "main.nationality" +
+              ")) as search_text"
             )
           )
           .from(query.as("main"))
@@ -1026,10 +1037,10 @@ const getDistinctNationalities = async (
 
   return await query
     .then((value) => {
-      return { success: true, nationalities: value };
+      return {success: true, nationalities: value};
     })
     .catch((error) => {
-      return { success: false, details: error };
+      return {success: false, details: error};
     });
 };
 
@@ -1039,24 +1050,24 @@ const getProductById = async (id) => {
     .where("product_id", id)
     .first()
     .leftJoin(
-      "tasttlig_users",
-      "products.product_user_id",
-      "tasttlig_users.tasttlig_user_id"
+      "business_details",
+      "products.product_business_id",
+      "business_details.business_details_id"
     )
     .leftJoin(
-      "business_details",
-      "products.product_user_id",
-      "business_details.business_details_user_id"
+      "tasttlig_users",
+      "business_details.business_details_user_id",
+      "tasttlig_users.tasttlig_user_id"
     )
     .then((value) => {
       if (!value) {
-        return { success: false, message: "No food sample found." };
+        return {success: false, message: "No food sample found."};
       }
 
-      return { success: true, food_sample: value };
+      return {success: true, food_sample: value};
     })
     .catch((error) => {
-      return { success: false, message: error };
+      return {success: false, message: error};
     });
 };
 
@@ -1119,10 +1130,10 @@ const addFoodSampleToFestival = async (
         });
     })
     .then(() => {
-      return { success: true };
+      return {success: true};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -1135,14 +1146,14 @@ const getNationalities = async (keyword) => {
       // .having("nationality", "LIKE", `$keyword%`)
       .returning("*")
       .then((value) => {
-        return { success: true, details: value };
+        return {success: true, details: value};
       })
       .catch((reason) => {
         console.log(reason);
-        return { success: false, details: reason };
+        return {success: false, details: reason};
       });
   } catch (error) {
-    return { success: false, message: error };
+    return {success: false, message: error};
   }
 };
 
@@ -1161,7 +1172,7 @@ const deleteFoodSamplesFromUser = async (user_id, delete_items) => {
           })
           .delete()
           .then(() => {
-            return { success: true };
+            return {success: true};
           });
         const foodSampleDelete = await trx("products")
           .where({
@@ -1170,12 +1181,12 @@ const deleteFoodSamplesFromUser = async (user_id, delete_items) => {
           .del()
           .catch((reason) => {
             console.log(reason);
-            return { success: false, details: reason };
+            return {success: false, details: reason};
           });
       });
     }
   } catch (error) {
-    return { success: false, details: error };
+    return {success: false, details: error};
   }
 };
 

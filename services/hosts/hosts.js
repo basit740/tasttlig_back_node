@@ -1,7 +1,7 @@
 "use strict";
 
 // Libraries
-const { db } = require("../../db/db-config");
+const {db} = require("../../db/db-config");
 const _ = require("lodash");
 const authenticate_user_service = require("../authentication/authenticate_user");
 const user_profile_service = require("../profile/user_profile");
@@ -37,7 +37,7 @@ const getHostApplications = async () => {
       applications,
     };
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -75,7 +75,7 @@ const getAllHostApplications = async () => {
       applications,
     };
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -113,9 +113,14 @@ const getHostApplication = async (userId) => {
         "hosts.host_user_id"
       )
       .leftJoin(
-        "products",
+        "business_details",
         "tasttlig_users.tasttlig_user_id",
-        "products.product_user_id"
+        "business_details.business_details_user_id"
+      )
+      .leftJoin(
+        "products",
+        "business_details.business_details_id",
+        "products.product_business_id"
       )
       .leftJoin(
         "business_details_images",
@@ -233,7 +238,7 @@ const getHostApplication = async (userId) => {
       application,
     };
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -266,7 +271,7 @@ const getHostApplicantDetails = async (userId) => {
     };
   } catch (error) {
     console.log(error);
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
@@ -319,7 +324,7 @@ const saveApplicationInformation = async (hostDto, is_host, trx) => {
   // Get role code of new role to be added
   const new_role_code = await trx("roles")
     .select()
-    .where({ role: role_name })
+    .where({role: role_name})
     .then((value) => {
       return value[0].role_code;
     });
@@ -377,10 +382,10 @@ const createHost = async (host_details, is_host, email) => {
         }
       }
     });
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
     console.log(error);
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -406,7 +411,7 @@ const getGuestAmbassadorApplications = async () => {
     };
   } catch (error) {
     console.log("why", error);
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 // Get all guest ambassador applications helper function
@@ -432,7 +437,7 @@ const getGuestAmbassadorApplication = async (appId) => {
     };
   } catch (error) {
     console.log("why", error);
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 };
 
