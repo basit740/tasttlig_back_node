@@ -559,6 +559,7 @@ router.post(
       festival_country,
       festival_province,
       festival_business_file,
+      festival_participating_business
     } = req.body;
     console.log(req.body);
     try {
@@ -567,7 +568,7 @@ router.post(
         !festival_name ||
         !festival_type ||
         !festival_price ||
-        !festival_city ||
+        //!festival_city ||
         !festival_start_date ||
         !festival_end_date ||
         // !festival_start_time ||
@@ -615,11 +616,11 @@ router.post(
           sponsored,
         };
 
-        // const response = await festival_service.createNewFestival(
-        //   festival_details,
-        //   images
-        // );
-        // console.log("response from festival/add:", response);
+        const response = await festival_service.createNewFestival(
+          festival_details,
+          images
+        );
+        console.log("response from festival/add:", response);
         // insert the business list into buiness table
         if (festival_participating_business) {
           const business_arr = festival_participating_business.split("|");
@@ -635,9 +636,10 @@ router.post(
           
         }
 
-
+        
         return res.send(response);
       } catch (error) {
+        console.log(error);
         res.send({
           success: false,
           message: "Error.",
@@ -647,6 +649,7 @@ router.post(
 
 
     } catch (error) {
+      console.log(error);
       res.send({
         success: false,
         message: "Error.",
@@ -687,7 +690,7 @@ router.put(
         !festival_name ||
         !festival_type ||
         !festival_price ||
-        !festival_city ||
+        //!festival_city ||
         !festival_start_date ||
         !festival_end_date ||
         !festival_start_time ||
@@ -762,6 +765,7 @@ router.put(
 
         return res.send(response);
       } catch (error) {
+        console.log(error);
         res.send({
           success: false,
           message: "Error.",

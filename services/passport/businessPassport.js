@@ -187,6 +187,10 @@ const postBusinessThroughFile = async (business_name, business_category, busines
   }
 
   else {
+    
+    const str1 = "BV";
+    const str2 = generateRandomString("6");
+    const verificationCode = str1.concat(str2);
     try {
       return await db.transaction(async (trx) => {
         const business_details = {
@@ -194,6 +198,7 @@ const postBusinessThroughFile = async (business_name, business_category, busines
           business_category: business_category,
           business_location: business_location,
           business_phone_number: business_contact_info,
+          business_verification_code: verificationCode
         };
         var business_details_id = await trx("business_details")
           .insert(business_details)
