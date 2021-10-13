@@ -13,6 +13,7 @@ const {
 } = require("../../functions/functions");
 const auth_server_service = require("../../services/authentication/auth_server_service");
 const all_product_service = require("../../services/allProducts/all_product");
+const Deal = require("../../models/deal");
 
 // Environment variables
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
@@ -873,6 +874,15 @@ router.get(
     }
   }
 );
+
+// GET deals
+router.get('/deals', async (req, res) => {
+  try {
+    res.json(await Deal.query());
+  } catch (e) {
+    res.status(500).send();
+  }
+});
 
 // POST food sample to festival
 router.post(
