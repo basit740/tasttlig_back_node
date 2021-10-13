@@ -246,23 +246,6 @@ const postBusinessThroughFile = async (business_name, business_category, busines
           business_location: business_location,
 
           business_phone_number: business_contact_info,
-<<<<<<< HEAD
-
-          city: myCity,
-
-          state: myState,
-
-          country: myCountry,
-
-          zip_postal_code: myZipPostalCode,
-
-          business_unit: myUnit,
-
-          business_street_number: myBusinessStreetNumber,
-
-          business_street_name: myBusinessStreetName,
-
-=======
           city: myCity,
           state: myState,
           country: myCountry,
@@ -270,7 +253,6 @@ const postBusinessThroughFile = async (business_name, business_category, busines
           business_unit: myUnit,
           business_street_number: myBusinessStreetNumber,
           business_street_name: myBusinessStreetName,
->>>>>>> 1f0e9a7240c1bd0412d05154804c358491f8914c
           business_verification_code: verificationCode
         };
         var business_details_id = await trx("business_details")
