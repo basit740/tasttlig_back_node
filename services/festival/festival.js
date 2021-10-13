@@ -1002,6 +1002,7 @@ const sponsorToFestival = async (
 
 // Get festival details helper function
 const getFestivalDetails = async (festival_id, user = null) => {
+  console.log('12345', user);
   return await db
     .select(
       "festivals.*",

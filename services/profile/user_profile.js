@@ -200,12 +200,12 @@ const updateUserProfile = async (user) => {
 };
 
 // Update user business profile helper function
-const updateUserBusinessProfile = async (user) => {
+const updateUserBusinessProfile = async (business) => {
   try {
     return await db("business_details")
-      .where("business_details_user_id", user.business_details_user_id)
+      .where("business_details_id", business.business_details_id)
       .first()
-      .update(user)
+      .update(business)
       .returning("*")
       .then((value) => {
         return {success: true, details: value[0]};

@@ -453,6 +453,7 @@ router.get("/business/festival/:festival_id", async (req, res) => {
         businesses.push(list.business[0]);
       }
     }
+    console.log(businesses);
     return res.send(businesses);
   } catch (error) {
     res.send({
@@ -572,7 +573,7 @@ router.post(
       festival_name,
       festival_type,
       festival_price,
-      festival_city,
+      //festival_city,
       festival_start_date,
       festival_end_date,
       festival_start_time,
@@ -580,9 +581,9 @@ router.post(
       festival_description,
       festival_vendor_price,
       festival_sponsor_price,
-      festival_postal_code,
-      festival_country,
-      festival_province,
+      //festival_postal_code,
+      //festival_country,
+      //festival_province,
       festival_business_file,
       festival_participating_business,
     } = req.body;
@@ -627,10 +628,10 @@ router.post(
           festival_price,
           festival_vendor_price,
           festival_sponsor_price,
-          festival_city,
-          festival_postal_code,
-          festival_country,
-          festival_province,
+          //festival_city,
+          //festival_postal_code,
+          //festival_country,
+          //festival_province,
           festival_start_date: festival_start_date.substring(0, 10),
           festival_end_date: festival_end_date.substring(0, 10),
           festival_start_time,
@@ -695,7 +696,7 @@ router.put(
       festival_name,
       festival_type,
       festival_price,
-      festival_city,
+      //festival_city,
       festival_start_date,
       festival_end_date,
       festival_start_time,
@@ -703,9 +704,9 @@ router.put(
       festival_description,
       festival_vendor_price,
       festival_sponsor_price,
-      festival_postal_code,
-      festival_country,
-      festival_province,
+      //festival_postal_code,
+      //festival_country,
+      //festival_province,
       festival_participating_business,
     } = req.body.festival_update_data;
     const festival_id = req.params.festival_id;
