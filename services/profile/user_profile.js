@@ -1807,6 +1807,8 @@ const claimBusiness = async (userId, businessId) => {
     }
 
     console.log("userid: " + userId + " businessid: " + businessId)
+
+
     await db("business_details")
       .where({business_details_id: businessId})
       .update({
@@ -1816,7 +1818,30 @@ const claimBusiness = async (userId, businessId) => {
         return {success: false, details: error};
       });
 
+      // get user info
+      const db_user_row = await getUserById(userId);
 
+      if (!db_user_row.success) {
+        return {success: false, message: db_user_row.message};
+      }
+      const db_user = db_user_row.user;
+
+      // insert business member role if user doesn't have it
+      if (!db_user.role.includes("BUSINESS_MEMBER")) {
+        // Get role code of new role to be added
+        const new_role_code = await trx("roles")
+          .select()
+          .where({ role: "BUSINESS_MEMBER" })
+          .then((value) => {
+            return value[0].role_code;
+          });
+
+        // Insert new role for this user
+        await trx("user_role_lookup").insert({
+          user_id: db_user.tasttlig_user_id,
+          role_code: new_role_code,
+        });
+      }
   })
   return {success: true, details: "Success."};
 };
