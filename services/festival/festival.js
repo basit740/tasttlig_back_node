@@ -3,7 +3,7 @@
 // Libraries
 const { db } = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
-const { formatTime } = require("../../functions/functions");
+const { formatTime, generateSlug } = require("../../functions/functions");
 // const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
 const { generateRandomString } = require("../../functions/functions");
@@ -398,12 +398,18 @@ const createNewFestival = async (festival_details, festival_images) => {
     await db.transaction(async (trx) => {
       festival_details.basic_passport_id = "M" + generateRandomString("6");
 
+      // generate a promo code
       let promo_code = generateRandomString(10);
       const existing = await trx("festivals").select("promo_code");
       while (existing.includes(promo_code)) {
         promo_code = generateRandomString(10);
       }
       festival_details.promo_code = promo_code;
+
+      // create the slug for the festival
+      festival_details.slug = generateSlug(festival_details.festival_name);
+
+      console.log("Festival Details", festival_details);
 
       db_festival = await trx("festivals")
         .insert(festival_details)
@@ -1075,7 +1081,10 @@ const getFestivalDetailsBySlug = async (slug, user = null) => {
     // then slug must be an id
     festival_ids = [slug];
   }
-  return await getFestivalDetails(festival_ids[0].festival_id, user);
+  return await getFestivalDetails(
+    festival_ids[festival_ids.length - 1].festival_id,
+    user
+  );
 };
 
 const getFestivalRestaurants = async (host_id, festival_id) => {
