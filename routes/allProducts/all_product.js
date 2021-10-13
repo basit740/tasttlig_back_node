@@ -174,7 +174,7 @@ router.post(
             festival_selected_pending: item.pending ? item.festivals : null,
             claimed_total_quantity: 0,
             redeemed_total_quantity: 0,
-            product_offering_type: item.product_offering_type,
+            promotion: item.product_offering_type,
             deal_id: item.deal_id,
           };
           // adding product to central server

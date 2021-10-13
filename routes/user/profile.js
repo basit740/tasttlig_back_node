@@ -9,6 +9,8 @@ const point_system_service = require("../../services/profile/points_system");
 const menu_item_service = require("../../services/menu_items/menu_items");
 const authentication_service = require("../../services/authentication/authenticate_user");
 const user_order_service = require("../../services/payment/user_orders");
+const business_service = require("../../services/passport/businessPassport");
+const festival_service = require("../../services/festival/festival");
 
 // get user using user id
 router.get("/userinfo/:user_id", async (req, res) => {
@@ -851,43 +853,106 @@ router.get(
 const passport_service = require("../../services/passport/businessPassport");
 
 router.post(
-  "/business-passport",
+  "/business-application",
   token_service.authenticateToken,
   async (req, res) => {
     console.log("business passport coming from host:", req.body);
+    const business = {
+      business_details_id: req.body.business_id,
+      logo_link: req.body.user_business_logo,
+      business_name: req.body.user_business_name,
+      business_street_number: req.body.user_business_street_number,
+      business_street_name: req.body.user_business_street_number,
+      business_unit: req.body.user_business_unit,
+      country: req.body.user_business_country,
+      city: req.body.user_business_city,
+      state: req.body.user_business_province,
+      zip_postal_code: req.body.user_business_postal_code,
+      business_phone_number: req.body.user_business_phone_number,
+      
+    };
     try {
-      const response = await passport_service.postBusinessPassportDetails(
-        req.body
+
+      const db_business = await business_service.getBusinessById(
+        req.body.business_id
       );
 
-      if (!response.success) {
-        return res.status(200).json({
-          success: false,
-          message: response.details,
-        });
+      if (req.body.verification_code !== db_business.business[0].business_verification_code) {
+        return res.send({
+              success: false,
+              message: "Verificaion code is wrong!",
+            });
       }
-      const hostDto = {
-        is_business: req.body.is_business,
-        email: req.user.email,
-      };
-      const creatingFreeOrder = await user_order_service.createFreeOrder(
-        req.body.subscriptionResponse,
-        req.user.id
-      );
 
-      if (!creatingFreeOrder.success) {
-        return res.status(200).json({
+      const db_festival = await festival_service.getFestivalDetailsBySlug(
+        req.body.festival_id,
+        {id: 1, role: ["ADMIN"]} // This is the mock admin data so it can fetch the promo code and verify at frontend
+      );
+      if (req.body.promo_code !== db_festival.details[0].promo_code) {
+        return res.send({
+              success: false,
+              message: "Promo code is wrong!",
+            });
+      }
+      
+      const response = await user_profile_service.updateUserBusinessProfile(business);
+      if (response.success) {
+        try {
+          const response = await user_profile_service.claimBusiness(
+            req.body.user_id,
+            req.body.business_id
+          );
+          return res.send(response);
+        } catch (error) {
+          res.send({
+            success: false,
+            message: "Error.",
+            response: error.message,
+          });
+        }
+        
+
+
+      } else {
+        return res.status(401).json({
           success: false,
-          message: creatingFreeOrder.details,
+          message: "Email already exists.",
         });
       }
+
+
+      // const response = await passport_service.postBusinessPassportDetails(
+      //   req.body
+      // );
+
+      // if (!response.success) {
+      //   return res.status(200).json({
+      //     success: false,
+      //     message: response.details,
+      //   });
+      // }
+      // const hostDto = {
+      //   is_business: req.body.is_business,
+      //   email: req.user.email,
+      // };
+      // const creatingFreeOrder = await user_order_service.createFreeOrder(
+      //   req.body.subscriptionResponse,
+      //   req.user.id
+      // );
+
+      // if (!creatingFreeOrder.success) {
+      //   return res.status(200).json({
+      //     success: false,
+      //     message: creatingFreeOrder.details,
+      //   });
+      // }
+      // //return res.send(saveHost);
+      // const saveHost = await user_profile_service.saveHostApplication(
+      //   hostDto,
+      //   req.user
+      // );
+
       // return res.send(saveHost);
-      const saveHost = await user_profile_service.saveHostApplication(
-        hostDto,
-        req.user
-      );
-
-      return res.send(saveHost);
     } catch (error) {
       return res.status(403).json({
         success: false,

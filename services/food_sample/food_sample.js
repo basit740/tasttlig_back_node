@@ -403,7 +403,6 @@ const getAllUserFoodSamplesNotInFestival = async (
 
   return await query
     .then((value) => {
-      console.log('1234567', value);
       return {success: true, details: value};
     })
     .catch((reason) => {

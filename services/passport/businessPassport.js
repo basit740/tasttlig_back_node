@@ -58,7 +58,20 @@ const getBusinessApplications = async () => {
 const getBusinessById = async (business_id) => {
   try {
     const business = await db
-      .select("*")
+      .select("business_details_id",
+      "business_details_user_id",
+      "business_phone_number",
+      "business_name",
+      "business_category",
+      "business_location",
+      "city",
+      "state",
+      "country",
+      "zip_postal_code",
+      "business_street_number",
+      "business_street_name",
+      "business_verification_code"  
+      )
       .from("business_details")
       .where("business_details_id", "=", business_id);
 
@@ -225,9 +238,13 @@ const postBusinessThroughFile = async (business_name, business_category, busines
         myZipPostalCode = myArr[2].slice(3,myArr[2].length);
 
         const business_details = {
+
           business_name: business_name,
+
           business_category: business_category,
+
           business_location: business_location,
+
           business_phone_number: business_contact_info,
           city: myCity,
           state: myState,
