@@ -1081,7 +1081,10 @@ const getFestivalDetailsBySlug = async (slug, user = null) => {
     // then slug must be an id
     festival_ids = [slug];
   }
-  return await getFestivalDetails(festival_ids[0].festival_id, user);
+  return await getFestivalDetails(
+    festival_ids[festival_ids.length - 1].festival_id,
+    user
+  );
 };
 
 const getFestivalRestaurants = async (host_id, festival_id) => {
