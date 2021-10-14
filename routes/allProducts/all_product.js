@@ -175,6 +175,7 @@ router.post(
             claimed_total_quantity: 0,
             redeemed_total_quantity: 0,
             promotion: item.product_offering_type,
+            deal_id: item.deal_id,
           };
           // adding product to central server
 
