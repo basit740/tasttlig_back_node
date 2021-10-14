@@ -9,6 +9,8 @@ const authentication_service = require("../../services/authentication/authentica
 const business_service = require("../../services/passport/businessPassport");
 const { compareSync } = require("bcrypt");
 const { compose } = require("objection");
+const XMLHttpRequest = require('xhr2');
+var XLSX = require('xlsx');
 
 const jwt = require("jsonwebtoken");
 
@@ -567,12 +569,13 @@ router.post(
   "/festival/add",
   token_service.authenticateToken,
   async (req, res) => {
+
     const {
       images,
       festival_name,
       festival_type,
       festival_price,
-      //festival_city,
+      festival_city,
       festival_start_date,
       festival_end_date,
       festival_start_time,
@@ -580,20 +583,19 @@ router.post(
       festival_description,
       festival_vendor_price,
       festival_sponsor_price,
-      //festival_postal_code,
-      //festival_country,
-      //festival_province,
+      festival_postal_code,
+      festival_country,
+      festival_province,
       festival_business_file,
-      festival_participating_business,
+      festival_file_content,
     } = req.body;
-    console.log(req.body);
     try {
       if (
         !images ||
         !festival_name ||
         !festival_type ||
         !festival_price ||
-        //!festival_city ||
+        !festival_city ||
         !festival_start_date ||
         !festival_end_date ||
         // !festival_start_time ||
@@ -627,10 +629,10 @@ router.post(
           festival_price,
           festival_vendor_price,
           festival_sponsor_price,
-          //festival_city,
-          //festival_postal_code,
-          //festival_country,
-          //festival_province,
+          festival_city,
+          festival_postal_code,
+          festival_country,
+          festival_province,
           festival_start_date: festival_start_date.substring(0, 10),
           festival_end_date: festival_end_date.substring(0, 10),
           festival_start_time,
@@ -647,8 +649,8 @@ router.post(
         );
         console.log("response from festival/add:", response);
         // insert the business list into buiness table
-        if (festival_participating_business) {
-          const business_arr = festival_participating_business.split("|");
+        if (festival_file_content) {
+          const business_arr = festival_file_content.split("|");
           for (let i = 5; i < business_arr.length - 2; i = i + 5) {
             const business_response =
               await business_service.postBusinessThroughFile(
@@ -690,12 +692,13 @@ router.put(
   token_service.authenticateToken,
 
   async (req, res) => {
+    console.log('/festival/update/', req.body);
     const {
       images,
       festival_name,
       festival_type,
       festival_price,
-      //festival_city,
+      festival_city,
       festival_start_date,
       festival_end_date,
       festival_start_time,
@@ -703,10 +706,10 @@ router.put(
       festival_description,
       festival_vendor_price,
       festival_sponsor_price,
-      //festival_postal_code,
-      //festival_country,
-      //festival_province,
-      festival_participating_business,
+      festival_postal_code,
+      festival_country,
+      festival_province,
+      festival_file_content,
     } = req.body.festival_update_data;
     const festival_id = req.params.festival_id;
     try {
@@ -715,7 +718,7 @@ router.put(
         !festival_name ||
         !festival_type ||
         !festival_price ||
-        //!festival_city ||
+        !festival_city ||
         !festival_start_date ||
         !festival_end_date ||
         !festival_start_time ||
@@ -747,10 +750,10 @@ router.put(
           festival_price,
           festival_vendor_price,
           festival_sponsor_price,
-          //festival_city,
-          //festival_postal_code,
-          //festival_country,
-          //festival_province,
+          festival_city,
+          festival_postal_code,
+          festival_country,
+          festival_province,
           festival_start_date: festival_start_date.substring(0, 10),
           festival_end_date: festival_end_date.substring(0, 10),
           festival_start_time,
@@ -770,8 +773,13 @@ router.put(
           console.log(error);
         }
 
-        if (festival_participating_business) {
-          const business_arr = festival_participating_business.split("|");
+            // fetch the content of the uploaded business xlsx file using its stored url
+
+
+       
+
+        if (festival_file_content) {
+          const business_arr = festival_file_content.split("|");
           for (let i = 5; i < business_arr.length - 2; i = i + 5) {
             const business_response =
               await business_service.postBusinessThroughFile(
@@ -1279,7 +1287,6 @@ router.post("/claim-business/promo", async (req, res) => {
     console.log('promo code: ',db_festival.details[0].promo_code);
 
     if (db_festival && db_festival.details[0].promo_code !== req.body.promo_code ) {
-      console.log('wrong promo code!');
       return res.send({
         success: false,
         message: "Wrong Promo Code!",
