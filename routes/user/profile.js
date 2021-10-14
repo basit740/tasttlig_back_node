@@ -921,38 +921,57 @@ router.post(
       }
 
 
-      // const response = await passport_service.postBusinessPassportDetails(
-      //   req.body
-      // );
+    } catch (error) {
+      return res.status(403).json({
+        success: false,
+        message: error.details,
+      });
+    }
+  }
+);
 
-      // if (!response.success) {
-      //   return res.status(200).json({
-      //     success: false,
-      //     message: response.details,
-      //   });
-      // }
-      // const hostDto = {
-      //   is_business: req.body.is_business,
-      //   email: req.user.email,
-      // };
-      // const creatingFreeOrder = await user_order_service.createFreeOrder(
-      //   req.body.subscriptionResponse,
-      //   req.user.id
-      // );
 
-      // if (!creatingFreeOrder.success) {
-      //   return res.status(200).json({
-      //     success: false,
-      //     message: creatingFreeOrder.details,
-      //   });
-      // }
-      // //return res.send(saveHost);
-      // const saveHost = await user_profile_service.saveHostApplication(
-      //   hostDto,
-      //   req.user
-      // );
+router.post(
+  "/business-passport",
+  token_service.authenticateToken,
+  async (req, res) => {
+    console.log("business passport coming from host:", req.body);
+  
+    try {
 
-      // return res.send(saveHost);
+     
+      const response = await passport_service.postBusinessPassportDetails(
+        req.body
+      );
+
+      if (!response.success) {
+        return res.status(200).json({
+          success: false,
+          message: response.details,
+        });
+      }
+      const hostDto = {
+        is_business: req.body.is_business,
+        email: req.user.email,
+      };
+      const creatingFreeOrder = await user_order_service.createFreeOrder(
+        req.body.subscriptionResponse,
+        req.user.id
+      );
+
+      if (!creatingFreeOrder.success) {
+        return res.status(200).json({
+          success: false,
+          message: creatingFreeOrder.details,
+        });
+      }
+      //return res.send(saveHost);
+      const saveHost = await user_profile_service.saveHostApplication(
+        hostDto,
+        req.user
+      );
+
+      return res.send(saveHost);
     } catch (error) {
       return res.status(403).json({
         success: false,

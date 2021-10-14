@@ -1036,7 +1036,6 @@ const getFestivalDetails = async (festival_id, user = null) => {
     .having("festivals.festival_id", "=", festival_id)
     .having("festivals.festival_end_date", ">=", new Date())
     .then((value) => {
-      console.log(value);
       value.map((festival) => {
         if (
           !(user && user.role.includes("ADMIN")) &&

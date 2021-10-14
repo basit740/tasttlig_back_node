@@ -453,7 +453,6 @@ router.get("/business/festival/:festival_id", async (req, res) => {
         businesses.push(list.business[0]);
       }
     }
-    console.log(businesses);
     return res.send(businesses);
   } catch (error) {
     res.send({
@@ -748,10 +747,10 @@ router.put(
           festival_price,
           festival_vendor_price,
           festival_sponsor_price,
-          festival_city,
-          festival_postal_code,
-          festival_country,
-          festival_province,
+          //festival_city,
+          //festival_postal_code,
+          //festival_country,
+          //festival_province,
           festival_start_date: festival_start_date.substring(0, 10),
           festival_end_date: festival_end_date.substring(0, 10),
           festival_start_time,
@@ -1238,7 +1237,7 @@ router.post("/festival-passport/register", async (req, res) => {
   }
 });
 
-// add business to a tasttlig-user
+// add business to a tasttlig-user 
 router.post("/claim-business", async (req, res) => {
   if (!req.body.user_id || !req.body.business_id) {
     return res.status(403).json({
@@ -1252,6 +1251,48 @@ router.post("/claim-business", async (req, res) => {
       req.body.business_id
     );
     return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// add business to a tasttlig-user with promo code
+router.post("/claim-business/promo", async (req, res) => {
+
+  if (!req.body.user_id || !req.body.business_id || !req.body.festival_id || !req.body.promo_code) {
+    
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    
+    const db_festival = await festival_service.getFestivalDetailsBySlug(req.body.festival_id, 
+      {id: 1, role: ["ADMIN"]} // This is the mock admin data so it can fetch the promo code and verify at frontend
+    )
+    console.log('promo code porvided: ', req.body.promo_code);
+    console.log('promo code: ',db_festival.details[0].promo_code);
+
+    if (db_festival && db_festival.details[0].promo_code !== req.body.promo_code ) {
+      console.log('wrong promo code!');
+      return res.send({
+        success: false,
+        message: "Wrong Promo Code!",
+      });
+    }
+
+    const response = await user_profile_service.claimBusiness(
+      req.body.user_id,
+      req.body.business_id
+    );
+    return res.send(response);
+    
+
   } catch (error) {
     res.send({
       success: false,
