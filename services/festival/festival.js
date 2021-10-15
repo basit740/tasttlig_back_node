@@ -911,7 +911,7 @@ const addBusinessInFestival = async (festival_id, business_id) => {
         .update({
           festival_business_id: trx.raw(
             "array_append(festival_business_id, ?)",
-            [business_id]
+            business_id
           ),
         })
         .returning("*");
