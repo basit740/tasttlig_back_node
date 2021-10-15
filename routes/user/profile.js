@@ -943,7 +943,7 @@ router.post(
       const response = await passport_service.postBusinessPassportDetails(
         req.body
       );
-
+        
       if (!response.success) {
         return res.status(200).json({
           success: false,
@@ -954,17 +954,16 @@ router.post(
         is_business: req.body.is_business,
         email: req.user.email,
       };
-      const creatingFreeOrder = await user_order_service.createFreeOrder(
-        req.body.subscriptionResponse,
-        req.user.id
-      );
-
-      if (!creatingFreeOrder.success) {
-        return res.status(200).json({
-          success: false,
-          message: creatingFreeOrder.details,
-        });
-      }
+      // const creatingFreeOrder = await user_order_service.createFreeOrder(
+      //   req.body.subscriptionResponse,
+      //   req.user.id
+      // );
+      // if (!creatingFreeOrder.success) {
+      //   return res.status(200).json({
+      //     success: false,
+      //     message: creatingFreeOrder.details,
+      //   });
+      // }
       //return res.send(saveHost);
       const saveHost = await user_profile_service.saveHostApplication(
         hostDto,

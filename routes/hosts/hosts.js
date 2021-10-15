@@ -157,7 +157,6 @@ router.post(
 
       return res.send(response);
     } catch (error) {
-      console.log("123", error);
       res.status(500).send({
         success: false,
         message: error.message,
