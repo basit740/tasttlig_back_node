@@ -4,6 +4,9 @@
 const { db } = require("../../db/db-config");
 const { generateRandomString } = require("../../functions/functions");
 const user_order_service = require("../payment/user_orders");
+const { Client } = require("@googlemaps/google-maps-services-js");
+
+const mapsclient = new Client({});
 
 // Get user by ID helper function
 const getUserById = async (id) => {
@@ -58,19 +61,22 @@ const getBusinessApplications = async () => {
 const getBusinessById = async (business_id) => {
   try {
     const business = await db
-      .select("business_details_id",
-      "business_details_user_id",
-      "business_phone_number",
-      "business_name",
-      "business_category",
-      "business_location",
-      "city",
-      "state",
-      "country",
-      "zip_postal_code",
-      "business_street_number",
-      "business_street_name",
-      "business_verification_code"  
+      .select(
+        "business_details_id",
+        "business_details_user_id",
+        "business_phone_number",
+        "business_name",
+        "business_category",
+        "business_location",
+        "city",
+        "state",
+        "country",
+        "zip_postal_code",
+        "business_street_number",
+        "business_street_name",
+        "business_verification_code",
+        "latitude",
+        "longitude"
       )
       .from("business_details")
       .where("business_details_id", "=", business_id);
@@ -159,11 +165,11 @@ const postBusinessPassportDetails = async (data) => {
         // CRA_business_number: data["user_business_number"],
         business_preference: data["user_business_preference"],
       };
-      
+
       var business_details_id = await trx("business_details")
         .insert(business_details)
         .returning("business_details_id");
-        
+
       const business_details_images = {
         business_details_logo: data["user_business_logo"],
         food_handling_certificate: data["user_business_food_handling"],
@@ -187,26 +193,28 @@ const postBusinessPassportDetails = async (data) => {
 };
 
 // This function gets name, category, location, contact_info and insert them into business_details table
-const postBusinessThroughFile = async (business_name, business_category, business_location, business_contact_info) => {
+const postBusinessThroughFile = async (
+  business_name,
+  business_category,
+  business_location,
+  business_contact_info
+) => {
   let duplication_id = await db
-  .select("*")
-  .from("business_details")
-  .where("business_name", "=", business_name)
-  .andWhere("business_location", "=", business_location)
-  .first()
+    .select("*")
+    .from("business_details")
+    .where("business_name", "=", business_name)
+    .andWhere("business_location", "=", business_location)
+    .first();
 
   if (duplication_id) {
-    return { success: false, details: duplication_id.business_details_id};
-  }
-
-  else {
-    
+    return { success: false, details: duplication_id.business_details_id };
+  } else {
     const str1 = "BV";
     const str2 = generateRandomString("6");
     const verificationCode = str1.concat(str2);
     try {
       return await db.transaction(async (trx) => {
-        let myString = business_location
+        let myString = business_location;
         let myCity = "Toronto";
         let myState = "ON";
         let myCountry = "Canada";
@@ -216,29 +224,28 @@ const postBusinessThroughFile = async (business_name, business_category, busines
         let myUnit = null;
 
         // split location string at ,
-        const myArr = myString.split(",").map(item => item.trim());
+        const myArr = myString.split(",").map((item) => item.trim());
 
         // find street name after first space
         let firstSplit = myArr[0];
-        myBusinessStreetName = firstSplit.substr(firstSplit.indexOf(' ') +1);
+        myBusinessStreetName = firstSplit.substr(firstSplit.indexOf(" ") + 1);
 
         // find unit number in format #-# else null
         if (myArr[0].split(" ")[0].includes("-")) {
           let myRe2 = /(\d+)-\d+/;
-          myUnit = myArr[0].split(" ")[0].match(myRe2)[1]
+          myUnit = myArr[0].split(" ")[0].match(myRe2)[1];
         }
 
         // find street number
         let myRe = /(\d+)\s(\w+)/;
-        const myMatch = myArr[0].match(myRe)
+        const myMatch = myArr[0].match(myRe);
         myBusinessStreetNumber = myMatch[1];
 
         // find city and postal code
         myCity = myArr[1];
-        myZipPostalCode = myArr[2].slice(3,myArr[2].length);
+        myZipPostalCode = myArr[2].slice(3, myArr[2].length);
 
-        const business_details = {
-
+        let business_details = {
           business_name: business_name,
 
           business_category: business_category,
@@ -253,14 +260,48 @@ const postBusinessThroughFile = async (business_name, business_category, busines
           business_unit: myUnit,
           business_street_number: myBusinessStreetNumber,
           business_street_name: myBusinessStreetName,
-          business_verification_code: verificationCode
+          business_verification_code: verificationCode,
         };
+
+        // let lat = null, lng = null;
+        // heuristic for checking is address is enough for geocoding
+        if (business_location && business_location !== "NA") {
+          await mapsclient
+            .geocode({
+              params: {
+                address: `${business_name} ${business_location}`,
+                key: process.env.GOOGLE_MAPS_API_KEY,
+              },
+            })
+            .then((response) => {
+              const { lat, lng } = response.data.results[0].geometry.location;
+              business_details = {
+                latitude: lat,
+                longitude: lng,
+                ...business_details,
+              };
+            })
+            .catch((error) => {
+              console.error("geocoding failed", error.message);
+              business_details = {
+                latitude: null,
+                longitude: null,
+                ...business_details,
+              };
+            });
+        } else {
+          business_details = {
+            latitude: null,
+            longitude: null,
+            ...business_details,
+          };
+        }
+
         var business_details_id = await trx("business_details")
           .insert(business_details)
           .returning("business_details_id");
-          
 
-        return { success: true, details: business_details_id};
+        return { success: true, details: business_details_id };
       });
     } catch (error) {
       if (error && error.detail && error.detail.includes("already exists")) {

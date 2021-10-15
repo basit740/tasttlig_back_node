@@ -7,6 +7,7 @@
     "start": "node app.js"
   },
   "dependencies": {
+    "@googlemaps/google-maps-services-js": "^3.2.6",
     "atob": "^2.1.2",
     "aws-sdk": "^2.726.0",
     "axios": "^0.21.1",
