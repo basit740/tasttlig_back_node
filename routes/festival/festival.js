@@ -444,18 +444,16 @@ router.get("/business/festival/:festival_id", async (req, res) => {
   }
 
   try {
-    const businesses = [];
 
-    const response = await festival_service.getFestivalDetails(
-      req.params.festival_id
+
+    const response = await business_service.getAllBusinesses(
+      req.params.festival_id,
+      req.query.keyword
     );
-    for (let item of response.details[0].festival_business_id) {
-      const list = await business_service.getBusinessById(item);
-      if (list) {
-        businesses.push(list.business[0]);
-      }
-    }
-    return res.send(businesses);
+
+
+
+    return res.send(response);
   } catch (error) {
     res.send({
       success: false,
@@ -659,7 +657,7 @@ router.post(
                 business_arr[i + 3],
                 business_arr[i + 4]
               );
-            const r = await festival_service.addBusinessInFestival(
+            const r = await business_service.addFestivalInBusiness(
               response.details,
               business_response.details
             );

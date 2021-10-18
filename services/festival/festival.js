@@ -888,44 +888,6 @@ const addBusinessToFestival = async (festival_id, user_id) => {
   }
 };
 
-// insert business_id into festival_business_id array
-const addBusinessInFestival = async (festival_id, business_id) => {
-  // check if array already contains this business id, skip the insertion
-  const festivalBusinesses = await db("festivals")
-    .select("festival_business_id")
-    .where({ festival_id: festival_id });
-  // console.log('current festival businesses', festivalBusinesses[0].festival_business_id);
-  if (
-    festivalBusinesses &&
-    festivalBusinesses.length > 0 &&
-    festivalBusinesses[0].festival_business_id &&
-    festivalBusinesses[0].festival_business_id.includes(business_id)
-  ) {
-    return { success: true, details: "Success." };
-  }
-
-  try {
-    await db.transaction(async (trx) => {
-      const db_business = await trx("festivals")
-        .where({ festival_id: festival_id })
-        .update({
-          festival_business_id: trx.raw(
-            "array_append(festival_business_id, ?)",
-            business_id
-          ),
-        })
-        .returning("*");
-
-      if (!db_business) {
-        return { success: false, details: "Inserting guest failed." };
-      }
-    });
-    return { success: true, details: "Success." };
-  } catch (error) {
-    return { success: false, details: error.message };
-  }
-};
-
 const updateFestival = async (data, festival_images) => {
   try {
     await db.transaction(async (trx) => {
@@ -1376,7 +1338,6 @@ module.exports = {
   getFestivalByPassport,
   getFestivalByPassports,
   registerUserToFestivals,
-  addBusinessInFestival,
   getFestivalDetailsBySlug,
   validatePromoCode,
 };
