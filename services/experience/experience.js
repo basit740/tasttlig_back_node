@@ -436,6 +436,79 @@ const getUserExperiencesById = async (user_id, keyword) => {
     });
 };
 
+// Get all experiences by business id helper function
+const getBusinessExperiencesById = async (business_id, keyword) => {
+  // console.log("functttttttt", user_id);
+  // return await db
+  let query = db
+    .select(
+      "experiences.*",
+      "business_details.*",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
+      db.raw("ARRAY_AGG(experience_images.experience_image_url) as image_urls")
+    )
+    .from("experiences")
+    .leftJoin(
+      "experience_images",
+      "experiences.experience_id",
+      "experience_images.experience_id"
+    )
+    .leftJoin(
+      "business_details",
+      "experiences.experience_business_id",
+      "business_details.business_details_id"
+    )
+    .leftJoin(
+      "nationalities",
+      "experiences.experience_nationality_id",
+      "nationalities.id"
+    )
+    .groupBy("experiences.experience_id")
+    .groupBy("business_details.business_details_id")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code")
+    .having("experiences.experience_business_id", "=", Number(business_id));
+
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                "main.experience_name, " +
+                "main.experience_price, " +
+                "main.experience_description)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+
+  return await query
+    .then((value) => {
+      // console.log("*******************************", value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      // console.log("err*******************************", reason);
+      return { success: false, details: reason };
+    });
+};
+
 // Submit experience review from admin helper function
 const updateReviewExperience = async (
   experience_id,
@@ -823,7 +896,7 @@ const deleteFoodExperiences = async (user_id, delete_items) => {
 module.exports = {
   createNewExperience,
   getAllExperience,
-  getAllUserExperience,
+  getAllUserExperience, 
   deleteExperience,
   updateReviewExperience,
   updateExperience,
@@ -831,5 +904,6 @@ module.exports = {
   getDistinctNationalities,
   addExperienceToFestival,
   getUserExperiencesById,
+  getBusinessExperiencesById,
   deleteFoodExperiences,
 };

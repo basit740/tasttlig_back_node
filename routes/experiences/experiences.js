@@ -8,6 +8,8 @@ const experience_service = require("../../services/experience/experience");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
 const auth_server_service = require("../../services/authentication/auth_server_service");
+const business_service = require("../../services/passport/businessPassport");
+const festival_service = require("../../services/festival/festival");
 const { generateRandomString } = require("../../functions/functions");
 
 // POST experiences
@@ -15,6 +17,7 @@ router.post(
   "/experiences/add",
   token_service.authenticateToken,
   async (req, res) => {
+    console.log(req.body);
     if (
       !req.body.experience_name ||
       //!req.body.experience_nationality_id ||
@@ -61,12 +64,11 @@ router.post(
         createdByAdmin = true;
       }
 
+
       let db_business_details = business_details_from_db.business_details;
 
       const experience_information = {
-        experience_business_id: createdByAdmin
-          ? null
-          : db_business_details.business_details_id,
+        experience_business_id: req.body.business_id,
 
         experience_name: req.body.experience_name,
         experience_nationality_id: req.body.experience_nationality_id
@@ -122,7 +124,13 @@ router.post(
         experience_updated_at_datetime: new Date(),
       };
 
-      //console.log("experience_information", experience_information);
+      // update the experience_information.festival_selected from slug to numerical festival id
+      const db_festival = await festival_service.getFestivalDetailsBySlug(
+       experience_information.festival_selected[0]
+      );
+      
+      experience_information.festival_selected = [ db_festival.details[0].festival_id ];
+
       const response = await experience_service.createNewExperience(
         user_details_from_db,
         experience_information,

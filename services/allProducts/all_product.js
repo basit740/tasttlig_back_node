@@ -161,19 +161,18 @@ const getAllProductsInFestival = async (
 };
 
 const createNewProduct = async (
-  db_user,
+  db_business,
   all_product_details,
   all_product_images,
   createdByAdmin,
   sponsorType
 ) => {
+
   try {
-    let user_role_object = db_user.role;
     await db.transaction(async (trx) => {
       all_product_details.food_ad_code =
         Math.random().toString(36).substring(2, 4) +
         Math.random().toString(36).substring(2, 4);
-
       all_product_details.status = "ACTIVE";
 
       const db_all_product = await trx("products")
@@ -187,7 +186,6 @@ const createNewProduct = async (
         .update({
           product_id: db_all_product[0].product_id,
         });
-
       if (!db_all_product) {
         return {success: false, details: "Inserting new product failed."};
       }
@@ -198,7 +196,7 @@ const createNewProduct = async (
       }));
 
       await trx("product_images").insert(images);
-
+      
       if (createdByAdmin) {
         // Email to review the food sample from the owner
         jwt.sign(
@@ -233,36 +231,37 @@ const createNewProduct = async (
           }
         );
       } else if (all_product_details.status === "ACTIVE") {
+        
         // Food sample created confirmation email
-        await Mailer.sendMail({
-          from: process.env.SES_DEFAULT_FROM,
-          to: db_user.email,
-          bcc: ADMIN_EMAIL,
-          subject: `[Tasttlig] New Food Sample Created`,
-          template: "new_food_sample",
-          context: {
-            title: all_product_details.title,
-            status: all_product_details.status,
-          },
-        });
+        // await Mailer.sendMail({
+        //   from: process.env.SES_DEFAULT_FROM,
+        //   to: db_user.email,
+        //   bcc: ADMIN_EMAIL,
+        //   subject: `[Tasttlig] New Food Sample Created`,
+        //   template: "new_food_sample",
+        //   context: {
+        //     title: all_product_details.title,
+        //     status: all_product_details.status,
+        //   },
+        // });
       }
 
-      if (sponsorType === true && !user_role_object.includes("SPONSOR")) {
-        // Get role code of new role to be added
-        const new_role_code = await trx("roles")
-          .select()
-          .where({role: "SPONSOR"})
-          .then((value) => {
-            return value[0].role_code;
-          });
+    //   if (sponsorType === true && !user_role_object.includes("SPONSOR")) {
+    //     // Get role code of new role to be added
+    //     const new_role_code = await trx("roles")
+    //       .select()
+    //       .where({role: "SPONSOR"})
+    //       .then((value) => {
+    //         return value[0].role_code;
+    //       });
 
-        // Insert new role for this user
-        await trx("user_role_lookup").insert({
-          user_id: db_user.tasttlig_user_id,
-          role_code: new_role_code,
-        });
-      }
-    });
+    //     // Insert new role for this user
+    //     await trx("user_role_lookup").insert({
+    //       user_id: db_user.tasttlig_user_id,
+    //       role_code: new_role_code,
+    //     });
+    //   }
+     });
 
     return {success: true, details: "Success."};
   } catch (error) {
@@ -426,6 +425,65 @@ const getAllUserProducts = async (
     });
 };
 
+
+// Get all business product helper function
+const getAllBusinessProducts = async (
+  business_id
+) => {
+  let query = db
+    .select(
+      "products.*",
+      "nationalities.nationality",
+      "nationalities.alpha_2_code",
+      "business_details.business_name",
+      "promotions.promotion_name",
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
+    )
+    .from("products")
+    .leftJoin(
+      "product_images",
+      "products.product_id",
+      "product_images.product_id"
+    )
+    .leftJoin(
+      "festivals",
+      "products.festival_selected[1]",
+      "festivals.festival_id"
+    )
+    .leftJoin(
+      "promotions",
+      "promotions.promotion_id",
+      "products.promotional_discount_id"
+    )
+    .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
+    .leftJoin(
+      "business_details",
+      "products.product_business_id",
+      "business_details.business_details_id"
+    )
+    
+    .groupBy("products.product_id")
+    .groupBy("festivals.festival_id")
+    .groupBy("business_details.business_details_id")
+    .groupBy("promotions.promotion_id")
+    .groupBy("nationalities.nationality")
+    .groupBy("nationalities.alpha_2_code")
+    .having("business_details_id", "=", business_id);
+
+ 
+
+
+  
+
+  return await query
+    .then((value) => {
+      return {success: true, details: value};
+    })
+    .catch((reason) => {
+      return {success: false, details: reason};
+    });
+};
+
 // Get food sample by ID helper function
 const getProductById = async (id) => {
   return await db("products")
@@ -457,6 +515,7 @@ module.exports = {
   createNewProduct,
   getAllProductsInFestival,
   getAllUserProducts,
+  getAllBusinessProducts,
   getProductById,
   createNewProductFromKodidi,
 };

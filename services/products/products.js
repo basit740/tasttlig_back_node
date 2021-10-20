@@ -301,6 +301,74 @@ const deleteProductsFromUser = async (user_id, delete_items) => {
   }
 };
 
+const getProductsFromBusiness = async (business_id, keyword) => {
+  let query = db
+    .select(
+      "products.*",
+      "business_details.*",
+      "nationalities.nationality",
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
+    )
+    .from("products")
+    .leftJoin(
+      "product_images",
+      "products.product_id",
+      "product_images.product_id"
+    )
+    .leftJoin(
+      "business_details",
+      "products.product_business_id",
+      "business_details.business_details_id"
+    )
+    .leftJoin("nationalities", "products.nationality_id", "nationalities.id")
+    .groupBy("products.product_id")
+    .groupBy("business_details.business_details_id")
+    .groupBy("nationalities.nationality")
+    .having("business_details.business_details_id", "=", business_id);
+
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+              //"main.business_name, " +
+              // "main.product_name, " +
+              "main.title, " +
+              "main.product_size, " +
+              // "main.product_price, " +
+              "main.price, " +
+              //"main.business_city, " +
+              "main.description)) as search_text"
+              // "main.product_description)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+  return await query
+    .then((value) => {
+      // console.log('products fetched', value);
+      return {success: true, details: value};
+    })
+    .catch((reason) => {
+      return {success: false, details: reason};
+    });
+};
+
 // Find product helper function
 const findProduct = async (product_id) => {
   return await db
@@ -542,4 +610,5 @@ module.exports = {
   getUserProductDetails,
   updateProduct,
   deleteProduct,
+  getProductsFromBusiness
 };

@@ -1259,6 +1259,8 @@ const getFestivalByPassports = async (passport_ids) => {
   return { success: true, value: festival_list };
 };
 
+
+
 const registerUserToFestivals = async (user_id, festival_ids) => {
   try {
     for (let festival_id of festival_ids) {

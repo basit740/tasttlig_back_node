@@ -7,6 +7,7 @@ const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
 const auth_server_service = require("../../services/authentication/auth_server_service");
 const festival_service = require("../../services/festival/festival");
+const business_service = require("../../services/passport/businessPassport");
 const {
   generateRandomString,
   formatTime,
@@ -102,8 +103,20 @@ router.post(
             createdByAdmin = true;
           }
 
+          // get the business details 
+          // const business_details_from_db = await business_service.getUserAllBusinesses(
+          //   req.user.id
+          // );
+
+          if (!business_details_from_db.success) {
+            return res.status(403).json({
+              success: false,
+              message: business_details_from_db.message,
+            });
+          }
+
           const all_product_details = {
-            product_business_id: db_user.business_details_id,
+            product_business_id: business_details_from_db.business[0].business_details_id,
             title: item.name,
             start_time: item.start_time
               ? item.start_time.length === 5
@@ -179,8 +192,14 @@ router.post(
           };
           // adding product to central server
 
+          const db_festival = await festival_service.getFestivalDetailsBySlug(
+            item.festivals[0]
+          );
+          
+          all_product_details.festival_selected = [ db_festival.details[0].festival_id ];
+
           const response = await all_product_service.createNewProduct(
-            db_user,
+            business_details_from_db.business[0],
             all_product_details,
             item.images,
             createdByAdmin,
@@ -216,47 +235,42 @@ router.post(
   }
 );
 
-// GET all food samples from user
+// GET all product from user
 router.get(
-  "/all-products/user/all",
+  "/all-products/business/all",
   token_service.authenticateToken,
   async (req, res) => {
     try {
-      const current_page = req.query.page || 1;
-      const keyword = req.query.keyword || "";
-      const festival_id = req.query.festival || "";
-      const status_operator = "!=";
-      const food_sample_status = "ARCHIVED";
+      // const current_page = req.query.page || 1;
+      // const keyword = req.query.keyword || "";
+      // const festival_id = req.query.festival || "";
+      // const status_operator = "!=";
+      // const food_sample_status = "ARCHIVED";
+      const business_id = req.query.business_id
+      // const user_details_from_db = await user_profile_service.getUserById(
+      //   req.user.id
+      // );
 
-      const user_details_from_db = await user_profile_service.getUserById(
-        req.user.id
+      // if (!user_details_from_db.success) {
+      //   return res.status(403).json({
+      //     success: false,
+      //     message: user_details_from_db.message,
+      //   });
+      // }
+
+      // let requestByAdmin = false;
+      // let db_user = user_details_from_db.user;
+      // let user_role_object = db_user.role;
+
+      // if (user_role_object.includes("ADMIN")) {
+      //   requestByAdmin = true;
+      // }
+
+      const response = await all_product_service.getAllBusinessProducts(
+        business_id
       );
 
-      if (!user_details_from_db.success) {
-        return res.status(403).json({
-          success: false,
-          message: user_details_from_db.message,
-        });
-      }
-
-      let requestByAdmin = false;
-      let db_user = user_details_from_db.user;
-      let user_role_object = db_user.role;
-
-      if (user_role_object.includes("ADMIN")) {
-        requestByAdmin = true;
-      }
-
-      const response = await all_product_service.getAllUserProducts(
-        req.user.id,
-        status_operator,
-        food_sample_status,
-        keyword,
-        current_page,
-        requestByAdmin,
-        festival_id
-      );
-      return res.send(response);
+       return res.send(response);
     } catch (error) {
       res.send({
         success: false,

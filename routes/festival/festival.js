@@ -762,6 +762,7 @@ router.put(
           //sponsored,
           festival_id,
         };
+
         const response = await festival_service.updateFestival(
           festival_details,
           images
@@ -786,10 +787,11 @@ router.put(
                 business_arr[i + 3],
                 business_arr[i + 4]
               );
-            const r = await festival_service.addBusinessInFestival(
-              festival_id,
-              business_response.details
-            );
+
+              const r = await business_service.addFestivalInBusiness(
+                Number(festival_details.festival_id),
+                [business_response.details]
+              );
           }
         }
 

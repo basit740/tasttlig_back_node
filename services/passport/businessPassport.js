@@ -321,7 +321,7 @@ const postBusinessThroughFile = async (
 const addFestivalInBusiness = async (festival_id, business_id) => {
   // check if array already contains this festival id, skip the insertion
   console.log(business_id);
-  if (!business_id) {
+  if (!business_id || !business_id[0]) {
     return { success: false, details: "Inserting festival failed." };
   }
 
@@ -512,7 +512,7 @@ const approveOrDeclineBusinessMemberApplication = async (
   }
 };
 
-// Get all businesses helper function
+// Get all businesses in a festival helper function
 const getAllBusinesses = async (festival_id, keyword) => {
   let query = db
     .select(
@@ -572,6 +572,35 @@ const getAllBusinesses = async (festival_id, keyword) => {
     });
 };
 
+
+// Get all businesses in a festival helper function
+const getUserAllBusinesses = async (user_id) => {
+  const db_business = await db
+    .select(
+      "business_details_id",
+      "business_details_user_id",
+      "business_phone_number",
+      "business_name",
+      "business_category",
+      "business_location",
+      "city",
+      "state",
+      "country",
+      "zip_postal_code",
+      "business_street_number",
+      "business_street_name",
+      "business_verification_code",
+      "latitude",
+      "longitude"
+    )
+    .from("business_details")
+    .where("business_details_user_id", "=", user_id)
+    .catch((reason) => {
+      return { success: false, message: reason };
+    });
+  return { success: true, business: db_business };
+};
+
 module.exports = {
   postBusinessPassportDetails,
   getBusinessApplications,
@@ -580,5 +609,6 @@ module.exports = {
   postBusinessThroughFile,
   getBusinessById,
   addFestivalInBusiness,
-  getAllBusinesses
+  getAllBusinesses,
+  getUserAllBusinesses
 };
