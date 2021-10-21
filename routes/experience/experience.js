@@ -584,7 +584,6 @@ router.get(
         business_id,
       );
 
-      console.log('1234567', response);
       return res.send(response);
     } catch (error) {
       res.send({

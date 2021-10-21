@@ -7,6 +7,7 @@ const services_service = require("../../services/services/services");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
 const auth_service = require("../../services/authentication/auth_server_service");
+const festival_service = require("../../services/festival/festival");
 const { generateRandomString } = require("../../functions/functions");
 
 // POST services
@@ -36,6 +37,7 @@ router.post(
     }
 
     try {
+      
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
       );
@@ -69,9 +71,7 @@ router.post(
       let db_business_details = business_details_from_db.business_details;
 
       const service_information = {
-        service_business_id: createdByAdmin
-          ? null
-          : db_business_details.business_details_id,
+        service_business_id: req.body.business_id,
         service_name: req.body.service_name,
         service_nationality_id: req.body.service_nationality_id
           ? req.body.service_nationality_id
@@ -95,20 +95,28 @@ router.post(
           : null,
         service_user_id: req.user.id,
       };
+       // update the experience_information.festival_selected from slug to numerical festival id
+       const db_festival = await festival_service.getFestivalDetailsBySlug(
+        service_information.festivals_selected[0]
+       );
+       service_information.festivals_selected = [ db_festival.details[0].festival_id ];
+
       const response = await services_service.createNewService(
         user_details_from_db,
         service_information,
         req.body.service_images,
         req.body.sponsorType
       );
-      if (response.success) {
-        const service_central_server =
-          await auth_service.createNewServiceInCentralServer(
-            user_details_from_db,
-            service_information,
-            req.body.service_images
-          );
-      }
+      // if (response.success) {
+      //   const service_central_server =
+      //     await auth_service.createNewServiceInCentralServer(
+      //       user_details_from_db,
+      //       service_information,
+      //       req.body.service_images
+      //     );
+      // }
+
+     
       return res.send(response);
     } catch (error) {
       res.send({
@@ -220,17 +228,18 @@ router.post(
   }
 );
 
-router.get("/services/details/:user_id", async (req, res) => {
-  if (!req.params.user_id) {
+router.get("/services/business", async (req, res) => {
+  if (!req.query.business_id) {
     return res.status(403).json({
       success: false,
       message: "Required parameters are not available in request.",
     });
   }
+  const business_id = req.query.business_id;
 
   try {
-    const response = await services_service.getUserServiceDetails(
-      req.params.user_id,
+    const response = await services_service.getBusinessServiceDetails(
+      business_id,
       req.query.keyword
     );
 

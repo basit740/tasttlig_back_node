@@ -323,7 +323,7 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
 };
 
 //service details for dashboard
-const getUserServiceDetails = async (user_id, keyword) => {
+const getBusinessServiceDetails = async (business_id, keyword) => {
   // return await db
   let query = db
     .select(
@@ -348,7 +348,7 @@ const getUserServiceDetails = async (user_id, keyword) => {
     .groupBy("services.service_nationality_id")
     .groupBy("business_details.business_details_id")
     .groupBy("nationalities.id")
-    .having("services.service_user_id", "=", Number(user_id));
+    .having("services.service_business_id", "=", Number(business_id));
 
   if (keyword) {
     query = db
@@ -745,7 +745,7 @@ module.exports = {
   createNewService,
   getServicesInFestival,
   addServiceToFestival,
-  getUserServiceDetails,
+  getBusinessServiceDetails,
   getServicesFromUser,
   findService,
   deleteServicesFromUser,

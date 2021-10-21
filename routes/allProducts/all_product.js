@@ -84,29 +84,31 @@ router.post(
               message: user_details_from_db.message,
             });
           }
+         
+         
 
-          let createdByAdmin = false;
-          let db_user = user_details_from_db.user;
-          let user_role_object = db_user.role;
+          // let createdByAdmin = false;
+          // let db_user = user_details_from_db.user;
+          // let user_role_object = db_user.role;
 
-          if (user_role_object.includes("ADMIN")) {
-            if (!req.user.email) {
-              return res.status(403).json({
-                success: false,
-                message: "Required parameters are not available in request.",
-              });
-            }
+          // if (user_role_object.includes("ADMIN")) {
+          //   if (!req.user.email) {
+          //     return res.status(403).json({
+          //       success: false,
+          //       message: "Required parameters are not available in request.",
+          //     });
+          //   }
 
-            const host_details_from_db =
-              await user_profile_service.getUserByEmail(req.user.email);
-            db_user = host_details_from_db.user;
-            createdByAdmin = true;
-          }
+          //   const host_details_from_db =
+          //     await user_profile_service.getUserByEmail(req.user.email);
+          //   db_user = host_details_from_db.user;
+          //   createdByAdmin = true;
+          // }
 
           // get the business details 
-          // const business_details_from_db = await business_service.getUserAllBusinesses(
-          //   req.user.id
-          // );
+          const business_details_from_db = await business_service.getUserAllBusinesses(
+            req.user.id
+          );
 
           if (!business_details_from_db.success) {
             return res.status(403).json({
@@ -114,6 +116,7 @@ router.post(
               message: business_details_from_db.message,
             });
           }
+
 
           const all_product_details = {
             product_business_id: business_details_from_db.business[0].business_details_id,
@@ -191,20 +194,20 @@ router.post(
             deal_id: item.deal_id,
           };
           // adding product to central server
-
+          
           const db_festival = await festival_service.getFestivalDetailsBySlug(
             item.festivals[0]
           );
-          
+         
           all_product_details.festival_selected = [ db_festival.details[0].festival_id ];
 
           const response = await all_product_service.createNewProduct(
-            business_details_from_db.business[0],
             all_product_details,
             item.images,
-            createdByAdmin,
-            item.sponsorType
+            //createdByAdmin,
+            //item.sponsorType
           );
+          
           res.send(response);
           if (response.success) {
             const product_central_server =

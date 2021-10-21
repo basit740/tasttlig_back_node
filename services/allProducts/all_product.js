@@ -161,13 +161,11 @@ const getAllProductsInFestival = async (
 };
 
 const createNewProduct = async (
-  db_business,
   all_product_details,
-  all_product_images,
-  createdByAdmin,
-  sponsorType
+  all_product_images
+  //createdByAdmin,
+  //sponsorType
 ) => {
-
   try {
     await db.transaction(async (trx) => {
       all_product_details.food_ad_code =
@@ -197,70 +195,7 @@ const createNewProduct = async (
 
       await trx("product_images").insert(images);
       
-      if (createdByAdmin) {
-        // Email to review the food sample from the owner
-        jwt.sign(
-          {
-            id: db_all_product[0].product_id,
-            user_id: db_all_product[0].product_user_id,
-          },
-          process.env.EMAIL_SECRET,
-          {
-            expiresIn: "3d",
-          },
-          async (err, emailToken) => {
-            try {
-              const url = `${SITE_BASE}/review-food-sample/${db_all_product[0].product_id}/${emailToken}`;
 
-              await Mailer.sendMail({
-                from: process.env.SES_DEFAULT_FROM,
-                to: db_user.email,
-                subject: `[Tasttlig] Review Food sample "${all_product_details.title}"`,
-                template: "review_food_sample",
-                context: {
-                  title: all_product_details.title,
-                  // url_review_food_sample: url,
-                },
-              });
-            } catch (error) {
-              return {
-                success: false,
-                details: error.message,
-              };
-            }
-          }
-        );
-      } else if (all_product_details.status === "ACTIVE") {
-        
-        // Food sample created confirmation email
-        // await Mailer.sendMail({
-        //   from: process.env.SES_DEFAULT_FROM,
-        //   to: db_user.email,
-        //   bcc: ADMIN_EMAIL,
-        //   subject: `[Tasttlig] New Food Sample Created`,
-        //   template: "new_food_sample",
-        //   context: {
-        //     title: all_product_details.title,
-        //     status: all_product_details.status,
-        //   },
-        // });
-      }
-
-    //   if (sponsorType === true && !user_role_object.includes("SPONSOR")) {
-    //     // Get role code of new role to be added
-    //     const new_role_code = await trx("roles")
-    //       .select()
-    //       .where({role: "SPONSOR"})
-    //       .then((value) => {
-    //         return value[0].role_code;
-    //       });
-
-    //     // Insert new role for this user
-    //     await trx("user_role_lookup").insert({
-    //       user_id: db_user.tasttlig_user_id,
-    //       role_code: new_role_code,
-    //     });
-    //   }
      });
 
     return {success: true, details: "Success."};

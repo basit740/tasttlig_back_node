@@ -49,24 +49,22 @@ router.post(
         });
       }
 
-      let createdByAdmin = false;
+      // let createdByAdmin = false;
 
-      const business_details_from_db =
-        await authentication_service.getUserByBusinessDetails(req.user.id);
-      if (!business_details_from_db.success) {
-        return res.status(403).json({
-          success: false,
-          message: business_details_from_db.message,
-        });
-      }
+      // const business_details_from_db =
+      //   await authentication_service.getUserByBusinessDetails(req.user.id);
+      // if (!business_details_from_db.success) {
+      //   return res.status(403).json({
+      //     success: false,
+      //     message: business_details_from_db.message,
+      //   });
+      // }
 
-      if (user_details_from_db.user.role.includes("ADMIN")) {
-        createdByAdmin = true;
-      }
+      // if (user_details_from_db.user.role.includes("ADMIN")) {
+      //   createdByAdmin = true;
+      // }
 
-
-      let db_business_details = business_details_from_db.business_details;
-
+      // let db_business_details = business_details_from_db.business_details;
       const experience_information = {
         experience_business_id: req.body.business_id,
 
@@ -78,9 +76,7 @@ router.post(
           ? req.body.experience_price
           : 2,
         experience_capacity: req.body.experience_capacity,
-        experience_user_id: createdByAdmin
-          ? null
-          : user_details_from_db.user.tasttlig_user_id,
+        experience_user_id: user_details_from_db.user.tasttlig_user_id,
         experience_size_scope: req.body.experience_size_scope,
         experience_description: req.body.experience_description,
         experience_type: req.body.experience_type
@@ -123,7 +119,6 @@ router.post(
         experience_created_at_datetime: new Date(),
         experience_updated_at_datetime: new Date(),
       };
-
       // update the experience_information.festival_selected from slug to numerical festival id
       const db_festival = await festival_service.getFestivalDetailsBySlug(
        experience_information.festival_selected[0]
@@ -234,51 +229,18 @@ router.get("/experiences/festival/:festival_id", async (req, res) => {
   }
 });
 
-// GET experiences in specific festival
-router.get("/experiences/:user_id", async (req, res) => {
-  if (!req.params.user_id) {
+// GET all experiences from a business
+router.get("/experiences/business", async (req, res) => {
+  if (!req.query.business_id) {
     return res.status(403).json({
       success: false,
       message: "Required parameters are not available in request.",
     });
   }
 
-  let user_details_from_db;
-  if (req.params.user_id) {
-    user_details_from_db = await user_profile_service.getUserById(
-      req.params.user_id
-    );
-  }
-
-  if (!user_details_from_db.success) {
-    return res.status(403).json({
-      success: false,
-      message: user_details_from_db.message,
-    });
-  }
-
-  let business_details_from_db;
-  if (req.params.user_id) {
-    business_details_from_db =
-      await authentication_service.getUserByBusinessDetails(req.params.user_id);
-  } else {
-    business_details_from_db =
-      await authentication_service.getUserByBusinessDetails(req.params.user_id);
-  }
-
-  if (!business_details_from_db.success) {
-    return res.status(403).json({
-      success: false,
-      message: business_details_from_db.message,
-    });
-  }
-
-  let business_details_id =
-    business_details_from_db.business_details.business_details_id;
-
   try {
     const response = await experience_service.getUserExperiencesById(
-      business_details_id,
+      req.query.business_id,
       req.query.keyword
     );
     // console.log("response from expereiences get:", response);

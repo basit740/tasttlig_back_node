@@ -364,7 +364,7 @@ const getAllUserExperience = async (
 };
 
 // Get all experiences by user id helper function
-const getUserExperiencesById = async (user_id, keyword) => {
+const getUserExperiencesById = async (business_id, keyword) => {
   // console.log("functttttttt", user_id);
   // return await db
   let query = db
@@ -395,7 +395,7 @@ const getUserExperiencesById = async (user_id, keyword) => {
     .groupBy("business_details.business_details_id")
     .groupBy("nationalities.nationality")
     .groupBy("nationalities.alpha_2_code")
-    .having("experiences.experience_business_id", "=", Number(user_id));
+    .having("experiences.experience_business_id", "=", Number(business_id));
 
   if (keyword) {
     query = db
