@@ -423,9 +423,12 @@ router.post(
           message: user_details_from_db.message,
         });
       }
+      const db_festival = await festival_service.getFestivalDetailsBySlug(
+        req.body.festivalId
+       );
       let result = "";
       const response = await experience_service.addExperienceToFestival(
-        req.body.festivalId,
+        db_festival.details[0].festival_id,
         req.body.ps,
         req.user.id,
         user_details_from_db

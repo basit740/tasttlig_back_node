@@ -521,6 +521,7 @@ const getAllBusinesses = async (festival_id, keyword) => {
       "business_phone_number",
       "business_name",
       "business_category",
+      "business_type",
       "business_location",
       "city",
       "state",
@@ -553,7 +554,10 @@ const getAllBusinesses = async (festival_id, keyword) => {
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.business_name)) as search_text"
+              "main.business_category, " +
+              "main.business_phone_number, " +
+              "main.business_location, " +
+              "main.business_name)) as search_text"
             )
           )
           .from(query.as("main"))

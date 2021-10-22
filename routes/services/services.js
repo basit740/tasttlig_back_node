@@ -182,29 +182,33 @@ router.post(
         });
       }
 
-      let createdByAdmin = true;
+      // let createdByAdmin = true;
 
-      const business_details_from_db =
-        await authentication_service.getUserByBusinessDetails(req.user.id);
+      // const business_details_from_db =
+      //   await authentication_service.getUserByBusinessDetails(req.user.id);
 
-      if (
-        user_details_from_db.user.role.includes("VENDOR") ||
-        user_details_from_db.user.role.includes("VENDOR_PENDING")
-      ) {
-        if (!business_details_from_db.success) {
-          return res.status(403).json({
-            success: false,
-            message: business_details_from_db.message,
-          });
-        }
+      // if (
+      //   user_details_from_db.user.role.includes("VENDOR") ||
+      //   user_details_from_db.user.role.includes("VENDOR_PENDING")
+      // ) {
+      //   if (!business_details_from_db.success) {
+      //     return res.status(403).json({
+      //       success: false,
+      //       message: business_details_from_db.message,
+      //     });
+      //   }
 
-        createdByAdmin = false;
-      }
+      //   createdByAdmin = false;
+      // }
 
-      let db_business_details = business_details_from_db.business_details;
+      // let db_business_details = business_details_from_db.business_details;
+      const db_festival = await festival_service.getFestivalDetailsBySlug(
+        req.body.festivalId
+       );
+
       let result = "";
       const response = await services_service.addServiceToFestival(
-        req.body.festivalId,
+        db_festival.details[0].festival_id,
         req.body.ps,
         req.user.id,
         user_details_from_db

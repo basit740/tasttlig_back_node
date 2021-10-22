@@ -7,6 +7,7 @@ const products_service = require("../../services/products/products");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
 const {generateRandomString} = require("../../functions/functions");
+const festival_service = require("../../services/festival/festival");
 
 // POST products
 router.post(
@@ -366,6 +367,7 @@ router.post(
   "/products/festival/:festivalId",
   token_service.authenticateToken,
   async (req, res) => {
+    console.log('123', req.body);
     if (!req.body.festivalId) {
       return res.status(403).json({
         success: false,
@@ -374,43 +376,45 @@ router.post(
     }
 
     try {
-      const user_details_from_db = await user_profile_service.getUserById(
-        req.user.id
-      );
+      // const user_details_from_db = await user_profile_service.getUserById(
+      //   req.user.id
+      // );
 
-      if (!user_details_from_db.success) {
-        return res.status(403).json({
-          success: false,
-          message: user_details_from_db.message,
-        });
-      }
+      // if (!user_details_from_db.success) {
+      //   return res.status(403).json({
+      //     success: false,
+      //     message: user_details_from_db.message,
+      //   });
+      // }
 
-      let createdByAdmin = true;
+      // let createdByAdmin = true;
 
-      const business_details_from_db =
-        await authentication_service.getUserByBusinessDetails(req.user.id);
+      // const business_details_from_db =
+      //   await authentication_service.getUserByBusinessDetails(req.user.id);
 
-      if (
-        user_details_from_db.user.role.includes("VENDOR") ||
-        user_details_from_db.user.role.includes("VENDOR_PENDING")
-      ) {
-        if (!business_details_from_db.success) {
-          return res.status(403).json({
-            success: false,
-            message: business_details_from_db.message,
-          });
-        }
+      // if (
+      //   user_details_from_db.user.role.includes("VENDOR") ||
+      //   user_details_from_db.user.role.includes("VENDOR_PENDING")
+      // ) {
+      //   if (!business_details_from_db.success) {
+      //     return res.status(403).json({
+      //       success: false,
+      //       message: business_details_from_db.message,
+      //     });
+      //   }
 
-        createdByAdmin = false;
-      }
-
-      let db_business_details = business_details_from_db.business_details;
+      //   createdByAdmin = false;
+      // }
+      const db_festival = await festival_service.getFestivalDetailsBySlug(
+        req.body.festivalId
+       );
+     
       let result = "";
       const response = await products_service.addProductToFestival(
-        req.body.festivalId,
+        db_festival.details[0].festival_id,
         req.body.ps,
-        req.user.id,
-        user_details_from_db
+        // req.user.id,
+        // user_details_from_db
       );
       if (response.success) {
         result = response;
