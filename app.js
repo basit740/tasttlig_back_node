@@ -49,6 +49,7 @@ const mobile_router = require("./mobile/routes/routes");
 const mobile_s3_uploader = require("./mobile/routes/mobileS3UploaderRoutes");
 const stripe_account_router = require("./routes/stripe_accounts/stripe_accounts");
 const email_support_router = require("./routes/helper_routes/emailSupport");
+const likes_router = require("./routes/likes/likes");
 
 // Set up CORS
 const app = express();
@@ -102,6 +103,7 @@ app.use(mobile_router);
 app.use(mobile_s3_uploader);
 app.use(stripe_account_router);
 app.use(email_support_router);
+app.use(likes_router);
 
 // Cron Job scripts
 cron.schedule("0 0 1-31 * *", cron_job_functions.deleteInactiveItems);
