@@ -235,7 +235,7 @@ const getAllUserFoodSamples = async (
 };
 
 const getproductOwnerInfo = async (
-  user_id,
+  business_id,
   operator,
   status,
   keyword,
@@ -274,7 +274,7 @@ const getproductOwnerInfo = async (
       "products.product_business_id",
       "business_details.business_details_id"
     )
-    .where("business_details.business_details_user_id", "=", user_id)
+    .where("business_details.business_details_id", "=", business_id)
 
     .groupBy("products.product_id")
     .groupBy("festivals.festival_id")

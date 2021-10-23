@@ -736,7 +736,7 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
-
+  
   try {
     const current_page = req.query.page || 1;
     const keyword = req.query.keyword || "";
@@ -753,22 +753,21 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
 
     const db_products = food_sample_response.details;
 
-    const user_details_response = await user_profile_service.getUserById(
-      req.params.owner_id
-    );
+    // const user_details_response = await user_profile_service.getUserById(
+    //   req.params.owner_id
+    // );
 
-    if (!user_details_response.success) {
-      return res.status(403).json({
-        success: false,
-        message: user_details_response.message,
-      });
-    }
+    // if (!user_details_response.success) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: user_details_response.message,
+    //   });
+    // }
 
-    const db_user = user_details_response.user;
-
+    // const db_user = user_details_response.user;
     return res.send({
       success: true,
-      owner_user: db_user,
+      //owner_user: db_user,
       food_samples: db_products,
     });
   } catch (error) {
