@@ -13,6 +13,8 @@ const {
 } = require("../../functions/functions");
 const auth_server_service = require("../../services/authentication/auth_server_service");
 const all_product_service = require("../../services/allProducts/all_product");
+const business_service = require("../../services/passport/businessPassport");
+
 const Deal = require("../../models/deal");
 
 // Environment variables
@@ -753,21 +755,22 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
 
     const db_products = food_sample_response.details;
 
-    // const user_details_response = await user_profile_service.getUserById(
-    //   req.params.owner_id
-    // );
+    const business_details_response = await business_service.getBusinessById(
+      req.params.owner_id
+    );
 
-    // if (!user_details_response.success) {
-    //   return res.status(403).json({
-    //     success: false,
-    //     message: user_details_response.message,
-    //   });
-    // }
+    if (!business_details_response.success) {
+      return res.status(403).json({
+        success: false,
+        message: business_details_response.message,
+      });
+    }
 
-    // const db_user = user_details_response.user;
+
+    const db_business = business_details_response.business;
     return res.send({
       success: true,
-      //owner_user: db_user,
+      owner_business: db_business,
       food_samples: db_products,
     });
   } catch (error) {
