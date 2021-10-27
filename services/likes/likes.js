@@ -43,7 +43,6 @@ const getLikesFromFestival = async (
 };
 
 // add festival to likes of logged in user
-// needs fixing, there is a bug that userId and festivalId are null
 const addToLikes = async (
   userId,
   festivalId
@@ -61,8 +60,27 @@ const addToLikes = async (
     });
 };
 
+// delete from likes of logged in user_id and festival id from the details page
+const deleteFromLikes = async (
+  userId,
+  festivalId
+) => {
+  let query = db("likes")
+  .where({ user_id: userId, like_festival_id: festivalId })
+  .del()
+
+  return await query
+    .then((value) => {
+      return {success: true, details: value};
+    })
+    .catch((reason) => {
+      return {success: false, details: reason};
+    });
+};
+
 module.exports = {
   getLikesFromUser,
   getLikesFromFestival,
   addToLikes,
+  deleteFromLikes,
 };
