@@ -1,14 +1,15 @@
 "use strict";
 
 // Libraries
-const { db } = require("../../db/db-config");
+const {db} = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
-const { raw } = require("objection");
+const {raw} = require("objection");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
-const { generateRandomString } = require("../../functions/functions");
+const {generateRandomString} = require("../../functions/functions");
 const auth_server_service = require("../../services/authentication/auth_server_service");
 const User = require("../../models/User");
 const Access = require("../../models/AppAccess");
+const bcrypt = require("bcrypt");
 
 // Environment variables
 const SITE_BASE = process.env.SITE_BASE;
@@ -54,7 +55,7 @@ const userRegister = async (new_user, sendEmail = true) => {
           })
           .then(async (value) => {
             // Insert new role in auth server
-            const { success, user } = await auth_server_service.authAddRole(
+            const {success, user} = await auth_server_service.authAddRole(
               value1[0].auth_user_id,
               value[0].role_code
             );
@@ -80,13 +81,13 @@ const userRegister = async (new_user, sendEmail = true) => {
           .first()
           .then((value) => {
             if (!value) {
-              return { success: false, message: "No plan found." };
+              return {success: false, message: "No plan found."};
             }
 
-            return { success: true, item: value };
+            return {success: true, item: value};
           })
           .catch((error) => {
-            return { success: false, message: error };
+            return {success: false, message: error};
           });
         if (subDetails.success) {
           let subscription_end_datetime = null;
@@ -95,7 +96,7 @@ const userRegister = async (new_user, sendEmail = true) => {
             subscription_end_datetime = new Date(
               new Date().setMonth(
                 new Date().getMonth() +
-                  Number(subDetails.item.validity_in_months)
+                Number(subDetails.item.validity_in_months)
               )
             );
           } else {
@@ -141,11 +142,11 @@ const userRegister = async (new_user, sendEmail = true) => {
           );
         }
 
-        return { success: true, data: value1[0] };
+        return {success: true, data: value1[0]};
       });
     });
   } catch (error) {
-    return { success: false, data: error.message };
+    return {success: false, data: error.message};
   }
 };
 
@@ -171,7 +172,7 @@ const verifyAccount = async (user_id) => {
       };
     })
     .catch((reason) => {
-      return { success: false, data: reason };
+      return {success: false, data: reason};
     });
 };
 
@@ -192,13 +193,13 @@ const getUserLogin = async (body) => {
       .first()
       .then((value) => {
         if (!value) {
-          return { success: false, message: "User not found." };
+          return {success: false, message: "User not found."};
         }
 
-        return { success: true, user: value };
+        return {success: true, user: value};
       })
       .catch((reason) => {
-        return { success: false, data: reason };
+        return {success: false, data: reason};
       });
   } else if (body.passport_id) {
     return await db
@@ -215,13 +216,13 @@ const getUserLogin = async (body) => {
       .first()
       .then((value) => {
         if (!value) {
-          return { success: false, message: "User not found." };
+          return {success: false, message: "User not found."};
         }
 
-        return { success: true, user: value };
+        return {success: true, user: value};
       })
       .catch((reason) => {
-        return { success: false, data: reason };
+        return {success: false, data: reason};
       });
   }
 };
@@ -239,10 +240,10 @@ const getUserLogOut = async (user_id) => {
         };
       }
 
-      return { success: false, data: "Refresh token not found." };
+      return {success: false, data: "Refresh token not found."};
     })
     .catch((reason) => {
-      return { success: false, data: reason };
+      return {success: false, data: reason};
     });
 };
 
@@ -264,7 +265,7 @@ const checkEmail = async (email) => {
       }
 
       const email_token = jwt.sign(
-        { user: value.tasttlig_user_id },
+        {user: value.tasttlig_user_id},
         process.env.EMAIL_SECRET,
         {
           expiresIn: "28d",
@@ -306,18 +307,22 @@ const checkEmail = async (email) => {
     });
 };
 
-// Update password from user helper function
-const updatePassword = async (email, password, token) => {
-  // const { success, user } = await auth_server_service.authPasswordReset(
-  //   token,
-  //   password
-  // );
+const updatePassword = async (email, password) => {
+  const salt = bcrypt.genSaltSync(10);
+  const password_digest = bcrypt.hashSync(password, salt);
 
+  return User.query()
+    .where("email", email)
+    .patch({password_digest});
+}
+
+// Update password from user helper function
+const updatePasswordFromToken = async (email, password, token) => {
   const encrypted = jwt.verify(token, process.env.EMAIL_SECRET);
   const user_id = encrypted.user;
   const success = await User.query()
     .findById(user_id)
-    .patch({ password_digest: password });
+    .patch({password_digest: password});
 
   if (success) {
     await auth_server_service.authRemove(email);
@@ -328,13 +333,13 @@ const updatePassword = async (email, password, token) => {
       template: "password_reset_success",
     })
       .then(() => {
-        return { success: true, message: "Success." };
+        return {success: true, message: "Success."};
       })
       .catch((reason) => {
-        return { success: false, message: reason };
+        return {success: false, message: reason};
       });
   } else {
-    return { success: false, message: "JWT error." };
+    return {success: false, message: "JWT error."};
   }
 };
 
@@ -375,13 +380,13 @@ const createDummyUser = async (email) => {
           });
         });
 
-        return { success: true, user: value[0] };
+        return {success: true, user: value[0]};
       })
       .catch((reason) => {
-        return { success: false, data: reason };
+        return {success: false, data: reason};
       });
   } catch (error) {
-    return { success: false, data: error.message };
+    return {success: false, data: error.message};
   }
 };
 
@@ -389,7 +394,7 @@ const createDummyUser = async (email) => {
 link helper function */
 const sendNewUserEmail = async (new_user) => {
   const email = new_user.email;
-  const { email_token } = await auth_server_service.authPasswordResetRequest(
+  const {email_token} = await auth_server_service.authPasswordResetRequest(
     email
   );
 
@@ -466,10 +471,10 @@ const createBecomeFoodProviderUser = async (become_food_provider_user) => {
             });
         });
 
-        return { success: true, user: value[0] };
+        return {success: true, user: value[0]};
       })
       .catch((reason) => {
-        return { success: false, data: reason };
+        return {success: false, data: reason};
       });
   } catch (error) {
     // Duplicate key
@@ -477,7 +482,7 @@ const createBecomeFoodProviderUser = async (become_food_provider_user) => {
       return createBecomeFoodProviderUser(become_food_provider_user);
     }
 
-    return { success: false, data: error.message };
+    return {success: false, data: error.message};
   }
 };
 
@@ -514,10 +519,10 @@ const findUserByEmail = async (email) => {
         };
       }
 
-      return { success: true, user: value };
+      return {success: true, user: value};
     })
     .catch((reason) => {
-      return { success: false, data: reason };
+      return {success: false, data: reason};
     });
 };
 
@@ -554,10 +559,10 @@ const findUserByBusinessName = async (business_name) => {
         };
       }
 
-      return { success: true, user: value };
+      return {success: true, user: value};
     })
     .catch((reason) => {
-      return { success: false, data: reason };
+      return {success: false, data: reason};
     });
 };
 
@@ -578,10 +583,10 @@ const getUserByBusinessDetails = async (user_id) => {
         };
       }
 
-      return { success: true, business_details: value };
+      return {success: true, business_details: value};
     })
     .catch((reason) => {
-      return { success: false, data: reason };
+      return {success: false, data: reason};
     });
 };
 
@@ -609,7 +614,7 @@ const userMigrationFromAuthServer = async (new_user) => {
       })
       .then(async (value) => {
         // Insert new role in auth server
-        const { success, user } = await auth_server_service.authAddRole(
+        const {success, user} = await auth_server_service.authAddRole(
           new_user.auth_user_id,
           value[0].role_code
         );
@@ -653,6 +658,7 @@ module.exports = {
   getUserLogOut,
   checkEmail,
   updatePassword,
+  updatePasswordFromToken,
   createDummyUser,
   createBecomeFoodProviderUser,
   findUserByEmail,
