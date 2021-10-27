@@ -605,6 +605,32 @@ const getUserAllBusinesses = async (user_id) => {
   return { success: true, business: db_business };
 };
 
+const businessPromote = async (
+  business_id,
+  festival_id,
+  item_type
+) => {
+  try {
+    return await db.transaction(async (trx) => {
+
+      const data = {
+        business_id: business_id,
+        festival_id: festival_id,
+        item_type: item_type,
+        status: 'ACTIVE',
+        created_at_datetime: new Date(),
+        updated_at_datetime: new Date(),
+      };
+
+      await trx("item_promotion_payment").insert(data);
+
+      return { success: true };
+    });
+  } catch (error) {
+    return { success: false, details: error.detail };
+  }
+};
+
 module.exports = {
   postBusinessPassportDetails,
   getBusinessApplications,
@@ -614,5 +640,6 @@ module.exports = {
   getBusinessById,
   addFestivalInBusiness,
   getAllBusinesses,
-  getUserAllBusinesses
+  getUserAllBusinesses,
+  businessPromote
 };
