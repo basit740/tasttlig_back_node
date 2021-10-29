@@ -367,7 +367,6 @@ router.post(
   "/products/festival/:festivalId",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log('123', req.body);
     if (!req.body.festivalId) {
       return res.status(403).json({
         success: false,

@@ -134,12 +134,19 @@ router.post(
       );
       res.send(response);
       if (response.success) {
-        const experience_central_server =
-          await auth_server_service.createNewExperienceInCentralServer(
-            user_details_from_db,
-            experience_information,
-            req.body.experience_images
-          );
+        // update the promote status to INACTIVE
+
+        await festival_service.updateBusinessPromote(
+          req.body.business_id, db_festival.details[0].festival_id, req.body.experience_offering_type[0]
+        );
+
+
+        // const experience_central_server =
+        //   await auth_server_service.createNewExperienceInCentralServer(
+        //     user_details_from_db,
+        //     experience_information,
+        //     req.body.experience_images
+        //   );
       }
 
       return {

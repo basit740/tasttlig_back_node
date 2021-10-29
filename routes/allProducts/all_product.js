@@ -117,6 +117,13 @@ router.post(
             });
           }
 
+          if (!business_details_from_db.business[0].business_details_id === Number(item.business_id)){
+            console.log('Error! wrong business id!')
+            res.send({
+              success: false,
+              message: "Error! wrong business id!.",
+            });
+          }
 
           const all_product_details = {
             product_business_id: business_details_from_db.business[0].business_details_id,
@@ -198,8 +205,8 @@ router.post(
           const db_festival = await festival_service.getFestivalDetailsBySlug(
             item.festivals[0]
           );
-         
-          all_product_details.festival_selected = [ db_festival.details[0].festival_id ];
+          const festival_id = db_festival.details[0].festival_id;
+          all_product_details.festival_selected = [ festival_id ];
 
           const response = await all_product_service.createNewProduct(
             all_product_details,
@@ -210,6 +217,11 @@ router.post(
           
           res.send(response);
           if (response.success) {
+            // update the promote status to INACTIVE
+            await festival_service.updateBusinessPromote(
+              item.business_id, festival_id, item.product_offering_type[0]
+            );
+
             const product_central_server =
               await auth_server_service.createNewProductInCentralServer(
                 db_user,

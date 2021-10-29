@@ -37,7 +37,6 @@ router.post(
     }
 
     try {
-      
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
       );
@@ -107,14 +106,18 @@ router.post(
         req.body.service_images,
         req.body.sponsorType
       );
-      // if (response.success) {
-      //   const service_central_server =
-      //     await auth_service.createNewServiceInCentralServer(
-      //       user_details_from_db,
-      //       service_information,
-      //       req.body.service_images
-      //     );
-      // }
+      if (response.success) {
+        await festival_service.updateBusinessPromote(
+          req.body.business_id, db_festival.details[0].festival_id, req.body.service_offering_type[0]
+        );
+
+        // const service_central_server =
+        //   await auth_service.createNewServiceInCentralServer(
+        //     user_details_from_db,
+        //     service_information,
+        //     req.body.service_images
+        //   );
+      }
 
      
       return res.send(response);
