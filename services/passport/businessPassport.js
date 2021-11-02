@@ -321,7 +321,7 @@ const postBusinessThroughFile = async (
 const addFestivalInBusiness = async (festival_id, business_id) => {
   // check if array already contains this festival id, skip the insertion
   console.log(business_id);
-  if (!business_id) {
+  if (!business_id || business_id.includes(undefined)) {
     return { success: false, details: "Inserting festival failed." };
   }
   let _business_id;
@@ -333,8 +333,8 @@ const addFestivalInBusiness = async (festival_id, business_id) => {
   }
   const businessFestivals = await db("business_details")
     .select("business_festival_id")
-    .where({ business_details_id: business_id });
-    
+    .where({ business_details_id: _business_id });
+
   if (
     businessFestivals &&
     businessFestivals.length > 0 &&
