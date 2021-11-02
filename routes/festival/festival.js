@@ -199,7 +199,6 @@ router.get("/festival/:festival_id", async (req, res) => {
       req.params.festival_id,
       user // send user details to check if they can view promo code
     );
-
     return res.send(response);
   } catch {
     // if search by slug fails => it must be the numeric festival id
