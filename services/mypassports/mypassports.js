@@ -34,10 +34,11 @@ const getPassportsFromUserSortByFestival = async (
   let query = db
     .select('passports.id', 'passports.user_id', 'passports.festival_id', 'passports.name', 'passports.type', 'passports.price', 'passports.colour',
     'passports.issue_date', 'passports.expire_date', 'passports.season', 'passports.features', 'festivals.festival_name', 'festivals.festival_start_date',
-    'festivals.festival_end_date', 'festivals.festival_type', 'festivals.festival_price', 'festivals.festival_description')
+    'festivals.festival_end_date', 'festivals.festival_type', 'festivals.festival_price', 'festivals.festival_description', 'festival_images.festival_image_url')
     .from("passports")
     .join('tasttlig_users', 'passports.user_id', '=', 'tasttlig_users.tasttlig_user_id')
     .join('festivals', 'passports.festival_id', '=', 'festivals.festival_id')
+    .join('festival_images', 'festivals.festival_id', '=', 'festival_images.festival_id')
     .where( "tasttlig_users.tasttlig_user_id", user_id)
     .orderBy("festivals.festival_name");
 
