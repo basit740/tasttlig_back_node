@@ -138,9 +138,9 @@ const getBusinessApplicantDetails = async (userId) => {
   }
 };
 
-const postBusinessPassportDetails = async (data) => {
+const postBusinessPassportDetails = async (data, trx) => {
   try {
-    return await db.transaction(async (trx) => {
+
       let applications = [];
       let role_name = "";
       const business_details = {
@@ -165,7 +165,6 @@ const postBusinessPassportDetails = async (data) => {
         // CRA_business_number: data["user_business_number"],
         business_preference: data["user_business_preference"],
       };
-
       var business_details_id = await trx("business_details")
         .insert(business_details)
         .returning("business_details_id");
@@ -179,7 +178,6 @@ const postBusinessPassportDetails = async (data) => {
       await trx("business_details_images").insert(business_details_images);
 
       return { success: true };
-    });
   } catch (error) {
     if (error && error.detail && error.detail.includes("already exists")) {
       return {

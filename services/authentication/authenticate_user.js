@@ -17,9 +17,8 @@ const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
 // Save user register information to Tasttlig users table helper function
 // Save user register information to Tasttlig users table helper function
-const userRegister = async (new_user, sendEmail = true) => {
+const userRegister = async (new_user, trx, sendEmail = true) => {
   try {
-    return db.transaction(async (trx) => {
       let new_db_user = [];
 
       const userData = {
@@ -144,7 +143,7 @@ const userRegister = async (new_user, sendEmail = true) => {
 
         return {success: true, data: value1[0]};
       });
-    });
+      return {success: true, data: value1[0]};
   } catch (error) {
     return {success: false, data: error.message};
   }
