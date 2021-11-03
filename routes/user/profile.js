@@ -862,7 +862,7 @@ router.post(
       logo_link: req.body.user_business_logo,
       business_name: req.body.user_business_name,
       business_street_number: req.body.user_business_street_number,
-      business_street_name: req.body.user_business_street_number,
+      business_street_name: req.body.user_business_street_name,
       business_unit: req.body.user_business_unit,
       country: req.body.user_business_country,
       city: req.body.user_business_city,
