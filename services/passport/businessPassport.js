@@ -177,7 +177,11 @@ const postBusinessPassportDetails = async (data, trx) => {
 
       await trx("business_details_images").insert(business_details_images);
 
+<<<<<<< HEAD
       return { success: true, business_id: business_details_id[0] };
+=======
+      return { success: true };
+>>>>>>> e19a381a4caeaed14d6ffa6ff882b7217efc7c27
   } catch (error) {
     if (error && error.detail && error.detail.includes("already exists")) {
       return {

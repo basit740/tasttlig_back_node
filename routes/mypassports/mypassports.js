@@ -23,9 +23,10 @@ router.get("/mypassports/:userId", async (req, res) => {
 // GET passports from user sorted by festivals
 router.get("/mypassports/sortfest/:userId", async (req, res) => {
   try {
-    const response = await mypassports_service.getPassportsFromUserSortByFestival(
-      req.params.userId
-    );
+    const response =
+      await mypassports_service.getPassportsFromUserSortByFestival(
+        req.params.userId
+      );
     return res.send(response);
   } catch (error) {
     res.send({
