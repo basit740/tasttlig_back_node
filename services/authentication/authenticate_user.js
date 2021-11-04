@@ -17,133 +17,136 @@ const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
 // Save user register information to Tasttlig users table helper function
 // Save user register information to Tasttlig users table helper function
-const userRegister = async (new_user, sendEmail = true) => {
+const userRegister = async (new_user, sendEmail = true, trx = null) => {
   try {
-    return db.transaction(async (trx) => {
-      let new_db_user = [];
 
-      const userData = {
-        password_digest: new_user.password,
-        first_name: new_user.first_name,
-        last_name: new_user.last_name,
-        email: new_user.email,
-        phone_number: new_user.phone_number,
-        source: new_user.source,
-        status: "ACTIVE",
-        // passport_id: user.passport_id,
-        // passport_type: new_user.passport_type,
-        created_at_datetime: new Date(),
-        updated_at_datetime: new Date(),
-      };
+    if (trx === null) {
+      trx = db;
+    }
 
-      const targetAccess = (await Access.query().select("id")).map((e) => e.id);
-      //await targetUser.$relatedQuery("access").relate(targetAccess);
+    let new_db_user = [];
 
-      if (new_user.is_participating_in_festival) {
-        userData.is_participating_in_festival =
-          new_user.is_participating_in_festival;
-      }
+    const userData = {
+      password_digest: new_user.password,
+      first_name: new_user.first_name,
+      last_name: new_user.last_name,
+      email: new_user.email,
+      phone_number: new_user.phone_number,
+      source: new_user.source,
+      status: "ACTIVE",
+      // passport_id: user.passport_id,
+      // passport_type: new_user.passport_type,
+      created_at_datetime: new Date(),
+      updated_at_datetime: new Date(),
+    };
 
-      new_db_user = trx("tasttlig_users").insert(userData).returning("*");
+    const targetAccess = (await Access.query().select("id")).map((e) => e.id);
+    //await targetUser.$relatedQuery("access").relate(targetAccess);
 
-      return await new_db_user.then(async (value1) => {
-        // Get role code of new role to be added
-        db("roles")
-          .select()
-          .where({
-            role: "GUEST",
-          })
-          .then(async (value) => {
-            // Insert new role in auth server
-            const {success, user} = await auth_server_service.authAddRole(
-              value1[0].auth_user_id,
-              value[0].role_code
-            );
+    if (new_user.is_participating_in_festival) {
+      userData.is_participating_in_festival =
+        new_user.is_participating_in_festival;
+    }
 
-            // Insert new role for this user
-            await db("user_role_lookup").insert({
-              user_id: value1[0].tasttlig_user_id,
-              role_code: value[0].role_code,
-            });
+    new_db_user = trx("tasttlig_users").insert(userData).returning("*");
+
+    return await new_db_user.then(async (value1) => {
+      // Get role code of new role to be added
+      trx("roles")
+        .select()
+        .where({
+          role: "GUEST",
+        })
+        .then(async (value) => {
+          // Insert new role in auth server
+          const {success, user} = await auth_server_service.authAddRole(
+            value1[0].auth_user_id,
+            value[0].role_code
+          );
+
+          // Insert new role for this user
+          await trx("user_role_lookup").insert({
+            user_id: value1[0].tasttlig_user_id,
+            role_code: value[0].role_code,
           });
+        });
 
-        // Insert new Access for this user
-        const targetUser = await User.query().findById(
-          value1[0].tasttlig_user_id
-        );
+      // Insert new Access for this user
+      const targetUser = await User.query().findById(
+        value1[0].tasttlig_user_id
+      );
 
-        //basic guest subscription
-        const subDetails = await db("subscriptions")
-          .where({
-            subscription_code: "G_BASIC",
-            //status: "ACTIVE",
-          })
-          .first()
-          .then((value) => {
-            if (!value) {
-              return {success: false, message: "No plan found."};
-            }
-
-            return {success: true, item: value};
-          })
-          .catch((error) => {
-            return {success: false, message: error};
-          });
-        if (subDetails.success) {
-          let subscription_end_datetime = null;
-
-          if (subDetails.item.validity_in_months) {
-            subscription_end_datetime = new Date(
-              new Date().setMonth(
-                new Date().getMonth() +
-                Number(subDetails.item.validity_in_months)
-              )
-            );
-          } else {
-            subscription_end_datetime = subDetails.item.date_of_expiry;
+      //basic guest subscription
+      const subDetails = await trx("subscriptions")
+        .where({
+          subscription_code: "G_BASIC",
+          //status: "ACTIVE",
+        })
+        .first()
+        .then((value) => {
+          if (!value) {
+            return {success: false, message: "No plan found."};
           }
 
-          await trx("user_subscriptions").insert({
-            subscription_code: subDetails.item.subscription_code,
-            user_id: value1[0].tasttlig_user_id,
-            subscription_start_datetime: new Date(),
-            subscription_end_datetime: subscription_end_datetime,
-            cash_payment_received: subDetails.item.price,
-            user_subscription_status: "ACTIVE",
-          });
-        }
+          return {success: true, item: value};
+        })
+        .catch((error) => {
+          return {success: false, message: error};
+        });
+      if (subDetails.success) {
+        let subscription_end_datetime = null;
 
-        // Send sign up email confirmation to the user
-        if (sendEmail) {
-          jwt.sign(
-            {
-              user: value1[0].tasttlig_user_id,
-            },
-            process.env.EMAIL_SECRET,
-            {
-              expiresIn: "28d",
-            },
-            async (err, emailToken) => {
-              const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
-              console.log("urlVerifyEmail", urlVerifyEmail);
-
-              await Mailer.sendMail({
-                from: process.env.SES_DEFAULT_FROM,
-                to: new_user.email,
-                bcc: ADMIN_EMAIL,
-                subject: "[Tasttlig] Welcome to Tasttlig!",
-                template: "signup",
-                context: {
-                  passport_id: new_db_user._single.insert.passport_id,
-                  urlVerifyEmail,
-                },
-              });
-            }
+        if (subDetails.item.validity_in_months) {
+          subscription_end_datetime = new Date(
+            new Date().setMonth(
+              new Date().getMonth() +
+              Number(subDetails.item.validity_in_months)
+            )
           );
+        } else {
+          subscription_end_datetime = subDetails.item.date_of_expiry;
         }
 
-        return {success: true, data: value1[0]};
-      });
+        await trx("user_subscriptions").insert({
+          subscription_code: subDetails.item.subscription_code,
+          user_id: value1[0].tasttlig_user_id,
+          subscription_start_datetime: new Date(),
+          subscription_end_datetime: subscription_end_datetime,
+          cash_payment_received: subDetails.item.price,
+          user_subscription_status: "ACTIVE",
+        });
+      }
+
+      // Send sign up email confirmation to the user
+      if (sendEmail) {
+        jwt.sign(
+          {
+            user: value1[0].tasttlig_user_id,
+          },
+          process.env.EMAIL_SECRET,
+          {
+            expiresIn: "28d",
+          },
+          async (err, emailToken) => {
+            const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
+            console.log("urlVerifyEmail", urlVerifyEmail);
+
+            await Mailer.sendMail({
+              from: process.env.SES_DEFAULT_FROM,
+              to: new_user.email,
+              bcc: ADMIN_EMAIL,
+              subject: "[Tasttlig] Welcome to Tasttlig!",
+              template: "signup",
+              context: {
+                passport_id: new_db_user._single.insert.passport_id,
+                urlVerifyEmail,
+              },
+            });
+          }
+        );
+      }
+
+      return {success: true, data: value1[0]};
     });
   } catch (error) {
     return {success: false, data: error.message};

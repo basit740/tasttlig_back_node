@@ -377,7 +377,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
   // Save business application to applications table
   if (applications.length == 0 && hostDto.is_business) {
     applications.push({
-      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      user_id: hostDto.dbUser.tasttlig_user_id,
       reason: "",
       created_at: new Date(),
       updated_at: new Date(),
@@ -389,7 +389,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
 
   if (hostDto.is_host === "yes") {
     applications.push({
-      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      user_id: hostDto.dbUser.tasttlig_user_id,
       video_link: hostDto.host_selection_video,
       youtube_link: hostDto.host_youtube_link,
       reason: hostDto.host_selection,
@@ -1323,30 +1323,28 @@ const getUserByPassportIdOrEmail = async (passport_id_or_email) => {
 // }
 
 // Save application from multi-step form to applications table helper function
-const saveHostApplication = async (hostDto, user) => {
-  let dbUser = null;
+const saveHostApplication = async (hostDto, user, trx) => {
+  let dbUser = user;
   console.log("user from save application", user);
-  if (user) {
-    dbUser = await getUserById(user.id);
-  }
+  // if (user) {
+  //   dbUser = await getUserById(user.id);
+  // }
 
-  if (dbUser == null || !dbUser.success) {
-    dbUser = await getUserByPassportIdOrEmail(hostDto.email);
-  }
+  // if (dbUser == null || !dbUser.success) {
+  //   dbUser = await getUserByPassportIdOrEmail(hostDto.email);
+  // }
 
-  hostDto.dbUser = dbUser;
+  hostDto.dbUser = user;
+  hostDto.dbUser.user = user;
   console.log(hostDto.dbUser);
-  return await db.transaction(async (trx) => {
-    await saveApplicationInformation(hostDto, trx);
+  await saveApplicationInformation(hostDto, trx);
 
-    if (hostDto.menu_list) {
-      await saveSpecials(hostDto);
-    }
+  // if (hostDto.menu_list) {
+  //   await saveSpecials(hostDto);
+  // }
+  await sendApplierEmailForHosting(dbUser);
 
-    await sendApplierEmailForHosting(dbUser);
-
-    return {success: true};
-  });
+  return {success: true};
 };
 
 //create passport preferences helper function
@@ -1846,6 +1844,7 @@ const claimBusiness = async (userId, businessId) => {
   return {success: true, details: "Success."};
 };
 
+
 module.exports = {
   getUserById,
   getUserBySubscriptionId,
@@ -1890,5 +1889,5 @@ module.exports = {
   addNeighbourhood,
   getNeighbourhoodByPostalCode,
   claimBusiness,
-  getBusinessDetailsById
+  getBusinessDetailsById,
 };
