@@ -934,6 +934,12 @@ const updateFestival = async (data, festival_images, business_file) => {
         .update({ festival_image_url: festival_images[0] })
         .returning("*");
 
+      //update festival image
+      await trx("festival_business_lists")
+        .where({ list_festival_id: data.festival_id })
+        .update({ list_file_location: business_file })
+        .returning("*");
+
     });
 
     return { success: true, details: "Success." };

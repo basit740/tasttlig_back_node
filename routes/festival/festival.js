@@ -780,7 +780,7 @@ router.put(
 
        
 
-        if (festival_file_content) {
+        if (festival_file_content && festival_file_content.length > 1) {
           const business_arr = festival_file_content.split("|");
           for (let i = 5; i < business_arr.length - 2; i = i + 5) {
             const business_response =
