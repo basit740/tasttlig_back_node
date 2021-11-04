@@ -566,9 +566,10 @@ router.post(
   "/festival/add",
   token_service.authenticateToken,
   async (req, res) => {
-
+    console.log('/festival/add/', req.body);
     const {
       images,
+      business_file,
       festival_name,
       festival_type,
       festival_price,
@@ -583,7 +584,6 @@ router.post(
       festival_postal_code,
       festival_country,
       festival_province,
-      festival_business_file,
       festival_file_content,
     } = req.body;
     try {
@@ -639,10 +639,11 @@ router.post(
           festival_updated_at_datetime: new Date(),
           sponsored,
         };
-
+        
         const response = await festival_service.createNewFestival(
           festival_details,
-          images
+          images,
+          business_file
         );
         console.log("response from festival/add:", response);
         // insert the business list into buiness table
@@ -692,6 +693,7 @@ router.put(
     console.log('/festival/update/', req.body);
     const {
       images,
+      business_file,
       festival_name,
       festival_type,
       festival_price,
@@ -708,6 +710,7 @@ router.put(
       festival_province,
       festival_file_content,
     } = req.body.festival_update_data;
+
     const festival_id = req.params.festival_id;
     try {
       if (
@@ -764,7 +767,8 @@ router.put(
 
         const response = await festival_service.updateFestival(
           festival_details,
-          images
+          images,
+          business_file
         );
         try {
         } catch (error) {

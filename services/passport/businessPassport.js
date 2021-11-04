@@ -177,7 +177,7 @@ const postBusinessPassportDetails = async (data, trx) => {
 
       await trx("business_details_images").insert(business_details_images);
 
-      return { success: true };
+      return { success: true, business_id: business_details_id[0] };
   } catch (error) {
     if (error && error.detail && error.detail.includes("already exists")) {
       return {
@@ -319,7 +319,7 @@ const postBusinessThroughFile = async (
 const addFestivalInBusiness = async (festival_id, business_id) => {
   // check if array already contains this festival id, skip the insertion
   console.log(business_id);
-  if (!business_id || business_id.includes(undefined)) {
+  if (!business_id) {
     return { success: false, details: "Inserting festival failed." };
   }
   let _business_id;
@@ -328,6 +328,10 @@ const addFestivalInBusiness = async (festival_id, business_id) => {
   }
   else {
     _business_id = business_id; 
+  }
+  console.log(_business_id);
+  if (!_business_id) {
+    return { success: false, details: "Inserting festival failed." };
   }
   const businessFestivals = await db("business_details")
     .select("business_festival_id")

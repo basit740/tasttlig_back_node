@@ -391,7 +391,7 @@ const getFestivalList = async () => {
 
 /* Save new festival to festivals and festival images tables helper 
 function */
-const createNewFestival = async (festival_details, festival_images) => {
+const createNewFestival = async (festival_details, festival_images, business_file) => {
   try {
     let db_festival;
 
@@ -419,12 +419,19 @@ const createNewFestival = async (festival_details, festival_images) => {
         return { success: false, details: "Inserting new festival failed." };
       }
 
+      // insert festival image
       const images = festival_images.map((festival_image_url) => ({
         festival_id: db_festival[0].festival_id,
         festival_image_url,
       }));
-
       await trx("festival_images").insert(images);
+
+      // insert festival business list file location
+      const business_list = {
+        list_festival_id: db_festival[0].festival_id,
+        list_file_location: business_file
+      }
+      await trx("festival_business_lists").insert(business_list);
     });
 
     return { success: true, details: db_festival[0].festival_id };
@@ -888,9 +895,12 @@ const addBusinessToFestival = async (festival_id, user_id) => {
   }
 };
 
-const updateFestival = async (data, festival_images) => {
+const updateFestival = async (data, festival_images, business_file) => {
   try {
     await db.transaction(async (trx) => {
+      // generate new slug according to its name
+      const slug = generateSlug(data.festival_name);
+
       const db_festival = await trx("festivals")
         .where({ festival_id: data.festival_id })
         .update({
@@ -908,13 +918,16 @@ const updateFestival = async (data, festival_images) => {
           festival_postal_code: data.festival_postal_code,
           festival_country: data.festival_country,
           festival_province: data.festival_province,
+          slug: slug
         })
         .returning("*");
 
+      //update festival image
       await trx("festival_images")
         .where({ festival_id: data.festival_id })
         .update({ festival_image_url: festival_images[0] })
         .returning("*");
+
     });
 
     return { success: true, details: "Success." };

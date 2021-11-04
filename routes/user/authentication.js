@@ -10,7 +10,7 @@ const bcrypt = require("bcrypt");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const user_profile_service = require("../../services/profile/user_profile");
 const auth_server_service = require("../../services/authentication/auth_server_service");
-const business_service = require("../../services/passport/businessPassport");
+
 const {
   encryptString,
   generateRandomString,
@@ -466,107 +466,24 @@ authRouter.post(
   createAccountLimiter,
   password_preprocessor,
   async (req, res) => {
-    const {
-      first_name,
-      last_name,
-      email,
-      password_digest,
-      phone_number,
-      passport_type,
-      source,
-      user_business_logo,
-      user_business_name,
-      user_business_street_number,
-      user_business_street_name,
-      user_business_unit,
-      user_business_country,
-      user_business_city,
-      user_business_province,
-      user_business_postal_code,
-      user_business_registered,
-      user_business_phone_number,
-      is_business,
-      user_business_retail,
-      user_business_type,
-      start_date
-    } = req.body;
-
-    if (!email || !password_digest || !source) {
-      return res.status(403).json({
-        success: false,
-        message: "Required parameters are not available in request.",
-      });
-    }
-
-    const user_business_food_type = req.body.businessFoodType;
-    const verification_code = req.body.verificationCode;
-    const promo_code = req.body.promoCode;
-    const business_id = req.body.businessId;
-    const festival_id = req.body.festivalId;
-
     try {
-      const user = {
-        first_name,
-        last_name,
-        email,
-        password: password_digest,
-        phone_number,
-        passport_type,
-        source,
-      };
+      const response = await authenticate_user_service.userAndBusinessRegister(req.body);
+      if (response.success) {
+        res.status(200).send(response);
+      } else {
+        return {
+          success: false,
+          message: "error",
+        };
+      }
 
-      const businessInfo = {
-        user_business_logo,
-        user_business_name,
-        user_business_street_number,
-        user_business_street_name,
-        user_business_unit,
-        user_business_country,
-        user_business_city,
-        user_business_province,
-        user_business_postal_code,
-        user_business_registered,
-        user_business_phone_number,
-        is_business,
-        user_business_retail,
-        user_business_type,
-        start_date,
-        user_business_food_type,
-        verification_code,
-        promo_code,
-        business_id,
-        festival_id,
-        }
-
-      const hostDto = {
-        is_business: is_business,
-        email: email,
-      };
-
-      db.transaction(async trx => {
-        const user_response = await authenticate_user_service.userRegister(user, trx);
-        businessInfo.user_id = user_response.data.tasttlig_user_id;
-        const business_response = await business_service.postBusinessPassportDetails(businessInfo, trx);
-        const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
-
-
-        if (saveHost.success) {
-          res.status(200).send(saveHost);
-        } else {
-          return res.status(401).json({
-            success: false,
-            message: "401 error",
-          });
-        }
-
-      })
       
-    } catch (error) {
-      console.log(error);
-      return res.status(401).json({
+     } catch (error) {
+      
+      return {
         success: false,
         message: "error",
-      });
+      };
     }
   }
 );

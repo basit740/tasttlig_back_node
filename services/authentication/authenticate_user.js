@@ -10,6 +10,8 @@ const auth_server_service = require("../../services/authentication/auth_server_s
 const User = require("../../models/User");
 const Access = require("../../models/AppAccess");
 const bcrypt = require("bcrypt");
+const business_service = require("../../services/passport/businessPassport");
+const user_profile_service = require("../../services/profile/user_profile");
 
 // Environment variables
 const SITE_BASE = process.env.SITE_BASE;
@@ -650,6 +652,112 @@ const getAllUsers = async (page, searchText) => {
     );
 };
 
+const userAndBusinessRegister = async (data) => {
+
+  const {
+    first_name,
+    last_name,
+    email,
+    password_digest,
+    phone_number,
+    passport_type,
+    source,
+    user_business_logo,
+    user_business_name,
+    user_business_street_number,
+    user_business_street_name,
+    user_business_unit,
+    user_business_country,
+    user_business_city,
+    user_business_province,
+    user_business_postal_code,
+    user_business_registered,
+    user_business_phone_number,
+    is_business,
+    user_business_retail,
+    user_business_type,
+    start_date,
+    businessFoodType,
+    verificationCode,
+    promoCode,
+    businessId,
+    festivalId
+  } = data;
+
+  if (!email || !password_digest || !source) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+
+  const user = {
+    first_name,
+    last_name,
+    email,
+    password: password_digest,
+    phone_number,
+    passport_type,
+    source,
+  };
+
+  const businessInfo = {
+    user_business_logo,
+    user_business_name,
+    user_business_street_number,
+    user_business_street_name,
+    user_business_unit,
+    user_business_country,
+    user_business_city,
+    user_business_province,
+    user_business_postal_code,
+    user_business_registered,
+    user_business_phone_number,
+    is_business,
+    user_business_retail,
+    user_business_type,
+    start_date,
+    user_business_food_type: businessFoodType,
+    verification_code: verificationCode,
+    promo_code: promoCode,
+    business_id: businessId,
+    festival_id: festivalId,
+    }
+
+  const hostDto = {
+    is_business: is_business,
+    email: email,
+  };
+
+  try {
+
+    db.transaction(async trx => {
+      const user_response = await userRegister(user, trx);
+      businessInfo.user_id = user_response.data.tasttlig_user_id;
+      const business_response = await business_service.postBusinessPassportDetails(businessInfo, trx);
+      
+      const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
+
+      if (saveHost.success) {
+        res.status(200).send(saveHost);
+      } else {
+        return {
+          success: false,
+          message: "error",
+        };
+      }
+
+    })
+    
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+};
+
 module.exports = {
   userRegister,
   verifyAccount,
@@ -665,4 +773,5 @@ module.exports = {
   getUserByBusinessDetails,
   userMigrationFromAuthServer,
   getAllUsers,
+  userAndBusinessRegister
 };
