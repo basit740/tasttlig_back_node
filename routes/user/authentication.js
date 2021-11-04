@@ -10,11 +10,7 @@ const bcrypt = require("bcrypt");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const user_profile_service = require("../../services/profile/user_profile");
 const auth_server_service = require("../../services/authentication/auth_server_service");
-<<<<<<< HEAD
-
-=======
 const business_service = require("../../services/passport/businessPassport");
->>>>>>> e19a381a4caeaed14d6ffa6ff882b7217efc7c27
 const {
   encryptString,
   generateRandomString,
@@ -470,26 +466,6 @@ authRouter.post(
   createAccountLimiter,
   password_preprocessor,
   async (req, res) => {
-<<<<<<< HEAD
-    try {
-      const response = await authenticate_user_service.userAndBusinessRegister(req.body);
-      if (response.success) {
-        res.status(200).send(response);
-      } else {
-        return {
-          success: false,
-          message: "error",
-        };
-      }
-
-      
-     } catch (error) {
-      
-      return {
-        success: false,
-        message: "error",
-      };
-=======
     const {
       first_name,
       last_name,
@@ -588,7 +564,6 @@ authRouter.post(
         success: false,
         message: "error",
       });
->>>>>>> e19a381a4caeaed14d6ffa6ff882b7217efc7c27
     }
   }
 );

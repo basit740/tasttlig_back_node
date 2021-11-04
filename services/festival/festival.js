@@ -22,13 +22,19 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
   let query = db
     .select(
       "festivals.*",
-      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls"),
+      db.raw("ARRAY_AGG(festival_business_lists.list_file_location) as business_list")
     )
     .from("festivals")
     .leftJoin(
       "festival_images",
       "festivals.festival_id",
       "festival_images.festival_id"
+    )
+    .leftJoin(
+      "festival_business_lists",
+      "festivals.festival_id",
+      "festival_business_lists.list_festival_id"
     )
     .where("festivals.festival_id", ">", 3)
     .where("festivals.festival_end_date", ">=", new Date())
