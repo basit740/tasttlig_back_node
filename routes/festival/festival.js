@@ -657,7 +657,7 @@ router.post(
                 business_arr[i + 3],
                 business_arr[i + 4]
               );
-            const r = await business_service.addFestivalInBusiness(
+            const r = await business_service.addBusinessInFestival(
               response.details,
               business_response.details
             );
@@ -791,7 +791,7 @@ router.put(
                 business_arr[i + 4]
               );
 
-              const r = await business_service.addFestivalInBusiness(
+              const r = await business_service.addBusinessInFestival(
                 Number(festival_details.festival_id),
                 [business_response.details]
               );
