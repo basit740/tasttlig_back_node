@@ -543,7 +543,10 @@ const getAllBusinesses = async (festival_id, keyword) => {
       "business_details.business_details_id",
       "festival_businesses.business_id"
     )
-    .where("festival_businesses.festival_id", "=", Number(festival_id));
+    .where("festival_businesses.festival_id", "=", Number(festival_id))
+    .groupBy("business_details.business_details_id");
+
+    
 
    
   if (keyword) {

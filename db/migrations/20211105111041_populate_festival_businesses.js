@@ -16,5 +16,5 @@ exports.up = async function (knex) {
 };
 
 exports.down = function (knex) {
-  return Promise.resolve(null);
+  return knex.raw('delete from festival_businesses;')
 };
