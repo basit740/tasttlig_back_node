@@ -628,7 +628,6 @@ const updateBusinessPromoUsed = async (business_id, festival_id) => {
         .returning("*");
 
     });
-    console.log('123456789');
     return { success: true, details: "Success." };
   } catch (error) {
     return { success: false, details: error.message };
