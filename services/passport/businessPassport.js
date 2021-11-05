@@ -617,31 +617,43 @@ const getUserAllBusinesses = async (user_id) => {
   return { success: true, business: db_business };
 };
 
-const businessPromote = async (
-  business_id,
-  festival_id,
-  item_type
-) => {
+// update festival_businesses table after business used up a promotion
+const updateBusinessPromoUsed = async (business_id, festival_id) => {
   try {
-    return await db.transaction(async (trx) => {
+    await db.transaction(async (trx) => {
+      await trx("festival_businesses")
+        .where({ festival_id: festival_id })
+        .andWhere({ business_id: business_id })
+        .decrement("business_promotion_usage", 1)
+        .returning("*");
 
-      const data = {
-        business_id: business_id,
-        festival_id: festival_id,
-        item_type: item_type,
-        status: 'ACTIVE',
-        created_at_datetime: new Date(),
-        updated_at_datetime: new Date(),
-      };
-
-      await trx("item_promotion_payment").insert(data);
-
-      return { success: true };
     });
+    console.log('123456789');
+    return { success: true, details: "Success." };
   } catch (error) {
-    return { success: false, details: error.detail };
+    return { success: false, details: error.message };
   }
 };
+
+// update festival_businesses table after business got a promotion usage
+const updateBusinessPromoPayment = async (business_id, festival_id) => {
+  try {
+    await db.transaction(async (trx) => {
+      await trx("festival_businesses")
+        .where({ festival_id: festival_id })
+        .andWhere({ business_id: business_id })
+        .increment("business_promotion_usage", 1)
+        .returning("*");
+
+    });
+    
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
+
+
 
 module.exports = {
   postBusinessPassportDetails,
@@ -653,5 +665,6 @@ module.exports = {
   addBusinessInFestival,
   getAllBusinesses,
   getUserAllBusinesses,
-  businessPromote
+  updateBusinessPromoUsed,
+  updateBusinessPromoPayment
 };

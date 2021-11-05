@@ -136,7 +136,7 @@ router.post(
       if (response.success) {
         // update the promote status to INACTIVE
 
-        await festival_service.updateBusinessPromote(
+        await business_service.updateBusinessPromoUsed(
           req.body.business_id, db_festival.details[0].festival_id, req.body.experience_offering_type[0]
         );
 

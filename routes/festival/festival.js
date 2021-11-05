@@ -1272,9 +1272,9 @@ router.post("/claim-business", async (req, res) => {
 });
 
 
-// post the deal/sample payment
+// add business promotion after payment
 router.post("/business/promotion", async (req, res) => {
-  if (!req.body.festival_slug || !req.body.business_id || !req.body.item_type) {
+  if (!req.body.festival_slug || !req.body.business_id) {
     return res.status(403).json({
       success: false,
       message: "Required parameters are not available in request.",
@@ -1291,10 +1291,9 @@ router.post("/business/promotion", async (req, res) => {
       const festival_id = db_festival.details[0].festival_id;
 
      
-    const response = await business_service.businessPromote(
+    const response = await business_service.updateBusinessPromoPayment(
       req.body.business_id,
-      festival_id,
-      req.body.item_type
+      festival_id
     );
     return res.send(response);
   } catch (error) {
@@ -1372,65 +1371,5 @@ router.get("/business/:business_id", async (req, res) => {
 });
 
 
-// GET all business avaiable for adding a deal in a festival
-router.get("/business-promotion", async (req, res) => {
-  if (!req.query.festival_id || !req.query.item_type) {
-    return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
-    });
-  }
-
-
-  try {
-    const response = await festival_service.getBusinessPromotion(
-      req.query.festival_id,
-      req.query.item_type
-    );
-    return res.send(response);
-    
-  } catch (error) {
-    res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
-    });
-  }
-});
-
-
-
-// update all business promote table when business have added a promotion
-router.put("/business-promote", async (req, res) => {
-  if (!req.body.business_id || !req.body.festival_slug || !req.body.item_type) {
-    return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
-    });
-  }
-
-  const db_festival = await festival_service.getFestivalDetailsBySlug(
-    req.body.festival_slug
-  );
-
-  if (!db_festival) {
-    return { success: false, details: "festival not found!" };
-  }
-  const festival_id = db_festival.details[0].festival_id;
-
-  try {
-    const response = await festival_service.updateBusinessPromote(
-      req.body.business_id, festival_id, req.body.item_type
-    );
-    return res.send(response);
-    
-  } catch (error) {
-    res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
-    });
-  }
-});
 
 module.exports = router;

@@ -218,8 +218,8 @@ router.post(
           res.send(response);
           if (response.success) {
             // update the promote status to INACTIVE
-            await festival_service.updateBusinessPromote(
-              item.business_id, festival_id, item.product_offering_type[0]
+            await business_service.updateBusinessPromoUsed(
+              item.business_id, festival_id
             );
 
             const product_central_server =
