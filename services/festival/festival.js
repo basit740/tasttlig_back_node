@@ -1059,7 +1059,7 @@ const getFestivalDetails = async (festival_id, user = null) => {
 };
 
 const getFestivalDetailsBySlug = async (slug, user = null) => {
-  const festival_ids = await db("festivals")
+  let festival_ids = await db("festivals")
     .select("festival_id")
     .where("slug", slug)
     .orderBy("festival_id");
