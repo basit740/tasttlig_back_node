@@ -1342,46 +1342,8 @@ const validatePromoCode = async (festival_id, promo_code) => {
   return festival_promo_code === promo_code;
 };
 
-// return all business with promotion available in a festival
-const getBusinessPromotion = async (festival_id, item_type) => {
-
-  const db_business_promotion = await db("item_promotion_payment")
-    .select("business_id")
-    .where("festival_id", festival_id)
-    .andWhere("status", "ACTIVE")
-    .andWhere("item_type", item_type)
-  
-  let businesses = []
-  for (let i = 0; i < db_business_promotion.length; i++) {
-    businesses[i] = db_business_promotion[i].business_id;
-  }
-
-  return businesses;
-};
 
 
-
-// update item_promotion_payment table
-const updateBusinessPromote = async (business_id, festival_id, item_type) => {
-  try {
-    await db.transaction(async (trx) => {
-      const db_festival = await trx("item_promotion_payment")
-        .where({ festival_id: festival_id })
-        .andWhere({ business_id: business_id })
-        .andWhere({ item_type: item_type })
-        .andWhere({ status: 'ACTIVE' })
-        .update({
-         status: 'INACTIVE'
-        })
-        .returning("*");
-
-    });
-
-    return { success: true, details: "Success." };
-  } catch (error) {
-    return { success: false, details: error.message };
-  }
-};
 
 module.exports = {
   getAllFestivals,
@@ -1408,6 +1370,4 @@ module.exports = {
   registerUserToFestivals,
   getFestivalDetailsBySlug,
   validatePromoCode,
-  getBusinessPromotion,
-  updateBusinessPromote,
 };

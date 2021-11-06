@@ -315,12 +315,10 @@ const postBusinessThroughFile = async (
 };
 
 
-// insert festival_id into business_festival_id array
-const addFestivalInBusiness = async (festival_id, business_id) => {
-  // check if array already contains this festival id, skip the insertion
-  console.log(business_id);
+// add business in festival
+const addBusinessInFestival = async (festival_id, business_id) => {
   if (!business_id) {
-    return { success: false, details: "Inserting festival failed." };
+    return { success: false, details: "Inserting business failed." };
   }
   let _business_id;
   if (Array.isArray(business_id)){
@@ -331,35 +329,32 @@ const addFestivalInBusiness = async (festival_id, business_id) => {
   }
   console.log(_business_id);
   if (!_business_id) {
-    return { success: false, details: "Inserting festival failed." };
+    return { success: false, details: "Inserting business failed." };
   }
-  const businessFestivals = await db("business_details")
-    .select("business_festival_id")
-    .where({ business_details_id: _business_id });
 
-  if (
-    businessFestivals &&
-    businessFestivals.length > 0 &&
-    businessFestivals[0].business_festival_id &&
-    businessFestivals[0].business_festival_id.includes(_business_id)
-  ) {
-    return { success: true, details: "Success." };
-  }
+    // check if entry with this festival_id and business_id already exists, skip if it does
+  const festivalBusinesses = await db("festival_businesses")
+    .select("*")
+    .where({ business_id: _business_id })
+    .andWhere({ festival_id: festival_id });
+
+  if (festivalBusinesses && festivalBusinesses.length > 0 ) 
+    {
+       return { success: true, details: "Success." };
+    }
 
   try {
     await db.transaction(async (trx) => {
-      const db_festival = await trx("business_details")
-        .where({ business_details_id: _business_id })
-        .update({
-          business_festival_id: trx.raw(
-            "array_append(business_festival_id, ?)",
-            festival_id
-          ),
+      const db_festival_business = await trx("festival_businesses")
+        .insert({
+          festival_id: festival_id,
+          business_id: _business_id,
+          business_promotion_usage: 3
         })
         .returning("*");
 
-      if (!db_festival) {
-        return { success: false, details: "Inserting festival failed." };
+      if (!db_festival_business) {
+        return { success: false, details: "Inserting business failed." };
       }
     });
     return { success: true, details: "Success." };
@@ -524,25 +519,34 @@ const approveOrDeclineBusinessMemberApplication = async (
 const getAllBusinesses = async (festival_id, keyword) => {
   let query = db
     .select(
-      "business_details_id",
-      "business_details_user_id",
-      "business_phone_number",
-      "business_name",
-      "business_category",
-      "business_type",
-      "business_location",
-      "city",
-      "state",
-      "country",
-      "zip_postal_code",
-      "business_street_number",
-      "business_street_name",
-      "business_verification_code",
-      "latitude",
-      "longitude"
+      "business_details.business_details_id",
+      "business_details.business_details_user_id",
+      "business_details.business_phone_number",
+      "business_details.business_name",
+      "business_details.business_category",
+      "business_details.business_type",
+      "business_details.business_location",
+      "business_details.city",
+      "business_details.state",
+      "business_details.country",
+      "business_details.zip_postal_code",
+      "business_details.business_street_number",
+      "business_details.business_street_name",
+      "business_details.business_verification_code",
+      "business_details.latitude",
+      "business_details.longitude",
+      db.raw("ARRAY_AGG(festival_businesses.business_promotion_usage) as promotion_usage")
     )
     .from("business_details")
-    .where("business_festival_id", "@>", [festival_id]);
+    .leftJoin(
+      "festival_businesses",
+      "business_details.business_details_id",
+      "festival_businesses.business_id"
+    )
+    .where("festival_businesses.festival_id", "=", Number(festival_id))
+    .groupBy("business_details.business_details_id");
+
+    
 
    
   if (keyword) {
@@ -613,31 +617,42 @@ const getUserAllBusinesses = async (user_id) => {
   return { success: true, business: db_business };
 };
 
-const businessPromote = async (
-  business_id,
-  festival_id,
-  item_type
-) => {
+// update festival_businesses table after business used up a promotion
+const updateBusinessPromoUsed = async (business_id, festival_id) => {
   try {
-    return await db.transaction(async (trx) => {
+    await db.transaction(async (trx) => {
+      await trx("festival_businesses")
+        .where({ festival_id: festival_id })
+        .andWhere({ business_id: business_id })
+        .decrement("business_promotion_usage", 1)
+        .returning("*");
 
-      const data = {
-        business_id: business_id,
-        festival_id: festival_id,
-        item_type: item_type,
-        status: 'ACTIVE',
-        created_at_datetime: new Date(),
-        updated_at_datetime: new Date(),
-      };
-
-      await trx("item_promotion_payment").insert(data);
-
-      return { success: true };
     });
+    return { success: true, details: "Success." };
   } catch (error) {
-    return { success: false, details: error.detail };
+    return { success: false, details: error.message };
   }
 };
+
+// update festival_businesses table after business got a promotion usage
+const updateBusinessPromoPayment = async (business_id, festival_id) => {
+  try {
+    await db.transaction(async (trx) => {
+      await trx("festival_businesses")
+        .where({ festival_id: festival_id })
+        .andWhere({ business_id: business_id })
+        .increment("business_promotion_usage", 1)
+        .returning("*");
+
+    });
+    
+    return { success: true, details: "Success." };
+  } catch (error) {
+    return { success: false, details: error.message };
+  }
+};
+
+
 
 module.exports = {
   postBusinessPassportDetails,
@@ -646,8 +661,9 @@ module.exports = {
   approveOrDeclineBusinessMemberApplication,
   postBusinessThroughFile,
   getBusinessById,
-  addFestivalInBusiness,
+  addBusinessInFestival,
   getAllBusinesses,
   getUserAllBusinesses,
-  businessPromote
+  updateBusinessPromoUsed,
+  updateBusinessPromoPayment
 };

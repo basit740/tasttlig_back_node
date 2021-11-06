@@ -8,6 +8,7 @@ const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
 const auth_service = require("../../services/authentication/auth_server_service");
 const festival_service = require("../../services/festival/festival");
+const business_service = require("../../services/passport/businessPassport");
 const { generateRandomString } = require("../../functions/functions");
 
 // POST services
@@ -107,8 +108,8 @@ router.post(
         req.body.sponsorType
       );
       if (response.success) {
-        await festival_service.updateBusinessPromote(
-          req.body.business_id, db_festival.details[0].festival_id, req.body.service_offering_type[0]
+        await business_service.updateBusinessPromoUsed(
+          req.body.business_id, db_festival.details[0].festival_id
         );
 
         // const service_central_server =
