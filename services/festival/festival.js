@@ -1059,18 +1059,21 @@ const getFestivalDetails = async (festival_id, user = null) => {
 };
 
 const getFestivalDetailsBySlug = async (slug, user = null) => {
-  const festival_ids = await db("festivals")
+  let festival_ids = await db("festivals")
     .select("festival_id")
     .where("slug", slug)
     .orderBy("festival_id");
+  festival_ids = festival_ids.map(value => value.festival_id);
   if (festival_ids.length === 0) {
     // then slug must be an id
     festival_ids = [slug];
   }
-  return await getFestivalDetails(
-    festival_ids[festival_ids.length - 1].festival_id,
+
+  const result = await getFestivalDetails(
+    festival_ids[festival_ids.length - 1],
     user
   );
+  return result;
 };
 
 const getFestivalRestaurants = async (host_id, festival_id) => {
