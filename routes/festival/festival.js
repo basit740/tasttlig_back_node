@@ -1305,6 +1305,48 @@ router.post("/business/promotion", async (req, res) => {
   }
 });
 
+// add business promotion after payment
+router.post("/business/promotion-code", async (req, res) => {
+  console.log(req.body);
+  if (!req.body.festival_slug || !req.body.business_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    const db_festival = await festival_service.getFestivalDetailsBySlug(req.body.festival_slug, 
+      {id: 1, role: ["ADMIN"]} // This is the mock admin data so it can fetch the promo code and verify at frontend
+    )
+      if (!db_festival) {
+        return { success: false, details: "festival not found!" };
+      }
+      const festival_id = db_festival.details[0].festival_id;
+
+      console.log('promo code porvided: ', req.body.promo_code);
+      console.log('promo code: ',db_festival.details[0].promo_code);
+
+      if (db_festival && db_festival.details[0].promo_code !== req.body.promo_code ) {
+        return res.send({
+          success: false,
+          message: "Wrong Promo Code!",
+        });
+      }
+
+    const response = await business_service.updateBusinessPromoPayment(
+      req.body.business_id,
+      festival_id
+    );
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 // add business to a tasttlig-user with promo code
 router.post("/claim-business/promo", async (req, res) => {
 
@@ -1327,6 +1369,45 @@ router.post("/claim-business/promo", async (req, res) => {
       return res.send({
         success: false,
         message: "Wrong Promo Code!",
+      });
+    }
+
+    const response = await user_profile_service.claimBusiness(
+      req.body.user_id,
+      req.body.business_id
+    );
+    return res.send(response);
+    
+
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// add business to a tasttlig-user with verification code
+router.post("/claim-business/verification", async (req, res) => {
+
+  if (!req.body.user_id || !req.body.business_id || !req.body.verification_code) {
+    
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    
+    const db_business = await user_profile_service.getBusinessDetailsById(req.body.business_id)
+    console.log('verification code porvided: ', req.body.verification_code);
+    console.log('verification code: ', db_business.business_details_all.business_verification_code);
+
+    if (db_business && db_business.business_details_all.business_verification_code !== req.body.verification_code ) {
+      return res.send({
+        success: false,
+        message: "Wrong Verification Code!",
       });
     }
 
