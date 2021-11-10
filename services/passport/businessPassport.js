@@ -322,7 +322,10 @@ const addBusinessInFestival = async (festival_id, business_id) => {
   }
   let _business_id;
   if (Array.isArray(business_id)){
-    _business_id = business_id[0];
+    while (Array.isArray(business_id)){
+      business_id = business_id[0];
+    }
+    _business_id = business_id; 
   }
   else {
     _business_id = business_id; 
