@@ -47,4 +47,18 @@ router.get("/festival-reviews/:festival_id", async (req, res) => {
   }
 });
 
+// get all festival-reviews for admin
+router.get("/festival-reviews-admin", async (req, res) => {
+  try {
+    const response = await festival_reviews_service.getFestivalReviewsAdmin();
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 module.exports = router;

@@ -41,7 +41,21 @@ const getFestivalReviews = async (festival_id) => {
     });
 };
 
+// get all festival_reviews for admin page
+const getFestivalReviewsAdmin = async () => {
+  let query = db.select("*").from("festival_reviews");
+
+  return await query
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
 module.exports = {
   addToFestivalReviews,
-  getFestivalReviews
+  getFestivalReviews,
+  getFestivalReviewsAdmin
 };
