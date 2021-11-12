@@ -26,6 +26,22 @@ const addToFestivalReviews = async (
     });
 };
 
+const getFestivalReviews = async (festival_id) => {
+  let query = db("festival_reviews")
+    .select("*")
+    .where("festival_id", festival_id)
+    .orderBy("festival_id");
+
+  return await query
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
 module.exports = {
   addToFestivalReviews,
+  getFestivalReviews
 };

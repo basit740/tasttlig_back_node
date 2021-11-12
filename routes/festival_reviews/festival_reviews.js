@@ -25,4 +25,26 @@ router.post("/festival-reviews", async (req, res) => {
   }
 });
 
+// get reviews from festival_reviews table
+router.get("/festival-reviews/:festival_id", async (req, res) => {
+  if (!req.params.festival_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    const response = await festival_reviews_service.getFestivalReviews(
+      req.params.festival_id,
+    );
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 module.exports = router;
