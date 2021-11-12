@@ -10,7 +10,6 @@ router.get("/likes/:userId", async (req, res) => {
     const response = await likes_service.getLikesFromUser(
       req.params.userId,
     );
-    console.log("response from inside routes likes:", response);
     return res.send(response);
   } catch (error) {
     res.send({

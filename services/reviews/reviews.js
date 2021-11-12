@@ -3,6 +3,31 @@
 // Libraries
 const { db } = require("../../db/db-config");
 
+// Create review
+const createReview = async (
+  user_details_from_db,
+  review_information,
+  review_id
+) => {
+  try {
+    await db.transaction(async (trx) => {
+      const db_review = await trx("user_reviews")
+        .insert(review_information)
+        .where({ review_id })
+        .returning("*");
+
+      if (!db_review) {
+        return { success: false, details: "Creating new review failed." };
+      }
+    });
+
+    return { success: true, details: "Success." };
+  } catch (error) {
+    console.log(error);
+    return { success: false, details: error.message };
+  }
+};
+
 // Create review helper function
 const updateReview = async (
   user_details_from_db,
@@ -111,6 +136,7 @@ const getNonReviewedFromUser = async (user_id, product_id) => {
 };
 
 module.exports = {
+  createReview,
   updateReview,
   updatePopUpCount,
   getNonReviewedFromUser,

@@ -172,6 +172,21 @@ router.get("/festival-list", async (req, res) => {
   }
 });
 
+// GET festival list only past and current, no future dates
+router.get("/festival-list-nofuture", async (req, res) => {
+  try {
+    const response = await festival_service.getFestivalListNoFuture();
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 // GET specific festival details
 router.get("/festival/:festival_id", async (req, res) => {
   if (!req.params.festival_id) {

@@ -395,6 +395,26 @@ const getFestivalList = async () => {
     });
 };
 
+// Get festival list only past and current, no future dates
+const getFestivalListNoFuture = async () => {
+  return await db
+    .select("festivals.festival_id", "festivals.festival_name")
+    .from("festivals")
+    .where("festivals.festival_id", ">", 3)
+    .where("festivals.festival_start_date", "<=", new Date())
+    .groupBy("festivals.festival_id")
+    .orderBy("festivals.festival_name")
+    .then((value) => {
+      value.map((festival) => {
+        delete festival.promo_code;
+      });
+      return { success: true, festival_list: value };
+    })
+    .catch((reason) => {
+      return { success: false, data: reason };
+    });
+};
+
 /* Save new festival to festivals and festival images tables helper 
 function */
 const createNewFestival = async (festival_details, festival_images, business_file) => {
@@ -1353,6 +1373,7 @@ module.exports = {
   getAllFestivalList,
   getThreeFestivals,
   getFestivalList,
+  getFestivalListNoFuture,
   createNewFestival,
   hostToFestival,
   addVendorApplication,

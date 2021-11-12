@@ -26,7 +26,6 @@ router.get("/user-follows-fest/:userId", async (req, res) => {
     const response = await follow_interest_service.getFollowsFestFromUser(
       req.params.userId,
     );
-    console.log("response from inside routes follows_fest:", response);
     return res.send(response);
   } catch (error) {
     res.send({
