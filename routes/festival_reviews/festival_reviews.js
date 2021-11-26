@@ -13,7 +13,17 @@ router.post("/festival-reviews", async (req, res) => {
       req.body.first_name,
       req.body.last_name,
       req.body.rating,
-      req.body.comment
+      req.body.comment,
+      req.body.excellence,
+      req.body.excellence,
+      req.body.polite,
+      req.body.ethical,
+      req.body.receptive,
+      req.body.impressive,
+      req.body.ecofriendly,
+      req.body.novel,
+      req.body.clean,
+      req.body.enjoyable
     );
     return res.send(response);
   } catch (error) {
@@ -35,7 +45,7 @@ router.get("/festival-reviews/:festival_id", async (req, res) => {
   }
   try {
     const response = await festival_reviews_service.getFestivalReviews(
-      req.params.festival_id,
+      req.params.festival_id
     );
     return res.send(response);
   } catch (error) {

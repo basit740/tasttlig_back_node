@@ -11,10 +11,37 @@ const addToFestivalReviews = async (
   first_name,
   last_name,
   rating,
-  comment
+  comment,
+  excellence,
+  xenial,
+  polite,
+  ethical,
+  receptive,
+  impressive,
+  ecofriendly,
+  novel,
+  clean,
+  enjoyable
 ) => {
   let query = db("festival_reviews")
-    .insert({ festival_id, user_id, first_name, last_name, rating, comment })
+    .insert({
+      festival_id,
+      user_id,
+      first_name,
+      last_name,
+      rating,
+      comment,
+      excellence,
+      xenial,
+      polite,
+      ethical,
+      receptive,
+      impressive,
+      ecofriendly,
+      novel,
+      clean,
+      enjoyable,
+    })
     .returning("*");
 
   return await query
@@ -57,5 +84,5 @@ const getFestivalReviewsAdmin = async () => {
 module.exports = {
   addToFestivalReviews,
   getFestivalReviews,
-  getFestivalReviewsAdmin
+  getFestivalReviewsAdmin,
 };
