@@ -667,7 +667,6 @@ router.post(
           const resp = request.get(business_file, async function (error, response, body) {
             if (!error && response.statusCode == 200) {
               var workbook = new Excel.Workbook();
-              const data = "data:" + response.headers["content-type"] + ";base64," + Buffer.from(body).toString('base64');
               const buffer = Buffer.from(body);
               const readStream = new stream.PassThrough();
               readStream.end(buffer);
@@ -799,7 +798,6 @@ router.put(
         const resp = request.get(business_file, async function (error, response, body) {
           if (!error && response.statusCode == 200) {
             var workbook = new Excel.Workbook();
-            const data = "data:" + response.headers["content-type"] + ";base64," + Buffer.from(body).toString('base64');
             const buffer = Buffer.from(body);
             const readStream = new stream.PassThrough();
             readStream.end(buffer);
