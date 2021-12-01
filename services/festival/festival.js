@@ -1013,13 +1013,11 @@ const sponsorToFestival = async (
   }
 };
 
-// Get festival details helper function
-const getFestivalDetails = async (festival_id, user = null) => {
-  return await db
+  // Get festival details helper function
+  const getFestivalDetails = async (festival_id, user = null) => {
+    return await db
     .select(
       "festivals.*",
-      "b1.business_name AS business",
-      "b2.business_name AS sponsor",
       db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
     )
     .from("festivals")
@@ -1028,26 +1026,8 @@ const getFestivalDetails = async (festival_id, user = null) => {
       "festivals.festival_id",
       "festival_images.festival_id"
     )
-    .leftJoin(
-      "business_details AS b1",
-      "festivals.festival_host_admin_id[1]",
-      "b1.business_details_user_id"
-    )
-    .leftJoin(
-      "sponsors",
-      "festivals.festival_business_sponsor_id[1]",
-      "sponsors.sponsor_id"
-    )
-    .leftJoin(
-      "business_details AS b2",
-      "sponsors.sponsor_business_id",
-      "b2.business_details_user_id"
-    )
     .groupBy("festivals.festival_id")
-    .groupBy("b1.business_name")
-    .groupBy("b2.business_name")
-    .having("festivals.festival_id", "=", festival_id)
-    .having("festivals.festival_end_date", ">=", new Date())
+    .where("festivals.festival_id", festival_id)
     .then((value) => {
       value.map((festival) => {
         if (
