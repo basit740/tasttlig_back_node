@@ -954,12 +954,21 @@ const updateFestival = async (data, festival_images, business_file) => {
         .update({ festival_image_url: festival_images[0] })
         .returning("*");
 
-      //update festival image
-      await trx("festival_business_lists")
+      //update festival business list file
+      const r = await trx("festival_business_lists")
         .where({ list_festival_id: data.festival_id })
         .update({ list_file_location: business_file })
         .returning("*");
 
+        // updade return length is 0 means there were no pervious entry of the business file
+      if (r.length === 0) {
+        // insert festival business list file location
+        const business_list = {
+          list_festival_id: data.festival_id,
+          list_file_location: business_file
+        }
+         await trx("festival_business_lists").insert(business_list);
+      }
     });
 
     return { success: true, details: "Success." };

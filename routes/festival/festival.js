@@ -673,7 +673,10 @@ router.post(
               const wb = await workbook.xlsx.read(readStream)
               .then(function() {
                 const ws = workbook.getWorksheet("Sheet1");
-                ws.eachRow(async function(row) {
+                // first row is not actual data, remove if the excel spread sheet formate changes
+                ws.spliceRows(1, 1);
+                ws.eachRow(async function(row, rowNumber) {
+                  console.log(rowNumber);
                   // save the value of cell #2,3,4,5 which are business name, business category, business locaion, business phone
                   // to database
                   const business_response =
@@ -804,9 +807,12 @@ router.put(
             const wb = await workbook.xlsx.read(readStream)
             .then(function() {
               const ws = workbook.getWorksheet("Sheet1");
+              // first row is not actual data, remove if the excel spread sheet formate changes
+              ws.spliceRows(1, 1);
               ws.eachRow(async function(row) {
                 // save the value of cell #2,3,4,5 which are business name, business category, business locaion, business phone
                 // to database
+
                 const business_response =
                 await business_service.postBusinessThroughFile(
                   row.getCell(2).value,
