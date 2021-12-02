@@ -9,8 +9,9 @@ const authentication_service = require("../../services/authentication/authentica
 const business_service = require("../../services/passport/businessPassport");
 const { compareSync } = require("bcrypt");
 const { compose } = require("objection");
-const XMLHttpRequest = require('xhr2');
-var XLSX = require('xlsx');
+const Excel = require('exceljs');
+const stream = require('stream');
+var request = require('request').defaults({ encoding: null });
 
 const jwt = require("jsonwebtoken");
 
@@ -655,31 +656,48 @@ router.post(
           sponsored,
         };
         
-        const response = await festival_service.createNewFestival(
+        const festival_response = await festival_service.createNewFestival(
           festival_details,
           images,
           business_file
         );
-        console.log("response from festival/add:", response);
+        console.log("response from festival/add:", festival_response);
         // insert the business list into buiness table
-        if (festival_file_content) {
-          const business_arr = festival_file_content.split("|");
-          for (let i = 5; i < business_arr.length - 2; i = i + 5) {
-            const business_response =
-              await business_service.postBusinessThroughFile(
-                business_arr[i + 1],
-                business_arr[i + 2],
-                business_arr[i + 3],
-                business_arr[i + 4]
-              );
-            const r = await business_service.addBusinessInFestival(
-              response.details,
-              business_response.details
-            );
-          }
-        }
+          // send a request to file url and store its content as buffer, then read each row using ExcelJs
+          const resp = request.get(business_file, async function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+              var workbook = new Excel.Workbook();
+              const buffer = Buffer.from(body);
+              const readStream = new stream.PassThrough();
+              readStream.end(buffer);
+              const wb = await workbook.xlsx.read(readStream)
+              .then(function() {
+                const ws = workbook.getWorksheet("Sheet1");
+                // first row is not actual data, remove if the excel spread sheet formate changes
+                ws.spliceRows(1, 1);
+                ws.eachRow(async function(row, rowNumber) {
+                  console.log(rowNumber);
+                  // save the value of cell #2,3,4,5 which are business name, business category, business locaion, business phone
+                  // to database
+                  const business_response =
+                  await business_service.postBusinessThroughFile(
+                    row.getCell(2).value,
+                    row.getCell(3).value,
+                    row.getCell(4).value,
+                    row.getCell(5).value,
+                  );
+                  
+                  const r = await business_service.addBusinessInFestival(
+                    festival_response.details,
+                    business_response.details,
+                  );
+                });
+            });
 
-        return res.send(response);
+            }
+          });
+
+        return res.send(festival_response);
       } catch (error) {
         console.log(error);
         res.send({
@@ -723,7 +741,6 @@ router.put(
       festival_postal_code,
       festival_country,
       festival_province,
-      festival_file_content,
     } = req.body.festival_update_data;
 
     const festival_id = req.params.festival_id;
@@ -780,6 +797,42 @@ router.put(
           festival_id,
         };
 
+        // send a request to file url and store its content as buffer, then read each row using ExcelJs
+        const resp = request.get(business_file, async function (error, response, body) {
+          if (!error && response.statusCode == 200) {
+            var workbook = new Excel.Workbook();
+            const buffer = Buffer.from(body);
+            const readStream = new stream.PassThrough();
+            readStream.end(buffer);
+            const wb = await workbook.xlsx.read(readStream)
+            .then(function() {
+              const ws = workbook.getWorksheet("Sheet1");
+              // first row is not actual data, remove if the excel spread sheet formate changes
+              ws.spliceRows(1, 1);
+              ws.eachRow(async function(row) {
+                // save the value of cell #2,3,4,5 which are business name, business category, business locaion, business phone
+                // to database
+
+                const business_response =
+                await business_service.postBusinessThroughFile(
+                  row.getCell(2).value,
+                  row.getCell(3).value,
+                  row.getCell(4).value,
+                  row.getCell(5).value,
+                );
+  
+                const r = await business_service.addBusinessInFestival(
+                  Number(festival_details.festival_id),
+                  [business_response.details]
+                );
+              });
+          });
+
+          }
+       });
+
+
+
         const response = await festival_service.updateFestival(
           festival_details,
           images,
@@ -790,30 +843,10 @@ router.put(
           console.log(error);
         }
 
-            // fetch the content of the uploaded business xlsx file using its stored url
+          // fetch the content of the uploaded business xlsx file using its stored url
 
 
-       
-
-        if (festival_file_content && festival_file_content.length > 1) {
-          const business_arr = festival_file_content.split("|");
-          for (let i = 5; i < business_arr.length - 2; i = i + 5) {
-            const business_response =
-              await business_service.postBusinessThroughFile(
-                business_arr[i + 1],
-                business_arr[i + 2],
-                business_arr[i + 3],
-                business_arr[i + 4]
-              );
-
-              const r = await business_service.addBusinessInFestival(
-                Number(festival_details.festival_id),
-                [business_response.details]
-              );
-          }
-        }
-
-        return res.send(response);
+          return res.send(response);
       } catch (error) {
         console.log(error);
         res.send({
