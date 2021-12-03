@@ -54,6 +54,7 @@ const follow_interest_router = require("./routes/follow_interest/follow_interest
 const mypassports_router = require("./routes/mypassports/mypassports");
 const fav_passports_router = require("./routes/fav_passports/fav_passports");
 const festival_reviews_router = require("./routes/festival_reviews/festival_reviews");
+const featured_artists_router = require("./routes/featured_artists/featured_artists");
 
 // Set up CORS
 const app = express();
@@ -111,6 +112,7 @@ app.use(follow_interest_router);
 app.use(mypassports_router);
 app.use(fav_passports_router);
 app.use(festival_reviews_router);
+app.use(featured_artists_router);
 
 // Cron Job scripts
 cron.schedule("0 0 1-31 * *", cron_job_functions.deleteInactiveItems);
