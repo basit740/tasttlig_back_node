@@ -685,4 +685,20 @@ router.get("/mobile/inactive-businesses", async (req, res) => {
   }
 });
 
+// get all businesses in database
+router.get("/mobile/businesses", async (req, res) => {
+  try {
+    const getBusinesses = await mobile_services.getAllBusinessesGlobally();
+    return res.send({
+      success: true,
+      businesses: getBusinesses,
+    });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;

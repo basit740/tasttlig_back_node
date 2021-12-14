@@ -1004,6 +1004,44 @@ const getAllInactiveBusinesses = async () => {
     });
 };
 
+const getAllBusinessesGlobally = async () => {
+  return await db
+    .select(
+      "business_details.business_details_id",
+      "business_details.business_details_user_id",
+      "business_details.business_phone_number",
+      "business_details.business_name",
+      "business_details.business_category",
+      "business_details.business_type",
+      "business_details.business_location",
+      "business_details.city",
+      "business_details.state",
+      "business_details.country",
+      "business_details.zip_postal_code",
+      "business_details.business_street_number",
+      "business_details.business_street_name",
+      "business_details.business_verification_code",
+      "business_details.latitude",
+      "business_details.longitude",
+      db.raw(
+        "ARRAY_AGG(festival_businesses.business_promotion_usage) as promotion_usage"
+      )
+    )
+    .from("business_details")
+    .leftJoin(
+      "festival_businesses",
+      "business_details.business_details_id",
+      "festival_businesses.business_id"
+    )
+    .groupBy("business_details.business_details_id")
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
 module.exports = {
   userCanClaimService,
   findService,
@@ -1026,4 +1064,5 @@ module.exports = {
   getVendorUnsubscribedFestivalsById,
   getSponsorUnsubscribedFestivalsById,
   getAllInactiveBusinesses,
+  getAllBusinessesGlobally,
 };
