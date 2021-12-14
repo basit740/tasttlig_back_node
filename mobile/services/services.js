@@ -1,7 +1,7 @@
 "use strict";
 
 // Libraries
-const {db} = require("../../db/db-config");
+const { db } = require("../../db/db-config");
 const Mailer =
   require("../../services/email/nodemailer").nodemailer_transporter;
 const jwt = require("jsonwebtoken");
@@ -18,7 +18,7 @@ const moment = require("moment");
 
 const userCanClaimService = async (email, food_sample_id) => {
   try {
-    const {user} = await user_profile_service.getUserByEmailWithSubscription(
+    const { user } = await user_profile_service.getUserByEmailWithSubscription(
       email
     );
 
@@ -47,9 +47,9 @@ const userCanClaimService = async (email, food_sample_id) => {
       }
     }
 
-    return {success: true, canClaim: true};
+    return { success: true, canClaim: true };
   } catch (error) {
-    return {success: false, error: error.message};
+    return { success: false, error: error.message };
   }
 };
 
@@ -74,10 +74,10 @@ const findService = async (service_id) => {
     .having("services.service_id", "=", service_id)
     .first()
     .then((value) => {
-      return {success: true, details: value};
+      return { success: true, details: value };
     })
     .catch((reason) => {
-      return {success: false, details: reason};
+      return { success: false, details: reason };
     });
 };
 
@@ -105,7 +105,7 @@ const createNewServiceClaim = async (
           .where({
             service_id: db_food_sample_claim[0].claimed_service_id,
           })
-          .update({claimed_total_quantity: quantityAfterClaim});
+          .update({ claimed_total_quantity: quantityAfterClaim });
       }
 
       await sendClaimedServiceEmailToUser(
@@ -131,52 +131,52 @@ const createNewServiceClaim = async (
       const getFestivalEndDate = response.details[0].festival_end_date;
       console.log("subs", subs);
       subs &&
-      subs.user.map((sub) => {
-        if (
-          sub.subscription_code === "G_BASIC" ||
-          sub.subscription_code === "G_MSHIP1" ||
-          sub.subscription_code === "G_MSHIP2" ||
-          sub.subscription_code === "G_MSHIP3" ||
-          (sub.subscription_code === "G_AMB" &&
-            sub.suscribed_festivals == null)
-        ) {
-          /* let subscription_end_datetime = null;
+        subs.user.map((sub) => {
+          if (
+            sub.subscription_code === "G_BASIC" ||
+            sub.subscription_code === "G_MSHIP1" ||
+            sub.subscription_code === "G_MSHIP2" ||
+            sub.subscription_code === "G_MSHIP3" ||
+            (sub.subscription_code === "G_AMB" &&
+              sub.suscribed_festivals == null)
+          ) {
+            /* let subscription_end_datetime = null;
             subscription_end_datetime = new Date(
               new Date().setMonth(new Date().getMonth() + Number(1))
             );
             console.log("sub date", subscription_end_datetime); */
 
-          const updateSub = async (subId, subDate, festivalId) => {
-            await db("user_subscriptions")
-              .where({
-                user_subscription_id: subId,
-                user_subscription_status: "ACTIVE",
-              })
-              .update({
-                subscription_end_datetime: subDate,
-                suscribed_festivals: [festivalId],
-              })
-              .returning("*")
-              .catch((reason) => {
-                console.log(reason);
-                return {success: false, message: reason};
-              });
-          };
+            const updateSub = async (subId, subDate, festivalId) => {
+              await db("user_subscriptions")
+                .where({
+                  user_subscription_id: subId,
+                  user_subscription_status: "ACTIVE",
+                })
+                .update({
+                  subscription_end_datetime: subDate,
+                  suscribed_festivals: [festivalId],
+                })
+                .returning("*")
+                .catch((reason) => {
+                  console.log(reason);
+                  return { success: false, message: reason };
+                });
+            };
 
-          updateSub(
-            sub.user_subscription_id,
-            getFestivalEndDate,
-            product_claim_details.festival_id
-          );
-        }
-      });
+            updateSub(
+              sub.user_subscription_id,
+              getFestivalEndDate,
+              product_claim_details.festival_id
+            );
+          }
+        });
       //assign festival end-date and festival to guest subscription package after product claim ended
     });
 
-    return {success: true, details: "Success."};
+    return { success: true, details: "Success." };
   } catch (error) {
     console.log("error", error);
-    return {success: false, details: error.message};
+    return { success: false, details: error.message };
   }
 };
 
@@ -284,7 +284,7 @@ const getUserApplications = async (user_id) => {
       applications,
     };
   } catch (error) {
-    return {success: false, error: error.message};
+    return { success: false, error: error.message };
   }
 };
 
@@ -352,8 +352,8 @@ const getAttendedFestivalsForUser = async (
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-          "END rank",
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
           [keyword, keyword]
         )
       )
@@ -363,12 +363,12 @@ const getAttendedFestivalsForUser = async (
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-              "main.nationality, " +
-              "main.festival_name, " +
-              "main.festival_type, " +
-              "main.festival_price, " +
-              "main.festival_city, " +
-              "main.description)) as search_text"
+                "main.nationality, " +
+                "main.festival_name, " +
+                "main.festival_type, " +
+                "main.festival_price, " +
+                "main.festival_city, " +
+                "main.description)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -385,10 +385,10 @@ const getAttendedFestivalsForUser = async (
 
   return await query
     .then((value) => {
-      return {success: true, details: value};
+      return { success: true, details: value };
     })
     .catch((reason) => {
-      return {success: false, details: reason};
+      return { success: false, details: reason };
     });
 };
 
@@ -456,8 +456,8 @@ const getHostedFestivalsForUser = async (
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-          "END rank",
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
           [keyword, keyword]
         )
       )
@@ -467,12 +467,12 @@ const getHostedFestivalsForUser = async (
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-              "main.nationality, " +
-              "main.festival_name, " +
-              "main.festival_type, " +
-              "main.festival_price, " +
-              "main.festival_city, " +
-              "main.description)) as search_text"
+                "main.nationality, " +
+                "main.festival_name, " +
+                "main.festival_type, " +
+                "main.festival_price, " +
+                "main.festival_city, " +
+                "main.description)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -489,10 +489,10 @@ const getHostedFestivalsForUser = async (
 
   return await query
     .then((value) => {
-      return {success: true, details: value};
+      return { success: true, details: value };
     })
     .catch((reason) => {
-      return {success: false, details: reason};
+      return { success: false, details: reason };
     });
 };
 
@@ -517,7 +517,7 @@ const getBusinessServiceRevenue = async (business_details_id) => {
       revenue,
     };
   } catch (error) {
-    return {success: false, error: error.message};
+    return { success: false, error: error.message };
   }
 };
 
@@ -543,7 +543,7 @@ const getBusinessProductRevenue = async (business_details_id) => {
       revenue,
     };
   } catch (error) {
-    return {success: false, error: error.message};
+    return { success: false, error: error.message };
   }
 };
 
@@ -568,13 +568,13 @@ const getBusinessExperienceRevenue = async (business_details_id) => {
       revenue,
     };
   } catch (error) {
-    return {success: false, error: error.message};
+    return { success: false, error: error.message };
   }
 };
 
 const updateProduct = async (db_user, data) => {
   delete data.user_id;
-  const {product_images, ...product_update_data} = data;
+  const { product_images, ...product_update_data } = data;
   let updateData = {};
   updateData.festival_selected = data.festival_selected;
 
@@ -594,7 +594,7 @@ const updateProduct = async (db_user, data) => {
         })
         .update(updateData);
 
-      return {success: true};
+      return { success: true };
     } else {
       await db("products")
         .leftJoin(
@@ -621,16 +621,16 @@ const updateProduct = async (db_user, data) => {
         );
       }
 
-      return {success: true};
+      return { success: true };
     }
   } catch (error) {
-    return {success: false, details: error};
+    return { success: false, details: error };
   }
 };
 
 const updateService = async (db_user, data) => {
   delete data.user_id;
-  const {service_images, ...service_update_data} = data;
+  const { service_images, ...service_update_data } = data;
   let updateData = {};
   updateData.festivals_selected = data.festival_selected;
 
@@ -645,7 +645,7 @@ const updateService = async (db_user, data) => {
         })
         .update(updateData);
 
-      return {success: true};
+      return { success: true };
     } else {
       await db("services")
         .where((builder) => {
@@ -667,16 +667,16 @@ const updateService = async (db_user, data) => {
         );
       }
 
-      return {success: true};
+      return { success: true };
     }
   } catch (error) {
-    return {success: false, details: error};
+    return { success: false, details: error };
   }
 };
 
 const updateExperience = async (db_user, data) => {
   delete data.user_id;
-  const {experience_images, ...experience_update_data} = data;
+  const { experience_images, ...experience_update_data } = data;
   let updateData = {};
   updateData.festival_selected = data.festival_selected;
 
@@ -691,7 +691,7 @@ const updateExperience = async (db_user, data) => {
         })
         .update(updateData);
 
-      return {success: true};
+      return { success: true };
     } else {
       await db("experiences")
         .where((builder) => {
@@ -715,10 +715,10 @@ const updateExperience = async (db_user, data) => {
         );
       }
 
-      return {success: true};
+      return { success: true };
     }
   } catch (error) {
-    return {success: false, details: error};
+    return { success: false, details: error };
   }
 };
 
@@ -799,11 +799,11 @@ const getAllUserOrders = async (user_id) => {
 
   return await query
     .then((value) => {
-      return {success: true, details: value};
+      return { success: true, details: value };
     })
     .catch((reason) => {
       console.log(reason);
-      return {success: false, details: reason};
+      return { success: false, details: reason };
     });
 };
 
@@ -812,10 +812,10 @@ const getBusinessAwards = async (business_id) => {
     .select("awards.*")
     .where("business_id", business_id)
     .then((value) => {
-      return {success: true, data: value};
+      return { success: true, data: value };
     })
     .catch((reason) => {
-      return {success: false, data: reason};
+      return { success: false, data: reason };
     });
 };
 
@@ -825,7 +825,7 @@ const attendFestival = async (user_id, user_email, festival_id) => {
 
     await db.transaction(async (trx) => {
       const db_guest = await trx("festivals")
-        .where({festival_id: festival.details[0].festival_id})
+        .where({ festival_id: festival.details[0].festival_id })
         .update({
           festival_user_guest_id: trx.raw(
             "array_append(festival_user_guest_id, ?)",
@@ -835,7 +835,7 @@ const attendFestival = async (user_id, user_email, festival_id) => {
         .returning("*");
 
       if (!db_guest) {
-        return {success: false, details: "Inserting guest failed."};
+        return { success: false, details: "Inserting guest failed." };
       }
     });
 
@@ -857,9 +857,9 @@ const attendFestival = async (user_id, user_email, festival_id) => {
                 new Date(festival.details[0].festival_start_date)
                   .toISOString()
                   .split("T")[0] +
-                "T" +
-                festival.details[0].festival_start_time +
-                ".000Z"
+                  "T" +
+                  festival.details[0].festival_start_time +
+                  ".000Z"
               ).add(new Date().getTimezoneOffset(), "m")
             ).format("MMM Do YYYY"),
             time:
@@ -868,9 +868,9 @@ const attendFestival = async (user_id, user_email, festival_id) => {
                   new Date(festival.details[0].festival_start_date)
                     .toISOString()
                     .split("T")[0] +
-                  "T" +
-                  festival.details[0].festival_start_time +
-                  ".000Z"
+                    "T" +
+                    festival.details[0].festival_start_time +
+                    ".000Z"
                 ).add(new Date().getTimezoneOffset(), "m")
               ).format("hh:mm a") +
               " - " +
@@ -879,9 +879,9 @@ const attendFestival = async (user_id, user_email, festival_id) => {
                   new Date(festival.details[0].festival_start_date)
                     .toISOString()
                     .split("T")[0] +
-                  "T" +
-                  festival.details[0].festival_end_time +
-                  ".000Z"
+                    "T" +
+                    festival.details[0].festival_end_time +
+                    ".000Z"
                 ).add(new Date().getTimezoneOffset(), "m")
               ).format("hh:mm a"),
             quantity: 1,
@@ -890,10 +890,10 @@ const attendFestival = async (user_id, user_email, festival_id) => {
       },
     });
 
-    return {success: true, details: "Success"};
+    return { success: true, details: "Success" };
   } catch (error) {
     console.log(error);
-    return {success: false, details: error.message};
+    return { success: false, details: error.message };
   }
 };
 
@@ -913,13 +913,13 @@ const getVendorUserBySubscriptionId = async (id, suscribed_festivals) => {
     })
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
     .catch((error) => {
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 const getVendorUnsubscribedFestivalsById = async (id) => {
@@ -933,13 +933,13 @@ const getVendorUnsubscribedFestivalsById = async (id) => {
     })
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
     .catch((error) => {
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 
@@ -954,13 +954,53 @@ const getSponsorUnsubscribedFestivalsById = async (id) => {
     })
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
     .catch((error) => {
-      return {success: false, message: error};
+      return { success: false, message: error };
+    });
+};
+
+// Get all inactive businesses globally
+const getAllInactiveBusinesses = async () => {
+  return await db
+    .select(
+      "business_details.business_details_id",
+      "business_details.business_details_user_id",
+      "business_details.business_phone_number",
+      "business_details.business_name",
+      "business_details.business_category",
+      "business_details.business_type",
+      "business_details.business_location",
+      "business_details.city",
+      "business_details.state",
+      "business_details.country",
+      "business_details.zip_postal_code",
+      "business_details.business_street_number",
+      "business_details.business_street_name",
+      "business_details.business_verification_code",
+      "business_details.latitude",
+      "business_details.longitude",
+      db.raw(
+        "ARRAY_AGG(festival_businesses.business_promotion_usage) as promotion_usage"
+      )
+    )
+    .from("business_details")
+    .leftJoin(
+      "festival_businesses",
+      "business_details.business_details_id",
+      "festival_businesses.business_id"
+    )
+    .groupBy("business_details.business_details_id")
+    .where("business_details.business_details_user_id", null)
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
     });
 };
 
@@ -985,4 +1025,5 @@ module.exports = {
   getVendorUserBySubscriptionId,
   getVendorUnsubscribedFestivalsById,
   getSponsorUnsubscribedFestivalsById,
+  getAllInactiveBusinesses,
 };

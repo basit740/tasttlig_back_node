@@ -668,4 +668,21 @@ router.get(
   }
 );
 
+// get all inactive businesses
+router.get("/mobile/inactive-businesses", async (req, res) => {
+  try {
+    const getInactiveBusinesses =
+      await mobile_services.getAllInactiveBusinesses();
+    return res.send({
+      success: true,
+      businesses: getInactiveBusinesses,
+    });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;
