@@ -684,7 +684,7 @@ router.get("/mobile/inactive-businesses", async (req, res) => {
       businesses: getInactiveBusinesses,
     });
   } catch (error) {
-    res.send({
+    res.status(401).json({
       success: false,
       message: error.message,
     });
@@ -700,7 +700,7 @@ router.get("/mobile/businesses", async (req, res) => {
       businesses: getBusinesses,
     });
   } catch (error) {
-    res.send({
+    res.status(401).json({
       success: false,
       message: error.message,
     });
@@ -722,26 +722,57 @@ router.post(
       phone_number: req.body.phone_number,
       source: req.body.source,
     };
+    const verification_code = req.body.verification_code;
+
+    if (!business_id || !user_data || !verification_code) {
+      return res.status(403).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
 
     try {
-      let trx = db;
       await db.transaction(async (trx) => {
         const user_response = await userRegister(user_data, trx);
         const business_response = await getBusinessById(business_id, trx);
-        if (business_response.business_details_user_id) {
+
+        if (!user_response || !user_response.success) {
+          return res.status(403).json({
+            success: false,
+            message: "user already exists",
+          });
+        }
+
+        if (
+          !business_response.success ||
+          business_response.business.business_details_user_id
+        ) {
           // send a forbidden message
           res.send({
             success: false,
-            message: "Business already has an owner",
+            message: "Business does not exist, or it already has an owner",
+          });
+        }
+
+        if (
+          verification_code !==
+          business_response.business[0].business_verification_code
+        ) {
+          res.status(401).json({
+            success: false,
+            message: "Verification code does not match",
           });
         }
 
         // update the business details, set the user id
-        const result = await claimBusiness(user_response.user_id, business_id);
+        const result = await claimBusiness(
+          user_response.data.tasttlig_user_id,
+          business_response.business[0].business_details_id
+        );
 
         if (!result.success) {
           // send a forbidden message
-          res.send({
+          res.status(403).json({
             success: false,
             message: result.message,
           });
@@ -754,7 +785,7 @@ router.post(
         });
       });
     } catch (error) {
-      res.send({
+      res.status(400).json({
         success: false,
         message: error.message,
       });
