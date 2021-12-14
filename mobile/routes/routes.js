@@ -9,6 +9,12 @@ const mobile_services = require("../services/services");
 const { Stripe } = require("stripe");
 const { getFestivalList } = require("../../services/festival/festival");
 const { db } = require("../../db/db-config");
+const password_preprocessor = require("../../middleware/password_preprocessor");
+const {
+  userRegister,
+} = require("../../services/authentication/authenticate_user");
+const { getBusinessById } = require("../../services/passport/businessPassport");
+const { claimBusiness } = require("../../services/profile/user_profile");
 
 // Use Stripe secret key
 const keySecret = process.env.STRIPE_SECRET_KEY;
@@ -700,5 +706,60 @@ router.get("/mobile/businesses", async (req, res) => {
     });
   }
 });
+
+// register user, then assign business to user
+router.post(
+  "/mobile/activate-business",
+  password_preprocessor,
+  async (req, res) => {
+    const business_id = req.body.business_id;
+    // user signup data
+    const user_data = {
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      email: req.body.email,
+      password: req.body.password_digest,
+      phone_number: req.body.phone_number,
+      source: req.body.source,
+    };
+
+    try {
+      let trx = db;
+      await db.transaction(async (trx) => {
+        const user_response = await userRegister(user_data, trx);
+        const business_response = await getBusinessById(business_id, trx);
+        if (business_response.business_details_user_id) {
+          // send a forbidden message
+          res.send({
+            success: false,
+            message: "Business already has an owner",
+          });
+        }
+
+        // update the business details, set the user id
+        const result = await claimBusiness(user_response.user_id, business_id);
+
+        if (!result.success) {
+          // send a forbidden message
+          res.send({
+            success: false,
+            message: result.message,
+          });
+        }
+
+        // send a success message
+        res.send({
+          success: true,
+          message: "Business claimed successfully",
+        });
+      });
+    } catch (error) {
+      res.send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
 
 module.exports = router;

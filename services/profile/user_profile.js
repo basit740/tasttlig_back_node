@@ -1,10 +1,10 @@
 "use strict";
 
 // Libraries
-const {db} = require("../../db/db-config");
+const { db } = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
-const {formatPhone} = require("../../functions/functions");
+const { formatPhone } = require("../../functions/functions");
 const menu_items_service = require("../menu_items/menu_items");
 const assets_service = require("../assets/assets");
 const external_api_service = require("../../services/external_api_service");
@@ -55,13 +55,13 @@ const getUserById = async (id) => {
     .first()
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
     .catch((error) => {
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 
@@ -97,14 +97,14 @@ const getUserBySubscriptionId = async (id) => {
     .having("tasttlig_users.tasttlig_user_id", "=", id)
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
     .catch((error) => {
       console.log("error from here:", error);
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 // Get all subscriptions from user id
@@ -143,13 +143,13 @@ const getVendorUserBySubscriptionId = async (id) => {
     })
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
     .catch((error) => {
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 
@@ -170,13 +170,13 @@ const updateUserAccount = async (user) => {
       })
       .returning("*")
       .then((value) => {
-        return {success: true, details: value[0]};
+        return { success: true, details: value[0] };
       })
       .catch((reason) => {
-        return {success: false, details: reason};
+        return { success: false, details: reason };
       });
   } catch (error) {
-    return {success: false, message: error};
+    return { success: false, message: error };
   }
 };
 
@@ -189,13 +189,13 @@ const updateUserProfile = async (user) => {
       .update(user)
       .returning("*")
       .then((value) => {
-        return {success: true, details: value[0]};
+        return { success: true, details: value[0] };
       })
       .catch((reason) => {
-        return {success: false, details: reason};
+        return { success: false, details: reason };
       });
   } catch (error) {
-    return {success: false, message: error};
+    return { success: false, message: error };
   }
 };
 
@@ -208,13 +208,13 @@ const updateUserBusinessProfile = async (business) => {
       .update(business)
       .returning("*")
       .then((value) => {
-        return {success: true, details: value[0]};
+        return { success: true, details: value[0] };
       })
       .catch((reason) => {
-        return {success: false, details: reason};
+        return { success: false, details: reason };
       });
   } catch (error) {
-    return {success: false, message: error};
+    return { success: false, message: error };
   }
 };
 
@@ -241,13 +241,13 @@ const createUserInfo = async (user) => {
       })
       .returning("*")
       .then((value) => {
-        return {success: true, details: value[0]};
+        return { success: true, details: value[0] };
       })
       .catch((reason) => {
-        return {success: false, details: reason};
+        return { success: false, details: reason };
       });
   } catch (error) {
-    return {success: false, message: error};
+    return { success: false, message: error };
   }
 };
 
@@ -258,13 +258,13 @@ const getNationalities = async (keyword) => {
       .having("nationality", "LIKE", keyword + "%")
       .returning("*")
       .then((value) => {
-        return {success: true, details: value[0]};
+        return { success: true, details: value[0] };
       })
       .catch((reason) => {
-        return {success: false, details: reason};
+        return { success: false, details: reason };
       });
   } catch (error) {
-    return {success: false, message: error};
+    return { success: false, message: error };
   }
 };
 
@@ -300,7 +300,7 @@ const saveSponsorForUser = async (sponsorDto, sponsor_user_id) => {
       response = await trx("sponsors").insert(sponsorInfo).returning("*");
     }
 
-    return {success: true, details: response[0]};
+    return { success: true, details: response[0] };
   });
 };
 
@@ -344,7 +344,7 @@ const saveBusinessForUser = async (hostDto, user_id) => {
         .returning("*");
     }
     console.log(response);
-    return {success: true, details: response[0]};
+    return { success: true, details: response[0] };
   });
 };
 
@@ -364,7 +364,7 @@ const saveBusinessServices = async (db_user, services) => {
       .insert(businessServices)
       .returning("*");
 
-    return {success: true, details: response[0]};
+    return { success: true, details: response[0] };
   });
 };
 
@@ -486,7 +486,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
   // Get role code of new role to be added
   const new_role_code = await trx("roles")
     .select()
-    .where({role: role_name})
+    .where({ role: role_name })
     .then((value) => {
       return value[0].role_code;
     });
@@ -654,7 +654,7 @@ const saveMenuItems = async (db_user, menu_list, update = true) => {
       })
     );
 
-    return {success: true};
+    return { success: true };
   });
 };
 
@@ -688,7 +688,7 @@ const saveAssets = async (db_user, assets) => {
       })
     );
 
-    return {success: true};
+    return { success: true };
   });
 };
 
@@ -806,7 +806,7 @@ const sendApplierEmailForHosting = async (db_user) => {
 // Email to new user with login details and password reset link helper function
 const sendNewUserEmail = async (new_user) => {
   const email = new_user.email;
-  const {email_token} = await auth_server_service.authPasswordResetRequest(
+  const { email_token } = await auth_server_service.authPasswordResetRequest(
     email
   );
 
@@ -852,14 +852,14 @@ const upgradeUserResponse = async (token) => {
       .update("status", status)
       .returning("*")
       .catch((reason) => {
-        return {success: false, message: reason};
+        return { success: false, message: reason };
       });
 
     const document_user_id = db_document[0].user_id;
 
     return approveOrDeclineHostApplication(document_user_id, status);
   } catch (error) {
-    return {success: false, message: error};
+    return { success: false, message: error };
   }
 };
 
@@ -872,7 +872,7 @@ const handleAction = async (token) => {
 
     return approveOrDeclineHostApplication(user_id, status);
   } catch (error) {
-    return {success: false, message: error};
+    return { success: false, message: error };
   }
 };
 
@@ -885,7 +885,7 @@ const approveOrDeclineHostApplication = async (
     const db_user_row = await getUserById(userId);
 
     if (!db_user_row.success) {
-      return {success: false, message: db_user_row.message};
+      return { success: false, message: db_user_row.message };
     }
 
     const db_user = db_user_row.user;
@@ -904,7 +904,7 @@ const approveOrDeclineHostApplication = async (
       // Get role code of old role to be removed
       const old_role_code = await db("roles")
         .select()
-        .where({role: role_pending})
+        .where({ role: role_pending })
         .then((value) => {
           return value[0].role_code;
         });
@@ -921,7 +921,7 @@ const approveOrDeclineHostApplication = async (
       let new_role = role_pending.split("_")[0];
       const new_role_code = await db("roles")
         .select()
-        .where({role: new_role})
+        .where({ role: new_role })
         .then((value) => {
           return value[0].role_code;
         });
@@ -964,7 +964,7 @@ const approveOrDeclineHostApplication = async (
         .update("status", "APPROVED")
         .returning("*")
         .catch((reason) => {
-          return {success: false, message: reason};
+          return { success: false, message: reason };
         });
 
       // STEP 5: Update applications table status
@@ -974,7 +974,7 @@ const approveOrDeclineHostApplication = async (
         .update("status", "APPROVED")
         .returning("*")
         .catch((reason) => {
-          return {success: false, message: reason};
+          return { success: false, message: reason };
         });
 
       let role_name_in_title_case =
@@ -999,7 +999,7 @@ const approveOrDeclineHostApplication = async (
         },
       });
 
-      return {success: true, message: status};
+      return { success: true, message: status };
     } else {
       // Status is failed
       // STEP 1: remove the RESTAURANT_PENDING role
@@ -1028,7 +1028,7 @@ const approveOrDeclineHostApplication = async (
         .update("status", "REJECT")
         .returning("*")
         .catch((reason) => {
-          return {success: false, message: reason};
+          return { success: false, message: reason };
         });
 
       // STEP 3: Update applications table status
@@ -1038,7 +1038,7 @@ const approveOrDeclineHostApplication = async (
         .update("status", "REJECT")
         .returning("*")
         .catch((reason) => {
-          return {success: false, message: reason};
+          return { success: false, message: reason };
         });
 
       let role_name_in_title_case =
@@ -1058,10 +1058,10 @@ const approveOrDeclineHostApplication = async (
         },
       });
 
-      return {success: true, message: status};
+      return { success: true, message: status };
     }
   } catch (error) {
-    return {success: false, message: error};
+    return { success: false, message: error };
   }
 };
 
@@ -1077,7 +1077,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
     const db_user_row = await getUserById(userId);
 
     if (!db_user_row.success) {
-      return {success: false, message: db_user_row.message};
+      return { success: false, message: db_user_row.message };
     }
 
     const db_user = db_user_row.user;
@@ -1095,7 +1095,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
         .update("status", "APPROVED")
         .returning("*")
         .catch((reason) => {
-          return {success: false, message: reason};
+          return { success: false, message: reason };
         });
 
       // insert the user role as
@@ -1125,7 +1125,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
         },
       });
 
-      return {success: true, message: status};
+      return { success: true, message: status };
     } else {
       // Status is failed
 
@@ -1136,7 +1136,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
         .update("status", "REJECT")
         .returning("*")
         .catch((reason) => {
-          return {success: false, message: reason};
+          return { success: false, message: reason };
         });
 
       //mark the status to rejected if it has been rejected.
@@ -1148,7 +1148,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
         .update("user_subscription_status", "REJECTED")
         .returning("*")
         .catch((reason) => {
-          return {success: false, message: reason};
+          return { success: false, message: reason };
         });
 
       // STEP 3: Update applications table status
@@ -1158,7 +1158,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
         .update("status", "REJECT")
         .returning("*")
         .catch((reason) => {
-          return {success: false, message: reason};
+          return { success: false, message: reason };
         });
 
       // STEP 4: Notify user their application is rejected
@@ -1174,17 +1174,21 @@ const approveOrDeclineHostAmbassadorApplication = async (
         },
       });
 
-      return {success: true, message: status};
+      return { success: true, message: status };
     }
   } catch (error) {
-    return {success: false, message: error};
+    return { success: false, message: error };
   }
 };
 
 // Get user by email helper function
 const getUserByEmail = async (email) => {
   return await db
-    .select("tasttlig_users.*", "business_details.*", db.raw("ARRAY_AGG(roles.role) as role"))
+    .select(
+      "tasttlig_users.*",
+      "business_details.*",
+      db.raw("ARRAY_AGG(roles.role) as role")
+    )
     .from("tasttlig_users")
     .leftJoin(
       "user_role_lookup",
@@ -1203,13 +1207,13 @@ const getUserByEmail = async (email) => {
     .first()
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
     .catch((error) => {
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 
@@ -1239,13 +1243,13 @@ const getUserByEmailWithSubscription = async (email) => {
     .first()
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
     .catch((error) => {
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 
@@ -1265,13 +1269,13 @@ const getUserByPassportId = async (passport_id) => {
     .first()
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
     .catch((error) => {
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 
@@ -1292,13 +1296,13 @@ const getUserByPassportIdOrEmail = async (passport_id_or_email) => {
     .first()
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
     .catch((error) => {
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 
@@ -1344,7 +1348,7 @@ const saveHostApplication = async (hostDto, user, trx) => {
   // }
   await sendApplierEmailForHosting(dbUser);
 
-  return {success: true};
+  return { success: true };
 };
 
 //create passport preferences helper function
@@ -1363,13 +1367,13 @@ const createPreferences = async (preference_details, user_id) => {
       })
       .returning("*")
       .then((value) => {
-        return {success: true, details: value[0]};
+        return { success: true, details: value[0] };
       })
       .catch((reason) => {
-        return {success: false, details: reason};
+        return { success: false, details: reason };
       });
   } catch (error) {
-    return {success: false, message: error};
+    return { success: false, message: error };
   }
 };
 
@@ -1440,13 +1444,13 @@ const getBusinessDetailsByUserId = async (userId) => {
     .first()
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No business for user found."};
+        return { success: false, message: "No business for user found." };
       }
 
-      return {success: true, business_details_all: value};
+      return { success: true, business_details_all: value };
     })
     .catch((error) => {
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 
@@ -1465,13 +1469,13 @@ const getBusinessDetailsById = async (businessId) => {
     .first()
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No business found."};
+        return { success: false, message: "No business found." };
       }
 
-      return {success: true, business_details_all: value};
+      return { success: true, business_details_all: value };
     })
     .catch((error) => {
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 
@@ -1505,14 +1509,14 @@ const getSubscriptionsByUserId = async (userId) => {
     })
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
     .catch((error) => {
       console.log("subscr", error);
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 
@@ -1530,20 +1534,20 @@ const upgradeToGuestAmbassador = async (guest_details) => {
         instagram_link: guest_details.instagram_link,
         twitter_link: guest_details.twitter_link,
         ambassador_intent_description:
-        guest_details.ambassador_intent_description,
+          guest_details.ambassador_intent_description,
         is_influencer: guest_details.is_influencer,
       };
       const update = await updateUserProfile(data);
 
       if (!update) {
-        return {success: false, details: "Inserting new preference failed."};
+        return { success: false, details: "Inserting new preference failed." };
       }
     });
     console.log("hello");
-    return {success: true, details: "Success."};
+    return { success: true, details: "Success." };
   } catch (error) {
     console.log(error);
-    return {success: false, details: error.message};
+    return { success: false, details: error.message };
   }
 };
 
@@ -1557,7 +1561,7 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
     const db_user_row = await getUserById(userId);
 
     if (!db_user_row.success) {
-      return {success: false, message: db_user_row.message};
+      return { success: false, message: db_user_row.message };
     }
 
     const db_user = db_user_row.user;
@@ -1572,13 +1576,13 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
         .first()
         .then((value) => {
           if (!value) {
-            return {success: false, message: "No plan found."};
+            return { success: false, message: "No plan found." };
           }
 
-          return {success: true, item: value};
+          return { success: true, item: value };
         })
         .catch((error) => {
-          return {success: false, message: error};
+          return { success: false, message: error };
         });
       if (subDetails.success) {
         let subscription_end_datetime = null;
@@ -1610,7 +1614,7 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
           .update("status", status)
           .returning("*")
           .catch((reason) => {
-            return {success: false, message: reason};
+            return { success: false, message: reason };
           });
 
         // Email to user on submitting the request to upgrade
@@ -1644,7 +1648,7 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
         .update("reason", declineReason)
         .returning("*")
         .catch((reason) => {
-          return {success: false, message: reason};
+          return { success: false, message: reason };
         });
 
       // Email to user on submitting the request to upgrade
@@ -1660,9 +1664,9 @@ const approveOrDeclineGuestAmbassadorSubscription = async (
       });
     }
 
-    return {success: true, message: status};
+    return { success: true, message: status };
   } catch (error) {
-    return {success: false, message: error};
+    return { success: false, message: error };
   }
 };
 
@@ -1675,7 +1679,7 @@ const manageUserSubscriptionValidity = async (subId) => {
     .update("user_subscription_status", "INACTIVE")
     .returning("*")
     .catch((reason) => {
-      return {success: false, message: reason};
+      return { success: false, message: reason };
     });
 };
 
@@ -1689,14 +1693,14 @@ const getAllSubscriptionsByUserId = async (userId) => {
     })
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
     .catch((error) => {
       console.log("subscr", error);
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 
@@ -1710,14 +1714,14 @@ const getValidSubscriptionsByUserId = async (userId) => {
     })
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, user: value};
+      return { success: true, user: value };
     })
     .catch((error) => {
       console.log("subscr", error);
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 
@@ -1735,11 +1739,11 @@ const addNeighbourhood = async (data, userId) => {
         neighbourhood_special_features: data.user_neighbourhood_special_feature,
         status: "Pending",
         neighbourhood_number_of_businesses:
-        data.user_neighbourhood_number_of_businesses,
+          data.user_neighbourhood_number_of_businesses,
       })
       .returning("*")
       .catch((error) => {
-        return {success: false, message: error};
+        return { success: false, message: error };
       });
 
     await db("applications")
@@ -1753,7 +1757,7 @@ const addNeighbourhood = async (data, userId) => {
       })
       .returning("*")
       .catch((error) => {
-        return {success: false, message: error};
+        return { success: false, message: error };
       });
 
     await db("user_role_lookup")
@@ -1763,10 +1767,10 @@ const addNeighbourhood = async (data, userId) => {
       })
       .returning("*")
       .catch((error) => {
-        return {success: false, message: error};
+        return { success: false, message: error };
       });
   });
-  return {success: true, details: "Success."};
+  return { success: true, details: "Success." };
 };
 
 const getNeighbourhoodByPostalCode = async (postcode) => {
@@ -1778,19 +1782,20 @@ const getNeighbourhoodByPostalCode = async (postcode) => {
     })
     .then((value) => {
       if (!value) {
-        return {success: false, message: "No user found."};
+        return { success: false, message: "No user found." };
       }
 
-      return {success: true, neighbourhood: value};
+      return { success: true, neighbourhood: value };
     })
     .catch((error) => {
       console.log("subscr", error);
-      return {success: false, message: error};
+      return { success: false, message: error };
     });
 };
 
 const claimBusiness = async (userId, businessId) => {
   await db.transaction(async (trx) => {
+    /* this query doesn't compile
     const response = await trx("tasttlig_users")
       .where({tasttlig_user_id: userId})
       .update({
@@ -1803,47 +1808,46 @@ const claimBusiness = async (userId, businessId) => {
     if (!response) {
       return {success: false, details: "Inserting business ID failed."};
     }
+    */
 
-    console.log("userid: " + userId + " businessid: " + businessId)
+    console.log("userid: " + userId + " businessid: " + businessId);
 
-
-    await db("business_details")
-      .where({business_details_id: businessId})
+    await trx("business_details")
+      .where({ business_details_id: businessId })
       .update({
-        business_details_user_id: userId
+        business_details_user_id: userId,
       })
       .catch((error) => {
-        return {success: false, details: error};
+        return { success: false, details: error };
       });
 
-      // get user info
-      const db_user_row = await getUserById(userId);
+    // get user info
+    const db_user_row = await getUserById(userId);
 
-      if (!db_user_row.success) {
-        return {success: false, message: db_user_row.message};
-      }
-      const db_user = db_user_row.user;
+    if (!db_user_row.success) {
+      return { success: false, message: db_user_row.message };
+    }
+    const db_user = db_user_row.user;
 
-      // insert business member role if user doesn't have it
-      if (!db_user.role.includes("BUSINESS_MEMBER")) {
-        // Get role code of new role to be added
-        const new_role_code = await trx("roles")
-          .select()
-          .where({ role: "BUSINESS_MEMBER" })
-          .then((value) => {
-            return value[0].role_code;
-          });
-
-        // Insert new role for this user
-        await trx("user_role_lookup").insert({
-          user_id: db_user.tasttlig_user_id,
-          role_code: new_role_code,
+    // insert business member role if user doesn't have it
+    if (!db_user.role.includes("BUSINESS_MEMBER")) {
+      // Get role code of new role to be added
+      const new_role_code = await trx("roles")
+        .select()
+        .where({ role: "BUSINESS_MEMBER" })
+        .then((value) => {
+          return value[0].role_code;
         });
-      }
-  })
-  return {success: true, details: "Success."};
-};
 
+      // Insert new role for this user
+      await trx("user_role_lookup").insert({
+        user_id: db_user.tasttlig_user_id,
+        role_code: new_role_code,
+      });
+    }
+  });
+  return { success: true, details: "Success." };
+};
 
 module.exports = {
   getUserById,

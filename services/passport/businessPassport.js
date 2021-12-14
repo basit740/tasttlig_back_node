@@ -58,9 +58,12 @@ const getBusinessApplications = async () => {
   }
 };
 
-const getBusinessById = async (business_id) => {
+const getBusinessById = async (business_id, trx = null) => {
+  if (trx === null) {
+    trx = db;
+  }
   try {
-    const business = await db
+    const business = await trx
       .select(
         "business_details_id",
         "business_details_user_id",
@@ -140,44 +143,43 @@ const getBusinessApplicantDetails = async (userId) => {
 
 const postBusinessPassportDetails = async (data, trx) => {
   try {
+    let applications = [];
+    let role_name = "";
+    const business_details = {
+      business_details_user_id: data["user_id"],
+      business_name: data["user_business_name"],
+      business_street_number: data["user_business_street_number"],
+      business_street_name: data["user_business_street_name"],
+      business_unit: data["user_business_unit"],
+      country: data["user_business_country"],
+      city: data["user_business_city"],
+      state: data["user_business_province"],
+      zip_postal_code: data["user_business_postal_code"],
+      // business_registered: data["user_business_registered"],
+      retail_business: data["user_business_retail"],
+      // business_registered_location: data["user_business_registered_location"],
+      business_type: data["user_business_type"],
+      food_business_type: data["user_business_food_type"],
+      // business_passport_id: generateRandomString("6"),
+      business_details_registration_date: data["start_date"],
+      business_member_status: data["member_status"],
+      business_phone_number: data["user_business_phone_number"],
+      // CRA_business_number: data["user_business_number"],
+      business_preference: data["user_business_preference"],
+    };
+    var business_details_id = await trx("business_details")
+      .insert(business_details)
+      .returning("business_details_id");
 
-      let applications = [];
-      let role_name = "";
-      const business_details = {
-        business_details_user_id: data["user_id"],
-        business_name: data["user_business_name"],
-        business_street_number: data["user_business_street_number"],
-        business_street_name: data["user_business_street_name"],
-        business_unit: data["user_business_unit"],
-        country: data["user_business_country"],
-        city: data["user_business_city"],
-        state: data["user_business_province"],
-        zip_postal_code: data["user_business_postal_code"],
-        // business_registered: data["user_business_registered"],
-        retail_business: data["user_business_retail"],
-        // business_registered_location: data["user_business_registered_location"],
-        business_type: data["user_business_type"],
-        food_business_type: data["user_business_food_type"],
-        // business_passport_id: generateRandomString("6"),
-        business_details_registration_date: data["start_date"],
-        business_member_status: data["member_status"],
-        business_phone_number: data["user_business_phone_number"],
-        // CRA_business_number: data["user_business_number"],
-        business_preference: data["user_business_preference"],
-      };
-      var business_details_id = await trx("business_details")
-        .insert(business_details)
-        .returning("business_details_id");
+    const business_details_images = {
+      business_details_logo: data["user_business_logo"],
+      food_handling_certificate: data["user_business_food_handling"],
+      business_details_id: business_details_id[0],
+    };
 
-      const business_details_images = {
-        business_details_logo: data["user_business_logo"],
-        food_handling_certificate: data["user_business_food_handling"],
-        business_details_id: business_details_id[0],
-      };
+    await trx("business_details_images").insert(business_details_images);
 
-      await trx("business_details_images").insert(business_details_images);
-
-      return { success: true, business_id: business_details_id[0] };
+    return { success: true, business_id: business_details_id[0] };
   } catch (error) {
     if (error && error.detail && error.detail.includes("already exists")) {
       return {
@@ -314,37 +316,34 @@ const postBusinessThroughFile = async (
   }
 };
 
-
 // add business in festival
 const addBusinessInFestival = async (festival_id, business_id) => {
   if (!business_id) {
     return { success: false, details: "Inserting business failed." };
   }
   let _business_id;
-  if (Array.isArray(business_id)){
-    while (Array.isArray(business_id)){
+  if (Array.isArray(business_id)) {
+    while (Array.isArray(business_id)) {
       business_id = business_id[0];
     }
-    _business_id = business_id; 
-  }
-  else {
-    _business_id = business_id; 
+    _business_id = business_id;
+  } else {
+    _business_id = business_id;
   }
   console.log(_business_id);
   if (!_business_id) {
     return { success: false, details: "Inserting business failed." };
   }
 
-    // check if entry with this festival_id and business_id already exists, skip if it does
+  // check if entry with this festival_id and business_id already exists, skip if it does
   const festivalBusinesses = await db("festival_businesses")
     .select("*")
     .where({ business_id: _business_id })
     .andWhere({ festival_id: festival_id });
 
-  if (festivalBusinesses && festivalBusinesses.length > 0 ) 
-    {
-       return { success: true, details: "Success." };
-    }
+  if (festivalBusinesses && festivalBusinesses.length > 0) {
+    return { success: true, details: "Success." };
+  }
 
   try {
     await db.transaction(async (trx) => {
@@ -352,7 +351,7 @@ const addBusinessInFestival = async (festival_id, business_id) => {
         .insert({
           festival_id: festival_id,
           business_id: _business_id,
-          business_promotion_usage: 3
+          business_promotion_usage: 3,
         })
         .returning("*");
 
@@ -365,7 +364,6 @@ const addBusinessInFestival = async (festival_id, business_id) => {
     return { success: false, details: error.message };
   }
 };
-
 
 const approveOrDeclineBusinessMemberApplication = async (
   userId,
@@ -538,7 +536,9 @@ const getAllBusinesses = async (festival_id, keyword) => {
       "business_details.business_verification_code",
       "business_details.latitude",
       "business_details.longitude",
-      db.raw("ARRAY_AGG(festival_businesses.business_promotion_usage) as promotion_usage")
+      db.raw(
+        "ARRAY_AGG(festival_businesses.business_promotion_usage) as promotion_usage"
+      )
     )
     .from("business_details")
     .leftJoin(
@@ -549,9 +549,6 @@ const getAllBusinesses = async (festival_id, keyword) => {
     .where("festival_businesses.festival_id", "=", Number(festival_id))
     .groupBy("business_details.business_details_id");
 
-    
-
-   
   if (keyword) {
     query = db
       .select(
@@ -569,10 +566,10 @@ const getAllBusinesses = async (festival_id, keyword) => {
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-              "main.business_category, " +
-              "main.business_phone_number, " +
-              "main.business_location, " +
-              "main.business_name)) as search_text"
+                "main.business_category, " +
+                "main.business_phone_number, " +
+                "main.business_location, " +
+                "main.business_name)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -580,7 +577,6 @@ const getAllBusinesses = async (festival_id, keyword) => {
       )
       .orderBy("rank", "desc");
   }
-
 
   return await query
     .then((value) => {
@@ -590,7 +586,6 @@ const getAllBusinesses = async (festival_id, keyword) => {
       return { success: false, details: reason };
     });
 };
-
 
 // Get all businesses in a festival helper function
 const getUserAllBusinesses = async (user_id) => {
@@ -629,7 +624,6 @@ const updateBusinessPromoUsed = async (business_id, festival_id) => {
         .andWhere({ business_id: business_id })
         .decrement("business_promotion_usage", 1)
         .returning("*");
-
     });
     return { success: true, details: "Success." };
   } catch (error) {
@@ -646,16 +640,13 @@ const updateBusinessPromoPayment = async (business_id, festival_id) => {
         .andWhere({ business_id: business_id })
         .increment("business_promotion_usage", 1)
         .returning("*");
-
     });
-    
+
     return { success: true, details: "Success." };
   } catch (error) {
     return { success: false, details: error.message };
   }
 };
-
-
 
 module.exports = {
   postBusinessPassportDetails,
@@ -668,5 +659,5 @@ module.exports = {
   getAllBusinesses,
   getUserAllBusinesses,
   updateBusinessPromoUsed,
-  updateBusinessPromoPayment
+  updateBusinessPromoPayment,
 };
