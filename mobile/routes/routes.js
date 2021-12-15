@@ -712,7 +712,7 @@ router.post(
   "/mobile/activate-business",
   password_preprocessor,
   async (req, res) => {
-    const business_id = req.body.business_id;
+    // const business_id = req.body.business_id;
     // user signup data
     const user_data = {
       first_name: req.body.first_name,
@@ -724,7 +724,7 @@ router.post(
     };
     const verification_code = req.body.verification_code;
 
-    if (!business_id || !user_data || !verification_code) {
+    if (!user_data || !verification_code) {
       return res.status(403).json({
         success: false,
         message: "Missing required fields",
@@ -734,7 +734,10 @@ router.post(
     try {
       await db.transaction(async (trx) => {
         const user_response = await userRegister(user_data, trx);
-        const business_response = await getBusinessById(business_id, trx);
+        // const business_response = await getBusinessById(business_id, trx);
+        const business = await trx("business_details")
+          .where({ business_verification_code: verification_code })
+          .first();
 
         if (!user_response || !user_response.success) {
           return res.status(403).json({
@@ -743,10 +746,7 @@ router.post(
           });
         }
 
-        if (
-          !business_response.success ||
-          business_response.business.business_details_user_id
-        ) {
+        if (!business || business.business_details_user_id) {
           // send a forbidden message
           res.send({
             success: false,
@@ -754,20 +754,10 @@ router.post(
           });
         }
 
-        if (
-          verification_code !==
-          business_response.business[0].business_verification_code
-        ) {
-          res.status(401).json({
-            success: false,
-            message: "Verification code does not match",
-          });
-        }
-
         // update the business details, set the user id
         const result = await claimBusiness(
           user_response.data.tasttlig_user_id,
-          business_response.business[0].business_details_id
+          business.business_details_id
         );
 
         if (!result.success) {

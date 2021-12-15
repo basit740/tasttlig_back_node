@@ -209,9 +209,16 @@ const postBusinessThroughFile = async (
   if (duplication_id) {
     return { success: false, details: duplication_id.business_details_id };
   } else {
-    const str1 = "BV";
-    const str2 = generateRandomString("6");
-    const verificationCode = str1.concat(str2);
+    let verificationCode = `BV${generateRandomString("6")}`;
+    while (
+      await db
+        .select("*")
+        .from("business_details")
+        .where("business_verification_code", "=", verificationCode)
+        .first()
+    ) {
+      verificationCode = `BV${generateRandomString("6")}`;
+    }
     try {
       return await db.transaction(async (trx) => {
         let myString = business_location;
