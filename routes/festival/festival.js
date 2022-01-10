@@ -677,14 +677,14 @@ router.post(
                 ws.spliceRows(1, 1);
                 ws.eachRow(async function(row, rowNumber) {
                   console.log(rowNumber);
-                  // save the value of cell #2,3,4,5 which are business name, business category, business locaion, business phone
+                  // save the value of cell #1,2,3,4 which are business name, business category, business locaion, business phone
                   // to database
                   const business_response =
                   await business_service.postBusinessThroughFile(
+                    row.getCell(1).value,
                     row.getCell(2).value,
                     row.getCell(3).value,
                     row.getCell(4).value,
-                    row.getCell(5).value,
                   );
                   
                   const r = await business_service.addBusinessInFestival(
@@ -723,7 +723,7 @@ router.put(
   token_service.authenticateToken,
 
   async (req, res) => {
-    console.log('/festival/update/', req.body);
+    console.log('req.body of festival/update: ', req.body);
     const {
       images,
       business_file,
@@ -742,7 +742,6 @@ router.put(
       festival_country,
       festival_province,
     } = req.body.festival_update_data;
-
     const festival_id = req.params.festival_id;
     try {
       if (
@@ -796,7 +795,7 @@ router.put(
           //sponsored,
           festival_id,
         };
-
+        
         // send a request to file url and store its content as buffer, then read each row using ExcelJs
         const resp = request.get(business_file, async function (error, response, body) {
           if (!error && response.statusCode == 200) {
@@ -810,15 +809,15 @@ router.put(
               // first row is not actual data, remove if the excel spread sheet formate changes
               ws.spliceRows(1, 1);
               ws.eachRow(async function(row) {
-                // save the value of cell #2,3,4,5 which are business name, business category, business locaion, business phone
+                // save the value of cell #1,2,3,4 which are business name, business category, business locaion, business phone
                 // to database
 
                 const business_response =
                 await business_service.postBusinessThroughFile(
+                  row.getCell(1).value,
                   row.getCell(2).value,
                   row.getCell(3).value,
                   row.getCell(4).value,
-                  row.getCell(5).value,
                 );
   
                 const r = await business_service.addBusinessInFestival(
