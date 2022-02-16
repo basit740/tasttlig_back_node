@@ -17,24 +17,7 @@ const jwt = require("jsonwebtoken");
 
 router.get("/festival/landing-page", async (req, res) => {
   try {
-    const current_page = req.query.page || 1;
-    const keyword = req.query.keyword || "";
-
-    const filters = {
-      nationalities: req.query.nationalities,
-      startDate: req.query.startDate,
-      startTime: new Date(req.query.startTime).getTime(),
-      cityLocation: req.query.cityLocation,
-      radius: req.query.radius,
-      latitude: req.query.latitude,
-      longitude: req.query.longitude,
-    };
-
-    const response = await festival_service.getThreeFestivals(
-      current_page,
-      keyword,
-      filters
-    );
+    const response = await festival_service.getLandingPageFestival();
 
     return res.send(response);
   } catch (error) {

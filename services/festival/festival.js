@@ -1354,6 +1354,34 @@ const validatePromoCode = async (festival_id, promo_code) => {
   return festival_promo_code === promo_code;
 };
 
+// get the festivals that will be featured on landing page
+const getLandingPageFestival = async () => {
+  return await db
+    .select(
+      "festivals.*",
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+    )
+    .from("festivals")
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    )
+    .where("festivals.festival_id", "=", 15) 
+    .orWhere("festivals.festival_id", "=", 28)
+    .groupBy("festivals.festival_id")
+  
+    .then((value) => {
+      value.map((festival) => {
+        delete festival.promo_code;
+      });
+      return { success: true, festival_list: value };
+    })
+    .catch((reason) => {
+      return { success: false, data: reason };
+    });
+};
+
 
 
 
@@ -1383,4 +1411,5 @@ module.exports = {
   registerUserToFestivals,
   getFestivalDetailsBySlug,
   validatePromoCode,
+  getLandingPageFestival
 };
