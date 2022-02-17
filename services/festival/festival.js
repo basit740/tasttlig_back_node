@@ -1367,8 +1367,7 @@ const getLandingPageFestival = async () => {
       "festivals.festival_id",
       "festival_images.festival_id"
     )
-    .where("festivals.festival_id", "=", 15) 
-    .orWhere("festivals.festival_id", "=", 28)
+    .where("festivals.festival_landing_page_featured", "=", true) 
     .groupBy("festivals.festival_id")
   
     .then((value) => {
