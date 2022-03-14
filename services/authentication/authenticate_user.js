@@ -133,8 +133,7 @@ const userRegister = async (new_user, passport_area, sendEmail = true, trx = nul
             if (passport_area === 'pape_village')
             await Mailer.sendMail({
               from: process.env.SES_DEFAULT_FROM,
-              //to: new_user.email,
-              to: "frankyang1207@gmail.com",
+              to: new_user.email,
               bcc: ADMIN_EMAIL,
               subject: "[Tasttlig] Welcome to Tasttlig!",
               template: "attend_festival",
@@ -152,8 +151,7 @@ const userRegister = async (new_user, passport_area, sendEmail = true, trx = nul
             else if (passport_area === 'st_james_town')
             await Mailer.sendMail({
               from: process.env.SES_DEFAULT_FROM,
-              //to: new_user.email,
-              to: "frankyang1207@gmail.com",
+              to: new_user.email,
               bcc: ADMIN_EMAIL,
               subject: "[Tasttlig] Welcome to Tasttlig!",
               template: "attend_festival",
