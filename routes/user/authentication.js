@@ -40,6 +40,7 @@ authRouter.post(
       password_digest,
       phone_number,
       passport_type,
+      passport_area,
       source,
     } = req.body;
 
@@ -61,7 +62,7 @@ authRouter.post(
         source,
       };
 
-      const response = await authenticate_user_service.userRegister(user);
+      const response = await authenticate_user_service.userRegister(user, passport_area);
 
       if (response.success) {
         res.status(200).send(response);
@@ -473,6 +474,7 @@ authRouter.post(
       password_digest,
       phone_number,
       passport_type,
+      passport_area,
       source,
       user_business_logo,
       user_business_name,
@@ -544,7 +546,7 @@ authRouter.post(
       };
 
       return await db.transaction(async trx => {
-        const user_response = await authenticate_user_service.userRegister(user, true, trx);
+        const user_response = await authenticate_user_service.userRegister(user, passport_area, true, trx);
         businessInfo.user_id = user_response.data.tasttlig_user_id;
         const business_response = await business_service.postBusinessPassportDetails(businessInfo, trx);
         const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);

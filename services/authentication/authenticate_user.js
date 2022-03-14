@@ -5,6 +5,7 @@ const {db} = require("../../db/db-config");
 const jwt = require("jsonwebtoken");
 const {raw} = require("objection");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
+const path = require('path');
 const {generateRandomString} = require("../../functions/functions");
 const auth_server_service = require("../../services/authentication/auth_server_service");
 const User = require("../../models/User");
@@ -12,16 +13,16 @@ const Access = require("../../models/AppAccess");
 const bcrypt = require("bcrypt");
 const business_service = require("../../services/passport/businessPassport");
 const user_profile_service = require("../../services/profile/user_profile");
+const { getMaxListeners } = require("process");
 
 // Environment variables
 const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
 // Save user register information to Tasttlig users table helper function
-// Save user register information to Tasttlig users table helper function
-const userRegister = async (new_user, sendEmail = true, trx = null) => {
+const userRegister = async (new_user, passport_area, sendEmail = true, trx = null) => {
   try {
-
+    
     if (trx === null) {
       trx = db;
     }
@@ -36,8 +37,6 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
       phone_number: new_user.phone_number,
       source: new_user.source,
       status: "ACTIVE",
-      // passport_id: user.passport_id,
-      // passport_type: new_user.passport_type,
       created_at_datetime: new Date(),
       updated_at_datetime: new Date(),
     };
@@ -129,20 +128,45 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
           {
             expiresIn: "28d",
           },
-          async (err, emailToken) => {
-            const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
-            console.log("urlVerifyEmail", urlVerifyEmail);
+          async () => {
 
+            if (passport_area === 'pape_village')
             await Mailer.sendMail({
               from: process.env.SES_DEFAULT_FROM,
-              to: new_user.email,
+              //to: new_user.email,
+              to: "frankyang1207@gmail.com",
               bcc: ADMIN_EMAIL,
               subject: "[Tasttlig] Welcome to Tasttlig!",
-              template: "signup",
+              template: "attend_festival",
               context: {
-                passport_id: new_db_user._single.insert.passport_id,
-                urlVerifyEmail,
+                first_name: new_db_user._single.insert.first_name,
+                last_name: new_db_user._single.insert.last_name,
               },
+              attachments: [
+                {
+                    filename: 'PapeVillagePassport.pdf',   
+                    path: path.join(__dirname, '../../public/attachments/Passport_Pape_Village.pdf'),                                 
+                    contentType: 'application/pdf'
+                }]
+            });
+            else if (passport_area === 'st_james_town')
+            await Mailer.sendMail({
+              from: process.env.SES_DEFAULT_FROM,
+              //to: new_user.email,
+              to: "frankyang1207@gmail.com",
+              bcc: ADMIN_EMAIL,
+              subject: "[Tasttlig] Welcome to Tasttlig!",
+              template: "attend_festival",
+              context: {
+                first_name: new_db_user._single.insert.first_name,
+                last_name: new_db_user._single.insert.last_name,
+              },
+              attachments: [
+                {
+                    filename: 'StJamesTownPassport.pdf',   
+                    path: path.join(__dirname, '../../public/attachments/Passport_StJames_Town.pdf'),                                 
+                    contentType: 'application/pdf'
+                }]
             });
           }
         );
