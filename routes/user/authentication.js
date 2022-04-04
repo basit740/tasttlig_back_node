@@ -11,6 +11,7 @@ const authenticate_user_service = require("../../services/authentication/authent
 const user_profile_service = require("../../services/profile/user_profile");
 const auth_server_service = require("../../services/authentication/auth_server_service");
 const business_service = require("../../services/passport/businessPassport");
+const festival_service = require("../../services/festival/festival");
 const {
   encryptString,
   generateRandomString,
@@ -490,7 +491,12 @@ authRouter.post(
       is_business,
       user_business_retail,
       user_business_type,
-      start_date
+      start_date,
+      user_business_food_type,
+      verification_code,
+      promo_code,
+      business_id,
+      festival_id,
     } = req.body;
 
     if (!email || !password_digest || !source) {
@@ -500,11 +506,6 @@ authRouter.post(
       });
     }
 
-    const user_business_food_type = req.body.businessFoodType;
-    const verification_code = req.body.verificationCode;
-    const promo_code = req.body.promoCode;
-    const business_id = req.body.businessId;
-    const festival_id = req.body.festivalId;
 
     try {
       const user = {
@@ -517,27 +518,41 @@ authRouter.post(
         source,
       };
 
-      const businessInfo = {
-        user_business_logo,
-        user_business_name,
-        user_business_street_number,
-        user_business_street_name,
-        user_business_unit,
-        user_business_country,
-        user_business_city,
-        user_business_province,
-        user_business_postal_code,
-        user_business_registered,
-        user_business_phone_number,
-        is_business,
-        user_business_retail,
-        user_business_type,
-        start_date,
-        user_business_food_type,
-        verification_code,
-        promo_code,
-        business_id,
-        festival_id,
+      const businessDto = {
+        business_details_logo: user_business_logo,
+        business_name: user_business_name,
+        business_street_number: user_business_street_number,
+        business_street_name: user_business_street_name,
+        business_unit: user_business_unit,
+        country: user_business_country,
+        city: user_business_city,
+        state: user_business_province,
+        zip_postal_code: user_business_postal_code,
+        business_phone_number: user_business_phone_number,
+        business_type: user_business_type,
+        food_business_type: user_business_food_type,
+        business_details_id: business_id,
+      }
+
+      // if the coming request include verification code and promo code
+    if (business_id) {
+      const db_business = await business_service.getBusinessById(business_id);
+      if (req.body.verification_code !== db_business.business[0].business_verification_code) {
+        return res.send({
+          success: false,
+          message: "Verificaion code is wrong!",
+        });
+      }
+
+      const db_festival = await festival_service.getFestivalDetailsBySlug(
+        req.body.festival_id,
+        {id: 1, role: ["ADMIN"]} // This is the mock admin data so it can fetch the promo code and verify at frontend
+      );
+      if (req.body.promo_code !== db_festival.details[0].promo_code) {
+        return res.send({
+          success: false,
+          message: "Promo code is wrong!",
+        });
       }
 
       const hostDto = {
@@ -547,8 +562,31 @@ authRouter.post(
 
       return await db.transaction(async trx => {
         const user_response = await authenticate_user_service.userRegister(user, passport_area, true, trx);
-        businessInfo.user_id = user_response.data.tasttlig_user_id;
-        const business_response = await business_service.postBusinessPassportDetails(businessInfo, trx);
+        businessDto.business_details_user_id = user_response.data.tasttlig_user_id;
+        const response = await user_profile_service.updateUserBusinessProfile(businessDto, trx);
+        const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
+
+        if (saveHost.success) {
+          res.status(200).send(saveHost);
+        } else {
+          return res.status(401).json({
+            success: false,
+            message: "401 error",
+          });
+        }
+      })
+   
+    }
+
+      const hostDto = {
+        is_business: is_business,
+        email: email,
+      };
+
+      return await db.transaction(async trx => {
+        const user_response = await authenticate_user_service.userRegister(user, passport_area, true, trx);
+        businessDto.business_details_user_id = user_response.data.tasttlig_user_id;
+        const business_response = await user_profile_service.updateUserBusinessProfile(businessDto, trx);
         const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
 
         if (saveHost.success) {

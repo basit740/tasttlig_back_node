@@ -10,6 +10,7 @@ const assets_service = require("../assets/assets");
 const external_api_service = require("../../services/external_api_service");
 const auth_server_service = require("../../services/authentication/auth_server_service");
 const _ = require("lodash");
+const { rest } = require("lodash");
 
 // Environment variables
 const SITE_BASE = process.env.SITE_BASE;
@@ -200,12 +201,23 @@ const updateUserProfile = async (user) => {
 };
 
 // Update user business profile helper function
-const updateUserBusinessProfile = async (business) => {
+const updateUserBusinessProfile = async (business, trx = null) => {
+  if (trx === null) {
+    trx = db;
+  }
+  const { business_details_logo, ...rest} = business;
+
   try {
-    return await db("business_details")
+    const business_details_images = {
+      business_details_logo: business_details_logo,
+      business_details_id: business.business_details_id,
+    };
+    await trx("business_details_images").insert(business_details_images);
+    
+    return await trx("business_details")
       .where("business_details_id", business.business_details_id)
       .first()
-      .update(business)
+      .update(rest)
       .returning("*")
       .then((value) => {
         return { success: true, details: value[0] };
@@ -1811,12 +1823,10 @@ const claimBusiness = async (userId, businessId) => {
     */
 
     console.log("userid: " + userId + " businessid: " + businessId);
-
     await trx("business_details")
       .where({ business_details_id: businessId })
       .update({
-        business_details_user_id: userId,
-      })
+        business_details_user_id: userId })
       .catch((error) => {
         return { success: false, details: error };
       });
