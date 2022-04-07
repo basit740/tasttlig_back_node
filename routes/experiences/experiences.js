@@ -118,13 +118,10 @@ router.post(
         experience_status: "ACTIVE",
         experience_created_at_datetime: new Date(),
         experience_updated_at_datetime: new Date(),
+        festival_selected: req.body.festivals_selected,
       };
-      // update the experience_information.festival_selected from slug to numerical festival id
-      const db_festival = await festival_service.getFestivalDetailsBySlug(
-       experience_information.festival_selected[0]
-      );
       
-      experience_information.festival_selected = [ db_festival.details[0].festival_id ];
+      
 
       const response = await experience_service.createNewExperience(
         user_details_from_db,
@@ -141,12 +138,6 @@ router.post(
         );
 
 
-        // const experience_central_server =
-        //   await auth_server_service.createNewExperienceInCentralServer(
-        //     user_details_from_db,
-        //     experience_information,
-        //     req.body.experience_images
-        //   );
       }
 
       return {
@@ -237,8 +228,8 @@ router.get("/experiences/festival/:festival_id", async (req, res) => {
 });
 
 // GET all experiences from a business
-router.get("/experiences/business", async (req, res) => {
-  if (!req.query.business_id) {
+router.get("/experiences/business/:business_id", async (req, res) => {
+  if (!req.params.business_id) {
     return res.status(403).json({
       success: false,
       message: "Required parameters are not available in request.",
@@ -247,10 +238,8 @@ router.get("/experiences/business", async (req, res) => {
 
   try {
     const response = await experience_service.getUserExperiencesById(
-      req.query.business_id,
-      req.query.keyword
+      req.params.business_id,
     );
-    // console.log("response from expereiences get:", response);
     return res.send(response);
   } catch (error) {
     res.send({

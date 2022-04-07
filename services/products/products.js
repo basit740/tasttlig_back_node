@@ -463,99 +463,13 @@ const claimProduct = async (db_user, product_id) => {
 
 // Update product helper function
 const updateProduct = async (db_user, data) => {
-  const {product_images, ...product_update_data} = data;
-  let updateData = {};
-  updateData.product_festivals_id = data.product_festivals_id;
-
+  const {product_images, product_id, ...product_update_data} = data;;
   try {
-    if (Array.isArray(data.product_id)) {
       await db("products")
-        .whereIn("product_id", data.product_id)
-        .where((builder) => {
-          return builder.where({
-            product_business_id: db_user.business_details_id,
-          });
-        })
-        .update(updateData);
-
-      // for each festival
-      updateData.product_festivals_id.map(async (festival_id) => {
-        try {
-          if (db_user.role.includes("HOST")) {
-            var host_ids = await db("festivals")
-              .select("festival_host_id")
-              .where("festival_id", "=", festival_id)
-              .then((resp) => {
-                return resp;
-              });
-
-            // console.log('hosts to add ', host_ids)
-
-            if (!host_ids.includes(db_user.tasttlig_user_id)) {
-              host_ids.push(db_user.tasttlig_user_id);
-              await db("festivals")
-                .where({festival_id: festival_id})
-                .update({festival_host_id: host_ids});
-            }
-          } else if (db_user.role.includes("VENDOR")) {
-            var vendor_ids = await db("festivals")
-              .select("festival_vendor_id")
-              .where("festival_id", "=", festival_id)
-              .then((resp) => {
-                return resp;
-              });
-
-            // console.log('vendors to add ', vendor_ids);
-
-            var vendor_ids_array = vendor_ids[0].festival_vendor_id || [];
-            // console.log('VENDOR array ', vendor_ids_array);
-            if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
-              vendor_ids_array.push(db_user.tasttlig_user_id);
-              await db("festivals")
-                .where({festival_id: festival_id})
-                .update({festival_vendor_id: vendor_ids_array});
-            }
-          }
-        } catch (error) {
-          return {success: false};
-        }
-      });
-
-      /* if (product_images && product_images.length) {
-        await db("product_images").whereIn("product_id", product_id).del();
-
-        await db("product_images").insert(
-          product_images.map((image_url) => ({
-            product_id,
-            product_image_url: image_url,
-          }))
-        );
-      } */
-
-      return {success: true};
-    } else {
-      await db("products")
-        .where((builder) => {
-          return builder.where({
-            product_id,
-            product_business_id: db_user.business_details_id,
-          });
-        })
+        .where("product_id", data.product_id)
         .update(product_update_data);
-
-      if (product_images && product_images.length) {
-        await db("product_images").where("product_id", product_id).del();
-
-        await db("product_images").insert(
-          product_images.map((image_url) => ({
-            product_id,
-            product_image_url: image_url,
-          }))
-        );
-      }
-
+  
       return {success: true};
-    }
   } catch (error) {
     return {success: false, details: error};
   }
@@ -565,9 +479,7 @@ const updateProduct = async (db_user, data) => {
 const deleteProduct = async (user_id, product_id) => {
   if (Array.isArray(product_id)) {
     return await db("product_images")
-      /*  .where({
-      product_id,
-    }) */
+
       .whereIn("product_id", product_id)
       .del()
       .then(async () => {

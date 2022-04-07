@@ -514,8 +514,9 @@ router.get("/products/user/:user_id", async (req, res) => {
 });
 
 // GET products from business
-router.get("/products/business", async (req, res) => {
-  if (!req.query.business_id) {
+router.get("/products/business/:business_id", async (req, res) => {
+  if (!req.params.business_id) {
+    console.log(req);
     return res.status(403).json({
       success: false,
       message: "Required parameters are not available in request.",
@@ -523,11 +524,8 @@ router.get("/products/business", async (req, res) => {
   }
   try {
     const response = await products_service.getProductsFromBusiness(
-      req.query.business_id,
-      req.query.keyword
+      req.params.business_id,
     );
-    // console.log('products fetched', response);
-    // console.log('userrrr', req.query.user_id);
     return res.send(response);
   } catch (error) {
     res.send({

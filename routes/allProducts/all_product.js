@@ -87,23 +87,7 @@ router.post(
          
          
 
-          // let createdByAdmin = false;
-          // let db_user = user_details_from_db.user;
-          // let user_role_object = db_user.role;
-
-          // if (user_role_object.includes("ADMIN")) {
-          //   if (!req.user.email) {
-          //     return res.status(403).json({
-          //       success: false,
-          //       message: "Required parameters are not available in request.",
-          //     });
-          //   }
-
-          //   const host_details_from_db =
-          //     await user_profile_service.getUserByEmail(req.user.email);
-          //   db_user = host_details_from_db.user;
-          //   createdByAdmin = true;
-          // }
+    
 
           // get the business details 
           const business_details_from_db = await business_service.getUserAllBusinesses(
@@ -124,7 +108,6 @@ router.post(
               message: "Error! wrong business id!.",
             });
           }
-
           const all_product_details = {
             product_business_id: business_details_from_db.business[0].business_details_id,
             title: item.name,
@@ -200,8 +183,6 @@ router.post(
             promotion: item.product_offering_type,
             deal_id: item.deal_id,
           };
-          // adding product to central server
-          
           const db_festival = await festival_service.getFestivalDetailsBySlug(
             item.festivals[0]
           );
@@ -214,7 +195,6 @@ router.post(
             //createdByAdmin,
             //item.sponsorType
           );
-          
           res.send(response);
           if (response.success) {
             // update the promote status to INACTIVE
