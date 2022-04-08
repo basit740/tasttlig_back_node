@@ -67,7 +67,7 @@ const autoEndSubscriptions = async (
       .select("user_subscriptions.*")
       .from("user_subscriptions")
       .where("user_id", "=", user_id)
-      .andWhere("subscription_end_datetime", ">", currentDate)
+      .andWhere("subscription_end_datetime", "<", currentDate)
       .update({user_subscription_status: "INACTIVE"});
     console.log(query);
 
