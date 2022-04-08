@@ -124,11 +124,11 @@ authRouter.post("/user/login",
         message: "Required parameters are not available in request.",
       });
     }
-
+    console.log("user/login req.body", req.body);
     try {
       const {userState} = await auth_server_service.authLogin(email, password);
       let passwordsMatch = false;
-
+      console.log("auth res", userState);
       if (userState === 3) {
         // so this user exist on auth server and password match
         // we need to force them change their password.
@@ -164,6 +164,7 @@ authRouter.post("/user/login",
           passwordsMatch = bcrypt.compareSync(password, user.password_digest);
         }
       }
+      console.log('passwordsMatch', passwordsMatch);
 
       if (!passwordsMatch) {
         return res.status(401).json({

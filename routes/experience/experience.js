@@ -463,7 +463,7 @@ router.put(
         message: "Required parameters are not available in request.",
       });
     }
-    console.log('123');
+  
     const experience_update_data = req.body;
     try {
       const user_details_from_db = await user_profile_service.getUserById(
