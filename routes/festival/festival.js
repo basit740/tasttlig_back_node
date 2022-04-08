@@ -1302,8 +1302,8 @@ router.post("/claim-business", async (req, res) => {
 });
 
 
-// add business promotion after payment
-router.post("/business/promotion", async (req, res) => {
+// add business vend after payment
+router.post("/business/vend", async (req, res) => {
   if (!req.body.festival_slug || !req.body.business_id) {
     return res.status(403).json({
       success: false,
@@ -1321,7 +1321,7 @@ router.post("/business/promotion", async (req, res) => {
       const festival_id = db_festival.details[0].festival_id;
 
      
-    const response = await business_service.updateBusinessPromoPayment(
+    const response = await business_service.vendBusiness(
       req.body.business_id,
       festival_id
     );

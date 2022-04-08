@@ -639,15 +639,11 @@ const updateBusinessPromoUsed = async (business_id, festival_id) => {
 };
 
 // update festival_businesses table after business got a promotion usage
-const updateBusinessPromoPayment = async (business_id, festival_id) => {
+const vendBusiness = async (business_id, festival_id) => {
   try {
-    await db.transaction(async (trx) => {
-      await trx("festival_businesses")
-        .where({ festival_id: festival_id })
-        .andWhere({ business_id: business_id })
-        .increment("business_promotion_usage", 1)
-        .returning("*");
-    });
+    console.log('123456789');
+
+
 
     return { success: true, details: "Success." };
   } catch (error) {
@@ -666,5 +662,5 @@ module.exports = {
   getAllBusinesses,
   getUserAllBusinesses,
   updateBusinessPromoUsed,
-  updateBusinessPromoPayment,
+  vendBusiness,
 };

@@ -485,15 +485,44 @@ const createOrder = async (
               });
           }
         } else {
-          await trx("user_subscriptions").insert({
-            subscription_code: db_order_details.item.subscription_code,
-            user_id: order_details.user_id,
-            subscription_start_datetime: new Date(),
-            subscription_end_datetime: subscription_end_datetime,
-            suscribed_festivals: db_order_details.subscribed_festivals,
-            cash_payment_received: db_order_details.item.price,
-            user_subscription_status: "ACTIVE",
-          });
+          // get festival
+          if (order_details.festival_slug) {
+            const db_festival = await festival_service.getFestivalDetailsBySlug(
+              order_details.festival_slug,
+              {id: 1, role: ["ADMIN"]}
+            );
+            // set a month for subscription, placeholder for easier access to subscription duration
+            order_details.subscription_end_datetime = new Date(
+              new Date().setMonth(
+                new Date().getMonth() +
+                Number(db_order_details.item.validity_in_months)
+              ));
+
+            await trx("user_subscriptions").insert({
+              subscription_code: db_order_details.item.subscription_code,
+              user_id: order_details.user_id,
+              subscription_start_datetime: new Date(),
+              subscription_end_datetime: subscription_end_datetime,
+              suscribed_festivals: [db_festival.details[0].festival_id],
+              cash_payment_received: db_order_details.item.price,
+              user_subscription_status: "ACTIVE",
+              business_id: order_details.business_id,
+
+            });
+          }
+          else {
+            await trx("user_subscriptions").insert({
+              subscription_code: db_order_details.item.subscription_code,
+              user_id: order_details.user_id,
+              subscription_start_datetime: new Date(),
+              subscription_end_datetime: subscription_end_datetime,
+              suscribed_festivals: db_order_details.subscribed_festivals,
+              cash_payment_received: db_order_details.item.price,
+              user_subscription_status: "ACTIVE",
+            });
+          }
+  
+         
           if (
             db_order_details.subscribed_festivals &&
             db_order_details.item.subscription_code === "V_MIN"

@@ -92,9 +92,10 @@ router.post("/payment/stripe/success", async (req, res) => {
       user_email: db_user.user.email,
       user_passport_id: db_user.user.passport_id,
       payment_id: req.body.payment_id,
-      vendor_festivals: req.body.vendor_festivals,
       discount: req.body.discount,
       festivalDiscount: req.body.festivalDiscount,
+      festival_slug: req.body.festivalSlug,
+      business_id: req.body.businessId
     };
 
     const payment_details =
