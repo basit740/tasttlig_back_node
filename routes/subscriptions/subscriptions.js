@@ -96,5 +96,15 @@ router.post(
     }
   }
 );
+router.post("/auto-end-subscription", async (req, res) => {
+  try {
+    console.log('123', req.body);
+    const response =
+      await subscription_service.autoEndSubscriptions(req.body.userId);
+    return res.send({ success: true });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error });
+  }
+});
 
 module.exports = router;

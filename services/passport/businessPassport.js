@@ -641,9 +641,7 @@ const updateBusinessPromoUsed = async (business_id, festival_id) => {
 // update festival_businesses table after business got a promotion usage
 const vendBusiness = async (business_id, festival_id) => {
   try {
-    console.log('123456789');
-
-
+    console.log('placeholder');
 
     return { success: true, details: "Success." };
   } catch (error) {
