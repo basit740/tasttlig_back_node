@@ -208,11 +208,15 @@ const updateUserBusinessProfile = async (business, trx = null) => {
   const { business_details_logo, ...rest} = business;
 
   try {
-    const business_details_images = {
-      business_details_logo: business_details_logo,
-      business_details_id: business.business_details_id,
-    };
-    await trx("business_details_images").insert(business_details_images);
+    if (business_details_logo)
+    {
+      const business_details_images = {
+        business_details_logo: business_details_logo,
+        business_details_id: business.business_details_id,
+      };
+      await trx("business_details_images").insert(business_details_images);
+    }
+    
     
     return await trx("business_details")
       .where("business_details_id", business.business_details_id)
@@ -502,7 +506,6 @@ const saveApplicationInformation = async (hostDto, trx) => {
     .then((value) => {
       return value[0].role_code;
     });
-
   // Insert new role for this user
   await trx("user_role_lookup").insert({
     user_id: hostDto.dbUser.user.tasttlig_user_id,

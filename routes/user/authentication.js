@@ -534,7 +534,7 @@ authRouter.post(
         food_business_type: user_business_food_type,
         business_details_id: business_id,
       }
-
+      
       // if the coming request include verification code and promo code
     if (business_id) {
       const db_business = await business_service.getBusinessById(business_id);
@@ -544,7 +544,7 @@ authRouter.post(
           message: "Verificaion code is wrong!",
         });
       }
-
+      
       const db_festival = await festival_service.getFestivalDetailsBySlug(
         req.body.festival_id,
         {id: 1, role: ["ADMIN"]} // This is the mock admin data so it can fetch the promo code and verify at frontend
@@ -560,13 +560,12 @@ authRouter.post(
         is_business: is_business,
         email: email,
       };
-
+      // transaction for claim business
       return await db.transaction(async trx => {
         const user_response = await authenticate_user_service.userRegister(user, passport_area, true, trx);
         businessDto.business_details_user_id = user_response.data.tasttlig_user_id;
         const response = await user_profile_service.updateUserBusinessProfile(businessDto, trx);
         const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
-
         if (saveHost.success) {
           res.status(200).send(saveHost);
         } else {
@@ -578,18 +577,18 @@ authRouter.post(
       })
    
     }
-
+    
       const hostDto = {
         is_business: is_business,
         email: email,
       };
 
+      // transaction for create business
       return await db.transaction(async trx => {
         const user_response = await authenticate_user_service.userRegister(user, passport_area, true, trx);
         businessDto.business_details_user_id = user_response.data.tasttlig_user_id;
-        const business_response = await user_profile_service.updateUserBusinessProfile(businessDto, trx);
+        const business_response = await business_service.postBusinessPassportDetails(businessDto, trx);
         const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
-
         if (saveHost.success) {
           res.status(200).send(saveHost);
         } else {
