@@ -6,6 +6,7 @@ module.exports = {
     },
     migrations: {
       directory: "./db/migrations",
+      disableMigrationsListValidation: true
     },
     useNullAsDefault: true,
   },

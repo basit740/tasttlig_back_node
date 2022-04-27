@@ -7,13 +7,14 @@ const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
 const business_service = require("../../services/passport/businessPassport");
-const { compareSync } = require("bcrypt");
-const { compose } = require("objection");
+const {compareSync} = require("bcrypt");
+const {compose} = require("objection");
 const Excel = require('exceljs');
 const stream = require('stream');
-var request = require('request').defaults({ encoding: null });
+var request = require('request').defaults({encoding: null});
 
 const jwt = require("jsonwebtoken");
+const Festivals = require("../../models/festivals");
 
 router.get("/festival/landing-page", async (req, res) => {
   try {
@@ -44,6 +45,8 @@ router.get("/festival/all", async (req, res) => {
       latitude: req.query.latitude,
       longitude: req.query.longitude,
       dayOfWeek: req.query.dayOfWeek,
+      category: req.query.category,
+      subCategory: req.query.subCategory,
     };
 
     const response = await festival_service.getAllFestivals(
@@ -450,7 +453,6 @@ router.get("/business/festival/:festival_id", async (req, res) => {
     );
 
 
-
     return res.send(response);
   } catch (error) {
     res.send({
@@ -584,6 +586,8 @@ router.post(
       festival_country,
       festival_province,
       festival_file_content,
+      category = Festivals.Category.MultiCultural,
+      sub_category,
     } = req.body;
     try {
       if (
@@ -637,8 +641,10 @@ router.post(
           festival_created_at_datetime: new Date(),
           festival_updated_at_datetime: new Date(),
           sponsored,
+          category,
+          sub_category
         };
-        
+
         const festival_response = await festival_service.createNewFestival(
           festival_details,
           images,
@@ -646,39 +652,39 @@ router.post(
         );
         console.log("response from festival/add:", festival_response);
         // insert the business list into buiness table
-          // send a request to file url and store its content as buffer, then read each row using ExcelJs
-          const resp = request.get(business_file, async function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-              var workbook = new Excel.Workbook();
-              const buffer = Buffer.from(body);
-              const readStream = new stream.PassThrough();
-              readStream.end(buffer);
-              const wb = await workbook.xlsx.read(readStream)
-              .then(function() {
+        // send a request to file url and store its content as buffer, then read each row using ExcelJs
+        const resp = request.get(business_file, async function (error, response, body) {
+          if (!error && response.statusCode == 200) {
+            var workbook = new Excel.Workbook();
+            const buffer = Buffer.from(body);
+            const readStream = new stream.PassThrough();
+            readStream.end(buffer);
+            const wb = await workbook.xlsx.read(readStream)
+              .then(function () {
                 const ws = workbook.getWorksheet("Sheet1");
                 // first row is not actual data, remove if the excel spread sheet formate changes
                 ws.spliceRows(1, 1);
-                ws.eachRow(async function(row, rowNumber) {
+                ws.eachRow(async function (row, rowNumber) {
                   console.log(rowNumber);
                   // save the value of cell #1,2,3,4 which are business name, business category, business locaion, business phone
                   // to database
                   const business_response =
-                  await business_service.postBusinessThroughFile(
-                    row.getCell(1).value,
-                    row.getCell(2).value,
-                    row.getCell(3).value,
-                    row.getCell(4).value,
-                  );
-                  
+                    await business_service.postBusinessThroughFile(
+                      row.getCell(1).value,
+                      row.getCell(2).value,
+                      row.getCell(3).value,
+                      row.getCell(4).value,
+                    );
+
                   const r = await business_service.addBusinessInFestival(
                     festival_response.details,
                     business_response.details,
                   );
                 });
-            });
+              });
 
-            }
-          });
+          }
+        });
 
         return res.send(festival_response);
       } catch (error) {
@@ -724,6 +730,8 @@ router.put(
       festival_postal_code,
       festival_country,
       festival_province,
+      category,
+      sub_category
     } = req.body.festival_update_data;
     const festival_id = req.params.festival_id;
     try {
@@ -737,7 +745,8 @@ router.put(
         !festival_end_date ||
         !festival_start_time ||
         !festival_end_time ||
-        !festival_description
+        !festival_description ||
+        !category
       ) {
         return res.status(403).json({
           success: false,
@@ -777,8 +786,10 @@ router.put(
           festival_updated_at_datetime: new Date(),
           //sponsored,
           festival_id,
+          category,
+          sub_category
         };
-        
+
         // send a request to file url and store its content as buffer, then read each row using ExcelJs
         const resp = request.get(business_file, async function (error, response, body) {
           if (!error && response.statusCode == 200) {
@@ -787,32 +798,31 @@ router.put(
             const readStream = new stream.PassThrough();
             readStream.end(buffer);
             const wb = await workbook.xlsx.read(readStream)
-            .then(function() {
-              const ws = workbook.getWorksheet("Sheet1");
-              // first row is not actual data, remove if the excel spread sheet formate changes
-              ws.spliceRows(1, 1);
-              ws.eachRow(async function(row) {
-                // save the value of cell #1,2,3,4 which are business name, business category, business locaion, business phone
-                // to database
+              .then(function () {
+                const ws = workbook.getWorksheet("Sheet1");
+                // first row is not actual data, remove if the excel spread sheet formate changes
+                ws.spliceRows(1, 1);
+                ws.eachRow(async function (row) {
+                  // save the value of cell #1,2,3,4 which are business name, business category, business locaion, business phone
+                  // to database
 
-                const business_response =
-                await business_service.postBusinessThroughFile(
-                  row.getCell(1).value,
-                  row.getCell(2).value,
-                  row.getCell(3).value,
-                  row.getCell(4).value,
-                );
-  
-                const r = await business_service.addBusinessInFestival(
-                  Number(festival_details.festival_id),
-                  [business_response.details]
-                );
+                  const business_response =
+                    await business_service.postBusinessThroughFile(
+                      row.getCell(1).value,
+                      row.getCell(2).value,
+                      row.getCell(3).value,
+                      row.getCell(4).value,
+                    );
+
+                  const r = await business_service.addBusinessInFestival(
+                    Number(festival_details.festival_id),
+                    [business_response.details]
+                  );
+                });
               });
-          });
 
           }
-       });
-
+        });
 
 
         const response = await festival_service.updateFestival(
@@ -825,10 +835,10 @@ router.put(
           console.log(error);
         }
 
-          // fetch the content of the uploaded business xlsx file using its stored url
+        // fetch the content of the uploaded business xlsx file using its stored url
 
 
-          return res.send(response);
+        return res.send(response);
       } catch (error) {
         console.log(error);
         res.send({
@@ -853,7 +863,7 @@ router.post(
   token_service.authenticateToken,
   async (req, res) => {
     console.log("festival_id from host-festival:", req.body);
-    const { festival_id, festival_restaurant_host_id, foodSamplePreference } =
+    const {festival_id, festival_restaurant_host_id, foodSamplePreference} =
       req.body;
 
     try {
@@ -892,7 +902,7 @@ router.post(
   "/sponsor-application",
   token_service.authenticateToken,
   async (req, res) => {
-    const { festival_id } = req.body;
+    const {festival_id} = req.body;
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -937,7 +947,7 @@ router.post(
   "/sponsor-application/neighbourhood",
   token_service.authenticateToken,
   async (req, res) => {
-    const { festival_id } = req.body;
+    const {festival_id} = req.body;
     try {
       const response = await festival_service.addNeighbourhoodSponsor(
         festival_id,
@@ -959,7 +969,7 @@ router.post(
   "/restaurant-application",
   token_service.authenticateToken,
   async (req, res) => {
-    const { festival_id } = req.body;
+    const {festival_id} = req.body;
 
     try {
       const user_details_from_db = await user_profile_service.getUserById(
@@ -1023,7 +1033,7 @@ router.post(
   "/vendor-festival",
   token_service.authenticateToken,
   async (req, res) => {
-    const { festival_id } = req.body;
+    const {festival_id} = req.body;
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -1067,7 +1077,7 @@ router.post(
   "/vendor-application",
   token_service.authenticateToken,
   async (req, res) => {
-    const { festival_id } = req.body;
+    const {festival_id} = req.body;
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -1311,16 +1321,16 @@ router.post("/business/vend", async (req, res) => {
     });
   }
   try {
-      const db_festival = await festival_service.getFestivalDetailsBySlug(
-        req.body.festival_slug
-      );
+    const db_festival = await festival_service.getFestivalDetailsBySlug(
+      req.body.festival_slug
+    );
 
-      if (!db_festival) {
-        return { success: false, details: "festival not found!" };
-      }
-      const festival_id = db_festival.details[0].festival_id;
+    if (!db_festival) {
+      return {success: false, details: "festival not found!"};
+    }
+    const festival_id = db_festival.details[0].festival_id;
 
-     
+
     const response = await business_service.vendBusiness(
       req.body.business_id,
       festival_id
@@ -1345,23 +1355,23 @@ router.post("/business/promotion-code", async (req, res) => {
     });
   }
   try {
-    const db_festival = await festival_service.getFestivalDetailsBySlug(req.body.festival_slug, 
+    const db_festival = await festival_service.getFestivalDetailsBySlug(req.body.festival_slug,
       {id: 1, role: ["ADMIN"]} // This is the mock admin data so it can fetch the promo code and verify at frontend
     )
-      if (!db_festival) {
-        return { success: false, details: "festival not found!" };
-      }
-      const festival_id = db_festival.details[0].festival_id;
+    if (!db_festival) {
+      return {success: false, details: "festival not found!"};
+    }
+    const festival_id = db_festival.details[0].festival_id;
 
-      console.log('promo code porvided: ', req.body.promo_code);
-      console.log('promo code: ',db_festival.details[0].promo_code);
+    console.log('promo code porvided: ', req.body.promo_code);
+    console.log('promo code: ', db_festival.details[0].promo_code);
 
-      if (db_festival && db_festival.details[0].promo_code !== req.body.promo_code ) {
-        return res.send({
-          success: false,
-          message: "Wrong Promo Code!",
-        });
-      }
+    if (db_festival && db_festival.details[0].promo_code !== req.body.promo_code) {
+      return res.send({
+        success: false,
+        message: "Wrong Promo Code!",
+      });
+    }
 
     const response = await business_service.updateBusinessPromoPayment(
       req.body.business_id,
@@ -1381,21 +1391,21 @@ router.post("/business/promotion-code", async (req, res) => {
 router.post("/claim-business/promo", async (req, res) => {
 
   if (!req.body.user_id || !req.body.business_id || !req.body.festival_id || !req.body.promo_code) {
-    
+
     return res.status(403).json({
       success: false,
       message: "Required parameters are not available in request.",
     });
   }
   try {
-    
-    const db_festival = await festival_service.getFestivalDetailsBySlug(req.body.festival_id, 
+
+    const db_festival = await festival_service.getFestivalDetailsBySlug(req.body.festival_id,
       {id: 1, role: ["ADMIN"]} // This is the mock admin data so it can fetch the promo code and verify at frontend
     )
     console.log('promo code porvided: ', req.body.promo_code);
-    console.log('promo code: ',db_festival.details[0].promo_code);
+    console.log('promo code: ', db_festival.details[0].promo_code);
 
-    if (db_festival && db_festival.details[0].promo_code !== req.body.promo_code ) {
+    if (db_festival && db_festival.details[0].promo_code !== req.body.promo_code) {
       return res.send({
         success: false,
         message: "Wrong Promo Code!",
@@ -1407,7 +1417,7 @@ router.post("/claim-business/promo", async (req, res) => {
       req.body.business_id
     );
     return res.send(response);
-    
+
 
   } catch (error) {
     res.send({
@@ -1422,19 +1432,19 @@ router.post("/claim-business/promo", async (req, res) => {
 router.post("/claim-business/verification", async (req, res) => {
 
   if (!req.body.user_id || !req.body.business_id || !req.body.verification_code) {
-    
+
     return res.status(403).json({
       success: false,
       message: "Required parameters are not available in request.",
     });
   }
   try {
-    
+
     const db_business = await user_profile_service.getBusinessDetailsById(req.body.business_id)
     console.log('verification code porvided: ', req.body.verification_code);
     console.log('verification code: ', db_business.business_details_all.business_verification_code);
 
-    if (db_business && db_business.business_details_all.business_verification_code !== req.body.verification_code ) {
+    if (db_business && db_business.business_details_all.business_verification_code !== req.body.verification_code) {
       return res.send({
         success: false,
         message: "Wrong Verification Code!",
@@ -1446,7 +1456,7 @@ router.post("/claim-business/verification", async (req, res) => {
       req.body.business_id
     );
     return res.send(response);
-    
+
 
   } catch (error) {
     res.send({
@@ -1480,7 +1490,6 @@ router.get("/business/:business_id", async (req, res) => {
     });
   }
 });
-
 
 
 module.exports = router;
