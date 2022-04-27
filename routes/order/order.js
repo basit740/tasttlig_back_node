@@ -2,8 +2,8 @@
 
 // Libraries
 const router = require("express").Router();
-const stripe_payment_service = require("../../services/payment/stripe_payment");
-const order_service = require("../../services/order/order");
+const stripe_payment_service = require("../../services/payment/processors/stripe/stripe_payment");
+const order_service = require("../../services/order/order_service");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const user_profile_service = require("../../services/profile/user_profile");
 const food_sample_claim_service = require("../../services/food_sample_claim/food_sample_claim");

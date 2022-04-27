@@ -1,8 +1,6 @@
-// Libraries
-const { Model } = require("objection");
+const {Model} = require("objection");
 
 class Experiences extends Model {
-  // Table name is the only required property.
   static get tableName() {
     return "experiences";
   }
@@ -11,11 +9,9 @@ class Experiences extends Model {
     return "experience_id";
   }
 
-  // This object defines the relations to other models.
   static get relationMappings() {
-    // Importing models here is a one way to avoid require loops.
     const OrderItems = require("./order_items");
-    const ExperienceImages = require("./ExperienceImages");
+    const ExperienceImages = require("./experience_images");
     return {
       order_items: {
         relation: Model.BelongsToOneRelation,

@@ -8,7 +8,7 @@ class User extends Model {
     return "tasttlig_user_id";
   }
   static get relationMappings() {
-    const UserRoles = require("./UserRoles.js");
+    const UserRoles = require("./user_roles.js");
 
     return {
       roles: {
@@ -25,7 +25,7 @@ class User extends Model {
       },
       access: {
         relation: Model.ManyToManyRelation,
-        modelClass: require("./AppAccess"),
+        modelClass: require("./app_access"),
         join: {
           from: "tasttlig_users.tasttlig_user_id",
           through: {

@@ -6,9 +6,9 @@ const token_service = require("../../services/authentication/token");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const user_profile_service = require("../../services/profile/user_profile");
 const { generateRandomString } = require("../../functions/functions");
-const role = require("../../models/UserRoles");
-const User = require("../../models/User");
-const access = require("../../models/AppAccess");
+const role = require("../../models/user_roles");
+const User = require("../../models/users");
+const access = require("../../models/app_access");
 
 // POST user register
 router.post(

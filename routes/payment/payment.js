@@ -2,11 +2,37 @@
 
 // Libraries
 const router = require("express").Router();
-const stripe_payment_service = require("../../services/payment/stripe_payment");
+const stripe_payment_service = require("../../services/payment/processors/stripe/stripe_payment");
 const user_order_service = require("../../services/payment/user_orders");
 const authenticate_user_service = require("../../services/authentication/authenticate_user");
 const user_profile_service = require("../../services/profile/user_profile");
 const food_sample_claim_service = require("../../services/food_sample_claim/food_sample_claim");
+const {checkout, charge, completePayment, cancelPayment} = require("../../services/payment/payment_service");
+
+router.post("/payment/checkout",
+  async (req, res) => {
+    const {checkoutItems, ...rest} = req.body;
+    const checkoutResult = await checkout(checkoutItems, rest)
+    return res.send(checkoutResult);
+  });
+
+router.post("/payment/charge",
+  async (req, res) => {
+    const result = await charge(req.body.orderId)
+    return res.send(result);
+  });
+
+router.post("/payment/complete",
+  async (req, res) => {
+    const result = await completePayment(req.body.orderId)
+    return res.send(result);
+  });
+
+router.post("/payment/cancel",
+  async (req, res) => {
+    const result = await cancelPayment(req.body.orderId)
+    return res.send(result);
+  });
 
 // POST Stripe payment
 router.post("/payment/stripe", async (req, res) => {
@@ -29,7 +55,7 @@ router.post("/payment/stripe", async (req, res) => {
     );
 
     if (!db_order_details.success) {
-      return { success: false, message: "Invalid order details." };
+      return {success: false, message: "Invalid order details."};
     }
 
     let returning = await authenticate_user_service.findUserByEmail(
@@ -106,7 +132,7 @@ router.post("/payment/stripe/success", async (req, res) => {
     if (payment_details.length !== 0 && payment_details[0].used) {
       return res
         .status(403)
-        .json({ success: "false", message: "Payment is invalid." });
+        .json({success: "false", message: "Payment is invalid."});
     }
 
     console.log("Payment details", payment_details);
@@ -116,7 +142,7 @@ router.post("/payment/stripe/success", async (req, res) => {
     );
 
     if (!db_order_details.success) {
-      return { success: false, message: "Invalid order details." };
+      return {success: false, message: "Invalid order details."};
     }
 
     db_order_details.subscribed_festivals = Array.isArray(
@@ -124,8 +150,8 @@ router.post("/payment/stripe/success", async (req, res) => {
     )
       ? req.body.subscribed_festivals
       : req.body.subscribed_festivals
-      ? [req.body.subscribed_festivals]
-      : null;
+        ? [req.body.subscribed_festivals]
+        : null;
     const response = await user_order_service.createOrder(
       order_details,
       db_order_details,
@@ -244,7 +270,7 @@ router.post("/payment/stripe/cart", async (req, res) => {
     );
 
     if (!cartDetails.success) {
-      return { success: false, message: "Invalid order details." };
+      return {success: false, message: "Invalid order details."};
     }
 
     let returning = await authenticate_user_service.findUserByEmail(
@@ -314,7 +340,7 @@ router.post("/payment/stripe/cart/success", async (req, res) => {
     );
 
     if (!db_order_details.success) {
-      return { success: false, message: "Invalid order details." };
+      return {success: false, message: "Invalid order details."};
     }
 
     const response = await user_order_service.createCartOrder(

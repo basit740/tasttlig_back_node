@@ -2,12 +2,12 @@
 
 // Libraries
 const {Stripe} = require("stripe");
-const {db} = require("../../db/db-config");
+const {db} = require("../../../../db/db-config");
 
 // Use Stripe secret key
 const keySecret = process.env.STRIPE_SECRET_KEY;
 const stripe = new Stripe(keySecret);
-const stripe_account_service = require("../stripe_accounts/stripe_accounts");
+const stripe_account_service = require("../../../stripe_accounts/stripe_accounts");
 
 // Stripe payment helper function
 const paymentIntent = async (order_details, vendor_festivals, email) => {

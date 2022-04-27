@@ -15,7 +15,7 @@ const auth_server_service = require("../../services/authentication/auth_server_s
 const all_product_service = require("../../services/allProducts/all_product");
 const business_service = require("../../services/passport/businessPassport");
 
-const Deal = require("../../models/deal");
+const Deals = require("../../models/deals");
 
 // Environment variables
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
@@ -738,7 +738,7 @@ router.get("/food-sample/owner/:owner_id", async (req, res) => {
       message: "Required parameters are not available in request.",
     });
   }
-  
+
   try {
     const current_page = req.query.page || 1;
     const keyword = req.query.keyword || "";

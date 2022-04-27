@@ -16,7 +16,7 @@ const {
   encryptString,
   generateRandomString,
 } = require("../../functions/functions");
-const User = require("../../models/User");
+const User = require("../../models/users");
 const password_preprocessor = require("../../middleware/password_preprocessor");
 const {db} = require("../../db/db-config");
 
