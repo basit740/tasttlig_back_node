@@ -153,13 +153,13 @@ const getAllCurrentOrders = async (user_id) => {
     });
 };
 
-const createOrder = async (checkoutItems) => {
+const createOrder = async (checkoutItems, user) => {
   const orderItems = [], details = [];
 
   for (const {itemType, itemId, quantity} of checkoutItems) {
     const item = await retrieveOrderItem(itemType, itemId);
     if (!item) {
-      throw new Error(`Item of type ${itemType} with id ${itemId} was not found`);
+      throw {status: 400, message: `Item of type ${itemType} with id ${itemId} was not found`};
     }
     details.push(`${quantity} X ${item.details}`);
     orderItems.push({
@@ -172,6 +172,8 @@ const createOrder = async (checkoutItems) => {
 
   const {preTaxTotal, checkoutTotal, taxTotal} = calculateTotals(orderItems);
   return Orders.query().insertGraphAndFetch({
+    email: user.email,
+    order_by_user_id: user.id,
     status: Orders.Status.Incomplete,
     order_datetime: new Date(),
     total_amount_before_tax: preTaxTotal,

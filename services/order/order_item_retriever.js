@@ -63,7 +63,7 @@ function retriever(itemType) {
     case 'service' :
       return new ServiceRetriever()
     default:
-      throw new Error(`Could not find retriever for itemType:${itemType}`);
+      throw {status: 404, message: `Could not find retriever for itemType:${itemType}`}
   }
 }
 

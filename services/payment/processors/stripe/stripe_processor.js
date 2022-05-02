@@ -39,7 +39,7 @@ const chargePaymentIntent = async (intentId, paymentMethod = 'pm_card_visa') => 
     return {success: true, intent}
   } catch (e) {
     console.error(e);
-    return {success: false, message: e.message};
+    throw {status: 400, message: e.message};
   }
 }
 
@@ -80,12 +80,7 @@ class StripeProcessor {
   }
 
   async charge(intentId) {
-    try {
-      return chargePaymentIntent(intentId);
-    } catch (e) {
-      console.error(e);
-      return {success: false, message: e.message};
-    }
+    return chargePaymentIntent(intentId);
   }
 
   async complete(intentId) {
@@ -102,8 +97,7 @@ class StripeProcessor {
     try {
       const {intent} = await getPaymentIntent(intentId);
       if (intent.status !== "succeeded" && intent.status !== "canceled") {
-        const result = await cancelPaymentIntent(intentId);
-        return {success: true, result};
+        return cancelPaymentIntent(intentId);
       } else {
         return {success: false, message: `Order cannot be canceled when in status: ${intent.status}`}
       }

@@ -31,10 +31,11 @@ if (process.env.NODE_ENV === "production") {
   };
 } else {
   mailConfig = {
-    service: "gmail",
+    host: "smtp.ethereal.email",
+    port: 587,
     auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_PASSWORD,
+      user: "keara.block@ethereal.email",
+      pass: "hbGChvzjwgRwWUeewC",
     },
   };
 }
@@ -51,7 +52,6 @@ let options = {
 };
 
 let nodemailer_transporter = nodemailer.createTransport(mailConfig);
-// Attach the plug-in to the Nodemailer transporter
 nodemailer_transporter.use("compile", hbs(options));
 
 module.exports = {

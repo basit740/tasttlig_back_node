@@ -44,7 +44,7 @@ class Orders extends Model {
         modelClass: Users,
         join: {
           from: "orders.order_by_user_id",
-          to: "user.tasttlig_user_id",
+          to: "tasttlig_users.tasttlig_user_id",
         },
       },
     };
