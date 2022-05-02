@@ -1002,17 +1002,12 @@ router.post(
   }
 );
 
-// get neighbourhood
-router.get(
-  "/get-neighbourhood",
-  token_service.authenticateToken,
+// add festival coordinator application
+router.post(
+  "/add-fc-application",
   async (req, res) => {
     try {
-      // add neighbourhood
-      const response = await user_profile_service.addNeighbourhood(
-        req.body,
-        req.user.id
-      );
+      // add application
       return res.send(response);
     } catch (error) {
       res.send({
@@ -1020,6 +1015,7 @@ router.get(
         message: "Error",
         response: error.message,
       });
+      console.log(error.message);
     }
   }
 );

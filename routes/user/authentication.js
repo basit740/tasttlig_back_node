@@ -500,6 +500,8 @@ authRouter.post(
       festival_id,
     } = req.body;
 
+    console.log('business/register data', req.body);
+
     if (!email || !password_digest || !source) {
       return res.status(403).json({
         success: false,
