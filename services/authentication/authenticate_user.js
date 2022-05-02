@@ -20,7 +20,7 @@ const SITE_BASE = process.env.SITE_BASE;
 const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 
 // Save user register information to Tasttlig users table helper function
-const userRegister = async (new_user, passport_area, sendEmail = true, trx = null) => {
+const userRegister = async (new_user, sendEmail = true, trx = null) => {
   try {
     
     if (trx === null) {
@@ -39,6 +39,13 @@ const userRegister = async (new_user, passport_area, sendEmail = true, trx = nul
       status: "ACTIVE",
       created_at_datetime: new Date(),
       updated_at_datetime: new Date(),
+      user_city: new_user.city,
+      user_state: new_user.state,
+      user_country: new_user.country,
+      user_zip_postal_code: new_user.postal_code,
+      street_name: new_user.street_name,
+      street_name: new_user.street_number,
+      apartment_no: new_user.unit_number,
     };
 
     const targetAccess = (await Access.query().select("id")).map((e) => e.id);
@@ -128,45 +135,6 @@ const userRegister = async (new_user, passport_area, sendEmail = true, trx = nul
           {
             expiresIn: "28d",
           },
-          async () => {
-
-            if (passport_area === 'pape_village')
-            await Mailer.sendMail({
-              from: process.env.SES_DEFAULT_FROM,
-              to: new_user.email,
-              bcc: ADMIN_EMAIL,
-              subject: "[Tasttlig] Welcome to Tasttlig!",
-              template: "attend_festival",
-              context: {
-                first_name: new_db_user._single.insert.first_name,
-                last_name: new_db_user._single.insert.last_name,
-              },
-              attachments: [
-                {
-                    filename: 'PapeVillagePassport.pdf',   
-                    path: path.join(__dirname, '../../public/attachments/Passport_Pape_Village.pdf'),                                 
-                    contentType: 'application/pdf'
-                }]
-            });
-            else if (passport_area === 'st_james_town')
-            await Mailer.sendMail({
-              from: process.env.SES_DEFAULT_FROM,
-              to: new_user.email,
-              bcc: ADMIN_EMAIL,
-              subject: "[Tasttlig] Welcome to Tasttlig!",
-              template: "attend_festival",
-              context: {
-                first_name: new_db_user._single.insert.first_name,
-                last_name: new_db_user._single.insert.last_name,
-              },
-              attachments: [
-                {
-                    filename: 'StJamesTownPassport.pdf',   
-                    path: path.join(__dirname, '../../public/attachments/Passport_StJames_Town.pdf'),                                 
-                    contentType: 'application/pdf'
-                }]
-            });
-          }
         );
       }
 
