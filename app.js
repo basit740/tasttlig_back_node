@@ -65,12 +65,8 @@ let corsOptions = {
   origin: "*",
   optionsSuccessStatus: 200,
 };
-app.use(cors(corsOptions));
 
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  next();
-});
+app.use(cors(corsOptions));
 
 app.use(
   '/api-docs',
@@ -129,7 +125,7 @@ app.use(festival_reviews_router);
 app.use(featured_artists_router);
 
 app.use((err, req, res, next) => {
-  console.error({type: 'Error handler', path: req?.originalUrl, err, status: err.status});
+  console.error({type: 'Error handler', path: (req ? req.originalUrl : null), err, status: err.status});
   res.status(err.status ?? 500).json({success: false, message: err.message});
 });
 
