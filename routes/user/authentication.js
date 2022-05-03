@@ -40,8 +40,14 @@ authRouter.post(
       email,
       password_digest,
       phone_number,
+      city,
+      state,
+      country,
+      postal_code,
+      street_name,
+      street_number,
+      unit_number,
       passport_type,
-      passport_area,
       source,
     } = req.body;
 
@@ -59,11 +65,18 @@ authRouter.post(
         email,
         password: password_digest,
         phone_number,
+        city,
+        state,
+        country,
+        postal_code,
+        street_name,
+        street_number,
+        unit_number,
         passport_type,
         source,
       };
 
-      const response = await authenticate_user_service.userRegister(user, passport_area);
+      const response = await authenticate_user_service.userRegister(user);
 
       if (response.success) {
         res.status(200).send(response);
