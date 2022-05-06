@@ -31,16 +31,16 @@ router.post("/add", token_service.authenticateToken, async (req, res) => {
 
   try {
     let cart = await shopping_cart_service.getCart(req.user.id);
-
-    if (!cart.success) {
+    if (cart.details.length === 0) {
       cart = await shopping_cart_service.createCart(req.user.id);
     }
-
     const response = await shopping_cart_service.addCartItem(
-      cart[0].cart_id,
+      req.user.id,
+      cart.details[0].cart_id,
       req.body.item_type,
       req.body.item_id,
-      req.body.quantity
+      req.body.quantity,
+      req.body.amount,
     );
 
     return res.send(response);
