@@ -122,6 +122,29 @@ router.get("/services/festival/:festival_id", async (req, res) => {
   }
 });
 
+// GET all services globally
+router.get("/services/all", async (req, res) => {
+  const filters = {
+    price: req.query.price,
+    quantity: req.query.quantity,
+    size: req.query.size,
+  };
+
+  try {
+    const response = await services_service.getAllServices(
+      filters,
+      req.query.keyword
+    );
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 // POST services
 router.post(
   "/services/festival/:festivalId",

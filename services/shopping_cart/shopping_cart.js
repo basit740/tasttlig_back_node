@@ -7,9 +7,9 @@ const { db } = require("../../db/db-config");
 const getCart = async (user_id) => {
   return await db("carts")
     .where("carts.user_id", user_id)
-    .leftJoin("cart_items", "carts.cart_id", "cart_items.cart_id")
+    .join("cart_items", "carts.cart_id", "cart_items.cart_id")
     .then((value) => {
-      return { success: true, nationalities: value };
+      return { success: true, details: value };
     })
     .catch((error) => {
       return { success: false, details: error };
@@ -20,10 +20,7 @@ const getCart = async (user_id) => {
 const createCart = async (user_id) => {
   return await db("carts")
     .insert({
-      user_id,
-      status: "SUCCESS",
-      created_at: new Date(),
-      updated_at: new Date(),
+      user_id
     })
     .returning("*")
     .then((cart) => {
@@ -35,16 +32,15 @@ const createCart = async (user_id) => {
 };
 
 // Add item to shopping cart helper function
-const addCartItem = async (cart_id, item_type, item_id, quantity) => {
+const addCartItem = async (user_id, cart_id, item_type, item_id, quantity, amount) => {
   return await db("cart_items")
     .insert({
+      user_id,
       cart_id,
-      status: "SUCCESS",
       item_type,
       item_id,
       quantity,
-      created_at: new Date(),
-      updated_at: new Date(),
+      amount,
     })
     .then(() => {
       return { success: true };

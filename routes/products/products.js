@@ -488,6 +488,30 @@ router.get("/products/details/:user_id", async (req, res) => {
   }
 });
 
+
+// GET all products globally
+router.get("/products/all", async (req, res) => {
+  const filters = {
+    price: req.query.price,
+    quantity: req.query.quantity,
+    size: req.query.size,
+  };
+
+  try {
+    const response = await products_service.getAllProducts(
+      filters,
+      req.query.keyword
+    );
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
 // GET products from user
 router.get("/products/user/:user_id", async (req, res) => {
   if (!req.params.user_id) {
