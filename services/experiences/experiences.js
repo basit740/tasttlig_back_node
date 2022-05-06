@@ -107,6 +107,60 @@ const getExperiencesInFestival = async (festival_id) => {
     });
 };
 
+// Get all experiences helper function
+const getAllExperiences = async () => {
+  return await db
+    .select(
+      "experiences.*",
+      "business_details.*",
+      "business_details.city",
+      "business_details.state",
+      "business_details.zip_postal_code",
+      db.raw("ARRAY_AGG(experience_images.experience_image_url) as image_urls")
+    )
+    .from("experiences")
+    .leftJoin(
+      "experience_images",
+      "experiences.experience_id",
+      "experience_images.experience_id"
+    )
+    .leftJoin(
+      "festivals",
+      "experiences.festival_selected[1]",
+      "festivals.festival_id"
+    )
+    .leftJoin(
+      "business_details",
+      "experiences.experience_business_id",
+      "business_details.business_details_id"
+    )
+    .leftJoin(
+      "products",
+      "experiences.products_selected[1]",
+      "products.product_id"
+    )
+    .leftJoin(
+      "services",
+      "experiences.services_selected[1]",
+      "services.service_id"
+    )
+    .groupBy("experiences.experience_id")
+    .groupBy("business_details.business_details_id")
+    // .groupBy("business_details.business_address_1")
+    // .groupBy("business_details.business_address_2")
+    .groupBy("business_details.city")
+    .groupBy("business_details.state")
+    .groupBy("business_details.zip_postal_code")
+    .groupBy("products.product_id")
+    .groupBy("services.service_id")
+    .then((value) => {
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      return { success: false, details: reason };
+    });
+};
+
 // Find experience helper function
 const findExperience = async (experience_id) => {
   return await db
@@ -167,6 +221,7 @@ const claimExperience = async (db_user, experience_id) => {
 module.exports = {
   createNewExperience,
   getExperiencesInFestival,
+  getAllExperiences,
   findExperience,
   claimExperience,
 };

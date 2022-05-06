@@ -290,6 +290,117 @@ const getServicesInFestival = async (festival_id, filters, keyword) => {
     });
 };
 
+// Get all services helper function
+const getAllServices = async (filters, keyword) => {
+  let query = db
+    .select(
+      "services.*",
+      "business_details.*",
+      // "business_details.business_address_1",
+      // "business_details.business_address_2",
+      "business_details.city",
+      "business_details.state",
+      "business_details.zip_postal_code",
+      db.raw("ARRAY_AGG(service_images.service_image_url) as image_urls")
+    )
+    .from("services")
+    .leftJoin(
+      "service_images",
+      "services.service_id",
+      "service_images.service_id"
+    )
+    .join(
+      "festivals",
+      "services.festivals_selected[1]",
+      "festivals.festival_id"
+    )
+    .leftJoin(
+      "business_details",
+      "services.service_user_id",
+      "business_details.business_details_user_id"
+    )
+    .groupBy("services.service_id")
+    .groupBy("business_details.business_details_id")
+    // .groupBy("business_details.business_address_1")
+    // .groupBy("business_details.business_address_2")
+    .groupBy("business_details.city")
+    .groupBy("business_details.state")
+    .groupBy("business_details.zip_postal_code")
+
+  let orderByArray = [];
+  if (filters.price) {
+    if (filters.price === "lowest_to_highest") {
+      orderByArray.push({ column: "services.service_price", order: "asc" });
+      //query.orderBy("products.product_price", "asc")
+    } else if (filters.price === "highest_to_lowest") {
+      orderByArray.push({ column: "services.service_price", order: "desc" });
+      //query.orderBy("services.service_price", "desc")
+    }
+  }
+  if (filters.quantity) {
+    if (filters.quantity === "lowest_to_highest") {
+      orderByArray.push({ column: "services.service_capacity", order: "asc" });
+    } else if (filters.quantity === "highest_to_lowest") {
+      orderByArray.push({ column: "services.service_capacity", order: "desc" });
+    }
+  }
+
+  if (filters.price || filters.quantity) {
+    query.orderBy(orderByArray);
+  }
+  if (filters.size) {
+    if (filters.size === "bite_size") {
+      query.having("services.service_size_scope", "=", "Bite Size");
+    } else if (filters.size === "quarter") {
+      query.having("services.service_size_scope", "=", "Quarter");
+    } else if (filters.size === "half") {
+      query.having("services.service_size_scope", "=", "Half");
+    } else if (filters.size === "full") {
+      query.having("services.service_size_scope", "=", "Full");
+    }
+  }
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+            "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+                //"main.business_name, " +
+                //"main.business_city, " +
+                "main.service_name, " +
+                "main.service_capacity, " +
+                "main.service_price, " +
+                "main.service_size_scope, " +
+                "main.service_description)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+  return await query
+    .then((value) => {
+      // console.log(value);
+      return { success: true, details: value };
+    })
+    .catch((reason) => {
+      console.log(reason);
+      return { success: false, details: reason };
+    });
+};
+
 //service details for dashboard
 const getBusinessServiceDetails = async (business_id, keyword) => {
   // return await db
@@ -622,6 +733,7 @@ const deleteService = async (user_id, service_id) => {
 module.exports = {
   createNewService,
   getServicesInFestival,
+  getAllServices,
   addServiceToFestival,
   getBusinessServiceDetails,
   getServicesFromUser,

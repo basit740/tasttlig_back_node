@@ -204,7 +204,6 @@ router.post("/add-experience-from-kodidi", async (req, res) => {
 });
 // GET experiences in specific festival
 router.get("/experiences/festival/:festival_id", async (req, res) => {
-  // console.log("req.params.festival_id", req.params.festival_id);
   if (!req.params.festival_id) {
     return res.status(403).json({
       success: false,
@@ -213,10 +212,22 @@ router.get("/experiences/festival/:festival_id", async (req, res) => {
   }
 
   try {
-    const response = await experiences_service.getExperiencesInFestival(
-      req.params.festival_id
-    );
-    // console.log("response coming from experiences", response);
+    const response = await experiences_service.getExperiencesInFestival();
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+// GET all experiences globally
+router.get("/experiences/all", async (req, res) => {
+
+  try {
+    const response = await experiences_service.getAllExperiences();
     return res.send(response);
   } catch (error) {
     res.send({
