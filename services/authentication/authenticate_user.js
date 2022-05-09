@@ -66,12 +66,6 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
           role: "GUEST",
         })
         .then(async (value) => {
-          // Insert new role in auth server
-          const {success, user} = await auth_server_service.authAddRole(
-            value1[0].auth_user_id,
-            value[0].role_code
-          );
-
           // Insert new role for this user
           await trx("user_role_lookup").insert({
             user_id: value1[0].tasttlig_user_id,
@@ -135,6 +129,21 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
           {
             expiresIn: "28d",
           },
+          async (err, emailToken) => {
+            const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
+            console.log("urlVerifyEmail", urlVerifyEmail);
+
+            const r = await Mailer.sendMail({
+              from: process.env.SES_DEFAULT_FROM,
+              to: new_user.email,
+              bcc: ADMIN_EMAIL,
+              subject: "[Tasttlig] Welcome to Tasttlig!",
+              template: "signup",
+              context: {
+                urlVerifyEmail,
+              },
+            });
+          }
         );
       }
 
