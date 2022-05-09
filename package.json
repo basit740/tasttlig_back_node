@@ -40,7 +40,7 @@
     "objection": "^2.2.3",
     "pg": "^8.3.0",
     "slugify": "^1.6.1",
-    "stripe": "^8.84.0",
+    "stripe": "^8.222.0",
     "swagger-ui-express": "^4.3.0",
     "xhr2": "^0.2.1",
     "xlsx": "^0.17.3"

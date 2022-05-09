@@ -30,46 +30,37 @@ const checkout = async (checkoutItems, user = {}) => {
   if (result.success) {
     await order
       .$query()
-      .update({intent_id: result.intent.id, status: Orders.Status.Pending});
+      .update({reference_id: result.intent.id, status: Orders.Status.Pending});
   }
   return result;
 }
 
 const charge = async (orderId) => {
   const order = await getOrder(orderId);
-  const result = await new StripeProcessor().charge(order.intent_id);
+  const result = await new StripeProcessor().charge(order.reference_id);
   order.$query().update({status: Orders.Status.Paid});
   return result;
 }
 
-const completeOrder = async (orderId) => {
-  const order = await getOrder(orderId);
+const completeOrder = async (referenceId) => {
+  const order = await Orders
+    .query()
+    .findOne({reference_id: referenceId})
+    .withGraphFetched("[order_items, user]");
 
-  if (order.status !== Orders.Status.Pending) {
-    throw {status: 400, message: "Order is in an invalid state"}
-  }
-
-  const result = await new StripeProcessor().complete(order.intent_id);
-  const intent = result.intent;
-
-  if (intent.status === "succeeded") {
+  if (order && order.status === Orders.Status.Pending) {
     await order.$query().update({status: Orders.Status.Complete});
     await sendOrderCompleteEmail(order);
-    return result;
+    return {success: true}
   }
 
-  if (intent.status === "canceled") {
-    await order.$query().update({status: Orders.Status.Canceled});
-    throw {status: 400, message: "Order has been canceled"}
-  }
-
-  throw {status: 400, message: `Order is in a pending status: ${intent.status}`}
+  return {success: false};
 }
 
 const cancelOrder = async (orderId) => {
   try {
     const order = await getOrder(orderId);
-    const result = await new StripeProcessor().cancel(order.intent_id);
+    const result = await new StripeProcessor().cancel(order.reference_id);
     if (result.success) {
       await order.$query().update({status: Orders.Status.Canceled});
     }
@@ -80,9 +71,25 @@ const cancelOrder = async (orderId) => {
   }
 }
 
+const processWebhook = async (req) => {
+  const {success, event} = await new StripeProcessor().verifyEvent(req);
+  if (!success) return {success: false}
+
+  console.log(`Processing webhook event: ${JSON.stringify(event)}`);
+
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      return await completeOrder(event.data.object.id)
+    default:
+      console.info(`Webhook event of type ${event.type} is not supported`);
+      return {success: true}
+  }
+}
+
 module.exports = {
   checkout,
   charge,
   completeOrder,
-  cancelOrder
+  cancelOrder,
+  processWebhook
 }

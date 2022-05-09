@@ -173,6 +173,7 @@ const createOrder = async (checkoutItems, user) => {
   const {preTaxTotal, checkoutTotal, taxTotal} = calculateTotals(orderItems);
   return Orders.query().insertGraphAndFetch({
     email: user.email,
+    name: `${user.first_name} ${user.last_name}`,
     order_by_user_id: user.id,
     status: Orders.Status.Incomplete,
     order_datetime: new Date(),
@@ -185,7 +186,7 @@ const createOrder = async (checkoutItems, user) => {
 }
 
 const getOrderForPaymentIntent = async (intentId) => {
-  return Orders.query().findOne({intent_id: intentId});
+  return Orders.query().findOne({reference_id: intentId});
 }
 
 function calculateTotals(orderItems) {
