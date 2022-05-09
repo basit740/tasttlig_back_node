@@ -76,10 +76,17 @@ app.use(
 
 // Set up Express
 app.use(express.urlencoded({extended: false}));
-app.use(express.json({limit: "50mb"}));
 app.use(logger("combined"));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
+app.use((req, res, next) => {
+  if (req.originalUrl === '/payments/webhook') {
+    next();
+  } else {
+    express.json({limit: "50mb"})(req, res, next);
+  }
+});
 
 // Use routes
 app.use(user_authentication_router);

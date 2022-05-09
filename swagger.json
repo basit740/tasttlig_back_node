@@ -60,52 +60,6 @@
         }
       }
     },
-    "/payments/cart/complete": {
-      "post": {
-        "tags": [
-          "Payments"
-        ],
-        "summary": "Marks the Order as completed after payment has by processed successfully by Stripe",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "orderId": {
-                    "type": "number"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "An object containing the Order and PartialPaymentIntent objects",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "order": {
-                      "$ref": "#/components/schemas/Order"
-                    },
-                    "intent": {
-                      "$ref": "#/components/schemas/PartialPaymentIntent"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/payments/cart/cancel": {
       "post": {
         "tags": [

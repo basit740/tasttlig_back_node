@@ -1,22 +1,7 @@
 "use strict"
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-const createPaymentIntent = async (amountInCents, orderDescription, metadata) => {
-  try {
-    const intent = await stripe.paymentIntents.create({
-      amount: Math.round(amountInCents),
-      currency: "cad",
-      description: orderDescription,
-      metadata
-    });
-
-    return {success: true, intent}
-  } catch (e) {
-    console.error(e)
-    return {success: false, message: e.message};
-  }
-}
+const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET
 
 const getPaymentIntent = async (intentId) => {
   try {
@@ -55,12 +40,47 @@ const cancelPaymentIntent = async (intentId) => {
   }
 }
 
+const findCustomer = async (email) => {
+  return stripe.customers.search({
+    query: `email: '${email}'`,
+  });
+}
+
+const createCustomer = async (email, name) => {
+  return stripe.customers.create({
+    email,
+    name
+  });
+}
+
 class StripeProcessor {
+  async createPaymentIntent(amountInCents, orderDescription, metadata) {
+    try {
+      let result = metadata.email
+        ? await this.getOrCreateCustomer(metadata.email, metadata.name)
+        : null;
+
+      const intent = await stripe.paymentIntents.create({
+        amount: Math.round(amountInCents),
+        currency: "cad",
+        description: orderDescription,
+        customer: result.success ? result.customer.id : null,
+        metadata
+      });
+      return {success: true, intent}
+    } catch (e) {
+      console.error(e)
+      return {success: false, message: e.message};
+    }
+  }
+
   async checkout(order) {
-    const paymentIntentResult = await createPaymentIntent(
+    const paymentIntentResult = await this.createPaymentIntent(
       order.total_amount_after_tax * 100,
       order.details, {
-        items: JSON.stringify(order.order_items)
+        items: JSON.stringify(order.order_items),
+        email: order.email,
+        name: order.name
       });
 
     if (paymentIntentResult.success) {
@@ -104,6 +124,30 @@ class StripeProcessor {
     } catch (e) {
       console.error(e);
       return {success: false, message: e.message};
+    }
+  }
+
+  async getOrCreateCustomer(email, name) {
+    try {
+      let customer = await findCustomer(email);
+      if (customer.data.length === 0) {
+        customer = await createCustomer(email, name);
+      }
+      return {success: true, customer: customer.data[0]};
+    } catch (e) {
+      console.error(e);
+      return {success: false, message: e.message};
+    }
+  }
+
+  async verifyEvent(req) {
+    try {
+      const signature = req.headers['stripe-signature']
+      const event = await stripe.webhooks.constructEvent(req.body, signature, endpointSecret)
+      return {success: true, event}
+    } catch (e) {
+      console.error(e);
+      return {success: false};
     }
   }
 }

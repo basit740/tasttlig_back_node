@@ -4,36 +4,51 @@
 const router = require("express-promise-router")();
 const stripe_payment_service = require("../../services/payment/processors/stripe/stripe_payment");
 const user_profile_service = require("../../services/profile/user_profile");
-const {checkout, charge, completeOrder, cancelOrder} = require("../../services/payment/payment_service");
+const paymentService = require("../../services/payment/payment_service");
 const {authenticateToken} = require("../../services/authentication/token");
+const bodyParser = require("body-parser");
+
+router.get("/payments/config",
+  async (req, res) => {
+    return res.send({publishable_key: process.env.STRIPE_PUBLISHABLE_KEY});
+  })
 
 router.post("/payments/cart/checkout",
   authenticateToken,
   async (req, res) => {
-    const checkoutResult = await checkout(req.body, req.user)
+    const checkoutResult = await paymentService.checkout(req.body, req.user)
     return res.send(checkoutResult);
   });
 
 router.post("/payments/cart/charge",
   authenticateToken,
   async (req, res) => {
-    const result = await charge(req.body.orderId)
-    return res.send(result);
-  });
-
-router.post("/payments/cart/complete",
-  authenticateToken,
-  async (req, res) => {
-    const result = await completeOrder(req.body.orderId)
+    const result = await paymentService.charge(req.body.orderId)
     return res.send(result);
   });
 
 router.post("/payments/cart/cancel",
   authenticateToken,
   async (req, res) => {
-    const result = await cancelOrder(req.body.orderId)
+    const result = await paymentService.cancelOrder(req.body.orderId)
     return res.send(result);
   });
+
+router.post("/payments/webhook",
+  bodyParser.raw({type: 'application/json'}),
+  async (req, res) => {
+    try {
+      const result = await paymentService.processWebhook(req);
+      if (result.success) {
+        return res.send({success: true});
+      }
+    } catch (e) {
+      console.log(e);
+    }
+    return res.status(400).end();
+  }
+)
+;
 
 // POST stripe bank account
 router.post("/add-stripe-ids", async (req, res) => {
