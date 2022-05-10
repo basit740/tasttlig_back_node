@@ -1,4 +1,4 @@
-const {Festivals, Experiences, Services, Products} = require("../../models");
+const {Festivals, Experiences, Services, Products, Subscriptions} = require("../../models");
 
 class FestivalRetriever {
   async retrieveItem(id) {
@@ -52,6 +52,19 @@ class ServiceRetriever {
   }
 }
 
+class SubscriptionRetriever {
+  async retrieveItem(id) {
+    const subscription = await Subscriptions.query().findById(id);
+    if (!subscription) return null;
+
+    return {
+      amount: subscription.price,
+      details: subscription.subscription_name,
+      item: subscription
+    }
+  }
+}
+
 function retriever(itemType) {
   switch (itemType) {
     case 'festival' :
@@ -62,6 +75,8 @@ function retriever(itemType) {
       return new ProductRetriever()
     case 'service' :
       return new ServiceRetriever()
+    case 'subscription' :
+      return new SubscriptionRetriever()
     default:
       throw {status: 404, message: `Could not find retriever for itemType:${itemType}`}
   }

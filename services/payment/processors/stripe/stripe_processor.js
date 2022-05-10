@@ -53,11 +53,32 @@ const createCustomer = async (email, name) => {
   });
 }
 
+const findProduct = async (name) => {
+  return stripe.products.search({
+    query: `name: '${name}'`,
+  });
+}
+
+const createProduct = async (name, description, price, interval = "month", interval_count = 1) => {
+  return stripe.products.create({
+    name: name,
+    description: description,
+    default_price_data: {
+      currency: 'cad',
+      unit_amount_decimal: price,
+      recurring: {
+        interval,
+        interval_count
+      }
+    }
+  });
+}
+
 class StripeProcessor {
-  async createPaymentIntent(amountInCents, orderDescription, metadata) {
+  async createPaymentIntent(amountInCents, orderDescription, data) {
     try {
-      let result = metadata.email
-        ? await this.getOrCreateCustomer(metadata.email, metadata.name)
+      let result = data.email
+        ? await this.getOrCreateCustomer(data.email, data.name)
         : null;
 
       const intent = await stripe.paymentIntents.create({
@@ -65,7 +86,7 @@ class StripeProcessor {
         currency: "cad",
         description: orderDescription,
         customer: result.success ? result.customer.id : null,
-        metadata
+        metadata: data
       });
       return {success: true, intent}
     } catch (e) {
@@ -148,6 +169,40 @@ class StripeProcessor {
     } catch (e) {
       console.error(e);
       return {success: false};
+    }
+  }
+
+  async getOrCreateProduct(name, description, price) {
+    try {
+      let product = await findProduct(name);
+      if (product.data.length === 0) {
+        product = await createProduct(name, description, price);
+      }
+      return {success: true, product: product.data[0]};
+    } catch (e) {
+      console.error(e);
+      return {success: false, message: e.message};
+    }
+  }
+
+  async createSubscription(name, email, data) {
+    try {
+      const {product} = await this.getOrCreateProduct(name, data.description, data.price);
+      const {customer} = await this.getOrCreateCustomer(email, data.user_name);
+      const subscription = await stripe.subscriptions.create({
+        customer: customer.id,
+        payment_behavior: 'default_incomplete',
+        expand: ['latest_invoice.payment_intent'],
+        // TODO: Add support for trialing
+        // trial_period_days: data.trial_period,
+        items: [
+          {price: product.default_price},
+        ],
+      });
+      return {success: true, subscription};
+    } catch (e) {
+      console.error(e);
+      return {success: false, message: e.message};
     }
   }
 }

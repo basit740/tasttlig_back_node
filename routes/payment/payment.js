@@ -34,6 +34,13 @@ router.post("/payments/cart/cancel",
     return res.send(result);
   });
 
+router.post("/payments/subscriptions/new",
+  authenticateToken,
+  async (req, res) => {
+    const result = await paymentService.createUserSubscription(req.body.subscriptionCode, req.user);
+    return res.send(result);
+  })
+
 router.post("/payments/webhook",
   bodyParser.raw({type: 'application/json'}),
   async (req, res) => {
