@@ -101,18 +101,23 @@ const createUserSubscription = async (subscriptionCode, user) => {
   }
 
   if ((await UserSubscriptions.query().where({
-    user_id: user.id, subscription_code: subscriptionCode, user_subscription_status: UserSubscriptions.Status.Active
+    user_id: user.id,
+    subscription_code: subscriptionCode,
+    user_subscription_status: UserSubscriptions.Status.Active
   }).resultSize()) > 0) {
     throw {status: 409, message: `User already has subscription`}
   }
 
   const result = await new StripeProcessor().createSubscription(subscriptionCode, user.email, {
-    ...subscription, user_name: `${user.first_name} ${user.last_name}`
+    ...subscription,
+    user_name: `${user.first_name} ${user.last_name}`
   });
 
   if (result.success) {
     const order = await createOrder([{
-      itemType: 'subscription', itemId: subscription.subscription_id, quantity: 1
+      itemType: 'subscription',
+      itemId: subscription.subscription_id,
+      quantity: 1
     }], user);
 
     const intent = result.subscription.latest_invoice.payment_intent;
@@ -126,7 +131,10 @@ const createUserSubscription = async (subscriptionCode, user) => {
     });
 
     return {
-      success: true, order, subscriptionId: result.subscription.id, intent: {
+      success: true,
+      order,
+      subscriptionId: result.subscription.id,
+      intent: {
         id: intent.id,
         amount: intent.amount,
         client_secret: intent.client_secret,
@@ -190,5 +198,10 @@ const processWebhook = async (req) => {
 }
 
 module.exports = {
-  checkout, charge, completeOrder, cancelOrder, processWebhook, createUserSubscription
+  checkout,
+  charge,
+  completeOrder,
+  cancelOrder,
+  processWebhook,
+  createUserSubscription
 }
