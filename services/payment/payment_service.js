@@ -1,6 +1,6 @@
 const {createOrder} = require("../order/order_service");
 const StripeProcessor = require("./processors/stripe/stripe_processor");
-const {Orders, Subscriptions, UserSubscriptions} = require("../../models");
+const {Orders, Subscriptions, UserSubscriptions, Payments} = require("../../models");
 const {nodemailer_transporter: Mailer} = require("../email/nodemailer");
 
 async function getOrder(orderId) {
@@ -62,13 +62,31 @@ const charge = async (orderId) => {
   return result;
 }
 
-const completeOrder = async (referenceId) => {
+const chargeIntent = async (intentId) => {
+  return await new StripeProcessor().charge(intentId);
+}
+
+const completeOrder = async (intent) => {
   const order = await Orders
     .query()
-    .findOne({reference_id: referenceId})
+    .findOne({reference_id: intent.id})
     .withGraphFetched("[order_items, user]");
 
   if (order && order.status === Orders.Status.Pending) {
+    const {success, charge} = await new StripeProcessor().getCharge(intent.charges[0]);
+    if (success && charge.paid) {
+      await Payments.query().insert({
+        order_id: order.order_id,
+        reference_id: charge.id,
+        amount: charge.amount_captured / 100,
+        vendor: 'stripe',
+        used: true,
+        payment_method: charge.payment_method_details
+          ? charge.payment_method_details.type
+          : 'n/a',
+      });
+    }
+
     await order.$query().update({status: Orders.Status.Complete});
     await sendOrderCompleteEmail(order);
     return {success: true}
@@ -114,14 +132,7 @@ const createUserSubscription = async (subscriptionCode, user) => {
   });
 
   if (result.success) {
-    const order = await createOrder([{
-      itemType: 'subscription',
-      itemId: subscription.subscription_id,
-      quantity: 1
-    }], user);
-
     const intent = result.subscription.latest_invoice.payment_intent;
-    await order.$query().update({reference_id: intent.id, status: Orders.Status.Pending});
 
     await UserSubscriptions.query().insert({
       user_id: user.id,
@@ -132,7 +143,6 @@ const createUserSubscription = async (subscriptionCode, user) => {
 
     return {
       success: true,
-      order,
       subscriptionId: result.subscription.id,
       intent: {
         id: intent.id,
@@ -170,13 +180,37 @@ const updateUserSubscription = async (data) => {
 }
 
 const finalizeSubscription = async (subscription) => {
-  await sendSubscriptionActivatedEmail(subscription);
   // TODO: Add logic to update roles
+  await sendSubscriptionActivatedEmail(subscription);
 }
 
 const cancelSubscription = async (subscription) => {
-  await sendSubscriptionCancelledEmail(subscription);
   // TODO: Add logic to update roles
+  await sendSubscriptionCancelledEmail(subscription);
+}
+
+const captureSubscriptionPayment = async (invoice) => {
+  const subscription = await UserSubscriptions
+    .query().findOne({reference_id: invoice.subscription})
+  if (!subscription) {
+    return {success: false};
+  }
+
+  const {success, charge} = await new StripeProcessor().getCharge(invoice.charge);
+  if (success && charge.paid) {
+    await Payments.query().insert({
+      user_subscription_id: subscription.user_subscription_id,
+      reference_id: charge.id,
+      amount: charge.amount_captured / 100,
+      vendor: 'stripe',
+      used: true,
+      payment_method: charge.payment_method_details
+        ? charge.payment_method_details.type
+        : 'n/a',
+    });
+  }
+
+  return {success: true};
 }
 
 const processWebhook = async (req) => {
@@ -187,10 +221,12 @@ const processWebhook = async (req) => {
 
   switch (event.type) {
     case 'payment_intent.succeeded':
-      return await completeOrder(event.data.object.id)
+      return await completeOrder(event.data.object)
     case 'customer.subscription.updated':
     case 'customer.subscription.deleted':
       return await updateUserSubscription(event.data.object);
+    case 'invoice.paid':
+      return captureSubscriptionPayment(event.data.object);
     default:
       console.info(`Webhook event of type ${event.type} is not supported`);
       return {success: true}
@@ -200,6 +236,7 @@ const processWebhook = async (req) => {
 module.exports = {
   checkout,
   charge,
+  chargeIntent,
   completeOrder,
   cancelOrder,
   processWebhook,

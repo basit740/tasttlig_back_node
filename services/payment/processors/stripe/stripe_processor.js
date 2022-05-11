@@ -65,7 +65,7 @@ const createProduct = async (name, description, price, interval = "month", inter
     description: description,
     default_price_data: {
       currency: 'cad',
-      unit_amount_decimal: price,
+      unit_amount: parseFloat(price) * 100,
       recurring: {
         interval,
         interval_count
@@ -174,11 +174,26 @@ class StripeProcessor {
 
   async getOrCreateProduct(name, description, price) {
     try {
-      let product = await findProduct(name);
-      if (product.data.length === 0) {
+      let product;
+      const results = await findProduct(name);
+
+      if (results.data.length === 0) {
         product = await createProduct(name, description, price);
+      } else {
+        product = results.data[0];
       }
-      return {success: true, product: product.data[0]};
+
+      return {success: true, product};
+    } catch (e) {
+      console.error(e);
+      return {success: false, message: e.message};
+    }
+  }
+
+  async getCharge(id) {
+    try {
+      const charge = await stripe.charges.retrieve(id);
+      return {success: true, charge};
     } catch (e) {
       console.error(e);
       return {success: false, message: e.message};
