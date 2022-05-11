@@ -3,7 +3,7 @@
 // Libraries
 const { db } = require("../../db/db-config");
 const Orders = require("../../models/orders");
-const Experiences = require("../../models/Experiences");
+const Experiences = require("../../models/experiences");
 const point_system_service = require("../profile/points_system");
 const festival_service = require("../../services/festival/festival");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;

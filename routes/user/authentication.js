@@ -16,7 +16,7 @@ const {
   encryptString,
   generateRandomString,
 } = require("../../functions/functions");
-const User = require("../../models/User");
+const User = require("../../models/users");
 const password_preprocessor = require("../../middleware/password_preprocessor");
 const {db} = require("../../db/db-config");
 
@@ -40,8 +40,14 @@ authRouter.post(
       email,
       password_digest,
       phone_number,
+      city,
+      state,
+      country,
+      postal_code,
+      street_name,
+      street_number,
+      unit_number,
       passport_type,
-      passport_area,
       source,
     } = req.body;
 
@@ -59,11 +65,18 @@ authRouter.post(
         email,
         password: password_digest,
         phone_number,
+        city,
+        state,
+        country,
+        postal_code,
+        street_name,
+        street_number,
+        unit_number,
         passport_type,
         source,
       };
 
-      const response = await authenticate_user_service.userRegister(user, passport_area);
+      const response = await authenticate_user_service.userRegister(user);
 
       if (response.success) {
         res.status(200).send(response);
@@ -149,6 +162,7 @@ authRouter.post("/user/login",
             reset_token: email_token,
             email: email,
           });
+          return;
         }
       } else if (userState === 2) {
         // so this user exist on auth server but password not match
@@ -281,10 +295,10 @@ authRouter.post(
 
 // PUT user enter new password
 authRouter.put(
-  "/user/update-password/:token",
+  "/user/update-password",
   password_preprocessor,
   async (req, res) => {
-    if (!req.body.email || !req.body.password_digest || !req.params.token) {
+    if (!req.body.email || !req.body.password_digest || !req.body.token) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
@@ -294,7 +308,7 @@ authRouter.put(
     try {
       const email = req.body.email;
       const password = req.body.password_digest;
-      const token = req.params.token;
+      const token = req.body.token;
 
       if (email) {
         const response = await authenticate_user_service.updatePasswordFromToken(
@@ -536,50 +550,50 @@ authRouter.post(
         food_business_type: user_business_food_type,
         business_details_id: business_id,
       }
-      
-      // if the coming request include verification code and promo code
-    if (business_id) {
-      const db_business = await business_service.getBusinessById(business_id);
-      if (req.body.verification_code !== db_business.business[0].business_verification_code) {
-        return res.send({
-          success: false,
-          message: "Verificaion code is wrong!",
-        });
-      }
-      
-      const db_festival = await festival_service.getFestivalDetailsBySlug(
-        req.body.festival_id,
-        {id: 1, role: ["ADMIN"]} // This is the mock admin data so it can fetch the promo code and verify at frontend
-      );
-      if (req.body.promo_code !== db_festival.details[0].promo_code) {
-        return res.send({
-          success: false,
-          message: "Promo code is wrong!",
-        });
-      }
 
-      const hostDto = {
-        is_business: is_business,
-        email: email,
-      };
-      // transaction for claim business
-      return await db.transaction(async trx => {
-        const user_response = await authenticate_user_service.userRegister(user, passport_area, true, trx);
-        businessDto.business_details_user_id = user_response.data.tasttlig_user_id;
-        const response = await user_profile_service.updateUserBusinessProfile(businessDto, trx);
-        const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
-        if (saveHost.success) {
-          res.status(200).send(saveHost);
-        } else {
-          return res.status(401).json({
+      // if the coming request include verification code and promo code
+      if (business_id) {
+        const db_business = await business_service.getBusinessById(business_id);
+        if (req.body.verification_code !== db_business.business[0].business_verification_code) {
+          return res.send({
             success: false,
-            message: "401 error",
+            message: "Verificaion code is wrong!",
           });
         }
-      })
-   
-    }
-    
+
+        const db_festival = await festival_service.getFestivalDetailsBySlug(
+          req.body.festival_id,
+          {id: 1, role: ["ADMIN"]} // This is the mock admin data so it can fetch the promo code and verify at frontend
+        );
+        if (req.body.promo_code !== db_festival.details[0].promo_code) {
+          return res.send({
+            success: false,
+            message: "Promo code is wrong!",
+          });
+        }
+
+        const hostDto = {
+          is_business: is_business,
+          email: email,
+        };
+        // transaction for claim business
+        return await db.transaction(async trx => {
+          const user_response = await authenticate_user_service.userRegister(user, passport_area, true, trx);
+          businessDto.business_details_user_id = user_response.data.tasttlig_user_id;
+          const response = await user_profile_service.updateUserBusinessProfile(businessDto, trx);
+          const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
+          if (saveHost.success) {
+            res.status(200).send(saveHost);
+          } else {
+            return res.status(401).json({
+              success: false,
+              message: "401 error",
+            });
+          }
+        })
+
+      }
+
       const hostDto = {
         is_business: is_business,
         email: email,

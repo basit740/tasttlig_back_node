@@ -9,6 +9,7 @@ attachPaginate();
 const gis = knexPostgis(db);
 Model.knex(db);
 
+console.log(`db config: ${JSON.stringify(config)}`)
 db.migrate.latest();
 
 module.exports = {

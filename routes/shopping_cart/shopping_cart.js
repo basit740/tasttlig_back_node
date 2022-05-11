@@ -22,7 +22,7 @@ router.get("/", token_service.authenticateToken, async (req, res) => {
 
 // Add item to shopping cart
 router.post("/add", token_service.authenticateToken, async (req, res) => {
-  if (!req.body.item_id || !req.body.item_type || !req.body.quantity) {
+  if (!req.body.item_id || !req.body.item_type || !req.body.quantity || !req.body.amount) {
     return res.status(403).json({
       success: false,
       message: "Required parameters are not available in request.",
@@ -31,16 +31,16 @@ router.post("/add", token_service.authenticateToken, async (req, res) => {
 
   try {
     let cart = await shopping_cart_service.getCart(req.user.id);
-
-    if (!cart.success) {
+    if (cart.details.length === 0) {
       cart = await shopping_cart_service.createCart(req.user.id);
     }
-
     const response = await shopping_cart_service.addCartItem(
-      cart[0].cart_id,
+      req.user.id,
+      cart.details[0].cart_id,
       req.body.item_type,
       req.body.item_id,
-      req.body.quantity
+      req.body.quantity,
+      req.body.amount,
     );
 
     return res.send(response);
@@ -55,5 +55,48 @@ router.post("/add", token_service.authenticateToken, async (req, res) => {
 
 // PUT shopping cart
 router.put("/update", token_service.authenticateToken, async (req, res) => {});
+
+// Remove an item from shopping cart
+router.delete("/delete/:cart_item_id", token_service.authenticateToken, async (req, res) => {
+  if (!req.params.cart_item_id) {
+    return res.status(403).json({
+      success: false,
+      message: "Required parameters are not available in request.",
+    });
+  }
+  try {
+    const response = await shopping_cart_service.deleteCartItem(
+      req.user.id,
+      Number(req.params.cart_item_id)
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
+
+
+// Remove all item from shopping cart
+router.delete("/delete", token_service.authenticateToken, async (req, res) => {
+  
+  try {
+    const response = await shopping_cart_service.deleteAllCartItem(
+      req.user.id
+    );
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Error.",
+      response: error.message,
+    });
+  }
+});
 
 module.exports = router;

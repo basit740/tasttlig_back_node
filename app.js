@@ -12,6 +12,9 @@ const cron = require("node-cron");
 require("dotenv").config();
 require("./db/db-config");
 
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
 // Routes
 const profile_router = require("./routes/user/profile");
 const user_authentication_router = require("./routes/user/authentication");
@@ -62,14 +65,28 @@ let corsOptions = {
   origin: "*",
   optionsSuccessStatus: 200,
 };
+
 app.use(cors(corsOptions));
 
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument)
+);
+
 // Set up Express
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({extended: false}));
 app.use(logger("combined"));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
+app.use((req, res, next) => {
+  if (req.originalUrl === '/payments/webhook') {
+    next();
+  } else {
+    express.json({limit: "50mb"})(req, res, next);
+  }
+});
 
 // Use routes
 app.use(user_authentication_router);
@@ -113,6 +130,11 @@ app.use(mypassports_router);
 app.use(fav_passports_router);
 app.use(festival_reviews_router);
 app.use(featured_artists_router);
+
+app.use((err, req, res, next) => {
+  console.error({type: 'Error handler', path: (req ? req.originalUrl : null), err, status: err.status});
+  res.status(err.status || 500).json({success: false, message: err.message});
+});
 
 // Cron Job scripts
 cron.schedule("0 0 1-31 * *", cron_job_functions.deleteInactiveItems);

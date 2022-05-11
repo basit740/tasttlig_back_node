@@ -1,0 +1,329 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Tasttlig Application API",
+    "description": "API for Tasttlig Application"
+  },
+  "tags": [
+    {
+      "name": "Payments",
+      "description": "API for making purchases and payments"
+    }
+  ],
+  "paths": {
+    "/payments/cart/checkout": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Creates an order an begins the payment process",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/CheckoutItem"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "An object containing the Order and PartialPaymentIntent objects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "$ref": "#/components/schemas/Order"
+                    },
+                    "intent": {
+                      "$ref": "#/components/schemas/PartialPaymentIntent"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/cart/cancel": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Cancel an order",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "orderId": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order was successfully canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "intent": {
+                      "$ref": "#/components/schemas/PaymentIntent"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CheckoutItem": {
+        "required": [
+          "itemType",
+          "itemId",
+          "quantity"
+        ],
+        "properties": {
+          "itemType": {
+            "type": "string"
+          },
+          "itemId": {
+            "type": "integer"
+          },
+          "quantity": {
+            "type": "integer"
+          }
+        }
+      },
+      "Order": {
+        "properties": {
+          "order_id": {
+            "type": "integer"
+          },
+          "order_by_user_id": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "total_amount_before_tax": {
+            "type": "number"
+          },
+          "total_tax": {
+            "type": "number"
+          },
+          "total_amount_after_tax": {
+            "type": "number"
+          },
+          "order_datetime": {
+            "type": "string"
+          },
+          "intent_id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "order_items": {
+            "type": "array",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OrderItem"
+              }
+            ]
+          }
+        }
+      },
+      "OrderItem": {
+        "properties": {
+          "order_item_id": {
+            "type": "number"
+          },
+          "order_id": {
+            "type": "number"
+          },
+          "item_id": {
+            "type": "number"
+          },
+          "item_type": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "price_before_tax": {
+            "type": "number"
+          }
+        }
+      },
+      "PartialPaymentIntent": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "client_secret": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "PaymentIntent": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "amount_capturable": {
+            "type": "number"
+          },
+          "amount_received": {
+            "type": "number"
+          },
+          "canceled_at": {
+            "type": "number"
+          },
+          "cancellation_reason": {
+            "type": "string"
+          },
+          "capture_method": {
+            "type": "string"
+          },
+          "charges": {
+            "type": "object",
+            "properties": {
+              "object": {
+                "type": "string"
+              },
+              "data": {
+                "type": "array"
+              },
+              "has_more": {
+                "type": "boolean"
+              },
+              "total_count": {
+                "type": "number"
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          },
+          "client_secret": {
+            "type": "string"
+          },
+          "confirmation_method": {
+            "type": "string"
+          },
+          "created": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "object"
+          },
+          "description": {
+            "type": "string"
+          },
+          "invoice": {
+            "type": "object"
+          },
+          "livemode": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "payment_method_options": {
+            "type": "object",
+            "properties": {
+              "card": {
+                "type": "object",
+                "properties": {
+                  "request_three_d_secure": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "payment_method_types": {
+            "type": "array"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

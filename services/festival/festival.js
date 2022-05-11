@@ -1,12 +1,12 @@
 "use strict";
 
 // Libraries
-const { db } = require("../../db/db-config");
+const {db} = require("../../db/db-config");
 const Mailer = require("../email/nodemailer").nodemailer_transporter;
-const { formatTime, generateSlug } = require("../../functions/functions");
+const {formatTime, generateSlug} = require("../../functions/functions");
 // const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
-const { generateRandomString } = require("../../functions/functions");
+const {generateRandomString} = require("../../functions/functions");
 
 // Get all festivals helper function
 const getAllFestivals = async (currentPage, keyword, filters) => {
@@ -58,6 +58,14 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
     query.where("festivals.festival_city", "=", filters.cityLocation);
   }
 
+  if (filters.category) {
+    query.where("festivals.category", "=", filters.category);
+  }
+
+  if (filters.subCategory) {
+    query.where("festivals.sub_category", "=", filters.subCategory);
+  }
+
   //if (filters.dayOfWeek) {
   /* query.whereRaw("Day(festivals.festival_start_time) = ?", [
       filters.dayOfWeek,
@@ -71,8 +79,8 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -82,14 +90,14 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                // "main.nationality, " +
-                "main.festival_name, " +
-                "main.festival_type, " +
-                "main.festival_price, " +
-                // "main.festival_city)) as search_text"
-                "main.festival_city, " +
-                // "main.description)) as search_text"
-                "main.festival_description)) as search_text"
+              // "main.nationality, " +
+              "main.festival_name, " +
+              "main.festival_type, " +
+              "main.festival_price, " +
+              // "main.festival_city)) as search_text"
+              "main.festival_city, " +
+              // "main.description)) as search_text"
+              "main.festival_description)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -106,10 +114,10 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
 
   return await query
     .then((value) => {
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -174,8 +182,8 @@ const getAllFestivalList = async (currentPage, keyword, filters) => {
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -185,12 +193,12 @@ const getAllFestivalList = async (currentPage, keyword, filters) => {
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.nationality, " +
-                "main.festival_name, " +
-                "main.festival_type, " +
-                "main.festival_price, " +
-                "main.festival_city, " +
-                "main.description)) as search_text"
+              "main.nationality, " +
+              "main.festival_name, " +
+              "main.festival_type, " +
+              "main.festival_price, " +
+              "main.festival_city, " +
+              "main.description)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -211,10 +219,10 @@ const getAllFestivalList = async (currentPage, keyword, filters) => {
         delete festival.promo_code;
       });
 
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -246,10 +254,10 @@ const getAllHostFestivalList = async (filters) => {
       value.map((festival) => {
         delete festival.promo_code;
       });
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -272,10 +280,10 @@ const getAllFestivalsPresent = async () => {
       value.map((festival) => {
         delete festival.promo_code;
       });
-      return { success: true, festival_list: value };
+      return {success: true, festival_list: value};
     })
     .catch((reason) => {
-      return { success: false, data: reason };
+      return {success: false, data: reason};
     });
 };
 
@@ -319,8 +327,8 @@ const getThreeFestivals = async (currentPage, keyword, filters) => {
         "*",
         db.raw(
           "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
-            "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
-            "END rank",
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
           [keyword, keyword]
         )
       )
@@ -330,12 +338,12 @@ const getThreeFestivals = async (currentPage, keyword, filters) => {
             "main.*",
             db.raw(
               "to_tsvector(concat_ws(' '," +
-                "main.nationality, " +
-                "main.festival_name, " +
-                "main.festival_type, " +
-                "main.festival_price, " +
-                "main.festival_city, " +
-                "main.description)) as search_text"
+              "main.nationality, " +
+              "main.festival_name, " +
+              "main.festival_type, " +
+              "main.festival_price, " +
+              "main.festival_city, " +
+              "main.description)) as search_text"
             )
           )
           .from(query.as("main"))
@@ -355,10 +363,10 @@ const getThreeFestivals = async (currentPage, keyword, filters) => {
       value.map((festival) => {
         delete festival.promo_code;
       });
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -388,10 +396,10 @@ const getFestivalList = async () => {
       value.map((festival) => {
         delete festival.promo_code;
       });
-      return { success: true, festival_list: value };
+      return {success: true, festival_list: value};
     })
     .catch((reason) => {
-      return { success: false, data: reason };
+      return {success: false, data: reason};
     });
 };
 
@@ -408,10 +416,10 @@ const getFestivalListNoFuture = async () => {
       value.map((festival) => {
         delete festival.promo_code;
       });
-      return { success: true, festival_list: value };
+      return {success: true, festival_list: value};
     })
     .catch((reason) => {
-      return { success: false, data: reason };
+      return {success: false, data: reason};
     });
 };
 
@@ -442,7 +450,7 @@ const createNewFestival = async (festival_details, festival_images, business_fil
         .returning("*");
 
       if (!db_festival) {
-        return { success: false, details: "Inserting new festival failed." };
+        return {success: false, details: "Inserting new festival failed."};
       }
 
       // insert festival image
@@ -460,10 +468,10 @@ const createNewFestival = async (festival_details, festival_images, business_fil
       await trx("festival_business_lists").insert(business_list);
     });
 
-    return { success: true, details: db_festival[0].festival_id };
+    return {success: true, details: db_festival[0].festival_id};
   } catch (error) {
     console.log(error.message);
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -492,8 +500,8 @@ const hostToFestival = async (
               ) {
                 host_ids[0].festival_host_id.push(db_user.tasttlig_user_id);
                 await db("festivals")
-                  .where({ festival_id: festival_id })
-                  .update({ festival_host_id: host_ids[0].festival_host_id });
+                  .where({festival_id: festival_id})
+                  .update({festival_host_id: host_ids[0].festival_host_id});
               }
             } else if (
               db_user.role.includes("VENDOR") ||
@@ -513,15 +521,15 @@ const hostToFestival = async (
               if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
                 vendor_ids_array.push(db_user.tasttlig_user_id);
                 await db("festivals")
-                  .where({ festival_id: item })
-                  .update({ festival_vendor_id: vendor_ids_array });
+                  .where({festival_id: item})
+                  .update({festival_vendor_id: vendor_ids_array});
               }
 
               if (!db_user.role.includes("VENDOR")) {
                 // Get role code of new role to be added
                 const new_role_code = await trx("roles")
                   .select()
-                  .where({ role: "VENDOR" })
+                  .where({role: "VENDOR"})
                   .then((value) => {
                     return value[0].role_code;
                   });
@@ -534,7 +542,7 @@ const hostToFestival = async (
               }
             }
           } catch (error) {
-            return { success: false };
+            return {success: false};
           }
           console.log(
             "festival_id coming from host to festival:",
@@ -545,7 +553,7 @@ const hostToFestival = async (
           if (typeof foodSamplePreference === "object") {
             for (let sample of foodSamplePreference) {
               db_host = await trx("products")
-                .where({ product_id: sample })
+                .where({product_id: sample})
                 .update({
                   festival_selected: trx.raw(
                     "array_append(festival_selected, ?)",
@@ -557,7 +565,7 @@ const hostToFestival = async (
           }
 
           if (!db_host) {
-            return { success: false, details: "Inserting new host failed." };
+            return {success: false, details: "Inserting new host failed."};
           }
         }
       } else {
@@ -574,7 +582,7 @@ const hostToFestival = async (
           if (db_user.role.includes("HOST")) {
             var host_ids = await db("festivals")
               .select("festival_host_id")
-              .where({ festival_id })
+              .where({festival_id})
               .then((resp) => {
                 return resp;
               });
@@ -582,13 +590,13 @@ const hostToFestival = async (
             if (!host_ids.includes(db_user.tasttlig_user_id)) {
               host_ids.push(db_user.tasttlig_user_id);
               await db("festivals")
-                .where({ festival_id: festival_id })
-                .update({ festival_host_id: host_ids });
+                .where({festival_id: festival_id})
+                .update({festival_host_id: host_ids});
             }
           } else if (db_user.role.includes("VENDOR")) {
             var vendor_ids = await db("festivals")
               .select("festival_vendor_id")
-              .where({ festival_id })
+              .where({festival_id})
               .then((resp) => {
                 return resp;
               });
@@ -597,18 +605,18 @@ const hostToFestival = async (
             if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
               vendor_ids_array.push(db_user.tasttlig_user_id);
               await db("festivals")
-                .where({ festival_id: festival_id })
-                .update({ festival_vendor_id: vendor_ids_array });
+                .where({festival_id: festival_id})
+                .update({festival_vendor_id: vendor_ids_array});
             }
           }
         } catch (error) {
-          return { success: false };
+          return {success: false};
         }
 
         if (typeof foodSamplePreference === "Array") {
           for (let sample of foodSamplePreference) {
             const db_host = await trx("products")
-              .where({ product_id: sample })
+              .where({product_id: sample})
               .update({
                 festival_selected: trx.raw(
                   "array_append(festival_selected, ?)",
@@ -619,13 +627,13 @@ const hostToFestival = async (
           }
         }
         if (!db_host) {
-          return { success: false, details: "Inserting new host failed." };
+          return {success: false, details: "Inserting new host failed."};
         }
       }
     });
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -658,8 +666,8 @@ const addVendorApplication = async (
               if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
                 vendor_ids_array.push(db_user.tasttlig_user_id);
                 await db("festivals")
-                  .where({ festival_id: item })
-                  .update({ vendor_request_id: vendor_ids_array });
+                  .where({festival_id: item})
+                  .update({vendor_request_id: vendor_ids_array});
               }
 
               if (
@@ -669,7 +677,7 @@ const addVendorApplication = async (
                 // Get role code of new role to be added
                 const new_role_code = await trx("roles")
                   .select()
-                  .where({ role: "VENDOR_PENDING" })
+                  .where({role: "VENDOR_PENDING"})
                   .then((value) => {
                     return value[0].role_code;
                   });
@@ -682,7 +690,7 @@ const addVendorApplication = async (
               }
             }
           } catch (error) {
-            return { success: false };
+            return {success: false};
           }
           console.log(
             "festival_id coming from host to festival:",
@@ -713,7 +721,7 @@ const addVendorApplication = async (
           if (db_user.role.includes("VENDOR")) {
             var vendor_application_ids = await db("festivals")
               .select("vendor_request_id")
-              .where({ festival_id })
+              .where({festival_id})
               .then((resp) => {
                 return resp;
               });
@@ -723,18 +731,18 @@ const addVendorApplication = async (
             if (!vendor_ids_array.includes(db_user.tasttlig_user_id)) {
               vendor_ids_array.push(db_user.tasttlig_user_id);
               await db("festivals")
-                .where({ festival_id: festival_id })
-                .update({ vendor_request_id: vendor_ids_array });
+                .where({festival_id: festival_id})
+                .update({vendor_request_id: vendor_ids_array});
             }
           }
         } catch (error) {
-          return { success: false };
+          return {success: false};
         }
 
         if (typeof foodSamplePreference === "Array") {
           for (let sample of foodSamplePreference) {
             const db_host = await trx("products")
-              .where({ product_id: sample })
+              .where({product_id: sample})
               .update({
                 festival_selected: trx.raw(
                   "array_append(festival_selected, ?)",
@@ -745,13 +753,13 @@ const addVendorApplication = async (
           }
         }
         if (!db_host) {
-          return { success: false, details: "Inserting new host failed." };
+          return {success: false, details: "Inserting new host failed."};
         }
       }
     });
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -778,15 +786,15 @@ const addSponsorApplication = async (festival_id, db_user, applicationType) => {
               if (!sponsor_ids_array.includes(db_user.tasttlig_user_id)) {
                 sponsor_ids_array.push(db_user.tasttlig_user_id);
                 await db("festivals")
-                  .where({ festival_id: item })
-                  .update({ sponsor_request_id: sponsor_ids_array });
+                  .where({festival_id: item})
+                  .update({sponsor_request_id: sponsor_ids_array});
               }
 
               if (!db_user.role.includes("SPONSOR")) {
                 // Get role code of new role to be added
                 const new_role_code = await trx("roles")
                   .select()
-                  .where({ role: "SPONSOR" })
+                  .where({role: "SPONSOR"})
                   .then((value) => {
                     return value[0].role_code;
                   });
@@ -799,14 +807,14 @@ const addSponsorApplication = async (festival_id, db_user, applicationType) => {
               }
             }
           } catch (error) {
-            return { success: false };
+            return {success: false};
           }
         }
       } else {
         try {
           var sponsor_application_ids = await db("festivals")
             .select("sponsor_request_id")
-            .where({ festival_id })
+            .where({festival_id})
             .then((resp) => {
               return resp;
             });
@@ -816,21 +824,21 @@ const addSponsorApplication = async (festival_id, db_user, applicationType) => {
           if (!sponsor_ids_array.includes(db_user.tasttlig_user_id)) {
             sponsor_ids_array.push(db_user.tasttlig_user_id);
             await db("festivals")
-              .where({ festival_id: festival_id })
-              .update({ sponsor_request_id: sponsor_ids_array });
+              .where({festival_id: festival_id})
+              .update({sponsor_request_id: sponsor_ids_array});
           }
         } catch (error) {
-          return { success: false };
+          return {success: false};
         }
 
         if (!db_host) {
-          return { success: false, details: "Inserting new host failed." };
+          return {success: false, details: "Inserting new host failed."};
         }
       }
     });
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -851,17 +859,17 @@ const addNeighbourhoodSponsor = async (festival_id, user_id) => {
               })
               .returning("*")
               .catch(() => {
-                return { success: false };
+                return {success: false};
               });
           });
         }
       } catch (error) {
-        return { success: false };
+        return {success: false};
       }
     });
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -885,12 +893,12 @@ const addRestaurantApplication = async (festival_id, db_user) => {
           });
         }
       } catch (error) {
-        return { success: false };
+        return {success: false};
       }
     });
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -909,15 +917,15 @@ const addBusinessToFestival = async (festival_id, user_id) => {
           if (!vendor_id_array.includes(user_id)) {
             vendor_id_array.push(user_id);
             await db("festivals")
-              .where({ festival_id: item })
-              .update({ festival_vendor_id: vendor_id_array });
+              .where({festival_id: item})
+              .update({festival_vendor_id: vendor_id_array});
           }
         }
       }
     });
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -928,7 +936,7 @@ const updateFestival = async (data, festival_images, business_file) => {
       const slug = generateSlug(data.festival_name);
 
       const db_festival = await trx("festivals")
-        .where({ festival_id: data.festival_id })
+        .where({festival_id: data.festival_id})
         .update({
           festival_name: data.festival_name,
           festival_type: data.festival_type,
@@ -950,30 +958,30 @@ const updateFestival = async (data, festival_images, business_file) => {
 
       //update festival image
       await trx("festival_images")
-        .where({ festival_id: data.festival_id })
-        .update({ festival_image_url: festival_images[0] })
+        .where({festival_id: data.festival_id})
+        .update({festival_image_url: festival_images[0]})
         .returning("*");
 
       //update festival business list file
       const r = await trx("festival_business_lists")
-        .where({ list_festival_id: data.festival_id })
-        .update({ list_file_location: business_file })
+        .where({list_festival_id: data.festival_id})
+        .update({list_file_location: business_file})
         .returning("*");
 
-        // updade return length is 0 means there were no pervious entry of the business file
+      // updade return length is 0 means there were no pervious entry of the business file
       if (r.length === 0) {
         // insert festival business list file location
         const business_list = {
           list_festival_id: data.festival_id,
           list_file_location: business_file
         }
-         await trx("festival_business_lists").insert(business_list);
+        await trx("festival_business_lists").insert(business_list);
       }
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -987,7 +995,7 @@ const sponsorToFestival = async (
     let role = db_user.user.role;
     await db.transaction(async (trx) => {
       const db_sponsor_festival = await trx("festivals")
-        .where({ festival_id })
+        .where({festival_id})
         .update({
           festival_business_sponsor_id: trx.raw(
             "array_append(festival_business_sponsor_id, ?)",
@@ -997,13 +1005,13 @@ const sponsorToFestival = async (
         .returning("*");
 
       if (!db_sponsor_festival) {
-        return { success: false, details: "Inserting new sponsor failed." };
+        return {success: false, details: "Inserting new sponsor failed."};
       }
       if (!role.includes("SPONSOR")) {
         // Get role code of new role to be added
         const new_role_code = await trx("roles")
           .select()
-          .where({ role: "SPONSOR" })
+          .where({role: "SPONSOR"})
           .then((value) => {
             return value[0].role_code;
           });
@@ -1016,15 +1024,15 @@ const sponsorToFestival = async (
       }
     });
 
-    return { success: true, details: "Success." };
+    return {success: true, details: "Success."};
   } catch (error) {
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
-  // Get festival details helper function
-  const getFestivalDetails = async (festival_id, user = null) => {
-    return await db
+// Get festival details helper function
+const getFestivalDetails = async (festival_id, user = null) => {
+  return await db
     .select(
       "festivals.*",
       db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
@@ -1063,7 +1071,7 @@ const sponsorToFestival = async (
     })
     .catch((reason) => {
       console.log("LOOKUP FAILED", reason);
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -1109,10 +1117,10 @@ const getFestivalRestaurants = async (host_id, festival_id) => {
 
   return await productQuery
     .then((value) => {
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((reason) => {
-      return { success: false, details: reason };
+      return {success: false, details: reason};
     });
 };
 
@@ -1120,7 +1128,7 @@ const attendFestival = async (user_id, festival_id) => {
   try {
     await db.transaction(async (trx) => {
       const db_guest = await trx("festivals")
-        .where({ festival_id: festival_id })
+        .where({festival_id: festival_id})
         .update({
           festival_user_guest_id: trx.raw(
             "array_append(festival_user_guest_id, ?)",
@@ -1130,7 +1138,7 @@ const attendFestival = async (user_id, festival_id) => {
         .returning("*");
 
       if (!db_guest) {
-        return { success: false, details: "Inserting guest failed." };
+        return {success: false, details: "Inserting guest failed."};
       }
 
       // fetch festival passport id
@@ -1147,7 +1155,7 @@ const attendFestival = async (user_id, festival_id) => {
         .returning("*");
 
       if (!db_passport) {
-        return { success: false, details: "Inserting passport failed." };
+        return {success: false, details: "Inserting passport failed."};
       }
     });
 
@@ -1202,10 +1210,10 @@ const attendFestival = async (user_id, festival_id) => {
     //   },
     // });
 
-    return { success: true, details: "Success" };
+    return {success: true, details: "Success"};
   } catch (error) {
     console.log(error);
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -1216,7 +1224,7 @@ const removeAttendance = async (festival_id, user_id) => {
 
     await db.transaction(async (trx) => {
       const db_guest = await trx("festivals")
-        .where({ festival_id: festival.details[0].festival_id })
+        .where({festival_id: festival.details[0].festival_id})
         .update({
           festival_user_guest_id: trx.raw(
             "array_remove(festival_user_guest_id, ?)",
@@ -1226,14 +1234,14 @@ const removeAttendance = async (festival_id, user_id) => {
         .returning("*");
 
       if (!db_guest) {
-        return { success: false, details: "Inserting guest failed." };
+        return {success: false, details: "Inserting guest failed."};
       }
     });
 
-    return { success: true, details: "Success" };
+    return {success: true, details: "Success"};
   } catch (error) {
     console.log(error);
-    return { success: false, details: error.message };
+    return {success: false, details: error.message};
   }
 };
 
@@ -1257,10 +1265,10 @@ const getFestivalByPassport = async (passport_id) => {
       value.map((festival) => {
         delete festival.promo_code;
       });
-      return { success: true, details: value };
+      return {success: true, details: value};
     })
     .catch((error) => {
-      return { success: false, details: error };
+      return {success: false, details: error};
     });
 };
 
@@ -1290,12 +1298,11 @@ const getFestivalByPassports = async (passport_ids) => {
         // return { success: true, festival_list: value };
       })
       .catch((error) => {
-        return { success: false, details: error };
+        return {success: false, details: error};
       });
   }
-  return { success: true, value: festival_list };
+  return {success: true, value: festival_list};
 };
-
 
 
 const registerUserToFestivals = async (user_id, festival_ids) => {
@@ -1304,7 +1311,7 @@ const registerUserToFestivals = async (user_id, festival_ids) => {
       // insert user id into festival guest array
       await db.transaction(async (trx) => {
         const db_guest = await trx("festivals")
-          .where({ festival_id: festival_id })
+          .where({festival_id: festival_id})
           .update({
             festival_user_guest_id: trx.raw(
               "array_append(festival_user_guest_id, ?)",
@@ -1314,13 +1321,13 @@ const registerUserToFestivals = async (user_id, festival_ids) => {
           .returning("*");
 
         if (!db_guest) {
-          return { success: false, details: "Inserting new guest failed." };
+          return {success: false, details: "Inserting new guest failed."};
         }
 
         // get festival passport using festival id
         var festival_passport = await db("festivals")
           .select("basic_passport_id")
-          .where({ festival_id })
+          .where({festival_id})
           .then((resp) => {
             return resp;
           });
@@ -1336,14 +1343,14 @@ const registerUserToFestivals = async (user_id, festival_ids) => {
           .returning("*");
 
         if (!db_passport) {
-          return { success: false, details: "Inserting passport failed." };
+          return {success: false, details: "Inserting passport failed."};
         }
       });
 
-      return { success: true, details: "Success." };
+      return {success: true, details: "Success."};
     }
   } catch (error) {
-    return { success: false, details: error };
+    return {success: false, details: error};
   }
 };
 
@@ -1367,21 +1374,19 @@ const getLandingPageFestival = async () => {
       "festivals.festival_id",
       "festival_images.festival_id"
     )
-    .where("festivals.festival_landing_page_featured", "=", true) 
+    .where("festivals.festival_landing_page_featured", "=", true)
     .groupBy("festivals.festival_id")
-  
+
     .then((value) => {
       value.map((festival) => {
         delete festival.promo_code;
       });
-      return { success: true, festival_list: value };
+      return {success: true, festival_list: value};
     })
     .catch((reason) => {
-      return { success: false, data: reason };
+      return {success: false, data: reason};
     });
 };
-
-
 
 
 module.exports = {

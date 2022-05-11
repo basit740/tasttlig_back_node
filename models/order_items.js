@@ -14,7 +14,7 @@ class OrderItems extends Model {
   // This object defines the relations to other models.
   static get relationMappings() {
     const Orders = require("./orders");
-    const Experiences = require("./Experiences");
+    const Experiences = require("./experiences");
     return {
       orders: {
         relation: Model.BelongsToOneRelation,

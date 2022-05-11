@@ -1,5 +1,5 @@
 // Libraries
-const { Model } = require("objection");
+const {Model} = require("objection");
 
 class ExperienceImages extends Model {
   // Table name is the only required property.
@@ -13,7 +13,7 @@ class ExperienceImages extends Model {
 
   // This object defines the relations to other models.
   static get relationMappings() {
-    const Experiences = require("./Experiences");
+    const Experiences = require("./experiences");
 
     return {
       experiences: {

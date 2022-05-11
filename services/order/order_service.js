@@ -2,6 +2,8 @@
 
 // Libraries
 const {db} = require("../../db/db-config");
+const {retrieveOrderItem} = require("./order_item_retriever");
+const Orders = require("../../models/orders")
 
 const getAllUserOrders = async (user_id) => {
   let query = db
@@ -151,7 +153,58 @@ const getAllCurrentOrders = async (user_id) => {
     });
 };
 
+const createOrder = async (checkoutItems, user) => {
+  const orderItems = [], details = [];
+
+  for (const {itemType, itemId, quantity} of checkoutItems) {
+    const item = await retrieveOrderItem(itemType, itemId);
+    if (!item) {
+      throw {status: 400, message: `Item of type ${itemType} with id ${itemId} was not found`};
+    }
+    details.push(`${quantity} X ${item.details}`);
+    orderItems.push({
+      item_id: itemId,
+      item_type: itemType,
+      quantity: parseInt(quantity),
+      price_before_tax: parseFloat(item.amount) * parseInt(quantity)
+    })
+  }
+
+  const {preTaxTotal, checkoutTotal, taxTotal} = calculateTotals(orderItems);
+  return Orders.query().insertGraphAndFetch({
+    email: user.email,
+    name: `${user.first_name} ${user.last_name}`,
+    order_by_user_id: user.id,
+    status: Orders.Status.Incomplete,
+    order_datetime: new Date(),
+    total_amount_before_tax: preTaxTotal,
+    total_tax: taxTotal,
+    total_amount_after_tax: checkoutTotal,
+    details: details.join(", "),
+    order_items: orderItems
+  });
+}
+
+const getOrderForPaymentIntent = async (intentId) => {
+  return Orders.query().findOne({reference_id: intentId});
+}
+
+function calculateTotals(orderItems) {
+  const preTaxTotal = orderItems.map(i => i.price_before_tax).reduce((a, b) => a + b)
+  const taxTotal = calculateTax(preTaxTotal);
+  const checkoutTotal = preTaxTotal + taxTotal;
+  return {preTaxTotal, checkoutTotal, taxTotal};
+}
+
+function calculateTax(amount) {
+  //TODO: apply tax logic here
+  const taxRate = 0;
+  return amount * taxRate;
+}
+
 module.exports = {
   getAllUserOrders,
   getAllCurrentOrders,
+  createOrder,
+  getOrderForPaymentIntent
 };

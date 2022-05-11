@@ -1,6 +1,6 @@
 // Libraries
 const axios = require("axios");
-const User = require("../../models/User");
+const User = require("../../models/users");
 const user_profile_service = require("../profile/user_profile");
 
 // Environment variables
