@@ -27,12 +27,26 @@ router.post("/payments/cart/charge",
     return res.send(result);
   });
 
+router.post("/payments/charge-intent",
+  authenticateToken,
+  async (req, res) => {
+    const result = await paymentService.chargeIntent(req.body.intentId)
+    return res.send(result);
+  });
+
 router.post("/payments/cart/cancel",
   authenticateToken,
   async (req, res) => {
     const result = await paymentService.cancelOrder(req.body.orderId)
     return res.send(result);
   });
+
+router.post("/payments/subscriptions/new",
+  authenticateToken,
+  async (req, res) => {
+    const result = await paymentService.createUserSubscription(req.body.subscriptionCode, req.user);
+    return res.send(result);
+  })
 
 router.post("/payments/webhook",
   bodyParser.raw({type: 'application/json'}),

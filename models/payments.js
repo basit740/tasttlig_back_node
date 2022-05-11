@@ -1,5 +1,6 @@
 // Libraries
-const { Model } = require("objection");
+const {Model} = require("objection");
+const Orders = require("./orders");
 
 class Payments extends Model {
   // Table name is the only required property.
@@ -14,6 +15,7 @@ class Payments extends Model {
   // This object defines the relations to other models.
   static get relationMappings() {
     const Orders = require("./orders");
+    const UserSubscriptions = require("./user_subscriptions");
 
     return {
       orders: {
@@ -22,6 +24,14 @@ class Payments extends Model {
         join: {
           from: "payments.order_id",
           to: "orders.order_id",
+        },
+      },
+      user_subscription: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: UserSubscriptions,
+        join: {
+          from: "payments.user_subscription_id",
+          to: "user_subscriptions.user_subscriptions_id",
         },
       },
     };

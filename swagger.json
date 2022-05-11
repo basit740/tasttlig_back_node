@@ -102,6 +102,52 @@
           }
         }
       }
+    },
+    "/payments/subscriptions/new": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Create a new user subscription",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "subscriptionCode": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User was successfully subscribed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "subscriptionId": {
+                      "type": "string"
+                    },
+                    "intent": {
+                      "$ref": "#/components/schemas/PartialPaymentIntent"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
