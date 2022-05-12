@@ -1,14 +1,17 @@
-const { Model } = require("objection");
+const {Model} = require("objection");
 
 class User extends Model {
   static get tableName() {
     return "tasttlig_users";
   }
+
   static get idColumn() {
     return "tasttlig_user_id";
   }
+
   static get relationMappings() {
     const UserRoles = require("./user_roles.js");
+    const Subscriptions = require("./subscriptions");
 
     return {
       roles: {
@@ -33,6 +36,18 @@ class User extends Model {
             to: "user_app_access.app_id",
           },
           to: "tasttlig_app.id",
+        },
+      },
+      subscriptions: {
+        relation: Model.ManyToManyRelation,
+        modelClass: Subscriptions,
+        join: {
+          from: "tasttlig_users.tasttlig_user_id",
+          through: {
+            from: "user_subscriptions.user_id",
+            to: "user_subscriptions.subscription_code",
+          },
+          to: "subscriptions.subscription_code",
         },
       },
     };

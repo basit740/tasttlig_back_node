@@ -12,6 +12,8 @@ const ServiceImages = require("./service_images")
 const Services = require("./services")
 const UserRoles = require("./user_roles")
 const Users = require("./users")
+const Subscriptions = require("./subscriptions")
+const UserSubscriptions = require("./user_subscriptions")
 
 module.exports = {
   AppAccess,
@@ -26,6 +28,8 @@ module.exports = {
   Products,
   ServiceImages,
   Services,
+  Subscriptions,
   UserRoles,
-  Users
+  Users,
+  UserSubscriptions
 }
