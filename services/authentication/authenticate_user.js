@@ -44,7 +44,7 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
       user_country: new_user.country,
       user_zip_postal_code: new_user.postal_code,
       street_name: new_user.street_name,
-      street_name: new_user.street_number,
+      street_number: new_user.street_number,
       apartment_no: new_user.unit_number,
     };
 
@@ -645,7 +645,7 @@ const userMigrationFromAuthServer = async (new_user) => {
 const getAllUsers = async (page, searchText) => {
   return User.query()
     .withGraphFetched("[roles, access]")
-    .page(page, 100)
+    .page(page, 20)
     .where(
       raw(
         "first_name || ' ' ||  last_name || ' ' ||  email || ' ' || phone_number"
