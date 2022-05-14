@@ -3,12 +3,21 @@
   "info": {
     "version": "1.0.0",
     "title": "Tasttlig Application API",
-    "description": "API for Tasttlig Application"
+    "description": "API for Tasttlig Application <h2> Errors</h2>\n\n    The API uses standard HTTP status codes to indicate the success or failure of the API call.\n\n    Here are a list of different types of error responses\n\n    Status code  | Description | Content type\n    ----------------|-------------|---------\n    400 | Bad Request | application/json\n    401 | Unauthorized | text/html\n    403 | Forbidden | text/html\n    404 | Not Found | application/json",
+    "x-logo": {
+      "altText": "Tasttlig",
+      "href": "https://tasttlig.com",
+      "url": "https://s3.us-east-2.amazonaws.com/content.tasttlig.com/globe-logo-red.8d542dc5-150-a.png"
+    }
   },
   "tags": [
     {
       "name": "Payments",
-      "description": "API for making purchases and payments"
+      "description": "Payments related operations"
+    },
+    {
+      "name": "User Subscriptions",
+      "description": "User subscription related operations"
     }
   ],
   "paths": {
@@ -17,7 +26,8 @@
         "tags": [
           "Payments"
         ],
-        "summary": "Creates an order an begins the payment process",
+        "summary": "Create an order",
+        "description": "Create a new order from the cart items specified and returns a payment intent that should be used to complete payment",
         "requestBody": {
           "required": true,
           "content": {
@@ -25,11 +35,7 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/CheckoutItem"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/CheckoutItem"
                 }
               }
             }
@@ -37,7 +43,7 @@
         },
         "responses": {
           "200": {
-            "description": "An object containing the Order and PartialPaymentIntent objects",
+            "description": "Order created successfully and pending payment",
             "content": {
               "application/json": {
                 "schema": {
@@ -66,6 +72,7 @@
           "Payments"
         ],
         "summary": "Cancel an order",
+        "description": "Cancels an order. Orders that have already been cancelled or have been successfully processed cannot be cancelled",
         "requestBody": {
           "required": true,
           "content": {
@@ -103,12 +110,43 @@
         }
       }
     },
-    "/payments/subscriptions/new": {
+    "/user_subscriptions": {
+      "get": {
+        "tags": [
+          "User Subscriptions"
+        ],
+        "summary": "Retrieve subscriptions for a user",
+        "description": "Returns a list of all subscriptions for the logged in user. This includes <code>pending</code> and <code>cancelled</code> subscriptions",
+        "responses": {
+          "200": {
+            "description": "List of all subscriptions for the user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "subscriptions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/UserSubscriptionsResponse"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
-          "Payments"
+          "User Subscriptions"
         ],
         "summary": "Create a new user subscription",
+        "description": "Creates a new subscription for the logged in user. The subscription will be set to <code>incomplete</code> status until payment is completed",
         "requestBody": {
           "required": true,
           "content": {
@@ -145,6 +183,12 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Subscription was not found"
+          },
+          "409": {
+            "description": "User already has subscription"
           }
         }
       }
@@ -225,11 +269,9 @@
           },
           "order_items": {
             "type": "array",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/OrderItem"
-              }
-            ]
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
           }
         }
       },
@@ -367,6 +409,138 @@
           },
           "status": {
             "type": "string"
+          }
+        }
+      },
+      "UserSubscription": {
+        "properties": {
+          "user_subscription_id": {
+            "type": "number"
+          },
+          "user_id": {
+            "type": "number"
+          },
+          "subscription_code": {
+            "type": "string"
+          },
+          "subscription_start_datetime": {
+            "type": "number"
+          },
+          "subscription_end_datetime": {
+            "type": "number"
+          },
+          "suscribed_festivals": {
+            "type": "array"
+          },
+          "cash_payment_received": {
+            "type": "number"
+          },
+          "user_subscription_status": {
+            "type": "string"
+          },
+          "business_id": {
+            "type": "number"
+          },
+          "reference_id": {
+            "type": "string"
+          }
+        }
+      },
+      "Subscription": {
+        "properties": {
+          "subscription_id": {
+            "type": "number"
+          },
+          "subscription_code": {
+            "type": "string"
+          },
+          "subscription_name": {
+            "type": "string"
+          },
+          "date_of_expiry": {
+            "type": "number"
+          },
+          "validity_in_months": {
+            "type": "number"
+          },
+          "price": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "subscription_type": {
+            "type": "string"
+          },
+          "comission_to_pay_percentage": {
+            "type": "number"
+          },
+          "payment_receivable_per_food_sample": {
+            "type": "number"
+          },
+          "can_sell_food_directly_to_guests": {
+            "type": "boolean"
+          },
+          "can_sell_food_experiences_to_guests": {
+            "type": "boolean"
+          },
+          "fesitval_limit": {
+            "type": "number"
+          },
+          "products_services__sponsor_limit": {
+            "type": "number"
+          },
+          "sponsoring_restaurants_limit": {
+            "type": "number"
+          },
+          "discount_for_members": {
+            "type": "number"
+          },
+          "trial_period": {
+            "type": "number"
+          }
+        }
+      },
+      "UserSubscriptionsResponse": {
+        "properties": {
+          "user_subscription_id": {
+            "type": "number"
+          },
+          "user_id": {
+            "type": "number"
+          },
+          "subscription_code": {
+            "type": "string"
+          },
+          "subscription_start_datetime": {
+            "type": "number"
+          },
+          "subscription_end_datetime": {
+            "type": "number"
+          },
+          "suscribed_festivals": {
+            "type": "array"
+          },
+          "cash_payment_received": {
+            "type": "number"
+          },
+          "user_subscription_status": {
+            "type": "string"
+          },
+          "business_id": {
+            "type": "number"
+          },
+          "reference_id": {
+            "type": "string"
+          },
+          "subscription": {
+            "$ref": "#/components/schemas/Subscription"
+          },
+          "intent": {
+            "$ref": "#/components/schemas/PartialPaymentIntent"
           }
         }
       }
