@@ -192,6 +192,38 @@
           }
         }
       }
+    },
+    "/user_subscriptions/:id": {
+      "delete": {
+        "tags": [
+          "User Subscriptions"
+        ],
+        "summary": "Cancel a subscription",
+        "description": "Cancel an existing user subscription. This will immediately cease recurring charges to the user's payment method",
+        "responses": {
+          "200": {
+            "description": "Subscription was successfully cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "subscription": {
+                      "$ref": "#/components/schemas/StripeSubscription"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User subscription was not found"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -446,7 +478,7 @@
           }
         }
       },
-      "Subscription": {
+      "StripeSubscription": {
         "properties": {
           "subscription_id": {
             "type": "number"
@@ -537,7 +569,7 @@
             "type": "string"
           },
           "subscription": {
-            "$ref": "#/components/schemas/Subscription"
+            "$ref": "#/components/schemas/StripeSubscription"
           },
           "intent": {
             "$ref": "#/components/schemas/PartialPaymentIntent"

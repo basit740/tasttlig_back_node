@@ -1,5 +1,5 @@
 const StripeProcessor = require("../payment/processors/stripe/stripe_processor");
-const {UserSubscriptions} = require("../../models");
+const {UserSubscriptions, Subscriptions} = require("../../models");
 
 async function getUserSubscriptions(user) {
   const result = await new StripeProcessor().getCustomerSubscriptions(user.email);
@@ -40,6 +40,71 @@ async function getUserSubscriptions(user) {
   return result;
 }
 
+const createUserSubscription = async (subscriptionCode, user) => {
+  const subscription = await Subscriptions
+    .query()
+    .findOne({subscription_code: subscriptionCode})
+
+  if (!subscription) {
+    throw {status: 404, message: `Subscription with code ${subscriptionCode} was not found`}
+  }
+
+  if ((await UserSubscriptions.query().where({
+    user_id: user.id,
+    subscription_code: subscriptionCode
+  }).andWhereNot({
+    user_subscription_status: UserSubscriptions.Status.Canceled
+  }).resultSize()) > 0) {
+    throw {status: 409, message: `User already has subscription`}
+  }
+
+  const result = await new StripeProcessor().createSubscription(subscriptionCode, user.email, {
+    ...subscription,
+    user_name: `${user.first_name} ${user.last_name}`
+  });
+
+  if (result.success) {
+    const intent = result.subscription.latest_invoice.payment_intent;
+
+    await UserSubscriptions.query().insert({
+      user_id: user.id,
+      subscription_code: subscriptionCode,
+      user_subscription_status: UserSubscriptions.Status.Incomplete,
+      reference_id: result.subscription.id
+    });
+
+    return {
+      success: true,
+      subscriptionId: result.subscription.id,
+      intent: {
+        id: intent.id,
+        amount: intent.amount,
+        client_secret: intent.client_secret,
+        description: intent.description,
+        status: intent.status
+      }
+    }
+  }
+
+  return result;
+}
+
+const cancelUserSubscription = async (id, userId) => {
+  const userSubscription = await UserSubscriptions.query().findOne({
+    user_subscription_id: id,
+    user_id: userId
+  });
+
+  if (!userSubscription) {
+    throw {status: 404, message: "User subscription not found"};
+  }
+
+  return new StripeProcessor()
+    .cancelSubscription(userSubscription.reference_id);
+}
+
 module.exports = {
-  getUserSubscriptions
+  getUserSubscriptions,
+  createUserSubscription,
+  cancelUserSubscription
 }

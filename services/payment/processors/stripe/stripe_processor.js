@@ -234,6 +234,16 @@ class StripeProcessor {
       return {success: false, message: e.message};
     }
   }
+
+  async cancelSubscription(id) {
+    try {
+      const subscription = await stripe.subscriptions.del(id);
+      return {success: true, subscription};
+    } catch (e) {
+      console.error(e);
+      return {success: false, message: e.message};
+    }
+  }
 }
 
 module.exports = StripeProcessor;
