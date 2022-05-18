@@ -136,10 +136,7 @@ app.use(mypassports_router);
 app.use(fav_passports_router);
 app.use(festival_reviews_router);
 app.use(featured_artists_router);
-<<<<<<< HEAD
 app.use(neighbourhood_router);
-=======
->>>>>>> master
 app.use((err, req, res, next) => {
   res.status(err.status || 500).json({success: false, message: err.message});
 });
