@@ -458,7 +458,7 @@ authRouter.get("/user/:user_email", async (req, res) => {
     );
 
     if (!user.success) {
-      res.send({
+      return res.send({
         success: false,
         message: user.response,
       });

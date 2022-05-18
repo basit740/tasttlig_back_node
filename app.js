@@ -12,8 +12,7 @@ const cron = require("node-cron");
 require("dotenv").config();
 require("./db/db-config");
 
-const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('./swagger.json');
+const redoc = require('redoc-express');
 
 // Routes
 const profile_router = require("./routes/user/profile");
@@ -59,6 +58,7 @@ const fav_passports_router = require("./routes/fav_passports/fav_passports");
 const festival_reviews_router = require("./routes/festival_reviews/festival_reviews");
 const featured_artists_router = require("./routes/featured_artists/featured_artists");
 const neighbourhood_router = require("./routes/neighbourhood/neighbourhood");
+const user_subscriptions = require("./routes/user_subcriptions/user_subscriptions");
 
 // Set up CORS
 const app = express();
@@ -69,10 +69,15 @@ let corsOptions = {
 
 app.use(cors(corsOptions));
 
+app.get('/docs/swagger.json', (req, res) => {
+  res.sendFile('swagger.json', {root: '.'});
+});
 app.use(
   '/api-docs',
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerDocument)
+  redoc({
+    title: 'Tasttlig API Docs',
+    specUrl: '/docs/swagger.json'
+  })
 );
 
 // Set up Express
@@ -131,10 +136,11 @@ app.use(mypassports_router);
 app.use(fav_passports_router);
 app.use(festival_reviews_router);
 app.use(featured_artists_router);
+<<<<<<< HEAD
 app.use(neighbourhood_router);
-
+=======
+>>>>>>> master
 app.use((err, req, res, next) => {
-  console.error({type: 'Error handler', path: (req ? req.originalUrl : null), err, status: err.status});
   res.status(err.status || 500).json({success: false, message: err.message});
 });
 

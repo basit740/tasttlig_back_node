@@ -207,6 +207,7 @@ class StripeProcessor {
       const subscription = await stripe.subscriptions.create({
         customer: customer.id,
         payment_behavior: 'default_incomplete',
+        metadata: {email},
         expand: ['latest_invoice.payment_intent'],
         // TODO: Add support for trialing
         // trial_period_days: data.trial_period,
@@ -214,6 +215,29 @@ class StripeProcessor {
           {price: product.default_price},
         ],
       });
+      return {success: true, subscription};
+    } catch (e) {
+      console.error(e);
+      return {success: false, message: e.message};
+    }
+  }
+
+  async getCustomerSubscriptions(email) {
+    try {
+      const result = await stripe.subscriptions.search({
+        query: `metadata["email"]:'${email}'`,
+        expand: ['data.latest_invoice.payment_intent']
+      });
+      return {success: true, subscriptions: result.data};
+    } catch (e) {
+      console.error(e);
+      return {success: false, message: e.message};
+    }
+  }
+
+  async cancelSubscription(id) {
+    try {
+      const subscription = await stripe.subscriptions.del(id);
       return {success: true, subscription};
     } catch (e) {
       console.error(e);
