@@ -1004,11 +1004,11 @@ router.post(
 
 // add festival coordinator application
 router.post(
-  "/add-fc-application",
+  "/festival-coordinator-application",
   async (req, res) => {
     try {
-      // add application
-      return res.send(response);
+      console.log('123', req.body);
+      // return res.send(response);
     } catch (error) {
       res.send({
         success: false,
