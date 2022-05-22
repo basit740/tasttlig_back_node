@@ -139,7 +139,7 @@ app.use(user_subscriptions);
 
 app.use((err, req, res, next) => {
   console.error({type: 'Error handler', path: (req ? req.originalUrl : null), err, status: err.status});
-  res.status(err.status || 500).json({success: false, message: err.message});
+  res.status(err.status ?? 500).json({success: false, message: err.message});
 });
 
 // Cron Job scripts
