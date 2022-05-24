@@ -27,6 +27,7 @@ services:
       - STAGING=false
     volumes:
       - ./.config:/config
+      - /var/log/nginx:/config/log/nginx
     ports:
       - '443:443'
       - '80:80'
