@@ -1,0 +1,35 @@
+version: '3'
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8081:8080'
+    env_file:
+      - .env
+
+  dispatcher:
+    restart: unless-stopped
+    image: lscr.io/linuxserver/swag
+    container_name: dispatcher
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - URL=tasttlig.com
+      - VALIDATION=http
+      - SUBDOMAINS=apitest
+      - ONLY_SUBDOMAINS=true
+      - EMAIL= hdamoo@tasttlig.com
+      - STAGING=false
+    volumes:
+      - ./.config:/config
+      - /var/log/nginx:/config/log/nginx
+    ports:
+      - '443:443'
+      - '80:80'
+    depends_on:
+      - api

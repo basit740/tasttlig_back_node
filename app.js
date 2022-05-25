@@ -4,7 +4,6 @@
 const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
-const logger = require("morgan");
 const cors = require("cors");
 const cron = require("node-cron");
 
@@ -82,7 +81,6 @@ app.use(
 
 // Set up Express
 app.use(express.urlencoded({extended: false}));
-app.use(logger("combined"));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -138,7 +136,12 @@ app.use(festival_reviews_router);
 app.use(featured_artists_router);
 app.use(neighbourhood_router);
 app.use((err, req, res, next) => {
+<<<<<<< HEAD
   res.status(err.status || 500).json({success: false, message: err.message});
+=======
+  console.error({type: 'Error handler', path: (req ? req.originalUrl : null), err, status: err.status});
+  res.status(err.status ?? 500).json({success: false, message: err.message});
+>>>>>>> 8da8664a20b120fa95daf4a654156c662f1a5a4c
 });
 
 // Cron Job scripts

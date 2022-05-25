@@ -441,6 +441,17 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
     role_name = "VENDOR_PENDING";
   }
+  if (applications.length == 0 && hostDto.is_festival_coordinator) {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "festival_coordinator",
+      status: "Pending",
+    });
+    role_name = "FESTIVAL_COORDINATOR_PENDING";
+  }
   if (applications.length == 0 && hostDto.is_guest_amb) {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,

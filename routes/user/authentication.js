@@ -47,7 +47,6 @@ authRouter.post(
       street_name,
       street_number,
       unit_number,
-      passport_type,
       source,
     } = req.body;
 
@@ -72,7 +71,6 @@ authRouter.post(
         street_name,
         street_number,
         unit_number,
-        passport_type,
         source,
       };
 
@@ -489,8 +487,6 @@ authRouter.post(
       email,
       password_digest,
       phone_number,
-      passport_type,
-      passport_area,
       source,
       user_business_logo,
       user_business_name,
@@ -531,7 +527,6 @@ authRouter.post(
         email,
         password: password_digest,
         phone_number,
-        passport_type,
         source,
       };
 
@@ -578,7 +573,7 @@ authRouter.post(
         };
         // transaction for claim business
         return await db.transaction(async trx => {
-          const user_response = await authenticate_user_service.userRegister(user, passport_area, true, trx);
+          const user_response = await authenticate_user_service.userRegister(user, true, trx);
           businessDto.business_details_user_id = user_response.data.tasttlig_user_id;
           const response = await user_profile_service.updateUserBusinessProfile(businessDto, trx);
           const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
@@ -601,7 +596,7 @@ authRouter.post(
 
       // transaction for create business
       return await db.transaction(async trx => {
-        const user_response = await authenticate_user_service.userRegister(user, passport_area, true, trx);
+        const user_response = await authenticate_user_service.userRegister(user, true, trx);
         businessDto.business_details_user_id = user_response.data.tasttlig_user_id;
         const business_response = await business_service.postBusinessPassportDetails(businessDto, trx);
         const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
@@ -623,5 +618,108 @@ authRouter.post(
     }
   }
 );
+
+// add festival coordinator application
+authRouter.post(
+  "/festival-coordinator-application",
+  createAccountLimiter,
+  password_preprocessor,
+  async (req, res) => {
+    const {
+      firstName,
+      lastName,
+      businessUnit,
+      streetNumber,
+      streetName,
+      postalCode,
+      city,
+      province,
+      country,
+      neighbourhoodInterested,
+      email,
+      phone,
+      businessName,
+      referredBy,
+      startDate,
+      refName1,
+      refEmail1,
+      refPhone1,
+      refName2,
+      refEmail2,
+      refPhone2,
+      resume,
+      password_digest
+    } = req.body;
+
+    let neighbourhood = [];
+    neighbourhoodInterested.forEach((r) => {
+      neighbourhood.push(r.label);
+    })
+
+
+    try {
+      const user = {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        password: password_digest,
+        phone_number: phone
+      };
+
+      const businessDto = {
+        business_name: businessName,
+        business_street_number: streetNumber,
+        business_street_name: streetName,
+        business_unit: businessUnit,
+        country: country,
+        city: city,
+        state: province,
+        zip_postal_code: postalCode,
+        business_phone_number: phone,
+        business_type: "Festival Coordinator",  
+      }
+
+      const hostDto = {
+        is_festival_coordinator: true,
+        email: email,
+        neighbourhood_interested: neighbourhood,
+        referred_by: referredBy,
+        available_to_start: startDate,
+        ref_name_1: refName1,
+        ref_name_2: refName2,
+        ref_email_1: refEmail1,
+        ref_email_2: refEmail2,
+        ref_phone_1: refPhone1,
+        ref_phone_2: refPhone2,
+        resume: resume,
+      }; 
+      
+     
+
+      // transaction for create business
+      return await db.transaction(async trx => {
+        const user_response = await authenticate_user_service.userRegister(user, true, trx);
+        businessDto.business_details_user_id = user_response.data.tasttlig_user_id;
+        const business_response = await business_service.postBusinessPassportDetails(businessDto, trx);
+        const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
+        if (saveHost.success) {
+          res.status(200).send(saveHost);
+        } else {
+          return res.status(401).json({
+            success: false,
+            message: "401 error",
+          });
+        }
+      })
+    } catch (error) {
+      console.log(error);
+      return res.status(401).json({
+        success: false,
+        message: "error",
+      });
+    }
+  }
+);
+
 
 module.exports = authRouter;

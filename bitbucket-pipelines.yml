@@ -27,8 +27,8 @@ pipelines:
                 AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
                 AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
                 APPLICATION_NAME: "tasttlig"
-                ENVIRONMENT_NAME: "tasttlig-test-2"
-                S3_BUCKET: "tasttlig-test-deploy"
+                ENVIRONMENT_NAME: "tasttlig-v1-test"
+                S3_BUCKET: "tasttlig-v1-test-deploy"
                 ZIP_FILE: "app.zip"
 
     production:
