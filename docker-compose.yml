@@ -28,6 +28,9 @@ services:
     volumes:
       - /var/app:/config
       - /var/log/nginx:/config/log/nginx
+      - ./.config/nginx:/config/nginx
+      - ./.config/etc/letsencrypt:/config/etc/letsencrypt
+      - ./.config/fail2ban:/config/fail2ban
     ports:
       - '443:443'
       - '80:80'
