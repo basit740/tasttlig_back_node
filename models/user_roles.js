@@ -1,12 +1,11 @@
-const { Model } = require("objection");
+const {Model} = require("objection");
 
-module.exports = class role extends Model {
-  // Table name is the only required property.
+module.exports = class UserRoles extends Model {
   static get tableName() {
-    return "roles";
+    return "user_role_lookup";
   }
 
   static get idColumn() {
-    return "role_id";
+    return "user_role_lookup_id";
   }
 };

@@ -159,7 +159,7 @@ const createOrder = async (checkoutItems, user) => {
   for (const {itemType, itemId, quantity} of checkoutItems) {
     const item = await retrieveOrderItem(itemType, itemId);
     if (!item) {
-      throw {status: 400, message: `Item of type ${itemType} with id ${itemId} was not found`};
+      throw {status: 404, message: `Item of type ${itemType} with id ${itemId} was not found`};
     }
     details.push(`${quantity} X ${item.details}`);
     orderItems.push({

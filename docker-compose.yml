@@ -18,16 +18,20 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/London
+      - TZ=America/Toronto
       - URL=tasttlig.com
       - VALIDATION=http
-      - SUBDOMAINS=apitest
+      - SUBDOMAINS=apitest,api-test
       - ONLY_SUBDOMAINS=true
       - EMAIL= hdamoo@tasttlig.com
       - STAGING=false
     volumes:
-      - ./.config:/config
+      - /var/app:/config
       - /var/log/nginx:/config/log/nginx
+      - ./.config/nginx/site-confs/default:/config/nginx/site-confs/default
+      - ./.config/etc/letsencrypt/options-ssl-nginx.conf:/config/etc/letsencrypt/options-ssl-nginx.conf
+      - ./.config/etc/letsencrypt/ssl-dhparams.pem:/config/etc/letsencrypt/ssl-dhparams.pem
+      - ./.config/fail2ban/jail.local:/config/fail2ban/jail.local
     ports:
       - '443:443'
       - '80:80'

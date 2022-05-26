@@ -14,6 +14,7 @@ const UserRoles = require("./user_roles")
 const Users = require("./users")
 const Subscriptions = require("./subscriptions")
 const UserSubscriptions = require("./user_subscriptions")
+const Roles = require("./roles")
 
 module.exports = {
   AppAccess,
@@ -31,5 +32,6 @@ module.exports = {
   Subscriptions,
   UserRoles,
   Users,
-  UserSubscriptions
+  UserSubscriptions,
+  Roles
 }
