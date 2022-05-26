@@ -169,6 +169,10 @@ const getAllFestivalList = async (currentPage, keyword, filters) => {
     query.where("festivals.festival_city", "=", filters.cityLocation);
   }
 
+  if (filters.category) {
+    query.where("festivals.festival_category", "=", filters.category);
+  }
+
   //if (filters.dayOfWeek) {
   /* query.whereRaw("Day(festivals.festival_start_time) = ?", [
       filters.dayOfWeek,

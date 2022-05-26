@@ -87,6 +87,7 @@ router.get("/festivals/:user_id", async (req, res) => {
       longitude: req.query.longitude,
       dayOfWeek: req.query.dayOfWeek,
       user_id: req.query.user_id,
+      category: req.query.category,
     };
 
     const response = await festival_service.getAllFestivalList(
