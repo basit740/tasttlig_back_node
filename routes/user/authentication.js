@@ -663,20 +663,27 @@ authRouter.post(
         last_name: lastName,
         email,
         password: password_digest,
-        phone_number: phone
+        phone_number: phone,
+        city,
+        state: province,
+        country,
+        postal_code: postalCode,
+        street_name: streetName,
+        street_number: streetNumber,
+        apartment_no: businessUnit
       };
 
       const businessDto = {
-        business_name: businessName,
-        business_street_number: streetNumber,
-        business_street_name: streetName,
-        business_unit: businessUnit,
-        country: country,
-        city: city,
-        state: province,
-        zip_postal_code: postalCode,
-        business_phone_number: phone,
-        business_type: "Festival Coordinator",  
+        user_business_name: businessName,
+        user_business_street_number: streetNumber,
+        user_business_street_name: streetName,
+        user_business_unit: businessUnit,
+        user_business_country: country,
+        user_business_city: city,
+        user_business_province: province,
+        user_business_postal_code: postalCode,
+        user_business_phone_number: phone,
+        user_business_type: "Festival Coordinator",  
       }
 
       const hostDto = {
@@ -699,7 +706,7 @@ authRouter.post(
       // transaction for create business
       return await db.transaction(async trx => {
         const user_response = await authenticate_user_service.userRegister(user, true, trx);
-        businessDto.business_details_user_id = user_response.data.tasttlig_user_id;
+        businessDto.user_id = user_response.data.tasttlig_user_id;
         const business_response = await business_service.postBusinessPassportDetails(businessDto, trx);
         const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
         if (saveHost.success) {

@@ -1002,24 +1002,6 @@ router.post(
   }
 );
 
-// add festival coordinator application
-router.post(
-  "/festival-coordinator-application",
-  async (req, res) => {
-    try {
-      console.log('123', req.body);
-      // return res.send(response);
-    } catch (error) {
-      res.send({
-        success: false,
-        message: "Error",
-        response: error.message,
-      });
-      console.log(error.message);
-    }
-  }
-);
-
 //get business details with images by user id
 router.get(
   "/get-business-details-all",

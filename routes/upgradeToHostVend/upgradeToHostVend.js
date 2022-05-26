@@ -663,4 +663,87 @@ router.post("/auto-application-approval", async (req, res) => {
   }
 });
 
+// get all festival coordinator applications
+router.get(
+  "/festival-coordinator-applications",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const applications =
+        await upgrade_service.getAllFestivalCoordinatorApplications();
+
+      return res.send(applications);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+router.get(
+  "/festival-coordinator-applications/:userId",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const applications =
+        await upgrade_service.getFestivalCoordinatorApplicantDetails(
+          req.params.userId
+        );
+      return res.send(applications);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// POST festival coordinator application approval from admin
+router.post(
+  "/festival-coordinator-applications/:userId/approve",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const response =
+        await upgrade_service.approveOrDeclineFestCoordApplication(
+          req.params.userId,
+          "APPROVED"
+        );
+
+      return res.send(response);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// POST festival coordinator application decline from admin
+router.post(
+  "/festival-coordinator-applications/:userId/decline",
+  token_service.authenticateToken,
+  async (req, res) => {
+    try {
+      const response =
+        await upgrade_service.approveOrDeclineFestCoordApplication(
+          req.params.userId,
+          "DECLINED"
+        );
+
+      return res.send(response);
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+
 module.exports = router;
