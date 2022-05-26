@@ -236,13 +236,19 @@
         ],
         "properties": {
           "itemType": {
-            "type": "string"
+            "type": "string",
+            "description": "The festival content type. Should be one of `experience`, `special`, `product`",
+            "example": "experience"
           },
           "itemId": {
-            "type": "integer"
+            "type": "integer",
+            "description": "ID of the festival content",
+            "example": 23
           },
           "quantity": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Quantity in the cart",
+            "example": 1
           }
         }
       },
