@@ -21,7 +21,7 @@ services:
       - TZ=America/Toronto
       - URL=tasttlig.com
       - VALIDATION=http
-      - SUBDOMAINS=apitest
+      - SUBDOMAINS=apitest,api-test
       - ONLY_SUBDOMAINS=true
       - EMAIL= hdamoo@tasttlig.com
       - STAGING=false
