@@ -1,6 +1,6 @@
 const {createOrder} = require("../order/order_service");
 const StripeProcessor = require("./processors/stripe/stripe_processor");
-const {Orders, Subscriptions, UserSubscriptions, Payments} = require("../../models");
+const {Orders, Subscriptions, UserSubscriptions, Payments, UserRoles, Roles} = require("../../models");
 const {nodemailer_transporter: Mailer} = require("../email/nodemailer");
 
 async function getOrder(orderId) {
@@ -117,7 +117,7 @@ const updateUserSubscription = async (data) => {
     return {success: false}
   }
 
-  const oldStatus = subscription.subscription_status;
+  const oldStatus = subscription.user_subscription_status;
   const newStatus = data.status;
   await subscription.$query().update({user_subscription_status: newStatus});
 
@@ -132,12 +132,38 @@ const updateUserSubscription = async (data) => {
 }
 
 const finalizeSubscription = async (subscription) => {
-  // TODO: Add logic to update roles
+  const user_id = subscription.user.tasttlig_user_id;
+
+  await UserRoles.query()
+    .delete()
+    .where({user_id});
+
+  let role = subscription.subscription_code.startsWith("M")
+    ? Roles.Type.Member
+    : (subscription.subscription_code.startsWith("B")
+      ? Roles.Type.Business_Member
+      : Roles.Type.Guest);
+
+  await UserRoles.query().insert({
+    user_id,
+    role_code: role
+  });
+
   await sendSubscriptionActivatedEmail(subscription);
 }
 
 const cancelSubscription = async (subscription) => {
-  // TODO: Add logic to update roles
+  const user_id = subscription.user.tasttlig_user_id;
+
+  await UserRoles.query()
+    .delete()
+    .where({user_id});
+
+  await UserRoles.query().insert({
+    user_id,
+    role_code: Roles.Type.Guest
+  });
+
   await sendSubscriptionCancelledEmail(subscription);
 }
 
@@ -169,20 +195,34 @@ const processWebhook = async (req) => {
   const {success, event} = await new StripeProcessor().verifyEvent(req);
   if (!success) return {success: false}
 
-  console.log(`Processing webhook event: ${JSON.stringify(event)}`);
+  console.log(`Processing webhook event: ${JSON.stringify({
+    type: event.type,
+    id: event.id,
+    objectType: event.data.object.object,
+    objectId: event.data.object.id,
+  })}`);
+
+  let result = null;
 
   switch (event.type) {
     case 'payment_intent.succeeded':
-      return await completeOrder(event.data.object)
+      result = await completeOrder(event.data.object);
+      break;
     case 'customer.subscription.updated':
     case 'customer.subscription.deleted':
-      return await updateUserSubscription(event.data.object);
+      result = await updateUserSubscription(event.data.object);
+      break;
     case 'invoice.paid':
-      return captureSubscriptionPayment(event.data.object);
+      result = captureSubscriptionPayment(event.data.object);
+      break;
     default:
       console.info(`Webhook event of type ${event.type} is not supported`);
-      return {success: true}
+      result = {success: true}
+      break;
   }
+
+  console.log(`Finished processing webhook event: ${event.id} with response ${JSON.stringify(result)}`);
+  return result;
 }
 
 module.exports = {
