@@ -28,9 +28,10 @@ services:
     volumes:
       - /var/app:/config
       - /var/log/nginx:/config/log/nginx
-      - ./.config/nginx:/config/nginx
-      - ./.config/etc/letsencrypt:/config/etc/letsencrypt
-      - ./.config/fail2ban:/config/fail2ban
+      - ./.config/nginx/site-confs/default:/config/nginx/site-confs/default
+      - ./.config/etc/letsencrypt/options-ssl-nginx.conf:/config/etc/letsencrypt/options-ssl-nginx.conf
+      - ./.config/etc/letsencrypt/ssl-dhparams.pem:/config/etc/letsencrypt/ssl-dhparams.pem
+      - ./.config/fail2ban/jail.local:/config/fail2ban/jail.local
     ports:
       - '443:443'
       - '80:80'
