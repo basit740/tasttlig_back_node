@@ -65,7 +65,7 @@ const createProduct = async (name, description, price, interval = "month", inter
     description: description,
     default_price_data: {
       currency: 'cad',
-      unit_amount: parseFloat(price) * 100,
+      unit_amount: parseFloat(price).toFixed(2) * 100,
       recurring: {
         interval,
         interval_count
