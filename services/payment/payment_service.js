@@ -73,7 +73,7 @@ const completeOrder = async (intent) => {
     .withGraphFetched("[order_items, user]");
 
   if (order && order.status === Orders.Status.Pending) {
-    const {success, charge} = await new StripeProcessor().getCharge(intent.charges[0]);
+    const {success, charge} = await new StripeProcessor().getCharge(intent.charges.data[0].id);
     if (success && charge.paid) {
       await Payments.query().insert({
         order_id: order.order_id,
