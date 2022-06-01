@@ -11,7 +11,9 @@ const getAllUserOrders = async (user_id) => {
       "orders.*",
       "order_items.*",
       "products.title",
+      "products.promotion",
       "services.service_name",
+      "services.promotion",
       "f1.festival_name AS product_festival",
       "f2.festival_name AS service_festival"
     )

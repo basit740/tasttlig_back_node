@@ -234,4 +234,29 @@ router.put(
   }
 );
 
+// fetch all deal promotion in database
+router.get(
+  "/promotion/deal/all",
+  async (req, res) => {
+    // if (!req.body) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: "Required parameters are not available in request.",
+    //   });
+    // }
+
+    try {
+      console.log(req.body);
+      const response = await services_promotions.getAllDealPromotions(req.body);
+      return res.send(response);
+    } catch (error) {
+      res.send({
+        success: false,
+        message: "Error.",
+        response: error.message,
+      });
+    }
+  }
+);
+
 module.exports = router;

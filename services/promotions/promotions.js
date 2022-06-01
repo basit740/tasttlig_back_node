@@ -253,6 +253,164 @@ const updatePromotion = async (data) => {
   }
 };
 
+// SELECT products.*, services.* FROM products
+// LEFT JOIN services ON null
+// WHERE 'deal' = ANY(products.promotion)
+
+// UNION 
+// SELECT products.*, services.* FROM services
+// LEFT JOIN products ON null
+// WHERE 'deal' = ANY(services.promotion)
+// ORDER BY product_id ASC 
+
+// -- products.product_id = ANY(services.experiences_selected)
+
+const getAllDealPromotions = async (filters, keyword) => {
+  let query = db
+    .select(
+      "products.*",
+      "services.*",
+      "business_details.*",
+      "business_details.city",
+      "business_details.state",
+      "business_details.zip_postal_code",
+      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
+    )
+    .from("products")
+    .leftJoin(
+      "product_images",
+      "products.product_id",
+      "product_images.product_id"
+    )
+    .leftJoin(
+      "business_details",
+      "products.product_business_id",
+      "business_details.business_details_id"
+    )
+    .leftJoin(
+      "services", 
+      "products.product_id",
+       "services.promotional_discount_id"
+    )
+    .groupBy("products.product_id")
+    .groupBy("business_details.business_details_id")
+    .groupBy("business_details.city")
+    .groupBy("business_details.state")
+    .groupBy("business_details.zip_postal_code")
+    .groupBy("services.service_id")
+    // .union(db =>
+    //     db.select(
+    //       "products.*",
+    //       "services.*",
+    //       "business_details.*",
+    //       "business_details.city",
+    //       "business_details.state",
+    //       "business_details.zip_postal_code",
+    //       db.raw("ARRAY_AGG(service_images.service_image_url) as image_urls")
+    //     )
+    //     .from("services")
+    //     .leftJoin(
+    //       "service_images",
+    //       "services.service_id",
+    //       "service_images.service_id"
+    //     )
+    //     .leftJoin(
+    //       "business_details",
+    //       "services.service_business_id",
+    //       "business_details.business_details_id"
+    //     )
+    //     .leftJoin(
+    //       "products", 
+    //       "products.product_id",
+    //       "services.promotional_discount_id"
+    //     )
+    //     .groupBy("services.services_id")
+    //     .groupBy("business_details.business_details_id")
+    //     .groupBy("business_details.city")
+    //     .groupBy("business_details.state")
+    //     .groupBy("business_details.zip_postal_code")
+    //     .groupBy("products.product_id")
+    //      )
+    .then((value) => {
+        return { success: true, details: value };
+      })
+      .catch((reason) => {
+        return { success: false, details: reason };
+      }); 
+  let orderByArray = [];
+  if (filters.price) {
+    if (filters.price === "lowest_to_highest") {
+      orderByArray.push({column: "products.product_price", order: "asc"});
+      //query.orderBy("products.product_price", "asc")
+    } else if (filters.price === "highest_to_lowest") {
+      orderByArray.push({column: "products.product_price", order: "desc"});
+      //query.orderBy("products.product_price", "desc")
+    }
+  }
+  if (filters.quantity) {
+    if (filters.quantity === "lowest_to_highest") {
+      orderByArray.push({column: "products.product_quantity", order: "asc"});
+    } else if (filters.quantity === "highest_to_lowest") {
+      orderByArray.push({column: "products.product_quantity", order: "desc"});
+    }
+  }
+
+  if (filters.price || filters.quantity) {
+    query.orderBy(orderByArray);
+  }
+  if (filters.size) {
+    if (filters.size === "bite_size") {
+      query.having("products.product_size", "=", "Bite Size");
+    } else if (filters.size === "quarter") {
+      query.having("products.product_size", "=", "Quarter");
+    } else if (filters.size === "half") {
+      query.having("products.product_size", "=", "Half");
+    } else if (filters.size === "full") {
+      query.having("products.product_size", "=", "Full");
+    }
+  }
+  if (keyword) {
+    query = db
+      .select(
+        "*",
+        db.raw(
+          "CASE WHEN (phraseto_tsquery('??')::text = '') THEN 0 " +
+          "ELSE ts_rank_cd(main.search_text, (phraseto_tsquery('??')::text || ':*')::tsquery) " +
+          "END rank",
+          [keyword, keyword]
+        )
+      )
+      .from(
+        db
+          .select(
+            "main.*",
+            db.raw(
+              "to_tsvector(concat_ws(' '," +
+              //"main.business_name, " +
+              "main.product_name, " +
+              "main.product_size, " +
+              "main.product_price, " +
+              //"main.business_city, " +
+              "main.product_description)) as search_text"
+            )
+          )
+          .from(query.as("main"))
+          .as("main")
+      )
+      .orderBy("rank", "desc");
+  }
+
+  return await query
+    .then((value) => {
+      // console.log(value);
+      return {success: true, details: value};
+    })
+    .catch((reason) => {
+      return {success: false, details: reason};
+    });
+};
+
+
 module.exports = {
   getPromotionsByUser,
   createNewPromotion,
@@ -260,4 +418,5 @@ module.exports = {
   applyPromotionToProducts,
   updatePromotion,
   removePromotionFromProducts,
+  getAllDealPromotions,
 };
