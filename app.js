@@ -56,6 +56,7 @@ const mypassports_router = require("./routes/mypassports/mypassports");
 const fav_passports_router = require("./routes/fav_passports/fav_passports");
 const festival_reviews_router = require("./routes/festival_reviews/festival_reviews");
 const featured_artists_router = require("./routes/featured_artists/featured_artists");
+const neighbourhood_router = require("./routes/neighbourhood/neighbourhood");
 const user_subscriptions = require("./routes/user_subcriptions/user_subscriptions");
 
 // Set up CORS
@@ -133,8 +134,7 @@ app.use(mypassports_router);
 app.use(fav_passports_router);
 app.use(festival_reviews_router);
 app.use(featured_artists_router);
-app.use(user_subscriptions);
-
+app.use(neighbourhood_router);
 app.use((err, req, res, next) => {
   console.error({type: 'Error handler', path: (req ? req.originalUrl : null), err, status: err.status});
   res.status(err.status ?? 500).json({success: false, message: err.message});

@@ -441,6 +441,27 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
     role_name = "VENDOR_PENDING";
   }
+  if (applications.length == 0 && hostDto.is_festival_coordinator) {
+    applications.push({
+      user_id: hostDto.dbUser.user.tasttlig_user_id,
+      reason: "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      type: "festival_coordinator",
+      status: "Pending",
+      neighbourhood_interested: hostDto.neighbourhood_interested,
+      referred_by: hostDto.referred_by,
+      available_to_start: hostDto.available_to_start,
+      ref_name_1: hostDto.ref_name_1,
+      ref_name_2: hostDto.ref_name_2,
+      ref_email_1: hostDto.ref_email_1,
+      ref_email_2: hostDto.ref_email_2,
+      ref_phone_1: hostDto.ref_phone_1,
+      ref_phone_2: hostDto.ref_phone_2,
+      resume: hostDto.resume,
+    });
+    role_name = "FESTIVAL_COORDINATOR_PENDING";
+  }
   if (applications.length == 0 && hostDto.is_guest_amb) {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,

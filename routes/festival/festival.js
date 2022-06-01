@@ -574,41 +574,46 @@ router.post(
       business_file,
       festival_name,
       festival_type,
-      festival_price,
+      festival_category,
       festival_city,
       festival_start_date,
       festival_end_date,
       festival_start_time,
       festival_end_time,
       festival_description,
-      festival_vendor_price,
-      festival_sponsor_price,
       festival_postal_code,
       festival_country,
       festival_province,
+      festival_address_line1,
+      festival_address_line2,
       festival_file_content,
-      category = Festivals.Category.MultiCultural,
+      // category = Festivals.Category.MultiCultural,
       sub_category,
     } = req.body;
+    const festival_price = Number(req.body.festival_price);
+    const festival_vendor_price = Number(req.body.festival_vendor_price);
+    const festival_sponsor_price = Number(req.body.festival_sponsor_price);
     try {
       if (
         !images ||
         !festival_name ||
         !festival_type ||
+        !festival_category ||
         !festival_price ||
         !festival_city ||
+        !festival_postal_code ||
+        !festival_country ||
+        !festival_province ||
+        !festival_address_line1 ||
         !festival_start_date ||
         !festival_end_date ||
-        // !festival_start_time ||
-        // !festival_end_time ||
         !festival_description
       ) {
         return res.status(403).json({
           success: false,
-          message: "Required parameters are not available in request.",
+          message: "Required parameters are not available in request1.",
         });
       }
-
       try {
         const user_details_from_db = await user_profile_service.getUserById(
           req.user.id
@@ -642,7 +647,9 @@ router.post(
           festival_created_at_datetime: new Date(),
           festival_updated_at_datetime: new Date(),
           sponsored,
-          category,
+          festival_address_1: festival_address_line1,
+          festival_address_2: festival_address_line2,
+          category: festival_category,
           sub_category
         };
 

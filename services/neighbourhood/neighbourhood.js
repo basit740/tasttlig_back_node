@@ -31,6 +31,24 @@ const getUserById = async (id) => {
     });
 };
 
+// return all approved neighbourhoods
+const getAllNeighbourhood = async () => {
+  try {
+    const details = await db
+      .select("*")
+      .from("neighbourhood")
+      .where("status", "=", "APPROVED");
+    return {
+      success: true,
+      details,
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+
+
 const getNeighbourhoodApplications = async () => {
   try {
     const applications = await db
@@ -170,6 +188,7 @@ const approveOrDeclineNeighbourhoodApplication = async (userId, status) => {
 };
 
 module.exports = {
+  getAllNeighbourhood,
   getNeighbourhoodApplications,
   getNeighbourhoodApplicantDetails,
   approveOrDeclineNeighbourhoodApplication,

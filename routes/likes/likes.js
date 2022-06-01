@@ -37,7 +37,7 @@ router.get("/likes/festival/:festivalId", async (req, res) => {
 });
 
 // delete the user id and festival id from likes
-router.delete("/likes/:id", token_service.authenticateToken, async (req, res) => {
+router.delete("/likes/remove", token_service.authenticateToken, async (req, res) => {
   try {
     const response = await likes_service.deleteFromLikes(
       req.body.userId,

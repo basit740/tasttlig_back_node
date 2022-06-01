@@ -538,6 +538,79 @@ const getSponsorApplicantDetails = async (userId) => {
   }
 };
 
+// Get all festival coordinator applications helper function
+const getAllFestivalCoordinatorApplications = async () => {
+  try {
+    const applications = await db
+      .select("*")
+      .from("applications")
+      .leftJoin(
+        "tasttlig_users",
+        "applications.user_id",
+        "tasttlig_users.tasttlig_user_id"
+      )
+      .leftJoin(
+        "business_details",
+        "applications.user_id",
+        "business_details.business_details_user_id"
+      )
+      .where("applications.type", "=", "festival_coordinator")
+      .groupBy("applications.application_id")
+      .groupBy("tasttlig_users.tasttlig_user_id")
+      .groupBy("business_details.business_details_id")
+      .having("applications.status", "=", "Pending");
+
+    return {
+      success: true,
+      applications,
+    };
+  } catch (error) {
+    return {success: false, error: error.message};
+  }
+};
+
+const getFestivalCoordinatorApplicantDetails = async (userId) => {
+  try {
+    console.log(userId);
+    let application = await db
+      .select("*")
+      .from("tasttlig_users")
+      .leftJoin(
+        "user_role_lookup",
+        "tasttlig_users.tasttlig_user_id",
+        "user_role_lookup.user_id"
+      )
+      .leftJoin(
+        "business_details",
+        "tasttlig_users.tasttlig_user_id",
+        "business_details.business_details_user_id"
+      )
+      .leftJoin(
+        "applications",
+        "tasttlig_users.tasttlig_user_id",
+        "applications.user_id"
+      )
+      .groupBy("tasttlig_users.tasttlig_user_id")
+      .groupBy("user_role_lookup.user_role_lookup_id")
+      .groupBy("business_details.business_details_id")
+      .groupBy("applications.application_id")
+      .having("tasttlig_users.tasttlig_user_id", "=", Number(userId))
+      .having("applications.type", "=", "festival_coordinator")
+      .having("applications.status", "=", "Pending")
+      .first();
+
+    console.log(application);
+
+    return {
+      success: true,
+      application,
+    };
+  } catch (error) {
+    console.log(error);
+    return {success: false, error: error.message};
+  }
+};
+
 // host approve or decline sponsor applicant on a specific festival
 const approveOrDeclineSponsorApplicationOnFestival = async (
   festivalId,
@@ -1065,6 +1138,66 @@ const approveOrDeclineRestaurantApplicationOnFestival = async (
   }
 };
 
+const approveOrDeclineFestCoordApplication = async (userId, status) => {
+  try {
+    const db_user_row = await getUserById(userId);
+
+    if (!db_user_row.success) {
+      return { success: false, message: db_user_row.message };
+    }
+
+    const db_user = db_user_row.user;
+
+    // If status is approved
+    if (status === "APPROVED") {
+      // update role
+      await db("user_role_lookup")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("role_code", "FCP")
+        .update("role_code", "FC")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
+        
+      // update application status
+      await db("applications")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("status", "Pending")
+        .andWhere("type", "festival_coordinator")
+        .update("status", "APPROVED")
+        .returning("*")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
+
+
+      return { success: true, message: status };
+    } else {
+      // Remove the role for this user
+      await db("user_role_lookup")
+        .where({
+          user_id: db_user.tasttlig_user_id,
+          role_code: "FCP",
+        })
+        .del();
+      //  Update applications table status
+      await db("applications")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("status", "Pending")
+        .andWhere("type", "festival_coordinator")
+        .update("status", "REJECT")
+        .returning("*")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
+
+      return { success: true, message: status };
+    }
+  } catch (error) {
+    return { success: false, message: error };
+  }
+};
+
 // add business to festival
 const addBusinessToFestival = async (festival_id, user_id) => {
   const userData = await user_profile_service.getUserById(user_id);
@@ -1453,10 +1586,13 @@ module.exports = {
   approveOrDeclineVendorApplicationOnFestival,
   getSponsorApplications,
   getSponsorApplicantDetails,
+  getAllFestivalCoordinatorApplications,
+  getFestivalCoordinatorApplicantDetails,
   approveOrDeclineSponsorApplicationOnFestival,
   getRestaurantApplications,
   getRestaurantApplicantDetails,
   approveOrDeclineRestaurantApplicationOnFestival,
+  approveOrDeclineFestCoordApplication,
   addBusinessToFestival,
   autoApproveVendorFestivalApplications,
   autoApproveSponsorFestivalApplications,
