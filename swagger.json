@@ -16,6 +16,10 @@
       "description": "Payments related operations"
     },
     {
+      "name": "Orders",
+      "description": "Order related operations"
+    },
+    {
       "name": "User Subscriptions",
       "description": "User subscription related operations"
     }
@@ -221,6 +225,38 @@
           },
           "404": {
             "description": "User subscription was not found"
+          }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Retrieve orders for a user",
+        "description": "Retrieve all order for the currently logged in user",
+        "responses": {
+          "200": {
+            "description": "All orders for the currently logged in user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "orders": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Order"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

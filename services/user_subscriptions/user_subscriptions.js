@@ -52,9 +52,11 @@ const createUserSubscription = async (subscriptionCode, user) => {
   if ((await UserSubscriptions.query().where({
     user_id: user.id,
     subscription_code: subscriptionCode
-  }).andWhereNot({
-    user_subscription_status: UserSubscriptions.Status.Canceled
-  }).resultSize()) > 0) {
+  }).whereNotIn(
+    "user_subscription_status", [
+      UserSubscriptions.Status.Canceled,
+      UserSubscriptions.Status.IncompleteExpired]
+  ).resultSize()) > 0) {
     throw {status: 409, message: `User already has subscription`}
   }
 

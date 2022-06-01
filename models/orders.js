@@ -32,7 +32,7 @@ class Orders extends Model {
         },
       },
       payments: {
-        relation: Model.HasOneRelation,
+        relation: Model.HasManyRelation,
         modelClass: Payments,
         join: {
           from: "orders.order_id",
