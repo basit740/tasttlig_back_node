@@ -14,4 +14,8 @@ module.exports = class Roles extends Model {
   static get idColumn() {
     return "role_id";
   }
+
+  static findByCode(code) {
+    return Roles.query().findOne({role_code: code});
+  }
 };

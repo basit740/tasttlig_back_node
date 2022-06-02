@@ -15,6 +15,15 @@ async function getOrder(orderId) {
 }
 
 async function sendOrderCompleteEmail(order) {
+  if (order.hasFestivalContentPurchases()) {
+    await sendFestivalContentPurchasedEmail(order);
+  }
+  if (order.hasFestivalPurchases()) {
+    await sendFestivalPurchasedEmail(order);
+  }
+}
+
+async function sendFestivalContentPurchasedEmail(order) {
   await Mailer.sendMail({
     from: process.env.SES_DEFAULT_FROM,
     to: order.email,
@@ -22,6 +31,10 @@ async function sendOrderCompleteEmail(order) {
     template: "order/order_complete",
     context: {order},
   });
+}
+
+async function sendFestivalPurchasedEmail(order) {
+// TODO: send email for festival purchased
 }
 
 async function sendSubscriptionActivatedEmail(subscription) {

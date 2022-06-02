@@ -10,13 +10,13 @@ class User extends Model {
   }
 
   static get relationMappings() {
-    const UserRoles = require("./user_roles.js");
+    const Role = require("./roles.js");
     const Subscriptions = require("./subscriptions");
 
     return {
       roles: {
         relation: Model.ManyToManyRelation,
-        modelClass: UserRoles,
+        modelClass: Role,
         join: {
           from: "tasttlig_users.tasttlig_user_id",
           through: {
