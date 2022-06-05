@@ -10,7 +10,7 @@ const authentication_service = require("../../services/authentication/authentica
 const auth_server_service = require("../../services/authentication/auth_server_service");
 const business_service = require("../../services/passport/businessPassport");
 const festival_service = require("../../services/festival/festival");
-const { generateRandomString } = require("../../functions/functions");
+const {generateRandomString} = require("../../functions/functions");
 
 // POST experiences
 router.post(
@@ -96,32 +96,30 @@ router.post(
           Array.isArray(req.body.festival_selected)
             ? req.body.festival_selected
             : req.body.festival_selected
-            ? [req.body.festival_selected]
-            : null,
+              ? [req.body.festival_selected]
+              : null,
 
         products_selected:
           req.body.products_selected &&
           Array.isArray(req.body.products_selected)
             ? req.body.products_selected
             : req.body.products_selected
-            ? [req.body.products_selected]
-            : null,
+              ? [req.body.products_selected]
+              : null,
 
         services_selected:
           req.body.services_selected &&
           Array.isArray(req.body.services_selected)
             ? req.body.services_selected
             : req.body.services_selected
-            ? [req.body.services_selected]
-            : null,
+              ? [req.body.services_selected]
+              : null,
         experience_code: generateRandomString(4),
         experience_status: "ACTIVE",
         experience_created_at_datetime: new Date(),
-        experience_updated_at_datetime: new Date(),
-        festival_selected: req.body.festivals_selected,
+        experience_updated_at_datetime: new Date()
       };
-      
-      
+
 
       const response = await experience_service.createNewExperience(
         user_details_from_db,
@@ -265,7 +263,7 @@ router.get("/experiences/business/:business_id", async (req, res) => {
 
 // POST claim experience in specific festival
 router.post("/claim-experience", async (req, res) => {
-  const { experience_claim_user, experience_id } = req.body;
+  const {experience_claim_user, experience_id} = req.body;
 
   if (!experience_claim_user || !experience_id) {
     return res.status(403).json({

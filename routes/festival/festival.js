@@ -1,7 +1,7 @@
 "use strict";
 
 // Libraries
-const router = require("express").Router();
+const router = require("express-promise-router")();
 const token_service = require("../../services/authentication/token");
 const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
@@ -23,9 +23,7 @@ router.get("/festival/landing-page", async (req, res) => {
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -49,18 +47,12 @@ router.get("/festival/all", async (req, res) => {
       subCategory: req.query.subCategory,
     };
 
-    const response = await festival_service.getAllFestivals(
-      current_page,
-      keyword,
-      filters
-    );
+    const response = await festival_service.getAllFestivals(current_page, keyword, filters);
     // console.log("filter", filters);
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -69,8 +61,7 @@ router.get("/festival/all", async (req, res) => {
 router.get("/festivals/:user_id", async (req, res) => {
   if (!req.params.user_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
   try {
@@ -90,18 +81,12 @@ router.get("/festivals/:user_id", async (req, res) => {
       category: req.query.category,
     };
 
-    const response = await festival_service.getAllFestivalList(
-      current_page,
-      keyword,
-      filters
-    );
+    const response = await festival_service.getAllFestivalList(current_page, keyword, filters);
     // console.log("filter", filters);
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -110,8 +95,7 @@ router.get("/festivals/:user_id", async (req, res) => {
 router.get("/host-festivals/:user_id", async (req, res) => {
   if (!req.params.user_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
   try {
@@ -124,9 +108,7 @@ router.get("/host-festivals/:user_id", async (req, res) => {
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -138,9 +120,7 @@ router.get("/festival/allFestival", async (req, res) => {
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -153,9 +133,7 @@ router.get("/festival-list", async (req, res) => {
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -168,9 +146,7 @@ router.get("/festival-list-nofuture", async (req, res) => {
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -179,8 +155,7 @@ router.get("/festival-list-nofuture", async (req, res) => {
 router.get("/festival/:festival_id", async (req, res) => {
   if (!req.params.festival_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
 
@@ -198,25 +173,19 @@ router.get("/festival/:festival_id", async (req, res) => {
 
   try {
     // assume first that festival identifier is the slug
-    const response = await festival_service.getFestivalDetailsBySlug(
-      req.params.festival_id,
-      user // send user details to check if they can view promo code
+    const response = await festival_service.getFestivalDetailsBySlug(req.params.festival_id, user // send user details to check if they can view promo code
     );
     return res.send(response);
   } catch {
     // if search by slug fails => it must be the numeric festival id
     try {
-      const response = await festival_service.getFestivalDetails(
-        req.params.festival_id,
-        user // send user details to check if they can view promo code
+      const response = await festival_service.getFestivalDetails(req.params.festival_id, user // send user details to check if they can view promo code
       );
 
       return res.send(response);
     } catch (error) {
       res.send({
-        success: false,
-        message: "Error.",
-        response: error.message,
+        success: false, message: "Error.", response: error.message,
       });
     }
   }
@@ -226,17 +195,14 @@ router.get("/festival/:festival_id", async (req, res) => {
 router.get("/attendants/festival/:festival_id", async (req, res) => {
   if (!req.params.festival_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
 
   try {
     const attendants = [];
 
-    const response = await festival_service.getFestivalDetails(
-      req.params.festival_id
-    );
+    const response = await festival_service.getFestivalDetails(req.params.festival_id);
 
     for (let item of response.details[0].festival_user_guest_id) {
       const list = await user_profile_service.getUserById(item);
@@ -249,9 +215,7 @@ router.get("/attendants/festival/:festival_id", async (req, res) => {
     return res.send(attendants);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -260,17 +224,14 @@ router.get("/attendants/festival/:festival_id", async (req, res) => {
 router.get("/hosts/festival/:festival_id", async (req, res) => {
   if (!req.params.festival_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
 
   try {
     const hosts = [];
 
-    const response = await festival_service.getFestivalDetails(
-      req.params.festival_id
-    );
+    const response = await festival_service.getFestivalDetails(req.params.festival_id);
 
     const uniqueHostArray = [...new Set(response.details[0].festival_host_id)];
 
@@ -286,9 +247,7 @@ router.get("/hosts/festival/:festival_id", async (req, res) => {
     return res.send(hosts);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -297,21 +256,16 @@ router.get("/hosts/festival/:festival_id", async (req, res) => {
 router.get("/vendors/festival/:festival_id", async (req, res) => {
   if (!req.params.festival_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
 
   try {
     const vendors = [];
 
-    const response = await festival_service.getFestivalDetails(
-      req.params.festival_id
-    );
+    const response = await festival_service.getFestivalDetails(req.params.festival_id);
 
-    const uniqueHostArray = [
-      ...new Set(response.details[0].festival_vendor_id),
-    ];
+    const uniqueHostArray = [...new Set(response.details[0].festival_vendor_id),];
 
     for (let item of uniqueHostArray) {
       const list = await user_profile_service.getUserById(item);
@@ -323,9 +277,7 @@ router.get("/vendors/festival/:festival_id", async (req, res) => {
     return res.send(vendors);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error",
-      response: error.message,
+      success: false, message: "Error", response: error.message,
     });
   }
 });
@@ -334,8 +286,7 @@ router.get("/vendors/festival/:festival_id", async (req, res) => {
 router.get("/sponsors/festival/:festival_id", async (req, res) => {
   if (!req.params.festival_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
   // console.log("req from the host-sponsor/festivals:", req);
@@ -343,9 +294,7 @@ router.get("/sponsors/festival/:festival_id", async (req, res) => {
   try {
     const sponsors = [];
 
-    const response = await festival_service.getFestivalDetails(
-      req.params.festival_id
-    );
+    const response = await festival_service.getFestivalDetails(req.params.festival_id);
 
     for (let item of response.details[0].festival_business_sponsor_id) {
       const list = await user_profile_service.getUserById(item);
@@ -358,9 +307,7 @@ router.get("/sponsors/festival/:festival_id", async (req, res) => {
     return res.send(sponsors);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -369,8 +316,7 @@ router.get("/sponsors/festival/:festival_id", async (req, res) => {
 router.get("/partners/festival/:festival_id", async (req, res) => {
   if (!req.params.festival_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
   // console.log("req from the host-sponsor/festivals:", req);
@@ -378,9 +324,7 @@ router.get("/partners/festival/:festival_id", async (req, res) => {
   try {
     const sponsors = [];
 
-    const response = await festival_service.getFestivalDetails(
-      req.params.festival_id
-    );
+    const response = await festival_service.getFestivalDetails(req.params.festival_id);
 
     for (let item of response.details[0].festival_business_partner_id) {
       const list = await user_profile_service.getUserById(item);
@@ -393,9 +337,7 @@ router.get("/partners/festival/:festival_id", async (req, res) => {
     return res.send(sponsors);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -412,10 +354,7 @@ router.get("/hostsponsors/festival/:user_id", async (req, res) => {
     const response = await festival_service.getAllHostFestivalList(filters);
 
     for (let item of response.details) {
-      if (
-        item.festival_business_sponsor_id &&
-        item.festival_business_sponsor_id !== null
-      ) {
+      if (item.festival_business_sponsor_id && item.festival_business_sponsor_id !== null) {
         for (let sponsor of item.festival_business_sponsor_id) {
           const list = await user_profile_service.getUserById(sponsor);
 
@@ -429,9 +368,7 @@ router.get("/hostsponsors/festival/:user_id", async (req, res) => {
     return res.send(sponsors);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -440,26 +377,20 @@ router.get("/hostsponsors/festival/:user_id", async (req, res) => {
 router.get("/business/festival/:festival_id", async (req, res) => {
   if (!req.params.festival_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
 
   try {
 
 
-    const response = await business_service.getAllBusinesses(
-      req.params.festival_id,
-      req.query.keyword
-    );
+    const response = await business_service.getAllBusinesses(req.params.festival_id, req.query.keyword);
 
 
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -490,9 +421,7 @@ router.get("/hostvendors/festival/:user_id", async (req, res) => {
     return res.send(vendors);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -523,9 +452,7 @@ router.get("/hostrestaurants/festival/:user_id", async (req, res) => {
     return res.send(restaurants);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -556,161 +483,123 @@ router.get("/hostguests/festival/:user_id", async (req, res) => {
     return res.send(guests);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
 
 // POST festival
-router.post(
-  "/festival/add",
-  token_service.authenticateToken,
-  async (req, res) => {
-    console.log('/festival/add/', req.body);
-    const {
-      images,
-      business_file,
-      festival_name,
-      festival_type,
-      festival_price,
-      festival_city,
-      festival_start_date,
-      festival_end_date,
-      festival_start_time,
-      festival_end_time,
-      festival_description,
-      festival_vendor_price,
-      festival_sponsor_price,
-      festival_postal_code,
-      festival_country,
-      festival_province,
-      festival_file_content,
-      category = Festivals.Category.MultiCultural,
-      sub_category,
-    } = req.body;
+router.post("/festival/add", token_service.authenticateToken, async (req, res) => {
+  console.log('/festival/add/', req.body);
+  const {
+    images,
+    business_file,
+    festival_name,
+    festival_type,
+    festival_price,
+    festival_city,
+    festival_start_date,
+    festival_end_date,
+    festival_start_time,
+    festival_end_time,
+    festival_description,
+    festival_vendor_price,
+    festival_sponsor_price,
+    festival_postal_code,
+    festival_country,
+    festival_province,
+    festival_file_content,
+    category = Festivals.Category.MultiCultural,
+    sub_category,
+  } = req.body;
+  try {
+    if (!images || !festival_name || !festival_type || !festival_price || !festival_city || !festival_start_date || !festival_end_date || // !festival_start_time ||
+      // !festival_end_time ||
+      !festival_description) {
+      return res.status(403).json({
+        success: false, message: "Required parameters are not available in request.",
+      });
+    }
+
     try {
-      if (
-        !images ||
-        !festival_name ||
-        !festival_type ||
-        !festival_price ||
-        !festival_city ||
-        !festival_start_date ||
-        !festival_end_date ||
-        // !festival_start_time ||
-        // !festival_end_time ||
-        !festival_description
-      ) {
+      const user_details_from_db = await user_profile_service.getUserById(req.user.id);
+
+      if (!user_details_from_db.success) {
         return res.status(403).json({
-          success: false,
-          message: "Required parameters are not available in request.",
+          success: false, message: user_details_from_db.message,
         });
       }
 
-      try {
-        const user_details_from_db = await user_profile_service.getUserById(
-          req.user.id
-        );
+      const sponsored = req.body.sponsored ? req.body.sponsored : null;
+      const festival_details = {
+        festival_host_admin_id: [req.user.id],
+        festival_vendor_id: [req.user.id],
+        festival_name,
+        festival_type,
+        festival_price,
+        festival_vendor_price,
+        festival_sponsor_price,
+        festival_city,
+        festival_postal_code,
+        festival_country,
+        festival_province,
+        festival_start_date: festival_start_date.substring(0, 10),
+        festival_end_date: festival_end_date.substring(0, 10),
+        festival_start_time,
+        festival_end_time,
+        festival_description,
+        festival_created_at_datetime: new Date(),
+        festival_updated_at_datetime: new Date(),
+        sponsored,
+        category,
+        sub_category
+      };
 
-        if (!user_details_from_db.success) {
-          return res.status(403).json({
-            success: false,
-            message: user_details_from_db.message,
-          });
-        }
+      const festival_response = await festival_service.createNewFestival(festival_details, images, business_file);
+      console.log("response from festival/add:", festival_response);
+      // insert the business list into buiness table
+      // send a request to file url and store its content as buffer, then read each row using ExcelJs
+      const resp = request.get(business_file, async function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+          var workbook = new Excel.Workbook();
+          const buffer = Buffer.from(body);
+          const readStream = new stream.PassThrough();
+          readStream.end(buffer);
+          const wb = await workbook.xlsx.read(readStream)
+            .then(function () {
+              const ws = workbook.getWorksheet("Sheet1");
+              // first row is not actual data, remove if the excel spread sheet formate changes
+              ws.spliceRows(1, 1);
+              ws.eachRow(async function (row, rowNumber) {
+                console.log(rowNumber);
+                // save the value of cell #1,2,3,4 which are business name, business category, business locaion, business phone
+                // to database
+                const business_response = await business_service.postBusinessThroughFile(row.getCell(1).value, row.getCell(2).value, row.getCell(3).value, row.getCell(4).value,);
 
-        const sponsored = req.body.sponsored ? req.body.sponsored : null;
-        const festival_details = {
-          festival_host_admin_id: [req.user.id],
-          festival_vendor_id: [req.user.id],
-          festival_name,
-          festival_type,
-          festival_price,
-          festival_vendor_price,
-          festival_sponsor_price,
-          festival_city,
-          festival_postal_code,
-          festival_country,
-          festival_province,
-          festival_start_date: festival_start_date.substring(0, 10),
-          festival_end_date: festival_end_date.substring(0, 10),
-          festival_start_time,
-          festival_end_time,
-          festival_description,
-          festival_created_at_datetime: new Date(),
-          festival_updated_at_datetime: new Date(),
-          sponsored,
-          category,
-          sub_category
-        };
-
-        const festival_response = await festival_service.createNewFestival(
-          festival_details,
-          images,
-          business_file
-        );
-        console.log("response from festival/add:", festival_response);
-        // insert the business list into buiness table
-        // send a request to file url and store its content as buffer, then read each row using ExcelJs
-        const resp = request.get(business_file, async function (error, response, body) {
-          if (!error && response.statusCode == 200) {
-            var workbook = new Excel.Workbook();
-            const buffer = Buffer.from(body);
-            const readStream = new stream.PassThrough();
-            readStream.end(buffer);
-            const wb = await workbook.xlsx.read(readStream)
-              .then(function () {
-                const ws = workbook.getWorksheet("Sheet1");
-                // first row is not actual data, remove if the excel spread sheet formate changes
-                ws.spliceRows(1, 1);
-                ws.eachRow(async function (row, rowNumber) {
-                  console.log(rowNumber);
-                  // save the value of cell #1,2,3,4 which are business name, business category, business locaion, business phone
-                  // to database
-                  const business_response =
-                    await business_service.postBusinessThroughFile(
-                      row.getCell(1).value,
-                      row.getCell(2).value,
-                      row.getCell(3).value,
-                      row.getCell(4).value,
-                    );
-
-                  const r = await business_service.addBusinessInFestival(
-                    festival_response.details,
-                    business_response.details,
-                  );
-                });
+                const r = await business_service.addBusinessInFestival(festival_response.details, business_response.details,);
               });
+            });
 
-          }
-        });
+        }
+      });
 
-        return res.send(festival_response);
-      } catch (error) {
-        console.log(error);
-        res.send({
-          success: false,
-          message: "Error.",
-          response: error,
-        });
-      }
+      return res.send(festival_response);
     } catch (error) {
       console.log(error);
       res.send({
-        success: false,
-        message: "Error.",
-        response: error,
+        success: false, message: "Error.", response: error,
       });
     }
+  } catch (error) {
+    console.log(error);
+    res.send({
+      success: false, message: "Error.", response: error,
+    });
   }
-);
+});
 
 // PUT festival
-router.put(
-  "/festival/update/:festival_id",
-  token_service.authenticateToken,
+router.put("/festival/update/:festival_id", token_service.authenticateToken,
 
   async (req, res) => {
     console.log('req.body of festival/update: ', req.body);
@@ -736,34 +625,18 @@ router.put(
     } = req.body.festival_update_data;
     const festival_id = req.params.festival_id;
     try {
-      if (
-        !images ||
-        !festival_name ||
-        !festival_type ||
-        !festival_price ||
-        !festival_city ||
-        !festival_start_date ||
-        !festival_end_date ||
-        !festival_start_time ||
-        !festival_end_time ||
-        !festival_description ||
-        !category
-      ) {
+      if (!images || !festival_name || !festival_type || !festival_price || !festival_city || !festival_start_date || !festival_end_date || !festival_start_time || !festival_end_time || !festival_description || !category) {
         return res.status(403).json({
-          success: false,
-          message: "Required parameters are not available in request.",
+          success: false, message: "Required parameters are not available in request.",
         });
       }
 
       try {
-        const user_details_from_db = await user_profile_service.getUserById(
-          req.user.id
-        );
+        const user_details_from_db = await user_profile_service.getUserById(req.user.id);
 
         if (!user_details_from_db.success) {
           return res.status(403).json({
-            success: false,
-            message: user_details_from_db.message,
+            success: false, message: user_details_from_db.message,
           });
         }
         const festival_details = {
@@ -784,8 +657,7 @@ router.put(
           festival_end_time,
           festival_description,
           festival_created_at_datetime: new Date(),
-          festival_updated_at_datetime: new Date(),
-          //sponsored,
+          festival_updated_at_datetime: new Date(), //sponsored,
           festival_id,
           category,
           sub_category
@@ -807,18 +679,9 @@ router.put(
                   // save the value of cell #1,2,3,4 which are business name, business category, business locaion, business phone
                   // to database
 
-                  const business_response =
-                    await business_service.postBusinessThroughFile(
-                      row.getCell(1).value,
-                      row.getCell(2).value,
-                      row.getCell(3).value,
-                      row.getCell(4).value,
-                    );
+                  const business_response = await business_service.postBusinessThroughFile(row.getCell(1).value, row.getCell(2).value, row.getCell(3).value, row.getCell(4).value,);
 
-                  const r = await business_service.addBusinessInFestival(
-                    Number(festival_details.festival_id),
-                    [business_response.details]
-                  );
+                  const r = await business_service.addBusinessInFestival(Number(festival_details.festival_id), [business_response.details]);
                 });
               });
 
@@ -826,11 +689,7 @@ router.put(
         });
 
 
-        const response = await festival_service.updateFestival(
-          festival_details,
-          images,
-          business_file
-        );
+        const response = await festival_service.updateFestival(festival_details, images, business_file);
         try {
         } catch (error) {
           console.log(error);
@@ -843,401 +702,273 @@ router.put(
       } catch (error) {
         console.log(error);
         res.send({
-          success: false,
-          message: "Error.",
-          response: error,
+          success: false, message: "Error.", response: error,
         });
       }
     } catch (error) {
       res.send({
-        success: false,
-        message: "Error.",
-        response: error,
+        success: false, message: "Error.", response: error,
       });
     }
-  }
-);
+  });
 
 // POST host to festival
-router.post(
-  "/host-festival",
-  token_service.authenticateToken,
-  async (req, res) => {
-    console.log("festival_id from host-festival:", req.body);
-    const {festival_id, festival_restaurant_host_id, foodSamplePreference} =
-      req.body;
+router.post("/host-festival", token_service.authenticateToken, async (req, res) => {
+  console.log("festival_id from host-festival:", req.body);
+  const {festival_id, festival_restaurant_host_id, foodSamplePreference} = req.body;
 
-    try {
-      const user_details_from_db = await user_profile_service.getUserById(
-        req.user.id
-      );
+  try {
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
 
-      if (!user_details_from_db.success) {
-        return res.status(403).json({
-          success: false,
-          message: user_details_from_db.message,
-        });
-      }
-
-      const db_user = user_details_from_db.user;
-      const response = await festival_service.hostToFestival(
-        festival_id,
-        foodSamplePreference,
-        db_user,
-        "Host"
-      );
-
-      return res.send(response);
-    } catch (error) {
-      res.send({
-        success: false,
-        message: "Error.",
-        response: error,
+    if (!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false, message: user_details_from_db.message,
       });
     }
+
+    const db_user = user_details_from_db.user;
+    const response = await festival_service.hostToFestival(festival_id, foodSamplePreference, db_user, "Host");
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false, message: "Error.", response: error,
+    });
   }
-);
+});
 
 // POST sponsor application on host dashboard
-router.post(
-  "/sponsor-application",
-  token_service.authenticateToken,
-  async (req, res) => {
-    const {festival_id} = req.body;
-    try {
-      const user_details_from_db = await user_profile_service.getUserById(
-        req.user.id
-      );
+router.post("/sponsor-application", token_service.authenticateToken, async (req, res) => {
+  const {festival_id} = req.body;
+  try {
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
 
-      if (!user_details_from_db.success) {
-        return res.status(403).json({
-          success: false,
-          message: user_details_from_db.message,
-        });
-      }
-      const db_user = user_details_from_db.user;
-      // const business_details = await authentication_service.getUserByBusinessDetails(
-      //   req.user.id
-      // );
-      // if (!business_details.success) {
-      //   return res.status(403).json({
-      //     success: false,
-      //     message: business_details.message,
-      //   });
-      // }
-
-      const response = await festival_service.addSponsorApplication(
-        festival_id,
-        //business_details.business_details.business_details_id,
-        db_user,
-        "Sponsor"
-      );
-      return res.send(response);
-    } catch (error) {
-      res.send({
-        success: false,
-        message: "Error.",
-        response: error,
+    if (!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false, message: user_details_from_db.message,
       });
     }
+    const db_user = user_details_from_db.user;
+    // const business_details = await authentication_service.getUserByBusinessDetails(
+    //   req.user.id
+    // );
+    // if (!business_details.success) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: business_details.message,
+    //   });
+    // }
+
+    const response = await festival_service.addSponsorApplication(festival_id, //business_details.business_details.business_details_id,
+      db_user, "Sponsor");
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false, message: "Error.", response: error,
+    });
   }
-);
+});
 
 // POST sponsor application on host dashboard
-router.post(
-  "/sponsor-application/neighbourhood",
-  token_service.authenticateToken,
-  async (req, res) => {
-    const {festival_id} = req.body;
-    try {
-      const response = await festival_service.addNeighbourhoodSponsor(
-        festival_id,
-        req.user.id
-      );
-      return res.send(response);
-    } catch (error) {
-      res.send({
-        success: false,
-        message: "Error.",
-        response: error,
-      });
-    }
+router.post("/sponsor-application/neighbourhood", token_service.authenticateToken, async (req, res) => {
+  const {festival_id} = req.body;
+  try {
+    const response = await festival_service.addNeighbourhoodSponsor(festival_id, req.user.id);
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false, message: "Error.", response: error,
+    });
   }
-);
+});
 
 // POST restaurant application on host dashboard
-router.post(
-  "/restaurant-application",
-  token_service.authenticateToken,
-  async (req, res) => {
-    const {festival_id} = req.body;
+router.post("/restaurant-application", token_service.authenticateToken, async (req, res) => {
+  const {festival_id} = req.body;
 
-    try {
-      const user_details_from_db = await user_profile_service.getUserById(
-        req.user.id
-      );
+  try {
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
 
-      if (!user_details_from_db.success) {
-        return res.status(403).json({
-          success: false,
-          message: user_details_from_db.message,
-        });
-      }
-      const db_user = user_details_from_db.user;
-      const business_details =
-        await authentication_service.getUserByBusinessDetails(req.user.id);
-      if (!business_details.success) {
-        return res.status(403).json({
-          success: false,
-          message: business_details.message,
-        });
-      }
-      const response = await festival_service.addRestaurantApplication(
-        festival_id,
-        db_user
-      );
-
-      return res.send(response);
-    } catch (error) {
-      res.send({
-        success: false,
-        message: "Error.",
-        response: error,
+    if (!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false, message: user_details_from_db.message,
       });
     }
-  }
-);
-
-router.post(
-  "/business/festival/add",
-  token_service.authenticateToken,
-  async (req, res) => {
-    const festival_id = req.body.festival_id;
-    const business_details_id = req.body.business_details_id;
-    const user_id = req.body.user_id;
-    try {
-      const response = await festival_service.addBusinessToFestival(
-        festival_id,
-        user_id
-      );
-      return res.send(response);
-    } catch (error) {
-      res.send({
-        success: false,
-        message: "Error.",
-        response: error,
+    const db_user = user_details_from_db.user;
+    const business_details = await authentication_service.getUserByBusinessDetails(req.user.id);
+    if (!business_details.success) {
+      return res.status(403).json({
+        success: false, message: business_details.message,
       });
     }
+    const response = await festival_service.addRestaurantApplication(festival_id, db_user);
+
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false, message: "Error.", response: error,
+    });
   }
-);
-router.post(
-  "/vendor-festival",
-  token_service.authenticateToken,
-  async (req, res) => {
-    const {festival_id} = req.body;
-    try {
-      const user_details_from_db = await user_profile_service.getUserById(
-        req.user.id
-      );
+});
 
-      if (!user_details_from_db.success) {
-        return res.status(403).json({
-          success: false,
-          message: user_details_from_db.message,
-        });
-      }
-      const db_user = user_details_from_db.user;
-      const business_details =
-        await authentication_service.getUserByBusinessDetails(req.user.id);
-      if (!business_details.success) {
-        return res.status(403).json({
-          success: false,
-          message: business_details.message,
-        });
-      }
+router.post("/business/festival/add", token_service.authenticateToken, async (req, res) => {
+  const festival_id = req.body.festival_id;
+  const business_details_id = req.body.business_details_id;
+  const user_id = req.body.user_id;
+  try {
+    const response = await festival_service.addBusinessToFestival(festival_id, user_id);
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false, message: "Error.", response: error,
+    });
+  }
+});
+router.post("/vendor-festival", token_service.authenticateToken, async (req, res) => {
+  const {festival_id} = req.body;
+  try {
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
 
-      const response = await festival_service.hostToFestival(
-        festival_id,
-        business_details.business_details.business_details_id,
-        db_user,
-        "Vendor"
-      );
-      return res.send(response);
-    } catch (error) {
-      res.send({
-        success: false,
-        message: "Error.",
-        response: error,
+    if (!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false, message: user_details_from_db.message,
       });
     }
+    const db_user = user_details_from_db.user;
+    const business_details = await authentication_service.getUserByBusinessDetails(req.user.id);
+    if (!business_details.success) {
+      return res.status(403).json({
+        success: false, message: business_details.message,
+      });
+    }
+
+    const response = await festival_service.hostToFestival(festival_id, business_details.business_details.business_details_id, db_user, "Vendor");
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false, message: "Error.", response: error,
+    });
   }
-);
+});
 
 // POST vendor application on host dashboard
-router.post(
-  "/vendor-application",
-  token_service.authenticateToken,
-  async (req, res) => {
-    const {festival_id} = req.body;
-    try {
-      const user_details_from_db = await user_profile_service.getUserById(
-        req.user.id
-      );
+router.post("/vendor-application", token_service.authenticateToken, async (req, res) => {
+  const {festival_id} = req.body;
+  try {
+    const user_details_from_db = await user_profile_service.getUserById(req.user.id);
 
-      if (!user_details_from_db.success) {
-        return res.status(403).json({
-          success: false,
-          message: user_details_from_db.message,
-        });
-      }
-      const db_user = user_details_from_db.user;
-      const business_details =
-        await authentication_service.getUserByBusinessDetails(req.user.id);
-      if (!business_details.success) {
-        return res.status(403).json({
-          success: false,
-          message: business_details.message,
-        });
-      }
-
-      const response = await festival_service.addVendorApplication(
-        festival_id,
-        business_details.business_details.business_details_id,
-        db_user,
-        "Vendor"
-      );
-      return res.send(response);
-    } catch (error) {
-      res.send({
-        success: false,
-        message: "Error.",
-        response: error,
+    if (!user_details_from_db.success) {
+      return res.status(403).json({
+        success: false, message: user_details_from_db.message,
       });
     }
+    const db_user = user_details_from_db.user;
+    const business_details = await authentication_service.getUserByBusinessDetails(req.user.id);
+    if (!business_details.success) {
+      return res.status(403).json({
+        success: false, message: business_details.message,
+      });
+    }
+
+    const response = await festival_service.addVendorApplication(festival_id, business_details.business_details.business_details_id, db_user, "Vendor");
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false, message: "Error.", response: error,
+    });
   }
-);
+});
 
 // GET festival restaurants
 router.get("/festival/restaurant/all", async (req, res) => {
   if (!req.query.host_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
 
   try {
-    const response = await festival_service.getFestivalRestaurants(
-      req.query.host_id,
-      req.query.festival_id
-    );
+    const response = await festival_service.getFestivalRestaurants(req.query.host_id, req.query.festival_id);
 
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
 
 // remove festival attandence
-router.post(
-  "/festival/attendance/cancel",
-  token_service.authenticateToken,
-  async (req, res) => {
-    const festival_id = req.body.festival_id;
-    const user_id = req.user.id;
-    try {
-      const response = await festival_service.removeAttendance(
-        festival_id,
-        user_id
-      );
-      return res.send(response);
-    } catch (error) {
+router.post("/festival/attendance/cancel", token_service.authenticateToken, async (req, res) => {
+  const festival_id = req.body.festival_id;
+  const user_id = req.user.id;
+  try {
+    const response = await festival_service.removeAttendance(festival_id, user_id);
+    return res.send(response);
+  } catch (error) {
+    res.send({
+      success: false, message: "Error.", response: error,
+    });
+  }
+});
+
+router.post("/festival/attendance/join", token_service.authenticateToken, async (req, res) => {
+  const festival_id = req.body.festival_id;
+  const user_id = req.user.id;
+  try {
+    let db_user;
+
+    db_user = await user_profile_service.getUserById(user_id);
+
+    if (!db_user.success) {
       res.send({
-        success: false,
-        message: "Error.",
-        response: error,
+        success: false, message: "Entered User ID is invalid.",
       });
     }
-  }
-);
 
-router.post(
-  "/festival/attendance/join",
-  token_service.authenticateToken,
-  async (req, res) => {
-    const festival_id = req.body.festival_id;
-    const user_id = req.user.id;
-    try {
-      let db_user;
-
-      db_user = await user_profile_service.getUserById(user_id);
-
-      if (!db_user.success) {
-        res.send({
-          success: false,
-          message: "Entered User ID is invalid.",
-        });
-      }
-
-      let db_festival = await festival_service.getFestivalDetails(festival_id);
-      console.log("festival details", db_festival);
-      console.log("festival price", db_festival.details[0].festival_price);
-      if (!db_festival.success) {
-        res.send({
-          success: false,
-          message: "Entered Festival ID is invalid.",
-        });
-      } else if (Number(db_festival.details[0].festival_price) > 0) {
-        res.send({
-          success: false,
-          message: "Entered Festival is not free.",
-        });
-      }
-
-      const response = await festival_service.attendFestival(
-        db_user.user.tasttlig_user_id,
-        festival_id
-      );
-
-      if (response.success) {
-        return res.send({
-          success: true,
-        });
-      } else {
-        return res.send(response);
-      }
-    } catch (error) {
-      res.status(500).send({
-        success: false,
-        message: error.message,
+    let db_festival = await festival_service.getFestivalDetails(festival_id);
+    console.log("festival details", db_festival);
+    console.log("festival price", db_festival.details[0].festival_price);
+    if (!db_festival.success) {
+      res.send({
+        success: false, message: "Entered Festival ID is invalid.",
+      });
+    } else if (Number(db_festival.details[0].festival_price) > 0) {
+      res.send({
+        success: false, message: "Entered Festival is not free.",
       });
     }
+
+    const response = await festival_service.attendFestival(db_user.user.tasttlig_user_id, festival_id);
+
+    if (response.success) {
+      return res.send({
+        success: true,
+      });
+    } else {
+      return res.send(response);
+    }
+  } catch (error) {
+    res.status(500).send({
+      success: false, message: error.message,
+    });
   }
-);
+});
 
 // GET festival wih passprot
 router.get("/festival-passport/:passport_id", async (req, res) => {
   if (!req.params.passport_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
 
   try {
-    const response = await festival_service.getFestivalByPassport(
-      req.params.passport_id
-    );
+    const response = await festival_service.getFestivalByPassport(req.params.passport_id);
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -1246,22 +977,17 @@ router.get("/festival-passport/:passport_id", async (req, res) => {
 router.post("/festival-passports", async (req, res) => {
   if (!req.body.passport_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
 
   try {
-    const response = await festival_service.getFestivalByPassports(
-      req.body.passport_id
-    );
+    const response = await festival_service.getFestivalByPassports(req.body.passport_id);
 
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -1269,22 +995,16 @@ router.post("/festival-passports", async (req, res) => {
 router.post("/festival-passport/register", async (req, res) => {
   if (!req.body.user_id || !req.body.festival_ids) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
   try {
-    const response = await festival_service.registerUserToFestivals(
-      req.body.user_id,
-      req.body.festival_ids
-    );
+    const response = await festival_service.registerUserToFestivals(req.body.user_id, req.body.festival_ids);
 
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -1293,21 +1013,15 @@ router.post("/festival-passport/register", async (req, res) => {
 router.post("/claim-business", async (req, res) => {
   if (!req.body.user_id || !req.body.business_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
   try {
-    const response = await user_profile_service.claimBusiness(
-      req.body.user_id,
-      req.body.business_id
-    );
+    const response = await user_profile_service.claimBusiness(req.body.user_id, req.body.business_id);
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -1317,14 +1031,11 @@ router.post("/claim-business", async (req, res) => {
 router.post("/business/vend", async (req, res) => {
   if (!req.body.festival_slug || !req.body.business_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
   try {
-    const db_festival = await festival_service.getFestivalDetailsBySlug(
-      req.body.festival_slug
-    );
+    const db_festival = await festival_service.getFestivalDetailsBySlug(req.body.festival_slug);
 
     if (!db_festival) {
       return {success: false, details: "festival not found!"};
@@ -1332,16 +1043,11 @@ router.post("/business/vend", async (req, res) => {
     const festival_id = db_festival.details[0].festival_id;
 
 
-    const response = await business_service.vendBusiness(
-      req.body.business_id,
-      festival_id
-    );
+    const response = await business_service.vendBusiness(req.body.business_id, festival_id);
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -1351,13 +1057,11 @@ router.post("/business/promotion-code", async (req, res) => {
   console.log(req.body);
   if (!req.body.festival_slug || !req.body.business_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
   try {
-    const db_festival = await festival_service.getFestivalDetailsBySlug(req.body.festival_slug,
-      {id: 1, role: ["ADMIN"]} // This is the mock admin data so it can fetch the promo code and verify at frontend
+    const db_festival = await festival_service.getFestivalDetailsBySlug(req.body.festival_slug, {id: 1, role: ["ADMIN"]} // This is the mock admin data so it can fetch the promo code and verify at frontend
     )
     if (!db_festival) {
       return {success: false, details: "festival not found!"};
@@ -1369,21 +1073,15 @@ router.post("/business/promotion-code", async (req, res) => {
 
     if (db_festival && db_festival.details[0].promo_code !== req.body.promo_code) {
       return res.send({
-        success: false,
-        message: "Wrong Promo Code!",
+        success: false, message: "Wrong Promo Code!",
       });
     }
 
-    const response = await business_service.updateBusinessPromoPayment(
-      req.body.business_id,
-      festival_id
-    );
+    const response = await business_service.updateBusinessPromoPayment(req.body.business_id, festival_id);
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -1394,37 +1092,29 @@ router.post("/claim-business/promo", async (req, res) => {
   if (!req.body.user_id || !req.body.business_id || !req.body.festival_id || !req.body.promo_code) {
 
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
   try {
 
-    const db_festival = await festival_service.getFestivalDetailsBySlug(req.body.festival_id,
-      {id: 1, role: ["ADMIN"]} // This is the mock admin data so it can fetch the promo code and verify at frontend
+    const db_festival = await festival_service.getFestivalDetailsBySlug(req.body.festival_id, {id: 1, role: ["ADMIN"]} // This is the mock admin data so it can fetch the promo code and verify at frontend
     )
     console.log('promo code porvided: ', req.body.promo_code);
     console.log('promo code: ', db_festival.details[0].promo_code);
 
     if (db_festival && db_festival.details[0].promo_code !== req.body.promo_code) {
       return res.send({
-        success: false,
-        message: "Wrong Promo Code!",
+        success: false, message: "Wrong Promo Code!",
       });
     }
 
-    const response = await user_profile_service.claimBusiness(
-      req.body.user_id,
-      req.body.business_id
-    );
+    const response = await user_profile_service.claimBusiness(req.body.user_id, req.body.business_id);
     return res.send(response);
 
 
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -1435,8 +1125,7 @@ router.post("/claim-business/verification", async (req, res) => {
   if (!req.body.user_id || !req.body.business_id || !req.body.verification_code) {
 
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
   try {
@@ -1447,23 +1136,17 @@ router.post("/claim-business/verification", async (req, res) => {
 
     if (db_business && db_business.business_details_all.business_verification_code !== req.body.verification_code) {
       return res.send({
-        success: false,
-        message: "Wrong Verification Code!",
+        success: false, message: "Wrong Verification Code!",
       });
     }
 
-    const response = await user_profile_service.claimBusiness(
-      req.body.user_id,
-      req.body.business_id
-    );
+    const response = await user_profile_service.claimBusiness(req.body.user_id, req.body.business_id);
     return res.send(response);
 
 
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
@@ -1472,25 +1155,27 @@ router.post("/claim-business/verification", async (req, res) => {
 router.get("/business/:business_id", async (req, res) => {
   if (!req.params.business_id) {
     return res.status(403).json({
-      success: false,
-      message: "Required parameters are not available in request.",
+      success: false, message: "Required parameters are not available in request.",
     });
   }
 
   try {
-    const response = await business_service.getBusinessById(
-      req.params.business_id
-    );
+    const response = await business_service.getBusinessById(req.params.business_id);
 
     return res.send(response);
   } catch (error) {
     res.send({
-      success: false,
-      message: "Error.",
-      response: error.message,
+      success: false, message: "Error.", response: error.message,
     });
   }
 });
 
+router.post("/festivals/:id/invite", token_service.authenticateToken, async (req, res) => {
+  const festivalId = req.params.id;
+  const {businessId} = req.body;
+
+  await festival_service.inviteBusiness(festivalId, businessId);
+  return res.send({success: true});
+});
 
 module.exports = router;

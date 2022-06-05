@@ -15,6 +15,7 @@ const Users = require("./users")
 const Subscriptions = require("./subscriptions")
 const UserSubscriptions = require("./user_subscriptions")
 const Roles = require("./roles")
+const FestivalBusinesses = require("./festival_businesses")
 
 module.exports = {
   AppAccess,
@@ -33,5 +34,6 @@ module.exports = {
   UserRoles,
   Users,
   UserSubscriptions,
-  Roles
+  Roles,
+  FestivalBusinesses
 }
