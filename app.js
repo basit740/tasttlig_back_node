@@ -128,9 +128,7 @@ app.use(mypassports_router);
 app.use(fav_passports_router);
 app.use(festival_reviews_router);
 app.use(featured_artists_router);
-<<<<<<< HEAD
 app.use(neighbourhood_router);
-=======
 app.use(user_subscriptions);
 
 app.use("/hosts", hosts_router);
@@ -143,7 +141,6 @@ app.use("/external_api/", external_api_router);
 app.use("/nationalities", nationality_router);
 app.use("/twilio", twilio);
 
->>>>>>> f567d5934c9784660c1b48268a498413cfff4f89
 app.use((err, req, res, next) => {
   console.error({type: 'Error handler', path: (req ? req.originalUrl : null), err, status: err.status});
   res.status(err.status ?? 500).json({success: false, message: err.message});
