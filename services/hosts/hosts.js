@@ -275,11 +275,11 @@ const getHostApplicantDetails = async (userId) => {
   }
 };
 
-const saveApplicationInformation = async (hostDto, is_host, trx) => {
+const saveApplicationInformation = async (hostDto, is_experience_organizer, trx) => {
   let applications = [];
   let role_name = "";
 
-  if (is_host === "yes") {
+  if (is_experience_organizer === "yes") {
     applications.push({
       user_id: hostDto.host_user_id
         ? hostDto.host_user_id
@@ -290,24 +290,12 @@ const saveApplicationInformation = async (hostDto, is_host, trx) => {
       // resume: hostDto.host_selection_resume,
       created_at: new Date(),
       updated_at: new Date(),
-      type: "host",
+      type: "experience_organizer",
       status: "Pending",
     });
-    role_name = "HOST_PENDING";
+    role_name = "EXPERIENCE_ORGANIZER_PENDING";
   }
 
-  // Save sponsor application to applications table
-  // if (applications.length == 0 && hostDto.is_sponsor) {
-  //   applications.push({
-  //     user_id: hostDto.dbUser.user.tasttlig_user_id,
-  //     reason: "",
-  //     created_at: new Date(),
-  //     updated_at: new Date(),
-  //     type: "sponsor",
-  //     status: "Pending",
-  //   });
-  //   role_name = "SPONSOR_PENDING";
-  // }
 
   if (applications.length == 0 && hostDto.is_host === "no") {
     applications.push({
@@ -328,7 +316,6 @@ const saveApplicationInformation = async (hostDto, is_host, trx) => {
     .then((value) => {
       return value[0].role_code;
     });
-
   // Insert new role for this user
   await trx("user_role_lookup").insert({
     user_id: hostDto.host_user_id
@@ -337,6 +324,14 @@ const saveApplicationInformation = async (hostDto, is_host, trx) => {
     role_code: new_role_code,
   });
 
+  if (new_role_code === "EOP" && (!hostDto.user.role || (!hostDto.user.role.includes('HOST') && !hostDto.user.role.includes('HOST_PENDING')))) {
+    await trx("user_role_lookup").insert({
+      user_id: hostDto.host_user_id
+        ? hostDto.host_user_id
+        : hostDto.user.tasttlig_user_id,
+      role_code: "JUCR",
+    });
+  }
   return trx("applications")
     .insert(applications)
     .returning("*")
@@ -345,43 +340,46 @@ const saveApplicationInformation = async (hostDto, is_host, trx) => {
     });
 };
 
-const createHost = async (host_details, is_host, email) => {
+const createHost = async (host_details, is_experience_organizer, email, trx = null) => {
+  if (trx === null) {
+    trx = db;
+  }
   try {
-    await db.transaction(async (trx) => {
-      let dbUser;
-      if (email) {
-        await authenticate_user_service.createDummyUser(email);
-        dbUser = await user_profile_service.getUserByEmail(email);
-        host_details.dbUser = dbUser;
-        await saveApplicationInformation(host_details, is_host, trx);
-        delete host_details.dbUser;
-        const db_preference = await trx("hosts")
-          .insert(host_details)
-          .returning("*");
-        console.log(
-          "db_preference from db call for host details:",
-          db_preference
-        );
-        if (!db_preference) {
-          return {
-            success: false,
-            details: "Inserting new preference failed.",
-          };
-        }
-      } else {
-        await saveApplicationInformation(host_details, is_host, trx);
-        const db_preference = await trx("hosts")
-          .insert(host_details)
-          .returning("*");
-
-        if (!db_preference) {
-          return {
-            success: false,
-            details: "Inserting new preference failed.",
-          };
-        }
+    let dbUser;
+    let {user, ...host_info} = host_details
+    if (!email) {
+      await authenticate_user_service.createDummyUser(email);
+      dbUser = await user_profile_service.getUserByEmail(email);
+      host_details.dbUser = dbUser;
+      await saveApplicationInformation(host_details, is_experience_organizer, trx);
+      delete host_details.dbUser;
+      const db_preference = await trx("hosts")
+        .insert(host_details)
+        .returning("*");
+      console.log(
+        "db_preference from db call for host details:",
+        db_preference
+      );
+      if (!db_preference) {
+        return {
+          success: false,
+          details: "Inserting new preference failed.",
+        };
       }
-    });
+    } else {
+      console.log('1234567', host_info);
+      await saveApplicationInformation(host_details, is_experience_organizer, trx);
+      const db_preference = await trx("hosts")
+        .insert(host_info)
+        .returning("*");
+
+      if (!db_preference) {
+        return {
+          success: false,
+          details: "Inserting new preference failed.",
+        };
+      }
+    }
     return {success: true, details: "Success."};
   } catch (error) {
     console.log(error);

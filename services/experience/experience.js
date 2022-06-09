@@ -23,20 +23,7 @@ const createNewExperience = async (
   try {
     console.log("EXPERIENCE USER DETAILS.......", experience_details);
     await db.transaction(async (trx) => {
-      /* experience_details.status = "INACTIVE";
-      let user_role_object = db_user.role;
 
-      if (user_role_object.includes("HOST")) {
-        experience_details.status = "ACTIVE";
-      } */
-
-      /* experience_details = await setAddressCoordinates(
-        experience_details,
-        true
-      ); */
-      //experience_details.status = "ACTIVE";
-
-      let user_role_object = db_user.user.role;
 
       experience_details.claimed_total_quantity = 0;
       const db_experience = await trx("experiences")
@@ -52,70 +39,10 @@ const createNewExperience = async (
         experience_image_url: experience_image,
       }));
 
-      if (experience_details.festival_selected.length > 0) {
-        // console.log('FESTIVAL LENGHT', experience_details.festival_selected );
-        console.log("USER ROLEEEEEEEE", user_role_object);
-        if (user_role_object && user_role_object.includes("HOST")) {
-          await trx("festivals")
-            .where({ festival_id: experience_details.festival_selected[0] })
-            .update({
-              festival_host_id: trx.raw("array_append(festival_host_id, ?)", [
-                db_user.user.tasttlig_user_id,
-              ]),
-            });
-        } else if (user_role_object && user_role_object.includes("VENDOR")) {
-          console.log(
-            "VENDOR FESTIVAL LENGHT",
-            experience_details.festival_selected
-          );
-          console.log("USER ROLEEEEEEEE", user_role_object);
-          await trx("festivals")
-            .where({ festival_id: experience_details.festival_selected[0] })
-            .update({
-              festival_vendor_id: trx.raw(
-                "array_append(festival_vendor_id, ?)",
-                [db_user.user.tasttlig_user_id]
-              ),
-            });
-        }
-      }
 
-      await trx("experience_images").insert(images); //else { // Email to user on submitting the request to upgrade
+      await trx("experience_images").insert(images); 
 
-      /* if (createdByAdmin) {
-        // Email to confirm the new experience by hosts
-        jwt.sign(
-          {
-            id: db_experience[0].experience_id,
-            user_id: db_experience[0].experience_creator_user_id,
-          },
-          process.env.EMAIL_SECRET,
-          {
-            expiresIn: "3d",
-          },
-          async (err, emailToken) => {
-            try {
-              const url = `${SITE_BASE}/review-experience/${db_experience[0].experience_id}/${emailToken}`;
 
-              await Mailer.sendMail({
-                from: process.env.SES_DEFAULT_FROM,
-                to: db_user.email,
-                subject: `[Tasttlig] Review Experience "${experience_details.title}"`,
-                template: "review_experience",
-                context: {
-                  title: experience_details.title,
-                  url_review_experience: url,
-                },
-              });
-            } catch (error) {
-              return {
-                success: false,
-                details: error.message,
-              };
-            }
-          }
-        );
-      } */
       if (db_user.user) {
         await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,

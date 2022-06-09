@@ -8,6 +8,19 @@ const business_passport_service = require("../../services/passport/businessPassp
 const user_profile_service = require("../../services/profile/user_profile");
 const user_order_service = require("../../services/payment/user_orders");
 const neighbourhood_service = require("../../services/neighbourhood/neighbourhood");
+const authRouter = require("../../routes/user/authentication")
+const password_preprocessor = require("../../middleware/password_preprocessor");
+const authenticate_user_service = require("../../services/authentication/authenticate_user");
+const {db} = require("../../db/db-config");
+const rateLimit = require("express-rate-limit");
+
+// Limit the number of accounts created from the same IP address
+const createAccountLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour window
+  max: 1000, // start blocking after 10 requests
+  message:
+    "Too many accounts created from this IP. Please try again after an hour.",
+});
 
 // GET applications
 router.get(
@@ -212,10 +225,18 @@ router.post(
 // POST application from multi-step form
 router.post(
   "/request-host",
+  password_preprocessor,
+  createAccountLimiter,
   /* token_service.authenticateToken, */ async (req, res) => {
-    console.log("req.bod from host details:", req.body);
+    console.log("req.body from host details:", req.body);
+
 
     const {
+      first_name,
+      last_name,
+      email,
+      phone_number,
+      password_digest,
       host_user_id,
       host_video_url,
       host_description,
@@ -225,7 +246,7 @@ router.post(
       seating_option,
       want_people_to_discover_your_cuisine,
       able_to_provide_food_samples,
-      is_host,
+      is_experience_organizer,
       has_hosted_other_things_before,
       able_to_explain_the_origins_of_tasting_samples,
       able_to_proudly_showcase_your_culture,
@@ -248,7 +269,6 @@ router.post(
       }
 
       const host_details = {
-        host_user_id: host_user_id ? host_user_id : null,
         host_video_url: host_video_url ? host_video_url : null,
         host_description: host_description ? host_description : null,
         has_hosted_anything_before: has_hosted_anything_before
@@ -306,28 +326,46 @@ router.post(
             ? able_to_provide_games_about_culture_cuisine
             : null,
       };
+
+
       console.log("host details:", host_details);
 
-      // const creatingFreeOrder = await user_order_service.createFreeOrder(
-      //   subscriptionResponse,
-      //   host_user_id
-      // );
-      // if (!creatingFreeOrder.success) {
-      //   return res.status(200).json({
-      //     success: false,
-      //     message: creatingFreeOrder.details,
-      //   });
-      // }
-      const response = await hosts_service.createHost(
-        host_details,
-        is_host,
-        req.body.email
-      );
-      console.log("response from host:", response);
-      if (response.success) {
-        return res.send(response);
-      }
-      return res.status(500).send(response);
+      await db.transaction(async (trx) => {
+        let user = {};
+        if (!host_user_id){
+          user = {
+            first_name,
+            last_name,
+            email,
+            password: password_digest,
+            phone_number
+          };
+          const user_response = await authenticate_user_service.userRegister(user, true, trx);
+          host_details.user = user_response.data;
+          host_details.host_user_id = user_response.data.tasttlig_user_id;
+        }
+        else {
+          const user_response = await user_profile_service.getUserById(host_user_id);
+          host_details.user = user_response.user;
+          host_details.host_user_id = user_response.user.tasttlig_user_id;
+        }
+
+
+        const response = await hosts_service.createHost(
+          host_details,
+          is_experience_organizer,
+          req.body.email,
+          trx
+        );
+        console.log("response from host:", response);
+        if (response.success) {
+          return res.send(response);
+        }
+        return res.status(500).send(response);
+
+      })
+      
+      
     } catch (error) {
       console.log("error from here", error);
       return res.status(403).json({

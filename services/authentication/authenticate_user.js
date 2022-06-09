@@ -644,7 +644,7 @@ const userMigrationFromAuthServer = async (new_user) => {
 
 const getAllUsers = async (page, searchText) => {
   return User.query()
-    .withGraphFetched("[roles, access]")
+    .withGraphFetched("[access]")
     .page(page, 20)
     .where(
       raw(

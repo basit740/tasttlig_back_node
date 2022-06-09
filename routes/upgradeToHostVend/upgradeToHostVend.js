@@ -663,14 +663,14 @@ router.post("/auto-application-approval", async (req, res) => {
   }
 });
 
-// get all festival coordinator applications
+// get all festival organizer applications
 router.get(
-  "/festival-coordinator-applications",
+  "/festival-organizer-applications",
   token_service.authenticateToken,
   async (req, res) => {
     try {
       const applications =
-        await upgrade_service.getAllFestivalCoordinatorApplications();
+        await upgrade_service.getAllFestivalOrganizerApplications();
 
       return res.send(applications);
     } catch (error) {
@@ -683,12 +683,12 @@ router.get(
 );
 
 router.get(
-  "/festival-coordinator-applications/:userId",
+  "/festival-organizer-applications/:userId",
   token_service.authenticateToken,
   async (req, res) => {
     try {
       const applications =
-        await upgrade_service.getFestivalCoordinatorApplicantDetails(
+        await upgrade_service.getFestivalOrganizerApplicantDetails(
           req.params.userId
         );
       return res.send(applications);
@@ -701,14 +701,14 @@ router.get(
   }
 );
 
-// POST festival coordinator application approval from admin
+// POST festival organizer application approval from admin
 router.post(
-  "/festival-coordinator-applications/:userId/approve",
+  "/festival-organizer-applications/:userId/approve",
   token_service.authenticateToken,
   async (req, res) => {
     try {
       const response =
-        await upgrade_service.approveOrDeclineFestCoordApplication(
+        await upgrade_service.approveOrDeclineFestOrganizerApplication(
           req.params.userId,
           "APPROVED"
         );
@@ -723,14 +723,14 @@ router.post(
   }
 );
 
-// POST festival coordinator application decline from admin
+// POST festival organizer application decline from admin
 router.post(
-  "/festival-coordinator-applications/:userId/decline",
+  "/festival-organizer-applications/:userId/decline",
   token_service.authenticateToken,
   async (req, res) => {
     try {
       const response =
-        await upgrade_service.approveOrDeclineFestCoordApplication(
+        await upgrade_service.approveOrDeclineFestOrganizerApplication(
           req.params.userId,
           "DECLINED"
         );

@@ -619,12 +619,13 @@ authRouter.post(
   }
 );
 
-// add festival coordinator application
+// add festival organizer application
 authRouter.post(
-  "/festival-coordinator-application",
+  "/festival-organizer-application",
   createAccountLimiter,
   password_preprocessor,
   async (req, res) => {
+    console.log('123', req.body);
     const {
       firstName,
       lastName,
@@ -648,7 +649,8 @@ authRouter.post(
       refEmail2,
       refPhone2,
       resume,
-      password_digest
+      password_digest,
+      userId
     } = req.body;
 
     let neighbourhood = [];
@@ -658,20 +660,6 @@ authRouter.post(
 
 
     try {
-      const user = {
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        password: password_digest,
-        phone_number: phone,
-        city,
-        state: province,
-        country,
-        postal_code: postalCode,
-        street_name: streetName,
-        street_number: streetNumber,
-        apartment_no: businessUnit
-      };
 
       const businessDto = {
         user_business_name: businessName,
@@ -683,11 +671,11 @@ authRouter.post(
         user_business_province: province,
         user_business_postal_code: postalCode,
         user_business_phone_number: phone,
-        user_business_type: "Festival Coordinator",  
+        user_business_type: "Festival Organizer",  
       }
 
       const hostDto = {
-        is_festival_coordinator: true,
+        is_festival_organizer: true,
         email: email,
         neighbourhood_interested: neighbourhood,
         referred_by: referredBy,
@@ -702,13 +690,36 @@ authRouter.post(
       }; 
       
      
-
       // transaction for create business
       return await db.transaction(async trx => {
-        const user_response = await authenticate_user_service.userRegister(user, true, trx);
-        businessDto.user_id = user_response.data.tasttlig_user_id;
+        let user;
+        if (!userId) {
+          user = {
+            first_name: firstName,
+            last_name: lastName,
+            email,
+            password: password_digest,
+            phone_number: phone,
+            city,
+            state: province,
+            country,
+            postal_code: postalCode,
+            street_name: streetName,
+            street_number: streetNumber,
+            apartment_no: businessUnit
+          };
+            const user_response = await authenticate_user_service.userRegister(user, true, trx);
+            businessDto.user_id = user_response.data.tasttlig_user_id;
+            user = user_response.data;
+          }
+        else {
+          const user_response = await user_profile_service.getUserById(userId);
+          businessDto.user_id = userId;
+          user = user_response.user;
+        }
+        console.log('123',user);
         const business_response = await business_service.postBusinessPassportDetails(businessDto, trx);
-        const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
+        const saveHost = await user_profile_service.saveHostApplication(hostDto, user, trx);
         if (saveHost.success) {
           res.status(200).send(saveHost);
         } else {

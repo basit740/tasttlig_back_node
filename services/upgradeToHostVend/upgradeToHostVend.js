@@ -195,6 +195,17 @@ const approveOrDeclineHostVendorApplication = async (
           return {success: false, message: reason};
         });
 
+      // update the user role as experience organizer
+      await db("user_role_lookup")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("role_code", "EOP")
+        .update("role_code", "EO")
+        .returning("*")
+        .catch((reason) => {
+          console.log("Reason", reason);
+          return {success: false, message: reason};
+        });
+
       // Email the user that their application is approved
       await Mailer.sendMail({
         from: process.env.SES_DEFAULT_FROM,
@@ -226,7 +237,9 @@ const approveOrDeclineHostVendorApplication = async (
       // remove in pending status
       await db("user_role_lookup")
         .where("user_id", db_user.tasttlig_user_id)
-        .andWhere("role_code", "JUCR")
+        .andWhere((whereBuilder) =>
+          whereBuilder.where("role_code", "JUCR")
+          .orWhere("role_code", "EOP"))
         .del()
         .returning("*")
         .catch((reason) => {
@@ -538,8 +551,8 @@ const getSponsorApplicantDetails = async (userId) => {
   }
 };
 
-// Get all festival coordinator applications helper function
-const getAllFestivalCoordinatorApplications = async () => {
+// Get all festival organizer applications helper function
+const getAllFestivalOrganizerApplications = async () => {
   try {
     const applications = await db
       .select("*")
@@ -554,7 +567,7 @@ const getAllFestivalCoordinatorApplications = async () => {
         "applications.user_id",
         "business_details.business_details_user_id"
       )
-      .where("applications.type", "=", "festival_coordinator")
+      .where("applications.type", "=", "festival_organizer")
       .groupBy("applications.application_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
       .groupBy("business_details.business_details_id")
@@ -569,7 +582,7 @@ const getAllFestivalCoordinatorApplications = async () => {
   }
 };
 
-const getFestivalCoordinatorApplicantDetails = async (userId) => {
+const getFestivalOrganizerApplicantDetails = async (userId) => {
   try {
     console.log(userId);
     let application = await db
@@ -595,7 +608,7 @@ const getFestivalCoordinatorApplicantDetails = async (userId) => {
       .groupBy("business_details.business_details_id")
       .groupBy("applications.application_id")
       .having("tasttlig_users.tasttlig_user_id", "=", Number(userId))
-      .having("applications.type", "=", "festival_coordinator")
+      .having("applications.type", "=", "festival_organizer")
       .having("applications.status", "=", "Pending")
       .first();
 
@@ -1138,7 +1151,7 @@ const approveOrDeclineRestaurantApplicationOnFestival = async (
   }
 };
 
-const approveOrDeclineFestCoordApplication = async (userId, status) => {
+const approveOrDeclineFestOrganizerApplication = async (userId, status) => {
   try {
     const db_user_row = await getUserById(userId);
 
@@ -1153,8 +1166,16 @@ const approveOrDeclineFestCoordApplication = async (userId, status) => {
       // update role
       await db("user_role_lookup")
         .where("user_id", db_user.tasttlig_user_id)
-        .andWhere("role_code", "FCP")
-        .update("role_code", "FC")
+        .andWhere("role_code", "FOP")
+        .update("role_code", "FO")
+        .catch((reason) => {
+          return { success: false, message: reason };
+        });
+
+      await db("user_role_lookup")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("role_code", "JUCR")
+        .update("role_code", "KJ7D")
         .catch((reason) => {
           return { success: false, message: reason };
         });
@@ -1163,7 +1184,7 @@ const approveOrDeclineFestCoordApplication = async (userId, status) => {
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
-        .andWhere("type", "festival_coordinator")
+        .andWhere("type", "festival_organizer")
         .update("status", "APPROVED")
         .returning("*")
         .catch((reason) => {
@@ -1177,14 +1198,18 @@ const approveOrDeclineFestCoordApplication = async (userId, status) => {
       await db("user_role_lookup")
         .where({
           user_id: db_user.tasttlig_user_id,
-          role_code: "FCP",
+          role_code: "FOP",
+        })
+        .orWhere({
+          user_id: db_user.tasttlig_user_id,
+          role_code: "KJ7D",
         })
         .del();
       //  Update applications table status
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
-        .andWhere("type", "festival_coordinator")
+        .andWhere("type", "festival_organizer")
         .update("status", "REJECT")
         .returning("*")
         .catch((reason) => {
@@ -1586,13 +1611,13 @@ module.exports = {
   approveOrDeclineVendorApplicationOnFestival,
   getSponsorApplications,
   getSponsorApplicantDetails,
-  getAllFestivalCoordinatorApplications,
-  getFestivalCoordinatorApplicantDetails,
+  getAllFestivalOrganizerApplications,
+  getFestivalOrganizerApplicantDetails,
   approveOrDeclineSponsorApplicationOnFestival,
   getRestaurantApplications,
   getRestaurantApplicantDetails,
   approveOrDeclineRestaurantApplicationOnFestival,
-  approveOrDeclineFestCoordApplication,
+  approveOrDeclineFestOrganizerApplication,
   addBusinessToFestival,
   autoApproveVendorFestivalApplications,
   autoApproveSponsorFestivalApplications,

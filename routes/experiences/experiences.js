@@ -17,27 +17,22 @@ router.post(
   "/experiences/add",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log(req.body);
     if (
       !req.body.experience_name ||
-      //!req.body.experience_nationality_id ||
-      !req.body.experience_description ||
-      !req.body.experience_capacity ||
-      !req.body.experience_size_scope ||
+      !req.body.experience_price ||
+      !req.body.experience_nationality_id ||
       !req.body.experience_description ||
       !req.body.experience_images ||
-      //!req.body.festival_selected ||
       !req.body.start_date ||
       !req.body.end_date ||
       !req.body.start_time ||
-      !req.body.end_time
+      !req.body.end_time 
     ) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",
       });
     }
-
     try {
       const user_details_from_db = await user_profile_service.getUserById(
         req.user.id
@@ -49,85 +44,33 @@ router.post(
         });
       }
 
-      // let createdByAdmin = false;
-
-      // const business_details_from_db =
-      //   await authentication_service.getUserByBusinessDetails(req.user.id);
-      // if (!business_details_from_db.success) {
-      //   return res.status(403).json({
-      //     success: false,
-      //     message: business_details_from_db.message,
-      //   });
-      // }
-
-      // if (user_details_from_db.user.role.includes("ADMIN")) {
-      //   createdByAdmin = true;
-      // }
-
-      // let db_business_details = business_details_from_db.business_details;
       const experience_information = {
-        experience_business_id: req.body.business_id,
 
         experience_name: req.body.experience_name,
-        experience_nationality_id: req.body.experience_nationality_id
-          ? req.body.experience_nationality_id
-          : null,
-        experience_price: req.body.experience_price
-          ? req.body.experience_price
-          : 2,
+        experience_nationality_id: req.body.experience_nationality_id,
+        experience_price: req.body.experience_price,
         experience_capacity: req.body.experience_capacity,
         experience_user_id: user_details_from_db.user.tasttlig_user_id,
         experience_size_scope: req.body.experience_size_scope,
         experience_description: req.body.experience_description,
-        experience_type: req.body.experience_type
-          ? req.body.experience_type
-          : null,
         start_date: req.body.start_date,
         end_date: req.body.end_date,
         start_time: req.body.start_time,
         end_time: req.body.end_time,
-        additional_pricing_info: req.body.additional_pricing_info,
-        additional_information: req.body.additional_information
-          ? req.body.additional_information
-          : null,
-        promotion: req.body.experience_offering_type,
-        festival_selected:
-          req.body.festival_selected &&
-          Array.isArray(req.body.festival_selected)
-            ? req.body.festival_selected
-            : req.body.festival_selected
-            ? [req.body.festival_selected]
-            : null,
-
-        products_selected:
-          req.body.products_selected &&
-          Array.isArray(req.body.products_selected)
-            ? req.body.products_selected
-            : req.body.products_selected
-            ? [req.body.products_selected]
-            : null,
-
-        services_selected:
-          req.body.services_selected &&
-          Array.isArray(req.body.services_selected)
-            ? req.body.services_selected
-            : req.body.services_selected
-            ? [req.body.services_selected]
-            : null,
-        experience_code: generateRandomString(4),
+        has_food: req.body.has_food,
+        has_music: req.body.has_music,
+        has_arts: req.body.has_arts,
+        has_balloons: req.body.has_balloons,
+        has_venues: req.body.has_venues,
         experience_status: "ACTIVE",
         experience_created_at_datetime: new Date(),
         experience_updated_at_datetime: new Date(),
-        festival_selected: req.body.festivals_selected,
       };
       
-      
-
       const response = await experience_service.createNewExperience(
         user_details_from_db,
         experience_information,
         req.body.experience_images,
-        req.body.sponsorType
       );
       res.send(response);
       if (response.success) {

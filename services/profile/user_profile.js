@@ -441,13 +441,13 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
     role_name = "VENDOR_PENDING";
   }
-  if (applications.length == 0 && hostDto.is_festival_coordinator) {
+  if (applications.length == 0 && hostDto.is_festival_organizer) {
     applications.push({
       user_id: hostDto.dbUser.user.tasttlig_user_id,
       reason: "",
       created_at: new Date(),
       updated_at: new Date(),
-      type: "festival_coordinator",
+      type: "festival_organizer",
       status: "Pending",
       neighbourhood_interested: hostDto.neighbourhood_interested,
       referred_by: hostDto.referred_by,
@@ -460,7 +460,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
       ref_phone_2: hostDto.ref_phone_2,
       resume: hostDto.resume,
     });
-    role_name = "FESTIVAL_COORDINATOR_PENDING";
+    role_name = "FESTIVAL_ORGANIZER_PENDING";
   }
   if (applications.length == 0 && hostDto.is_guest_amb) {
     applications.push({
@@ -508,17 +508,7 @@ const saveApplicationInformation = async (hostDto, trx) => {
     });
     role_name = "SPONSOR_PENDING";
   }
-  /*   if (applications.length == 0 && hostDto.is_host === "no") {
-    applications.push({
-      user_id: hostDto.dbUser.user.tasttlig_user_id,
-      reason: "",
-      created_at: new Date(),
-      updated_at: new Date(),
-      type: "restaurant",
-      status: "Pending",
-    });
-    role_name = "RESTAURANT_PENDING";
-  } */
+
 
   // Get role code of new role to be added
   const new_role_code = await trx("roles")
@@ -532,6 +522,24 @@ const saveApplicationInformation = async (hostDto, trx) => {
     user_id: hostDto.dbUser.user.tasttlig_user_id,
     role_code: new_role_code,
   });
+
+  console.log('123', hostDto.dbUser);
+
+  if (role_name === "FESTIVAL_ORGANIZER_PENDING" && ((!hostDto.dbUser.user.role) || (!hostDto.dbUser.user.role.includes('HOST') && !hostDto.dbUser.user.role.includes('HOST_PENDING')))) {
+    // Get role code of host pending
+    const host_role_code = await trx("roles")
+      .select()
+      .where({ role: "HOST_PENDING" })
+      .then((value) => {
+        return value[0].role_code;
+      });
+    
+    // Insert host pending role for this user
+      await trx("user_role_lookup").insert({
+        user_id: hostDto.dbUser.user.tasttlig_user_id,
+        role_code: host_role_code,
+      });
+  }
 
   return trx("applications")
     .insert(applications)
@@ -1134,16 +1142,27 @@ const approveOrDeclineHostAmbassadorApplication = async (
           return { success: false, message: reason };
         });
 
-      // insert the user role as
-      // await db("user_role_lookup")
-      //   .where("user_id", db_user.tasttlig_user_id)
-      //   .andWhere("role_code", "JUCR")
-      //   .update("role_code", "KJ7D")
-      //   .returning("*")
-      //   .catch((reason) => {
-      //     console.log("Reason", reason);
-      //     return { success: false, message: reason };
-      //   });
+      //
+      await db("user_role_lookup")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("role_code", "EOP")
+        .update("role_code", "EO")
+        .returning("*")
+        .catch((reason) => {
+          console.log("Reason", reason);
+          return { success: false, message: reason };
+        });
+
+      // update the user role as host
+      await db("user_role_lookup")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("role_code", "JUCR")
+        .update("role_code", "KJ7D")
+        .returning("*")
+        .catch((reason) => {
+          console.log("Reason", reason);
+          return { success: false, message: reason };
+        });
 
       // let active_item = "Products";
 
@@ -1166,26 +1185,26 @@ const approveOrDeclineHostAmbassadorApplication = async (
       // Status is failed
 
       // STEP 2: Update all documents belongs to this user which is in Pending state become REJECT
-      await db("documents")
-        .where("user_id", db_user.tasttlig_user_id)
-        .andWhere("status", "Pending")
-        .update("status", "REJECT")
-        .returning("*")
-        .catch((reason) => {
-          return { success: false, message: reason };
-        });
+      // await db("documents")
+      //   .where("user_id", db_user.tasttlig_user_id)
+      //   .andWhere("status", "Pending")
+      //   .update("status", "REJECT")
+      //   .returning("*")
+      //   .catch((reason) => {
+      //     return { success: false, message: reason };
+      //   });
 
       //mark the status to rejected if it has been rejected.
-      await db("user_subscriptions")
-        .where({
-          user_id: db_user.tasttlig_user_id,
-          user_subscription_status: "Pending",
-        })
-        .update("user_subscription_status", "REJECTED")
-        .returning("*")
-        .catch((reason) => {
-          return { success: false, message: reason };
-        });
+      // await db("user_subscriptions")
+      //   .where({
+      //     user_id: db_user.tasttlig_user_id,
+      //     user_subscription_status: "Pending",
+      //   })
+      //   .update("user_subscription_status", "REJECTED")
+      //   .returning("*")
+      //   .catch((reason) => {
+      //     return { success: false, message: reason };
+      //   });
 
       // STEP 3: Update applications table status
       await db("applications")
@@ -1196,6 +1215,17 @@ const approveOrDeclineHostAmbassadorApplication = async (
         .catch((reason) => {
           return { success: false, message: reason };
         });
+
+      // delete user role as host pending and experience organizer pending
+      await db("user_role_lookup")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("role_code", "JUCR")
+        .del();
+
+      await db("user_role_lookup")
+        .where("user_id", db_user.tasttlig_user_id)
+        .andWhere("role_code", "EOP")
+        .del();
 
       // STEP 4: Notify user their application is rejected
       await Mailer.sendMail({
@@ -1366,22 +1396,14 @@ const getUserByPassportIdOrEmail = async (passport_id_or_email) => {
 const saveHostApplication = async (hostDto, user, trx) => {
   let dbUser = user;
   console.log("user from save application", user);
-  // if (user) {
-  //   dbUser = await getUserById(user.id);
-  // }
 
-  // if (dbUser == null || !dbUser.success) {
-  //   dbUser = await getUserByPassportIdOrEmail(hostDto.email);
-  // }
 
   hostDto.dbUser = user;
   hostDto.dbUser.user = user;
   console.log(hostDto.dbUser);
   await saveApplicationInformation(hostDto, trx);
 
-  // if (hostDto.menu_list) {
-  //   await saveSpecials(hostDto);
-  // }
+
   await sendApplierEmailForHosting(dbUser);
 
   return { success: true };

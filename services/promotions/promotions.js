@@ -268,36 +268,16 @@ const updatePromotion = async (data) => {
 const getAllDealPromotions = async (filters, keyword) => {
   let query = db
     .select(
-      "products.*",
-      "services.*",
-      "business_details.*",
-      "business_details.city",
-      "business_details.state",
-      "business_details.zip_postal_code",
-      db.raw("ARRAY_AGG(product_images.product_image_url) as image_urls")
+      "title"
     )
     .from("products")
-    .leftJoin(
-      "product_images",
-      "products.product_id",
-      "product_images.product_id"
+    .union(
+      db =>
+      db.select(
+        "service_name"
+      )
+      .from("services")
     )
-    .leftJoin(
-      "business_details",
-      "products.product_business_id",
-      "business_details.business_details_id"
-    )
-    .leftJoin(
-      "services", 
-      "products.product_id",
-       "services.promotional_discount_id"
-    )
-    .groupBy("products.product_id")
-    .groupBy("business_details.business_details_id")
-    .groupBy("business_details.city")
-    .groupBy("business_details.state")
-    .groupBy("business_details.zip_postal_code")
-    .groupBy("services.service_id")
     // .union(db =>
     //     db.select(
     //       "products.*",
