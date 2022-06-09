@@ -50,7 +50,7 @@ authRouter.post(
       source,
     } = req.body;
 
-    if (!email || !password_digest || !source) {
+    if (!email || !password_digest || !source || !first_name || !last_name || !phone_number) {
       return res.status(403).json({
         success: false,
         message: "Required parameters are not available in request.",

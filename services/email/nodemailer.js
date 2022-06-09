@@ -31,24 +31,24 @@ if (process.env.NODE_ENV === "production") {
   };
 } else {
   mailConfig = {
-    host: "smtp.ethereal.email",
+    host: "smtp.mailtrap.io",
     port: 587,
     auth: {
-      user: "keara.block@ethereal.email",
-      pass: "hbGChvzjwgRwWUeewC",
+      user: "a05ad70091f4a2",
+      pass: "0fc1d3f76ba12b",
     },
   };
 }
 
 let options = {
+  viewPath: current_file_path + "../../../public/emails/",
+  extName: ".hbs",
   viewEngine: {
     extname: ".hbs",
     layoutsDir: current_file_path + "../../../public/emails/",
     defaultLayout: "main",
     partialsDir: current_file_path + "../../../public/emails/partials/",
-  },
-  viewPath: current_file_path + "../../../public/emails/",
-  extName: ".hbs",
+  }
 };
 
 let nodemailer_transporter = nodemailer.createTransport(mailConfig);

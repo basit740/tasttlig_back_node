@@ -49,6 +49,16 @@ class Orders extends Model {
       },
     };
   }
+
+  hasFestivalContentPurchases() {
+    return this.order_items
+      .some(item => ["experience", "special", "product"].includes(item.item_type))
+  }
+
+  hasFestivalPurchases() {
+    return this.order_items
+      .some(item => item.item_type === "festival")
+  }
 }
 
 module.exports = Orders;

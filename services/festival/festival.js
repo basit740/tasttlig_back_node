@@ -2,11 +2,11 @@
 
 // Libraries
 const {db} = require("../../db/db-config");
-const Mailer = require("../email/nodemailer").nodemailer_transporter;
 const {formatTime, generateSlug} = require("../../functions/functions");
-// const festival_service = require("../../services/festival/festival");
-const user_profile_service = require("../../services/profile/user_profile");
 const {generateRandomString} = require("../../functions/functions");
+const {Festivals, BusinessDetails} = require("../../models");
+const twilio_service = require("../twilio/twilio_service");
+const twilio = require("twilio");
 
 // Get all festivals helper function
 const getAllFestivals = async (currentPage, keyword, filters) => {
@@ -1392,6 +1392,21 @@ const getLandingPageFestival = async () => {
     });
 };
 
+const inviteBusiness = async (festivalId, businessId) => {
+  const festival = await Festivals.query().findById(festivalId);
+  if (!festival) {
+    throw {status: 404, message: "Festival not found"};
+  }
+
+  const business = await BusinessDetails.query().findById(businessId);
+  if (!business) {
+    throw {status: 400, message: "Invalid business specified"};
+  }
+
+  await twilio_service.sendMessage(
+    business.business_phone_number,
+    `You are invited to participate in the ${festival.festival_name} festival`);
+}
 
 module.exports = {
   getAllFestivals,
@@ -1419,5 +1434,6 @@ module.exports = {
   registerUserToFestivals,
   getFestivalDetailsBySlug,
   validatePromoCode,
-  getLandingPageFestival
+  getLandingPageFestival,
+  inviteBusiness
 };

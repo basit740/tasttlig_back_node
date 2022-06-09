@@ -58,6 +58,7 @@ const festival_reviews_router = require("./routes/festival_reviews/festival_revi
 const featured_artists_router = require("./routes/featured_artists/featured_artists");
 const neighbourhood_router = require("./routes/neighbourhood/neighbourhood");
 const user_subscriptions = require("./routes/user_subcriptions/user_subscriptions");
+const twilio = require("./routes/twilio/twilio");
 
 // Set up CORS
 const app = express();
@@ -115,15 +116,8 @@ app.use(vendor_router);
 app.use(sponsor_router);
 app.use(ticket_router);
 app.use(passport_router);
-app.use("/nationalities", nationality_router);
 app.use(subscription_router);
-app.use("/hosts", hosts_router);
-app.use("/cart", shopping_cart_router);
-app.use("/menu_items", menu_items_router);
-app.use("/order", order_router);
-app.use("/points", points_router);
-app.use("/business", business_router);
-app.use("/external_api/", external_api_router);
+
 app.use(mobile_router);
 app.use(mobile_s3_uploader);
 app.use(stripe_account_router);
@@ -134,7 +128,22 @@ app.use(mypassports_router);
 app.use(fav_passports_router);
 app.use(festival_reviews_router);
 app.use(featured_artists_router);
+<<<<<<< HEAD
 app.use(neighbourhood_router);
+=======
+app.use(user_subscriptions);
+
+app.use("/hosts", hosts_router);
+app.use("/cart", shopping_cart_router);
+app.use("/menu_items", menu_items_router);
+app.use("/order", order_router);
+app.use("/points", points_router);
+app.use("/business", business_router);
+app.use("/external_api/", external_api_router);
+app.use("/nationalities", nationality_router);
+app.use("/twilio", twilio);
+
+>>>>>>> f567d5934c9784660c1b48268a498413cfff4f89
 app.use((err, req, res, next) => {
   console.error({type: 'Error handler', path: (req ? req.originalUrl : null), err, status: err.status});
   res.status(err.status ?? 500).json({success: false, message: err.message});

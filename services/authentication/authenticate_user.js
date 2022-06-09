@@ -13,7 +13,7 @@ const Access = require("../../models/app_access");
 const bcrypt = require("bcrypt");
 const business_service = require("../../services/passport/businessPassport");
 const user_profile_service = require("../../services/profile/user_profile");
-const { getMaxListeners } = require("process");
+const {getMaxListeners} = require("process");
 
 // Environment variables
 const SITE_BASE = process.env.SITE_BASE;
@@ -22,12 +22,9 @@ const ADMIN_EMAIL = process.env.TASTTLIG_ADMIN_EMAIL;
 // Save user register information to Tasttlig users table helper function
 const userRegister = async (new_user, sendEmail = true, trx = null) => {
   try {
-    
     if (trx === null) {
       trx = db;
     }
-
-    let new_db_user = [];
 
     const userData = {
       password_digest: new_user.password,
@@ -48,17 +45,16 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
       apartment_no: new_user.unit_number,
     };
 
-    const targetAccess = (await Access.query().select("id")).map((e) => e.id);
-    //await targetUser.$relatedQuery("access").relate(targetAccess);
-
     if (new_user.is_participating_in_festival) {
       userData.is_participating_in_festival =
         new_user.is_participating_in_festival;
     }
 
-    new_db_user = trx("tasttlig_users").insert(userData).returning("*");
+    let new_db_user = trx("tasttlig_users").insert(userData).returning("*");
 
     return await new_db_user.then(async (value1) => {
+      const {tasttlig_user_id, first_name, last_name} = value1[0];
+
       // Get role code of new role to be added
       trx("roles")
         .select()
@@ -68,62 +64,16 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
         .then(async (value) => {
           // Insert new role for this user
           await trx("user_role_lookup").insert({
-            user_id: value1[0].tasttlig_user_id,
+            user_id: tasttlig_user_id,
             role_code: value[0].role_code,
           });
         });
-
-      // Insert new Access for this user
-      const targetUser = await User.query().findById(
-        value1[0].tasttlig_user_id
-      );
-
-      //basic guest subscription
-      const subDetails = await trx("subscriptions")
-        .where({
-          subscription_code: "G_BASIC",
-          //status: "ACTIVE",
-        })
-        .first()
-        .then((value) => {
-          if (!value) {
-            return {success: false, message: "No plan found."};
-          }
-
-          return {success: true, item: value};
-        })
-        .catch((error) => {
-          return {success: false, message: error};
-        });
-      if (subDetails.success) {
-        let subscription_end_datetime = null;
-
-        if (subDetails.item.validity_in_months) {
-          subscription_end_datetime = new Date(
-            new Date().setMonth(
-              new Date().getMonth() +
-              Number(subDetails.item.validity_in_months)
-            )
-          );
-        } else {
-          subscription_end_datetime = subDetails.item.date_of_expiry;
-        }
-
-        await trx("user_subscriptions").insert({
-          subscription_code: subDetails.item.subscription_code,
-          user_id: value1[0].tasttlig_user_id,
-          subscription_start_datetime: new Date(),
-          subscription_end_datetime: subscription_end_datetime,
-          cash_payment_received: subDetails.item.price,
-          user_subscription_status: "ACTIVE",
-        });
-      }
 
       // Send sign up email confirmation to the user
       if (sendEmail) {
         jwt.sign(
           {
-            user: value1[0].tasttlig_user_id,
+            user: tasttlig_user_id,
           },
           process.env.EMAIL_SECRET,
           {
@@ -133,7 +83,7 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
             const urlVerifyEmail = `${SITE_BASE}/user/verify/${emailToken}`;
             console.log("urlVerifyEmail", urlVerifyEmail);
 
-            const r = await Mailer.sendMail({
+            await Mailer.sendMail({
               from: process.env.SES_DEFAULT_FROM,
               to: new_user.email,
               bcc: ADMIN_EMAIL,
@@ -141,6 +91,9 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
               template: "signup",
               context: {
                 urlVerifyEmail,
+                first_name,
+                last_name,
+                layout: "main-banner",
               },
             });
           }
@@ -150,6 +103,7 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
       return {success: true, data: value1[0]};
     });
   } catch (error) {
+    console.log(error);
     return {success: false, data: error.message};
   }
 };
@@ -268,8 +222,10 @@ const checkEmail = async (email) => {
         };
       }
 
+      const {tasttlig_user_id, first_name} = value;
+
       const email_token = jwt.sign(
-        {user: value.tasttlig_user_id},
+        {user_id: tasttlig_user_id, first_name},
         process.env.EMAIL_SECRET,
         {
           expiresIn: "28d",
@@ -279,6 +235,8 @@ const checkEmail = async (email) => {
       try {
         const url = `${SITE_BASE}/forgot-password/${email_token}/${email}`;
 
+        console.log(email_token)
+
         await Mailer.sendMail({
           from: process.env.SES_DEFAULT_FROM,
           to: email,
@@ -286,6 +244,7 @@ const checkEmail = async (email) => {
           template: "password_reset_request",
           context: {
             url,
+            first_name
           },
         });
 
@@ -323,7 +282,7 @@ const updatePassword = async (email, password) => {
 // Update password from user helper function
 const updatePasswordFromToken = async (email, password, token) => {
   const encrypted = jwt.verify(token, process.env.EMAIL_SECRET);
-  const user_id = encrypted.user;
+  const {user_id, first_name} = encrypted;
   const success = await User.query()
     .findById(user_id)
     .patch({password_digest: password});
@@ -335,13 +294,15 @@ const updatePasswordFromToken = async (email, password, token) => {
       to: email,
       subject: "[Tasttlig] Password changed",
       template: "password_reset_success",
-    })
-      .then(() => {
-        return {success: true, message: "Success."};
-      })
-      .catch((reason) => {
-        return {success: false, message: reason};
-      });
+      context: {
+        first_name,
+        siteBase: SITE_BASE
+      }
+    }).then(() => {
+      return {success: true, message: "Success."};
+    }).catch((reason) => {
+      return {success: false, message: reason};
+    });
   } else {
     return {success: false, message: "JWT error."};
   }
@@ -725,7 +686,7 @@ const userAndBusinessRegister = async (data) => {
     promo_code: promoCode,
     business_id: businessId,
     festival_id: festivalId,
-    }
+  }
 
   const hostDto = {
     is_business: is_business,
@@ -738,7 +699,7 @@ const userAndBusinessRegister = async (data) => {
       const user_response = await userRegister(user, trx);
       businessInfo.user_id = user_response.data.tasttlig_user_id;
       const business_response = await business_service.postBusinessPassportDetails(businessInfo, trx);
-      
+
       const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
 
       if (saveHost.success) {
@@ -751,7 +712,7 @@ const userAndBusinessRegister = async (data) => {
       }
 
     })
-    
+
   } catch (error) {
     console.log(error);
     return {

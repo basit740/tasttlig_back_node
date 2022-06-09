@@ -10,7 +10,7 @@ const authentication_service = require("../../services/authentication/authentica
 const auth_server_service = require("../../services/authentication/auth_server_service");
 const business_service = require("../../services/passport/businessPassport");
 const festival_service = require("../../services/festival/festival");
-const { generateRandomString } = require("../../functions/functions");
+const {generateRandomString} = require("../../functions/functions");
 
 // POST experiences
 router.post(
@@ -208,7 +208,7 @@ router.get("/experiences/business/:business_id", async (req, res) => {
 
 // POST claim experience in specific festival
 router.post("/claim-experience", async (req, res) => {
-  const { experience_claim_user, experience_id } = req.body;
+  const {experience_claim_user, experience_id} = req.body;
 
   if (!experience_claim_user || !experience_id) {
     return res.status(403).json({

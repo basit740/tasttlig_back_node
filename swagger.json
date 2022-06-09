@@ -12,12 +12,16 @@
   },
   "tags": [
     {
-      "name": "Payments",
-      "description": "Payments related operations"
+      "name": "Festivals",
+      "description": "Festival related operations"
     },
     {
       "name": "Orders",
       "description": "Order related operations"
+    },
+    {
+      "name": "Payments",
+      "description": "Payments related operations"
     },
     {
       "name": "User Subscriptions",
@@ -252,6 +256,60 @@
                       "items": {
                         "$ref": "#/components/schemas/Order"
                       }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/festivals/:id/invite": {
+      "post": {
+        "tags": [
+          "Festivals"
+        ],
+        "summary": "Invite a business to festival",
+        "description": "Invite a business to participate in a festival",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "ID of festival",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 2
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "businessId": {
+                    "type": "number",
+                    "example": 5
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business was successfully invited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
                     }
                   }
                 }
