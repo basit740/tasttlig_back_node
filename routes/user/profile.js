@@ -232,7 +232,6 @@ router.post(
   "/complete-profile/preference/:id",
   token_service.authenticateToken,
   async (req, res) => {
-    console.log('123', req.body);
     const {
       preferred_country_cuisine,
       food_preferences,

@@ -508,12 +508,13 @@ router.post("/festival/add", token_service.authenticateToken, async (req, res) =
     festival_postal_code,
     festival_country,
     festival_province,
-    festival_file_content,
+    festival_address_1,
+    festival_address_2,
     category = Festivals.Category.MultiCultural,
     sub_category,
   } = req.body;
   try {
-    if (!images || !festival_name || !festival_type || !festival_price || !festival_city || !festival_start_date || !festival_end_date || // !festival_start_time ||
+    if (!images || !festival_name || !festival_type || !festival_price || !festival_city || !festival_start_date || !festival_end_date || !festival_address_1 || // !festival_start_time ||
       // !festival_end_time ||
       !festival_description) {
       return res.status(403).json({
@@ -543,6 +544,8 @@ router.post("/festival/add", token_service.authenticateToken, async (req, res) =
         festival_postal_code,
         festival_country,
         festival_province,
+        festival_address_1,
+        festival_address_2,
         festival_start_date: festival_start_date.substring(0, 10),
         festival_end_date: festival_end_date.substring(0, 10),
         festival_start_time,
@@ -620,12 +623,14 @@ router.put("/festival/update/:festival_id", token_service.authenticateToken,
       festival_postal_code,
       festival_country,
       festival_province,
+      festival_address_1,
+      festival_address_2,
       category,
       sub_category
     } = req.body.festival_update_data;
     const festival_id = req.params.festival_id;
     try {
-      if (!images || !festival_name || !festival_type || !festival_price || !festival_city || !festival_start_date || !festival_end_date || !festival_start_time || !festival_end_time || !festival_description || !category) {
+      if (!images || !festival_name || !festival_type || !festival_price || !festival_city || !festival_start_date || !festival_end_date || !festival_start_time || !festival_end_time || !festival_description || !category || !festival_address_1) {
         return res.status(403).json({
           success: false, message: "Required parameters are not available in request.",
         });
@@ -651,6 +656,8 @@ router.put("/festival/update/:festival_id", token_service.authenticateToken,
           festival_postal_code,
           festival_country,
           festival_province,
+          festival_address_1,
+          festival_address_2,
           festival_start_date: festival_start_date.substring(0, 10),
           festival_end_date: festival_end_date.substring(0, 10),
           festival_start_time,

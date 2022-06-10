@@ -253,30 +253,39 @@ const updatePromotion = async (data) => {
   }
 };
 
-// SELECT products.*, services.* FROM products
-// LEFT JOIN services ON null
-// WHERE 'deal' = ANY(products.promotion)
-
-// UNION 
-// SELECT products.*, services.* FROM services
-// LEFT JOIN products ON null
-// WHERE 'deal' = ANY(services.promotion)
-// ORDER BY product_id ASC 
-
-// -- products.product_id = ANY(services.experiences_selected)
 
 const getAllDealPromotions = async (filters, keyword) => {
   let query = db
     .select(
-      "title"
+      db.raw("'product' as type"),
+      db.raw("products.product_id as id"),
+      db.raw("products.title as name"),
+      db.raw("product_images.product_image_url as image_urls")
     )
     .from("products")
+    .leftJoin(
+        "product_images",
+        "products.product_id",
+        "product_images.product_id"
+    )
+    .groupBy("products.product_id")
+    .groupBy("product_images.product_image_id")
     .union(
-      db =>
-      db.select(
-        "service_name"
+      query =>
+      query.select(
+        db.raw("'service'"),
+        "services.service_id",
+        "services.service_name",
+        "service_images.service_image_url",
       )
       .from("services")
+      .leftJoin(
+          "service_images",
+          "services.service_id",
+          "service_images.service_id"
+        )
+      .groupBy("services.service_id")
+      .groupBy("service_images.service_image_id")
     )
     // .union(db =>
     //     db.select(

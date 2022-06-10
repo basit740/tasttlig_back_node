@@ -523,7 +523,6 @@ const saveApplicationInformation = async (hostDto, trx) => {
     role_code: new_role_code,
   });
 
-  console.log('123', hostDto.dbUser);
 
   if (role_name === "FESTIVAL_ORGANIZER_PENDING" && ((!hostDto.dbUser.user.role) || (!hostDto.dbUser.user.role.includes('HOST') && !hostDto.dbUser.user.role.includes('HOST_PENDING')))) {
     // Get role code of host pending
@@ -1132,16 +1131,15 @@ const approveOrDeclineHostAmbassadorApplication = async (
     // If status is approved
     if (status === "APPROVED") {
       // Update applications table status
-      await db("applications")
+      const r = await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
-        .andWhere("type", "host")
+        .andWhere("type", "experience_organizer")
         .update("status", "APPROVED")
         .returning("*")
         .catch((reason) => {
           return { success: false, message: reason };
         });
-
       //
       await db("user_role_lookup")
         .where("user_id", db_user.tasttlig_user_id)
@@ -1210,6 +1208,7 @@ const approveOrDeclineHostAmbassadorApplication = async (
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
+        .andWhere("type", "experience_orgainzer")
         .update("status", "REJECT")
         .returning("*")
         .catch((reason) => {

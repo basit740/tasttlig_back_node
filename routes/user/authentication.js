@@ -625,7 +625,6 @@ authRouter.post(
   createAccountLimiter,
   password_preprocessor,
   async (req, res) => {
-    console.log('123', req.body);
     const {
       firstName,
       lastName,
@@ -717,7 +716,6 @@ authRouter.post(
           businessDto.user_id = userId;
           user = user_response.user;
         }
-        console.log('123',user);
         const business_response = await business_service.postBusinessPassportDetails(businessDto, trx);
         const saveHost = await user_profile_service.saveHostApplication(hostDto, user, trx);
         if (saveHost.success) {

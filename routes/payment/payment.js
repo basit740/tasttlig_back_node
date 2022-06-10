@@ -16,6 +16,7 @@ router.get("/payments/config",
 router.post("/payments/cart/checkout",
   authenticateToken,
   async (req, res) => {
+    console.log('123', req.body);
     const checkoutResult = await paymentService.checkout(req.body, req.user)
     return res.send(checkoutResult);
   });

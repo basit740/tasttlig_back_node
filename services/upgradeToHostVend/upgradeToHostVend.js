@@ -177,7 +177,7 @@ const approveOrDeclineHostVendorApplication = async (
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
-        .andWhere("type", "host")
+        .andWhere("type", "experience_organizer")
         .update("status", "APPROVED")
         .returning("*")
         .catch((reason) => {
@@ -227,7 +227,7 @@ const approveOrDeclineHostVendorApplication = async (
       await db("applications")
         .where("user_id", db_user.tasttlig_user_id)
         .andWhere("status", "Pending")
-        .andWhere("type", "host")
+        .andWhere("type", "experience_organizer")
         .update("status", "DECLINED")
         .returning("*")
         .catch((reason) => {

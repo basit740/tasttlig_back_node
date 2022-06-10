@@ -22,7 +22,7 @@ const getHostApplications = async () => {
         "tasttlig_users.tasttlig_user_id",
         "user_subscriptions.user_id"
       )
-      .where("applications.type", "=", "host")
+      .where("applications.type", "=", "experience_organizer")
       .orWhere("applications.type", "=", "sponsor")
       .orWhere("applications.type", "=", "vendor")
       .orWhere("user_subscriptions.subscription_code", "=", "H_AMB")
@@ -62,7 +62,7 @@ const getAllHostApplications = async () => {
       //   "tasttlig_users.tasttlig_user_id",
       //   "user_subscriptions.user_id"
       // )
-      .where("applications.type", "=", "host")
+      .where("applications.type", "=", "experience_organizer")
       .groupBy("applications.application_id")
       .groupBy("tasttlig_users.tasttlig_user_id")
       // .groupBy("user_subscriptions.user_subscription_id")
@@ -210,7 +210,7 @@ const getHostApplication = async (userId) => {
     application.videos = [];
 
     applications.forEach((a) => {
-      if (a.type === "host") {
+      if (a.type === "experience_organizer") {
         application = {
           ...application,
           is_host: "yes",
@@ -256,9 +256,15 @@ const getHostApplicantDetails = async (userId) => {
         "tasttlig_users.tasttlig_user_id",
         "user_role_lookup.user_id"
       )
+      .leftJoin(
+        "hosts",
+        "tasttlig_users.tasttlig_user_id",
+        "hosts.host_user_id"
+      )
 
       .groupBy("tasttlig_users.tasttlig_user_id")
       .groupBy("user_role_lookup.user_role_lookup_id")
+      .groupBy("hosts.host_id")
       .having("tasttlig_users.tasttlig_user_id", "=", Number(userId))
       .having("user_role_lookup.role_code", "=", "JUCR")
       .first();
@@ -367,7 +373,6 @@ const createHost = async (host_details, is_experience_organizer, email, trx = nu
         };
       }
     } else {
-      console.log('1234567', host_info);
       await saveApplicationInformation(host_details, is_experience_organizer, trx);
       const db_preference = await trx("hosts")
         .insert(host_info)

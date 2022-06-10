@@ -956,6 +956,9 @@ const updateFestival = async (data, festival_images, business_file) => {
           festival_postal_code: data.festival_postal_code,
           festival_country: data.festival_country,
           festival_province: data.festival_province,
+          festival_address_1: data.festival_address_1,
+          festival_address_2: data.festival_address_2,
+          category: data.category,
           slug: slug
         })
         .returning("*");
