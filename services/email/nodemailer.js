@@ -3,6 +3,7 @@ const nodemailer = require("nodemailer");
 const aws = require("aws-sdk");
 const hbs = require("nodemailer-express-handlebars");
 const current_file_path = require("path").dirname(__filename);
+require("dotenv").config();
 
 aws.config.update({
   region: process.env.AWS_DEFAULT_REGION,
@@ -10,8 +11,16 @@ aws.config.update({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
-let mailConfig;
+const devMailSettings = {
+  host: process.env.DEV_MAIL_HOST ?? "smtp.ethereal.email",
+  port: process.env.DEV_MAIL_PORT ?? 587,
+  auth: {
+    user: process.env.DEV_MAIL_USER ?? "keara.block@ethereal.email",
+    pass: process.env.DEV_MAIL_PASSWORD ?? "hbGChvzjwgRwWUeewC",
+  },
+};
 
+let mailConfig;
 if (process.env.NODE_ENV === "production") {
   mailConfig = {
     SES: new aws.SES({
@@ -31,13 +40,8 @@ if (process.env.NODE_ENV === "production") {
   };
 } else {
   mailConfig = {
-    host: "smtp.mailtrap.io",
-    port: 587,
-    auth: {
-      user: "a05ad70091f4a2",
-      pass: "0fc1d3f76ba12b",
-    },
-  };
+    ...devMailSettings
+  }
 }
 
 let options = {
@@ -48,6 +52,11 @@ let options = {
     layoutsDir: current_file_path + "../../../public/emails/",
     defaultLayout: "main",
     partialsDir: current_file_path + "../../../public/emails/partials/",
+    helpers: {
+      year: function () {
+        return new Date().getFullYear();
+      }
+    }
   }
 };
 

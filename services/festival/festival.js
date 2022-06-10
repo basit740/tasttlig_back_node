@@ -1308,6 +1308,21 @@ const getFestivalByPassports = async (passport_ids) => {
   return {success: true, value: festival_list};
 };
 
+const inviteBusiness = async (festivalId, businessId) => {
+  const festival = await Festivals.query().findById(festivalId);
+  if (!festival) {
+    throw {status: 404, message: "Festival not found"};
+  }
+
+  const business = await BusinessDetails.query().findById(businessId);
+  if (!business) {
+    throw {status: 400, message: "Invalid business specified"};
+  }
+
+  await twilio_service.sendMessage(
+    business.business_phone_number,
+    `You are invited to participate in the ${festival.festival_name} festival. Click this link to begin: https://tasttlig.com`);
+}
 
 const registerUserToFestivals = async (user_id, festival_ids) => {
   try {
@@ -1391,22 +1406,6 @@ const getLandingPageFestival = async () => {
       return {success: false, data: reason};
     });
 };
-
-const inviteBusiness = async (festivalId, businessId) => {
-  const festival = await Festivals.query().findById(festivalId);
-  if (!festival) {
-    throw {status: 404, message: "Festival not found"};
-  }
-
-  const business = await BusinessDetails.query().findById(businessId);
-  if (!business) {
-    throw {status: 400, message: "Invalid business specified"};
-  }
-
-  await twilio_service.sendMessage(
-    business.business_phone_number,
-    `You are invited to participate in the ${festival.festival_name} festival`);
-}
 
 module.exports = {
   getAllFestivals,
