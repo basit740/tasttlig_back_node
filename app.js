@@ -7,6 +7,8 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const cron = require("node-cron");
 
+const Mailer = require("./services/email/nodemailer").nodemailer_transporter;
+
 // Set up dotenv
 require("dotenv").config();
 require("./db/db-config");
@@ -148,6 +150,26 @@ app.use((err, req, res, next) => {
 
 // Cron Job scripts
 cron.schedule("0 0 1-31 * *", cron_job_functions.deleteInactiveItems);
+
+const token_service = require("./services/authentication/token");
+
+app.use("/email", token_service.authenticateToken, async (req, res) => {
+  const {user} = req;
+  await Mailer.sendMail({
+    from: process.env.SES_DEFAULT_FROM,
+    to: user.email,
+    bcc: "ADMIN_EMAIL",
+    subject: "[Tasttlig] Welcome to Tasttlig!",
+    template: "signup",
+    context: {
+      urlVerifyEmail: "[link]",
+      first_name: user.first_name,
+      last_name: user.last_name,
+    },
+  });
+
+  return res.status(200).send()
+});
 
 // Boot development server
 const port = process.env.PORT || 8000;
