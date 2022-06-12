@@ -14,6 +14,7 @@ const bcrypt = require("bcrypt");
 const business_service = require("../../services/passport/businessPassport");
 const user_profile_service = require("../../services/profile/user_profile");
 const {getMaxListeners} = require("process");
+const {Users} = require("../../models");
 
 // Environment variables
 const SITE_BASE = process.env.SITE_BASE;
@@ -87,7 +88,7 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
               from: process.env.SES_DEFAULT_FROM,
               to: new_user.email,
               bcc: ADMIN_EMAIL,
-              subject: "[Tasttlig] Welcome to Tasttlig!",
+              subject: "Verify You Account!",
               template: "signup",
               context: {
                 urlVerifyEmail,
@@ -114,25 +115,39 @@ var month = d.getMonth();
 var day = d.getDate();
 // Verify user account helper function
 const verifyAccount = async (user_id) => {
-  return await db("tasttlig_users")
-    .where("tasttlig_user_id", user_id)
-    .update({
+  await Users.transaction(async trx => {
+    const user = await Users.query(trx).findById(user_id);
+
+    if (!user) {
+      throw {status: 404, message: 'User not found'};
+    }
+
+    await user.$query(trx).update({
       is_email_verified: true,
       email_verified_date_time: new Date(),
       passport_expiry_date: new Date(year + 5, month, day),
-    })
-    .returning("*")
-    .then((value) => {
-      return {
-        success: true,
-        message: "Email is verified.",
-        user_id: value[0].tasttlig_user_id,
-      };
-    })
-    .catch((reason) => {
-      return {success: false, data: reason};
     });
+
+    await sendGuestWelcomeEmail(user);
+
+    return user
+  });
+
+  return {success: true, message: "Email is verified.", user_id};
 };
+
+const sendGuestWelcomeEmail = async (user) => {
+  await Mailer.sendMail({
+    from: process.env.SES_DEFAULT_FROM,
+    to: user.email,
+    bcc: ADMIN_EMAIL,
+    subject: "Welcome to Tasttlig!",
+    template: "guest_welcome",
+    context: {
+      first_name: user.first_name
+    },
+  });
+}
 
 // Login user helper function
 const getUserLogin = async (body) => {
