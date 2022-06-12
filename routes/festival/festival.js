@@ -940,11 +940,12 @@ router.post("/festival/attendance/join", token_service.authenticateToken, async 
       res.send({
         success: false, message: "Entered Festival ID is invalid.",
       });
-    } else if (Number(db_festival.details[0].festival_price) > 0) {
-      res.send({
-        success: false, message: "Entered Festival is not free.",
-      });
-    }
+    } 
+    // else if (Number(db_festival.details[0].festival_price) > 0) {
+    //   res.send({
+    //     success: false, message: "Entered Festival is not free.",
+    //   });
+    // }
 
     const response = await festival_service.attendFestival(db_user.user.tasttlig_user_id, festival_id);
 

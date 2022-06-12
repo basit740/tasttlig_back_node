@@ -172,15 +172,12 @@ router.post(
       stripe_receipt_id,
       ticket_price,
       ticket_type,
-      // attend_status,
     } = req.body;
     try {
       if (
         !ticket_booking_confirmation_id ||
         !ticket_user_id ||
-        !ticket_festival_id ||
-        !no_of_admits ||
-        !stripe_receipt_id
+        !ticket_festival_id
       ) {
         return res.status(403).json({
           success: false,

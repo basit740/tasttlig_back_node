@@ -229,10 +229,6 @@ const getTicketList = async () => {
 };
 
 const newTicketInfo = async (ticket_details) => {
-  console.log(
-    "ticket_details coming from ticet add:",
-    ticket_details.ticket_festival_id[0]
-  );
   try {
     if (typeof ticket_details.ticket_festival_id === "object") {
       await db.transaction(async (trx) => {

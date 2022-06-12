@@ -65,6 +65,12 @@ router.post(
         experience_status: "ACTIVE",
         experience_created_at_datetime: new Date(),
         experience_updated_at_datetime: new Date(),
+        experience_postal_code: req.body.postal_code,
+        experience_country: req.body.country,
+        experience_province: req.body.province,
+        experience_city: req.body.city,
+        experience_address_1: req.body.address_1,
+        experience_address_2: req.body.address_2
       };
       
       const response = await experience_service.createNewExperience(
