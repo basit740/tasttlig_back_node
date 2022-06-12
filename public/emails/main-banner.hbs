@@ -49,12 +49,16 @@
             font-weight: 500;
         }
 
-        *[class="btn"] {
+        .tastt-btn {
             padding: 10px 10px;
             background-color: #88171A;
             color: #FFFFFF;
             border-radius: 5px;
             text-decoration: none;
+        }
+
+        a.tastt-btn, a.tastt-btn:hover {
+            color: #FFFFFF;
         }
 
         .d-flex {
@@ -83,6 +87,11 @@
             .flex-wrap .ds-l {
                 padding-right: 40px;
             }
+
+            .footer {
+                display: flex;
+                justify-content: space-between;
+            }
         }
 
         @media screen and (max-width: 450px) {
@@ -107,6 +116,7 @@
             .footer {
                 display: flex;
                 flex-direction: column;
+                justify-content: space-between;
                 text-align: center;
             }
 
