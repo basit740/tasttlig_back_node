@@ -160,7 +160,7 @@ app.use("/email", token_service.authenticateToken, async (req, res) => {
     to: user.email,
     bcc: "ADMIN_EMAIL",
     subject: "[Tasttlig] Welcome to Tasttlig!",
-    template: "signup",
+    template: "guest_welcome",
     context: {
       urlVerifyEmail: "[link]",
       first_name: user.first_name,

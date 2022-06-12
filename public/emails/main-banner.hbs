@@ -15,12 +15,18 @@
     </noscript>
     <![endif]-->
     <style>
-        html, body {
+        @import url('https://fonts.googleapis.com/css2?family=Inter&family=Montserrat&display=swap');
+
+        @media screen and (max-width: 630px) {
+
+        }
+
+        body {
             font-family: 'Inter', sans-serif;
             font-style: normal;
             font-weight: 500;
-            font-size: 16px;
-            line-height: 20px;
+            font-size: 14px;
+            line-height: 25px;
             color: #000000;
         }
 
@@ -28,52 +34,161 @@
             color: #88171A;
         }
 
-        .btn {
+        h3 {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        h4 {
+            font-size: 16px;
+            font-weight: 200;
+        }
+
+        h5 {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tastt-btn {
             padding: 10px 10px;
             background-color: #88171A;
             color: #FFFFFF;
             border-radius: 5px;
             text-decoration: none;
         }
+
+        a.tastt-btn, a.tastt-btn:hover {
+            color: #FFFFFF;
+        }
+
+        .d-flex {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .d-center {
+            display: flex;
+            justify-content: center;
+        }
+
+        @media screen and (min-width: 450px) {
+            .flex-wrap {
+                flex-wrap: nowrap;
+            }
+
+            .flex-wrap-reverse {
+                flex-wrap: nowrap;
+            }
+
+            .flex-wrap-reverse .ds-l {
+                padding-right: 50px;
+            }
+
+            .flex-wrap .ds-l {
+                padding-right: 40px;
+            }
+
+            .footer {
+                display: flex;
+                justify-content: space-between;
+            }
+        }
+
+        @media screen and (max-width: 450px) {
+            .flex-wrap {
+                flex-wrap: wrap;
+            }
+
+            .flex-wrap-reverse {
+                flex-wrap: wrap-reverse;
+            }
+
+            .flex-wrap-reverse .ds-r {
+                text-align: center;
+                width: 100% !important;
+            }
+
+            .flex-wrap .ds-l {
+                text-align: center;
+                width: 100% !important;
+            }
+
+            .footer {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                text-align: center;
+            }
+
+            .footer > div {
+                margin-bottom: 10px;
+            }
+
+            .social {
+                display: flex;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
-<body style="margin:0;padding:0;">
-<table role="presentation" style="width:100%;border-collapse:collapse;border:0;border-spacing:0;background:#ffffff;">
-    <tr>
-        <td align="center" style="padding:0;">
-            <table role="presentation"
-                   style="width:602px;border-collapse:collapse;border:1px solid #cccccc;border-spacing:0;text-align:left;">
-                <tr>
-                    <td align="center"
-                        valign="top"
-                        width="602"
-                        height="340"
-                        style="width:602px;padding-top:10px;height:340px;background-image:linear-gradient(to bottom, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.0)), url('https://s3.us-east-2.amazonaws.com/content.tasttlig.com/email/images/banner.jpg');background-size: cover;background-repeat: no-repeat;">
-                        <img
-                          alt=""
-                          src="https://s3.us-east-2.amazonaws.com/content.tasttlig.com/email/images/white-logo+1.png"/>
-                    </td>
+<body style="margin:0;padding:0;background-color:#E3E8EE">
+<div role="article" aria-roledescription="email" lang="en"
+     style="text-size-adjust:100%;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;background-color:#E3E8EE;">
+    <table role="presentation"
+           style="width:100%;border-collapse:collapse;border:0;border-spacing:0;background-color:#E3E8EE;">
+        <tr>
+            <td align="center" style="padding:0;">
+
+                <!--[if mso]>
+                <table role="presentation" align="center" style="width:600px;">
+                    <tr>
+                        <td>
+                <![endif]-->
+
+                <table role="presentation"
+                       style="width:94%;max-width:600px;border-collapse:collapse;border-spacing:0;text-align:left;">
+                    <tr>
+                        <td align="center"
+                            valign="top"
+                            width="602"
+                            height="340"
+                            style="width:600px;padding-top:10px;height:340px;background-image:linear-gradient(to bottom, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.0)), url('https://s3.us-east-2.amazonaws.com/content.tasttlig.com/email/images/banner.jpg');background-size: cover;background-repeat: no-repeat;">
+                            <img
+                              alt=""
+                              src="https://s3.us-east-2.amazonaws.com/content.tasttlig.com/email/images/white-logo+1.png"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td
+                          style="word-wrap:break-word; word-break:break-word;background-color: #FFFFFF">
+                            <div style="margin:36px 30px 42px 30px; ">
+                                {{{body}}}
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="padding:0 30px;background-color: #FFFFFF">
+                            {{> social}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td
+                          align="center"
+                          style="padding:40px 30px; background-color: #F6F6F6; color: #FFF; font-size: 12px; text-align: center">
+                            {{> footer}}
+                        </td>
+                    </tr>
+                </table>
+
+                <!--[if mso]>
+                </td>
                 </tr>
-                <tr>
-                    <td style="padding:36px 30px 42px 30px;word-wrap:break-word;word-break:break-word;">
-                        {{{body}}}
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding:0 30px 30px 30px;">
-                        {{> contact}}
-                    </td>
-                </tr>
-                <tr>
-                    <td
-                      align="center"
-                      style="padding:30px;background-color:#88171A;color:#FFF;font-size:12px;text-align:center">
-                        {{> footer}}
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
+                </table>
+                <![endif]-->
+            </td>
+        </tr>
+    </table>
+</div>
 </body>
+
 </html>

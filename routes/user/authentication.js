@@ -1,7 +1,7 @@
 "use strict";
 
 // Libraries
-const authRouter = require("express").Router();
+const authRouter = require("express-promise-router")();
 const jwt = require("jsonwebtoken");
 const rateLimit = require("express-rate-limit");
 const token_service = require("../../services/authentication/token");
@@ -670,7 +670,7 @@ authRouter.post(
         user_business_province: province,
         user_business_postal_code: postalCode,
         user_business_phone_number: phone,
-        user_business_type: "Festival Organizer",  
+        user_business_type: "Festival Organizer",
       }
 
       const hostDto = {
@@ -686,9 +686,9 @@ authRouter.post(
         ref_phone_1: refPhone1,
         ref_phone_2: refPhone2,
         resume: resume,
-      }; 
-      
-     
+      };
+
+
       // transaction for create business
       return await db.transaction(async trx => {
         let user;
@@ -707,11 +707,10 @@ authRouter.post(
             street_number: streetNumber,
             apartment_no: businessUnit
           };
-            const user_response = await authenticate_user_service.userRegister(user, true, trx);
-            businessDto.user_id = user_response.data.tasttlig_user_id;
-            user = user_response.data;
-          }
-        else {
+          const user_response = await authenticate_user_service.userRegister(user, true, trx);
+          businessDto.user_id = user_response.data.tasttlig_user_id;
+          user = user_response.data;
+        } else {
           const user_response = await user_profile_service.getUserById(userId);
           businessDto.user_id = userId;
           user = user_response.user;
