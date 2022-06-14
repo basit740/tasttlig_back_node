@@ -14,92 +14,14 @@
         </xml>
     </noscript>
     <![endif]-->
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter&family=Montserrat&display=swap');
 
-        body {
-            font-family: 'Inter', sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 14px;
-            line-height: 25px;
-            color: #000000;
-        }
+    {{> styles}}
 
-        a {
-            color: #88171A;
-        }
-
-        h3 {
-            font-size: 20px;
-            font-weight: 500;
-        }
-
-        h4 {
-            font-size: 16px;
-            font-weight: 200;
-        }
-
-        h5 {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .tastt-btn {
-            padding: 10px 10px;
-            background-color: #88171A;
-            color: #FFFFFF;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-
-        a.tastt-btn, a.tastt-btn:hover {
-            color: #FFFFFF;
-        }
-
-        .d-flex {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .d-center {
-            display: flex;
-            justify-content: center;
-        }
-
-        .small-hide {
-            display: block;
-        }
-
-        .large-hide {
-            display: none;
-        }
-
-        @media only screen and (max-width: 639px) {
-            .responsive table {
-                text-align: center !important;
-            }
-
-            .responsive table.w640, .stack.w640 {
-                width: 100% !important;
-                display: block !important;
-            }
-
-            .small-hide {
-                display: none;
-            }
-
-            .large-hide {
-                display: block;
-            }
-
-            .small-align-center {
-                text-align: center !important;
-            }
-        }
-    </style>
 </head>
 <body style="margin:0;padding:0;background-color:#E3E8EE;">
+
+{{> styles}}
+
 <div role="article" aria-roledescription="email" lang="en"
      style="text-size-adjust:100%;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;background-color:#E3E8EE;">
     <table role="presentation"
