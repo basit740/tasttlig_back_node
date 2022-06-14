@@ -17,10 +17,6 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter&family=Montserrat&display=swap');
 
-        @media screen and (max-width: 630px) {
-
-        }
-
         body {
             font-family: 'Inter', sans-serif;
             font-style: normal;
@@ -71,62 +67,34 @@
             justify-content: center;
         }
 
-        @media screen and (min-width: 450px) {
-            .flex-wrap {
-                flex-wrap: nowrap;
-            }
-
-            .flex-wrap-reverse {
-                flex-wrap: nowrap;
-            }
-
-            .flex-wrap-reverse .ds-l {
-                padding-right: 50px;
-            }
-
-            .flex-wrap .ds-l {
-                padding-right: 40px;
-            }
-
-            .footer {
-                display: flex;
-                justify-content: space-between;
-            }
+        .small-hide {
+            display: block;
         }
 
-        @media screen and (max-width: 450px) {
-            .flex-wrap {
-                flex-wrap: wrap;
+        .large-hide {
+            display: none;
+        }
+
+        @media only screen and (max-width: 639px) {
+            .responsive table {
+                text-align: center !important;
             }
 
-            .flex-wrap-reverse {
-                flex-wrap: wrap-reverse;
-            }
-
-            .flex-wrap-reverse .ds-r {
-                text-align: center;
+            .responsive table.w640, .stack.w640 {
                 width: 100% !important;
+                display: block !important;
             }
 
-            .flex-wrap .ds-l {
-                text-align: center;
-                width: 100% !important;
+            .small-hide {
+                display: none;
             }
 
-            .footer {
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                text-align: center;
+            .large-hide {
+                display: block;
             }
 
-            .footer > div {
-                margin-bottom: 10px;
-            }
-
-            .social {
-                display: flex;
-                justify-content: center;
+            .small-align-center {
+                text-align: center !important;
             }
         }
     </style>
