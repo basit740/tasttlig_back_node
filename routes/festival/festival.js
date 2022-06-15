@@ -557,7 +557,7 @@ router.post("/festival/add", token_service.authenticateToken, async (req, res) =
         sponsored,
         category,
         sub_category,
-        is_active
+        is_active: true
       };
 
       const festival_response = await festival_service.createNewFestival(festival_details, images, business_file);
