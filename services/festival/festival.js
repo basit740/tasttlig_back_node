@@ -66,6 +66,10 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
     query.where("festivals.sub_category", "=", filters.subCategory);
   }
 
+  if (filters.isActive) {
+    query.where("festivals.is_active", "=", filters.isActive);
+  }
+
   //if (filters.dayOfWeek) {
   /* query.whereRaw("Day(festivals.festival_start_time) = ?", [
       filters.dayOfWeek,
@@ -239,7 +243,8 @@ const getAllHostFestivalList = async (filters) => {
   let query = db
     .select(
       "festivals.*",
-      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls")
+      db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls"),
+      db.raw("ARRAY_AGG(festival_business_lists.list_file_location) as business_list")
     )
     .from("festivals")
     .leftJoin(
@@ -247,8 +252,13 @@ const getAllHostFestivalList = async (filters) => {
       "festivals.festival_id",
       "festival_images.festival_id"
     )
+    .leftJoin(
+      "festival_business_lists",
+      "festivals.festival_id",
+      "festival_business_lists.list_festival_id"
+    )
     .where("festivals.festival_id", ">", 3)
-    //.where("festivals.festival_end_date", ">=", new Date())
+    .where("festivals.festival_end_date", ">=", new Date())
     .groupBy("festivals.festival_id")
     .having("festivals.festival_host_admin_id[1]", "=", Number(user_id))
     .orderBy("festival_start_date");
@@ -942,23 +952,7 @@ const updateFestival = async (data, festival_images, business_file) => {
       const db_festival = await trx("festivals")
         .where({festival_id: data.festival_id})
         .update({
-          festival_name: data.festival_name,
-          festival_type: data.festival_type,
-          festival_price: data.festival_price,
-          festival_city: data.festival_city,
-          festival_start_date: data.festival_start_date,
-          festival_end_date: data.festival_end_date,
-          festival_start_time: data.festival_start_time,
-          festival_end_time: data.festival_end_time,
-          festival_description: data.festival_description,
-          festival_vendor_price: data.festival_vendor_price,
-          festival_sponsor_price: data.festival_sponsor_price,
-          festival_postal_code: data.festival_postal_code,
-          festival_country: data.festival_country,
-          festival_province: data.festival_province,
-          festival_address_1: data.festival_address_1,
-          festival_address_2: data.festival_address_2,
-          category: data.category,
+          ...data,
           slug: slug
         })
         .returning("*");

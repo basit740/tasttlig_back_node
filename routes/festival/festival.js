@@ -45,6 +45,7 @@ router.get("/festival/all", async (req, res) => {
       dayOfWeek: req.query.dayOfWeek,
       category: req.query.category,
       subCategory: req.query.subCategory,
+      isActive: req.query.isActive
     };
 
     const response = await festival_service.getAllFestivals(current_page, keyword, filters);
@@ -555,7 +556,8 @@ router.post("/festival/add", token_service.authenticateToken, async (req, res) =
         festival_updated_at_datetime: new Date(),
         sponsored,
         category,
-        sub_category
+        sub_category,
+        is_active
       };
 
       const festival_response = await festival_service.createNewFestival(festival_details, images, business_file);
@@ -626,7 +628,8 @@ router.put("/festival/update/:festival_id", token_service.authenticateToken,
       festival_address_1,
       festival_address_2,
       category,
-      sub_category
+      sub_category,
+      is_active
     } = req.body.festival_update_data;
     const festival_id = req.params.festival_id;
     try {
@@ -667,7 +670,8 @@ router.put("/festival/update/:festival_id", token_service.authenticateToken,
           festival_updated_at_datetime: new Date(), //sponsored,
           festival_id,
           category,
-          sub_category
+          sub_category,
+          is_active
         };
 
         // send a request to file url and store its content as buffer, then read each row using ExcelJs
