@@ -14,124 +14,14 @@
         </xml>
     </noscript>
     <![endif]-->
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter&family=Montserrat&display=swap');
 
-        @media screen and (max-width: 630px) {
+    {{> styles}}
 
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 14px;
-            line-height: 25px;
-            color: #000000;
-        }
-
-        a {
-            color: #88171A;
-        }
-
-        h3 {
-            font-size: 20px;
-            font-weight: 500;
-        }
-
-        h4 {
-            font-size: 16px;
-            font-weight: 200;
-        }
-
-        h5 {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .tastt-btn {
-            padding: 10px 10px;
-            background-color: #88171A;
-            color: #FFFFFF;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-
-        a.tastt-btn, a.tastt-btn:hover {
-            color: #FFFFFF;
-        }
-
-        .d-flex {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .d-center {
-            display: flex;
-            justify-content: center;
-        }
-
-        @media screen and (min-width: 450px) {
-            .flex-wrap {
-                flex-wrap: nowrap;
-            }
-
-            .flex-wrap-reverse {
-                flex-wrap: nowrap;
-            }
-
-            .flex-wrap-reverse .ds-l {
-                padding-right: 50px;
-            }
-
-            .flex-wrap .ds-l {
-                padding-right: 40px;
-            }
-
-            .footer {
-                display: flex;
-                justify-content: space-between;
-            }
-        }
-
-        @media screen and (max-width: 450px) {
-            .flex-wrap {
-                flex-wrap: wrap;
-            }
-
-            .flex-wrap-reverse {
-                flex-wrap: wrap-reverse;
-            }
-
-            .flex-wrap-reverse .ds-r {
-                text-align: center;
-                width: 100% !important;
-            }
-
-            .flex-wrap .ds-l {
-                text-align: center;
-                width: 100% !important;
-            }
-
-            .footer {
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                text-align: center;
-            }
-
-            .footer > div {
-                margin-bottom: 10px;
-            }
-
-            .social {
-                display: flex;
-                justify-content: center;
-            }
-        }
-    </style>
 </head>
 <body style="margin:0;padding:0;background-color:#E3E8EE">
+
+{{> styles}}
+
 <div role="article" aria-roledescription="email" lang="en"
      style="text-size-adjust:100%;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;background-color:#E3E8EE;">
     <table role="presentation"

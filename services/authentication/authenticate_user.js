@@ -88,7 +88,7 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
               from: process.env.SES_DEFAULT_FROM,
               to: new_user.email,
               bcc: ADMIN_EMAIL,
-              subject: "Verify You Account!",
+              subject: "Verify Your Account!",
               template: "signup",
               context: {
                 urlVerifyEmail,
