@@ -93,8 +93,7 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
               context: {
                 urlVerifyEmail,
                 first_name,
-                last_name,
-                layout: "main-banner",
+                last_name
               },
             });
           }
