@@ -131,13 +131,11 @@ const createAccountId = async (
     //   },
     // });
 
-    // console.log('1234567token', token);
 
     const card = await stripe.customers.createSource(customer.id, {
       source: "tok_1JS3f8KiKjECHoUbh9Rg9dhO",
     });
 
-    // console.log('1234567card', card);
     const payout = await await stripe.payouts.create({
       amount: 1100,
       currency: "cad",

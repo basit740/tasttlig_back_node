@@ -7,6 +7,7 @@ const festival_service = require("../../services/festival/festival");
 const user_profile_service = require("../../services/profile/user_profile");
 const authentication_service = require("../../services/authentication/authenticate_user");
 const business_service = require("../../services/passport/businessPassport");
+const {db} = require("../../db/db-config");
 const {compareSync} = require("bcrypt");
 const {compose} = require("objection");
 const Excel = require('exceljs');
@@ -603,6 +604,33 @@ router.post("/festival/add", token_service.authenticateToken, async (req, res) =
   }
 });
 
+// POST business to festival
+router.post("/festival/business/add", token_service.authenticateToken, async (req, res) => {
+  req.body.user_id = undefined;
+  try {
+    return await db.transaction(async trx => {
+      const business_response = await business_service.postBusinessPassportDetails(req.body, trx);
+      const r = await business_service.addBusinessInFestival(req.body.festival_id, business_response.business_id, trx);
+
+      if (r.success) {
+        res.status(200).send(r);
+      } else {
+        return res.status(200).json({
+          success: false,
+          message: response.details,
+        });
+      }
+    })
+
+  } catch (error) {
+    return res.status(403).json({
+      success: false,
+      message: error.details,
+    });
+  }
+});
+
+
 // PUT festival
 router.put("/festival/update/:festival_id", token_service.authenticateToken,
 
@@ -689,9 +717,8 @@ router.put("/festival/update/:festival_id", token_service.authenticateToken,
                 ws.eachRow(async function (row) {
                   // save the value of cell #1,2,3,4 which are business name, business category, business locaion, business phone
                   // to database
-
-                  const business_response = await business_service.postBusinessThroughFile(row.getCell(1).value, row.getCell(2).value, row.getCell(3).value, row.getCell(4).value,);
-
+                  console.log(row.getCell(1).value);
+                  const business_response = await business_service.postBusinessThroughFile(row.getCell(1).value, row.getCell(2).value, row.getCell(3).value, row.getCell(4).value);
                   const r = await business_service.addBusinessInFestival(Number(festival_details.festival_id), [business_response.details]);
                 });
               });

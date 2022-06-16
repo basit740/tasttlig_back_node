@@ -145,7 +145,8 @@ const postBusinessPassportDetails = async (data, trx) => {
   try {
     let applications = [];
     let role_name = "";
-    const business_details = {
+    
+    let business_details = {
       business_details_user_id: data["user_id"],
       business_name: data["user_business_name"],
       business_street_number: data["user_business_street_number"],
@@ -163,10 +164,38 @@ const postBusinessPassportDetails = async (data, trx) => {
       business_phone_number: data["user_business_phone_number"],
       business_preference: data["user_business_preference"],
     };
-    var business_details_id = await trx("business_details")
-      .insert(business_details)
-      .returning("business_details_id");
-
+    await mapsclient
+      .geocode({
+        params: {
+          address: `${data["user_business_postal_code"]}`,
+          key: process.env.GOOGLE_MAPS_API_KEY,
+        },
+      })
+      .then((response) => {
+        const { lat, lng } = response.data.results[0].geometry.location;
+        business_details = {
+          latitude: lat,
+          longitude: lng,
+          ...business_details,
+        };
+      })
+      .catch((error) => {
+        console.error("geocoding failed", error.message);
+        business_details = {
+          latitude: null,
+          longitude: null,
+          ...business_details,
+        };
+      });
+   
+    try {
+      var business_details_id = await trx("business_details")
+        .insert(business_details)
+        .returning("business_details_id");
+    }
+    catch (e) {
+      console.log(e);
+    }
     const business_details_images = {
       business_details_logo: data["user_business_logo"],
       food_handling_certificate: data["user_business_food_handling"],
@@ -232,18 +261,15 @@ const postBusinessThroughFile = async (
         // find street name after first space
         let firstSplit = myArr[0];
         myBusinessStreetName = firstSplit.substr(firstSplit.indexOf(" ") + 1);
-
         // find unit number in format #-# else null
         if (myArr[0].split(" ")[0].includes("-")) {
           let myRe2 = /(\d+)-\d+/;
           myUnit = myArr[0].split(" ")[0].match(myRe2)[1];
         }
-
         // find street number
         let myRe = /(\d+)\s(\w+)/;
         const myMatch = myArr[0].match(myRe);
         myBusinessStreetNumber = myMatch[1];
-
         // find city and postal code
         myCity = myArr[1];
         myZipPostalCode = myArr[2].slice(3, myArr[2].length);
@@ -320,7 +346,10 @@ const postBusinessThroughFile = async (
 };
 
 // add business in festival
-const addBusinessInFestival = async (festival_id, business_id) => {
+const addBusinessInFestival = async (festival_id, business_id, trx = null) => {
+  if (trx === null) {
+    trx = db;
+  }
   if (!business_id) {
     return { success: false, details: "Inserting business failed." };
   }
@@ -339,7 +368,7 @@ const addBusinessInFestival = async (festival_id, business_id) => {
   }
 
   // check if entry with this festival_id and business_id already exists, skip if it does
-  const festivalBusinesses = await db("festival_businesses")
+  const festivalBusinesses = await trx("festival_businesses")
     .select("*")
     .where({ business_id: _business_id })
     .andWhere({ festival_id: festival_id });
@@ -349,19 +378,17 @@ const addBusinessInFestival = async (festival_id, business_id) => {
   }
 
   try {
-    await db.transaction(async (trx) => {
-      const db_festival_business = await trx("festival_businesses")
-        .insert({
-          festival_id: festival_id,
-          business_id: _business_id,
-          business_promotion_usage: 3,
-        })
-        .returning("*");
+    const db_festival_business = await trx("festival_businesses")
+      .insert({
+        festival_id: festival_id,
+        business_id: _business_id,
+        business_promotion_usage: 3,
+      })
+      .returning("*");
 
-      if (!db_festival_business) {
-        return { success: false, details: "Inserting business failed." };
-      }
-    });
+    if (!db_festival_business) {
+      return { success: false, details: "Inserting business failed." };
+    }
     return { success: true, details: "Success." };
   } catch (error) {
     return { success: false, details: error.message };
