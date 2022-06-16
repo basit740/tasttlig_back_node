@@ -401,10 +401,16 @@ const getThreeFestivals = async (currentPage, keyword, filters) => {
 // Get festival list helper function
 const getFestivalList = async () => {
   return await db
-    .select("festivals.*")
+    .select("festivals.*" ,
+    db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls"))
     .from("festivals")
     .where("festivals.festival_id", ">", 3)
     .where("festivals.festival_end_date", ">=", new Date())
+    .leftJoin(
+      "festival_images",
+      "festivals.festival_id",
+      "festival_images.festival_id"
+    )
     .groupBy("festivals.festival_id")
     .then((value) => {
       value.map((festival) => {
