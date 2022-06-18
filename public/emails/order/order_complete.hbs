@@ -1,4 +1,156 @@
-<div>Hello {{order.user.first_name}},<br/><br/></div>
-<div>
-    Thank you for your purchase. Please find below your receipt.<br/>
+<table class="table-default" role="presentation">
+    <tr>
+        <td style="padding:0;">
+            <div style="width:100%;background-color:#000;color:#FFF">
+                <table role="presentation"
+                       style="width:100%;border-collapse:collapse;border:0;border-spacing:0;">
+                    <tr>
+                        <td valign="center" style="padding:10px 30px;font-size:18px;font-weight:bold">
+                            Thank you for your order
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 0">
+            <div style="margin:36px 30px 42px 30px; ">
+                <h4>Hi {{first_name}},</h4>
+
+                <h5>
+                    {{#if festival}}
+                        Thank you for shopping with us. Get ready to enjoy your experience at {{festival.festival_name}}
+                        !
+                    {{else}}
+                        Your order has been received and now being processed. You can find your order details below for
+                        your reference.
+                    {{/if}}
+                </h5>
+            </div>
+        </td>
+    </tr>
+</table>
+
+{{#if festival}}
+    <table class="table-default" role="presentation" style="margin-bottom:50px">
+        <tr>
+            <td align="center" style="padding:30px 0;background-color:#88171A;height:90px;color:#FFF;">
+                <div>
+                    <div style="text-transform:uppercase;margin-bottom:25px;font-weight:bold">
+                        {{festival.festival_name}} starts in:
+                    </div>
+                    <div class="small-hide" style="text-transform:uppercase">
+                        <table align="center" role="presentation"
+                               style="border-collapse:collapse;border:0;border-spacing:0;">
+                            <tr>
+                                <td align="center" style="padding: 0 20px;border-right:1px solid #B87476">
+                                    <div style="font-size:24px;font-weight:500">{{durationDays}}</div>
+                                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px">Days</div>
+                                </td>
+                                <td align="center" style="padding: 0 20px;border-right:1px solid #B87476">
+                                    <div style="font-size:24px;font-weight:500">{{durationHours}}</div>
+                                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px">Hours</div>
+                                </td>
+                                <td align="center" style="padding: 0 20px;border-right:1px solid #B87476">
+                                    <div style="font-size:24px;font-weight:500">{{durationMinutes}}</div>
+                                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px">Minutes
+                                    </div>
+                                </td>
+                                <td align="center" style="padding: 0 20px;border-right:1px solid #B87476">
+                                    <div style="font-size:24px;font-weight:500">{{durationSeconds}}</div>
+                                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px">Seconds
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="large-hide" style="text-transform:uppercase">
+                        <table align="center" role="presentation"
+                               style="border-collapse:collapse;border:0;border-spacing:0;">
+                            <tr>
+                                <td align="center" style="padding: 0 20px;border-right:1px solid #B87476">
+                                    <div style="font-size:18px;font-weight:500">{{durationDays}}</div>
+                                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px">Days</div>
+                                </td>
+                                <td align="center" style="padding: 0 20px">
+                                    <div style="font-size:18px;font-weight:500">{{durationHours}}</div>
+                                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px">Hours</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="padding: 10px 20px;border-right:1px solid #B87476">
+                                    <div style="font-size:18px;font-weight:500">{{durationMinutes}}</div>
+                                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px">Minutes
+                                    </div>
+                                </td>
+                                <td align="center" style="padding: 10px 20px;">
+                                    <div style="font-size:18px;font-weight:500">{{durationSeconds}}</div>
+                                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px">Seconds
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div style="text-align:center;margin-top:50px">
+                    <a href="{{siteBase}}" class="tastt-btn-white" rel="nofollow" target="_blank">
+                        Explore Your Passport
+                    </a>
+                </div>
+            </td>
+        </tr>
+    </table>
+{{/if}}
+
+<div class="container" style="margin-top: 0">
+    <table class="table-default" role="presentation">
+        <tr>
+            <td>
+
+                <span style="font-size:18px;font-weight:bold">Order #{{order.order_id}}</span><br/>
+                <small>{{orderDate}}</small>
+            </td>
+        </tr>
+    </table>
+
+    <table class="table-data" role="presentation" style="margin-top: 30px">
+        <thead>
+        <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each order.order_items}}
+            <tr>
+                <td>{{item_name}}</td>
+                <td align="center">{{quantity}}</td>
+                <td>${{price_before_tax}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+        <tfoot>
+        <tr class="pad">
+            <th>Order Total</th>
+            <th></th>
+            <th>${{order.total_amount_after_tax}}</th>
+        </tr>
+        </tfoot>
+        <tfoot>
+        <tr class="pad">
+            <th>Subtotal</th>
+            <th></th>
+            <th>${{order.total_amount_before_tax}}</th>
+        </tr>
+        <tr>
+            <th style="padding-bottom: 20px">HST 13%</th>
+            <th></th>
+            <th style="padding-bottom: 20px">${{order.total_tax}}</th>
+        </tr>
+        </tfoot>
+    </table>
 </div>
+
+

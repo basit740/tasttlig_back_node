@@ -1,5 +1,5 @@
 // Libraries
-const { Model } = require("objection");
+const {Model} = require("objection");
 
 class OrderItems extends Model {
   // Table name is the only required property.

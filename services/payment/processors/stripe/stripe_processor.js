@@ -3,18 +3,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET
 
-const getPaymentIntent = async (intentId) => {
-  try {
-    const intent = await stripe.paymentIntents.retrieve(
-      intentId
-    );
-    return {success: true, intent}
-  } catch (e) {
-    console.error(e)
-    return {success: false, message: e.message};
-  }
-}
-
 const chargePaymentIntent = async (intentId, paymentMethod = 'pm_card_visa') => {
   try {
     const intent = await stripe.paymentIntents.confirm(
@@ -126,7 +114,7 @@ class StripeProcessor {
 
   async complete(intentId) {
     try {
-      const {intent} = await getPaymentIntent(intentId);
+      const {intent} = await this.getPaymentIntent(intentId);
       return {success: true, intent};
     } catch (e) {
       console.error(e);
@@ -136,7 +124,7 @@ class StripeProcessor {
 
   async cancel(intentId) {
     try {
-      const {intent} = await getPaymentIntent(intentId);
+      const {intent} = await this.getPaymentIntent(intentId);
       if (intent.status !== "succeeded" && intent.status !== "canceled") {
         return cancelPaymentIntent(intentId);
       } else {
@@ -241,6 +229,18 @@ class StripeProcessor {
       return {success: true, subscription};
     } catch (e) {
       console.error(e);
+      return {success: false, message: e.message};
+    }
+  }
+
+  async getPaymentIntent(intentId) {
+    try {
+      const intent = await stripe.paymentIntents.retrieve(
+        intentId
+      );
+      return {success: true, intent}
+    } catch (e) {
+      console.error(e)
       return {success: false, message: e.message};
     }
   }

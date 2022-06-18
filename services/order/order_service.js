@@ -109,6 +109,7 @@ const createOrder = async (checkoutItems, user) => {
     orderItems.push({
       item_id: itemId,
       item_type: itemType,
+      item_name: item.details,
       quantity: parseInt(quantity),
       price_before_tax: parseFloat(item.amount) * parseInt(quantity)
     })

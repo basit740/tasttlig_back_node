@@ -34,6 +34,13 @@ router.post("/payments/charge-intent",
     return res.send(result);
   });
 
+router.post("/payments/cart/complete",
+  authenticateToken,
+  async (req, res) => {
+    const result = await paymentService.completeOrderById(req.body.orderId)
+    return res.send(result);
+  });
+
 router.post("/payments/cart/cancel",
   authenticateToken,
   async (req, res) => {

@@ -2,6 +2,8 @@ const {createOrder} = require("../order/order_service");
 const StripeProcessor = require("./processors/stripe/stripe_processor");
 const {Orders, Subscriptions, UserSubscriptions, Payments, UserRoles, Roles} = require("../../models");
 const {nodemailer_transporter: Mailer} = require("../email/nodemailer");
+const {retrieveOrderItem} = require("../order/order_item_retriever");
+const moment = require("moment");
 
 async function getOrder(orderId) {
   const order = await Orders
@@ -15,26 +17,38 @@ async function getOrder(orderId) {
 }
 
 async function sendOrderCompleteEmail(order) {
-  if (order.hasFestivalContentPurchases()) {
-    await sendFestivalContentPurchasedEmail(order);
-  }
-  if (order.hasFestivalPurchases()) {
-    await sendFestivalPurchasedEmail(order);
-  }
-}
+  const festivalOrderItem = order.getFestivalOrderItem();
+  const result = festivalOrderItem
+    ? await retrieveOrderItem(festivalOrderItem.item_type, festivalOrderItem.item_id)
+    : null;
 
-async function sendFestivalContentPurchasedEmail(order) {
+  let festival = null, duration = null;
+
+  if (result) {
+    festival = result.item;
+    const now = moment(new Date());
+    const festivalDate = moment(festival.festival_start_date);
+    duration = moment.duration(festivalDate.diff(now));
+  }
+
   await Mailer.sendMail({
     from: process.env.SES_DEFAULT_FROM,
     to: order.email,
-    subject: "[Tasttlig] Purchase Successful",
+    subject: "Purchase Successful",
     template: "order/order_complete",
-    context: {order},
+    context: {
+      order,
+      orderDate: moment(order.order_datetime).format("MM/DD/YY @ hh:mmA"),
+      durationDays: duration?.days(),
+      durationHours: duration?.hours(),
+      durationMinutes: duration?.minutes(),
+      durationSeconds: duration?.seconds(),
+      festival,
+      first_name: order.user.first_name,
+      layout: 'main-no-container',
+      siteBase: process.env.SITE_BASE
+    },
   });
-}
-
-async function sendFestivalPurchasedEmail(order) {
-// TODO: send email for festival purchased
 }
 
 async function sendSubscriptionActivatedEmail(subscription) {
@@ -79,33 +93,57 @@ const chargeIntent = async (intentId) => {
   return await new StripeProcessor().charge(intentId);
 }
 
-const completeOrder = async (intent) => {
-  const order = await Orders
-    .query()
-    .findOne({reference_id: intent.id})
-    .withGraphFetched("[order_items, user]");
+const completeOrderById = async (orderId) => {
+  const order = await Orders.query().findById(orderId);
 
-  if (order && order.status === Orders.Status.Pending) {
-    const {success, charge} = await new StripeProcessor().getCharge(intent.charges.data[0].id);
-    if (success && charge.paid) {
-      await Payments.query().insert({
-        order_id: order.order_id,
-        reference_id: charge.id,
-        amount: charge.amount_captured / 100,
-        vendor: 'stripe',
-        used: true,
-        payment_method: charge.payment_method_details
-          ? charge.payment_method_details.type
-          : 'n/a',
-      });
-    }
-
-    await order.$query().update({status: Orders.Status.Complete});
-    await sendOrderCompleteEmail(order);
-    return {success: true}
+  if (!order) {
+    throw {status: 404, message: 'Order not found'};
   }
 
-  return {success: false};
+  if (order.status === Orders.Status.Canceled) {
+    throw {status: 400, message: `Order is in an invalid status: ${order.status}`};
+  }
+
+  if (order.status === Orders.Status.Complete) {
+    return {success: true};
+  }
+
+  const {intent} = await new StripeProcessor().getPaymentIntent(order.reference_id);
+  return completeOrder(intent);
+}
+
+const completeOrder = async (intent) => {
+  return Orders.transaction(async (trx) => {
+    await trx.raw('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+
+    const order = await Orders
+      .query(trx)
+      .findOne({reference_id: intent.id})
+      .withGraphFetched("[order_items, user]");
+
+    if (order && order.status === Orders.Status.Pending) {
+      const {success, charge} = await new StripeProcessor().getCharge(intent.charges.data[0].id);
+      if (success && charge.paid) {
+        await Payments.query(trx).insert({
+          order_id: order.order_id,
+          reference_id: charge.id,
+          amount: charge.amount_captured / 100,
+          vendor: 'stripe',
+          used: true,
+          payment_method: charge.payment_method_details
+            ? charge.payment_method_details.type
+            : 'n/a',
+        });
+      }
+
+      await order.$query(trx).update({status: Orders.Status.Complete});
+      await sendOrderCompleteEmail(order);
+      throw {status: 400, message: 'ww'};
+      return {success: true}
+    }
+
+    return {success: false};
+  })
 }
 
 const cancelOrder = async (orderId) => {
@@ -243,6 +281,7 @@ module.exports = {
   charge,
   chargeIntent,
   completeOrder,
+  completeOrderById,
   cancelOrder,
   processWebhook
 }
