@@ -574,11 +574,14 @@ authRouter.post(
         // transaction for claim business
         return await db.transaction(async trx => {
           const user_response = await authenticate_user_service.userRegister(user, true, trx);
+          if (!user_response.success) {
+            return res.status(400).json({success: false, message: user_response.data});
+          }
           businessDto.business_details_user_id = user_response.data.tasttlig_user_id;
           const response = await user_profile_service.updateUserBusinessProfile(businessDto, trx);
           const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
           if (saveHost.success) {
-            res.status(200).send(saveHost);
+            return res.status(200).send(saveHost);
           } else {
             return res.status(401).json({
               success: false,
@@ -597,11 +600,14 @@ authRouter.post(
       // transaction for create business
       return await db.transaction(async trx => {
         const user_response = await authenticate_user_service.userRegister(user, true, trx);
+        if (!user_response.success) {
+          return res.status(400).json({success: false, message: user_response.data});
+        }
         businessDto.business_details_user_id = user_response.data.tasttlig_user_id;
         const business_response = await business_service.postBusinessPassportDetails(businessDto, trx);
         const saveHost = await user_profile_service.saveHostApplication(hostDto, user_response.data, trx);
         if (saveHost.success) {
-          res.status(200).send(saveHost);
+          return res.status(200).send(saveHost);
         } else {
           return res.status(401).json({
             success: false,

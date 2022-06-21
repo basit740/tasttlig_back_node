@@ -104,7 +104,10 @@ const userRegister = async (new_user, sendEmail = true, trx = null) => {
     });
   } catch (error) {
     console.log(error);
-    return {success: false, data: error.message};
+    const message = error.code === "23505"
+      ? "User with email already exists"
+      : error.message
+    return {success: false, data: message};
   }
 };
 
