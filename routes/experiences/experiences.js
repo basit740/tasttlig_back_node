@@ -70,7 +70,10 @@ router.post(
         experience_province: req.body.province,
         experience_city: req.body.city,
         experience_address_1: req.body.address_1,
-        experience_address_2: req.body.address_2
+        experience_address_2: req.body.address_2,
+        experience_theme: req.body.theme,
+        experience_rule: req.body.rule,
+        experience_business_list: req.body.business_list,
       };
       
       const response = await experience_service.createNewExperience(
@@ -79,15 +82,15 @@ router.post(
         req.body.experience_images,
       );
       res.send(response);
-      if (response.success) {
-        // update the promote status to INACTIVE
+      // if (response.success) {
+      //   // update the promote status to INACTIVE
 
-        await business_service.updateBusinessPromoUsed(
-          req.body.business_id, db_festival.details[0].festival_id, req.body.experience_offering_type[0]
-        );
+      //   await business_service.updateBusinessPromoUsed(
+      //     req.body.business_id, db_festival.details[0].festival_id, req.body.experience_offering_type[0]
+      //   );
 
 
-      }
+      // }
 
       return {
         success: true,
