@@ -299,9 +299,9 @@ const updatePassword = async (email, password) => {
 // Update password from user helper function
 const updatePasswordFromToken = async (email, password, token) => {
   const encrypted = jwt.verify(token, process.env.EMAIL_SECRET);
-  const {user_id, first_name} = encrypted;
+  const {user, first_name} = encrypted;
   const success = await User.query()
-    .findById(user_id)
+    .findById(user)
     .patch({password_digest: password});
 
   if (success) {
