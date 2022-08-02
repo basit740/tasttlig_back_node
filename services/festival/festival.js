@@ -23,7 +23,8 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
     .select(
       "festivals.*",
       db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls"),
-      db.raw("ARRAY_AGG(festival_business_lists.list_file_location) as business_list")
+      db.raw("ARRAY_AGG(festival_business_lists.list_file_location) as business_list"),
+      "neighbourhood.neighbourhood_name"
     )
     .from("festivals")
     .leftJoin(
@@ -36,9 +37,15 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
       "festivals.festival_id",
       "festival_business_lists.list_festival_id"
     )
+    .leftJoin(
+      "neighbourhood",
+      "festivals.festival_neighbourhood_id",
+      "neighbourhood.neighbourhood_id"
+    )
     .where("festivals.festival_id", ">", 3)
     .where("festivals.festival_end_date", ">=", new Date())
     .groupBy("festivals.festival_id")
+    .groupBy("neighbourhood.neighbourhood_id")
     .orderBy("festival_start_date");
 
   // if (filters.nationalities && filters.nationalities.length) {
@@ -46,8 +53,8 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
   // }
 
   if (filters.startDate) {
-    query.where("festivals.festival_end_date", ">=", startDate);
-    // .where("festivals.festival_start_date", ">=", startDate);
+    query.where("festivals.festival_end_date", ">=", startDate)
+    .andWhere("festivals.festival_start_date", "<=", startDate);
   }
 
   if (filters.startTime) {
@@ -56,6 +63,10 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
 
   if (filters.cityLocation) {
     query.where("festivals.festival_city", "=", filters.cityLocation);
+  }
+
+  if (filters.neighbourhood) {
+    query.where("neighbourhood.neighbourhood_name", "=", filters.neighbourhood);
   }
 
   if (filters.category) {
@@ -402,7 +413,9 @@ const getThreeFestivals = async (currentPage, keyword, filters) => {
 const getFestivalList = async () => {
   return await db
     .select("festivals.*" ,
-    db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls"))
+    "neighbourhood.neighbourhood_name",
+    db.raw("ARRAY_AGG(festival_images.festival_image_url) as image_urls"),
+    )
     .from("festivals")
     .where("festivals.festival_id", ">", 3)
     .where("festivals.festival_end_date", ">=", new Date())
@@ -411,7 +424,13 @@ const getFestivalList = async () => {
       "festivals.festival_id",
       "festival_images.festival_id"
     )
+    .leftJoin(
+      "neighbourhood",
+      "festivals.festival_neighbourhood_id",
+      "neighbourhood.neighbourhood_id"
+    )
     .groupBy("festivals.festival_id")
+    .groupBy("neighbourhood.neighbourhood_id")
     .then((value) => {
       value.map((festival) => {
         delete festival.promo_code;

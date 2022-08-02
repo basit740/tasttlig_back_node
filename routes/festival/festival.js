@@ -40,6 +40,7 @@ router.get("/festival/all", async (req, res) => {
       startDate: req.query.startDate,
       startTime: new Date(req.query.startTime).getTime(),
       cityLocation: req.query.cityLocation,
+      neighbourhood: req.query.neighbourhood,
       radius: req.query.radius,
       latitude: req.query.latitude,
       longitude: req.query.longitude,
@@ -47,6 +48,7 @@ router.get("/festival/all", async (req, res) => {
       category: req.query.category,
       subCategory: req.query.subCategory,
       isActive: req.query.isActive
+
     };
 
     const response = await festival_service.getAllFestivals(current_page, keyword, filters);
