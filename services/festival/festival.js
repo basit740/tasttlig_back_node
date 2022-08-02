@@ -10,11 +10,11 @@ const twilio = require("twilio");
 
 // Get all festivals helper function
 const getAllFestivals = async (currentPage, keyword, filters) => {
-  let startDate;
+  let date;
   let startTime;
 
-  if (filters.startDate) {
-    startDate = filters.startDate.substring(0, 10);
+  if (filters.date) {
+    date = filters.date.substring(0, 10);
   }
   if (filters.startTime) {
     startTime = formatTime(filters.startTime);
@@ -52,9 +52,9 @@ const getAllFestivals = async (currentPage, keyword, filters) => {
   //   query.whereIn("nationalities.nationality", filters.nationalities);
   // }
 
-  if (filters.startDate) {
-    query.where("festivals.festival_end_date", ">=", startDate)
-    .andWhere("festivals.festival_start_date", "<=", startDate);
+  if (filters.date) {
+    query.where("festivals.festival_end_date", ">=", date)
+    .andWhere("festivals.festival_start_date", "<=", date);
   }
 
   if (filters.startTime) {
