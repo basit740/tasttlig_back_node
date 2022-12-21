@@ -31,21 +31,7 @@ const paymentIntent = async (order_details, vendor_festivals, email) => {
 
     const total_tax = Math.round(total_amount_before_tax * 13) / 100;
     const total_amount_after_tax = total_amount_before_tax + total_tax;
-    // const customer = await stripe.customers.create({
-    //   email: email
-    // });
-    // const bankAccount = await stripe.customers.createSource(
-    //   customer.id,
-    //   {source: {
-    //     object: "bank_account",
-    //     account_holder_name: 'Jenny Rosen',
-    //     account_holder_type: 'individual',
-    //     country: "US",
-    //     currency: "usd",
-    //     account_number: "000123456789",
-    //     routing_number: "110000000",
-    //   }}
-    // );
+
 
     const payment = await stripe.paymentIntents.create({
       // customer: customer.id,
