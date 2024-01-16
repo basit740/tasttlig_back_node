@@ -26,5 +26,19 @@
             "http://localhost:8000"
         ],
         "ExposeHeaders": []
+    },
+    {
+        "AllowedHeaders": [
+            "*"
+        ],
+        "AllowedMethods": [
+            "GET",
+            "POST",
+            "PUT"
+        ],
+        "AllowedOrigins": [
+            "http://localhost:5173"
+        ],
+        "ExposeHeaders": []
     }
 ]
