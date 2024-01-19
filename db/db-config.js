@@ -1,6 +1,6 @@
 const environment = process.env.NODE_ENV;
-const supabaseEnv = 'testSupabase';
-const config = require('../knexfile')['development'];
+// const supabaseEnv = 'testSupabase';
+const config = require('../knexfile')[environment];
 const knexPostgis = require('knex-postgis');
 const { Model } = require('objection');
 
